@@ -176,4 +176,94 @@ rnsp/
     │   │   │   ├── EnterResultPage.jsx
     │   │   │   ├── LiveMatchPage.jsx
     │   │   │   ├── LineupsPage.jsx
-    │   │   │   ├── StandingsPage.jsx
+    │   │   │   ├── StandingsPage.jsx
+    │   │   │   ├── TeamsPage.jsx
+    │   │   │   ├── ViewTeamPage.jsx
+    │   │   │   ├── PlayersPage.jsx
+    │   │   │   ├── DocumentsPage.jsx
+    │   │   │   ├── RegistrationsPage.jsx
+    │   │   │   ├── TransfersPage.jsx
+    │   │   │   ├── NewsPage.jsx
+    │   │   │   ├── ContactsPage.jsx
+    │   │   │   ├── PagesPage.jsx
+    │   │   │   ├── UsersPage.jsx
+    │   │   │   ├── FederationsPage.jsx
+    │   │   │   ├── VenuesPage.jsx
+    │   │   │   ├── SettingsPage.jsx
+    │   │   │   ├── ActivityPage.jsx
+    │   │   │   └── Akc3DashboardPage.jsx
+    │   │   ├── team/
+    │   │   │   ├── TeamDashboard.jsx
+    │   │   │   ├── TeamProfile.jsx
+    │   │   │   ├── TeamPlayers.jsx
+    │   │   │   ├── TeamDocuments.jsx
+    │   │   │   ├── TeamLeagues.jsx
+    │   │   │   └── TeamFixtures.jsx
+    │   │   └── akc3/
+    │   │       ├── Akc3HomePage.jsx
+    │   │       ├── SchoolsPage.jsx
+    │   │       ├── Akc3FixturesPage.jsx
+    │   │       ├── Akc3ResultsPage.jsx
+    │   │       ├── Akc3StandingsPage.jsx
+    │   │       ├── AnnouncementsPage.jsx
+    │   │       └── admin/ (full AKC3 admin pages)
+    │   ├── store/
+    │   │   ├── authStore.js     # Zustand — user, token, role
+    │   │   ├── themeStore.js    # Zustand — dark/light
+    │   │   └── liveStore.js     # Zustand — live match state from Socket.IO
+    │   ├── hooks/
+    │   │   ├── useAuth.js
+    │   │   ├── useLiveMatch.js  # Socket.IO subscription
+    │   │   ├── useDebounce.js
+    │   │   └── usePagination.js
+    │   ├── utils/
+    │   │   ├── formatDate.js
+    │   │   ├── scoreDisplay.js
+    │   │   └── statusBadge.js
+    │   ├── App.jsx              # Router + layout wrapper
+    │   └── main.jsx
+    ├── index.html
+    ├── tailwind.config.js
+    └── vite.config.js
+```
+
+---
+
+## 🗄️ DATABASE SCHEMA (Prisma)
+
+```prisma
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── SETTINGS ────────────────────────────────────────────────────
+model Setting {
+  id    Int    @id @default(autoincrement())
+  skey  String @unique @db.VarChar(100)
+  sval  String? @db.Text
+  label String? @db.VarChar(200)
+  grp   String  @default("general") @db.VarChar(80)
+  // Groups: branding | homepage | contact | social | footer
+}
+
+// ─── USERS ───────────────────────────────────────────────────────
+model User {
+  id          Int      @id @default(autoincrement())
+  username    String   @unique @db.VarChar(80)
+  password    String   @db.VarChar(255)    // bcrypt hash
+  fullName    String   @db.VarChar(200)
+  email       String?  @unique @db.VarChar(200)
+  phone       String?  @db.VarChar(50)
+  role        Role     @default(PUBLIC)
+  active      Boolean  @default(true)
+  verified    Boolean  @default(false)
+  avatar      String?  @db.VarChar(300)
+  lastLogin   DateTime?
+  createdAt   DateTime @default(now())
