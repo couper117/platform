@@ -87,4 +87,93 @@ rnsp/
 │   │   │   ├── venues.routes.js
 │   │   │   ├── federations.routes.js
 │   │   │   ├── users.routes.js
-│   │   │   ├── settings.routes.js
+│   │   │   ├── settings.routes.js
+│   │   │   ├── contacts.routes.js
+│   │   │   ├── activity.routes.js
+│   │   │   └── akc3/
+│   │   │       ├── schools.routes.js
+│   │   │       ├── akc3Teams.routes.js
+│   │   │       ├── akc3Players.routes.js
+│   │   │       ├── competitions.routes.js
+│   │   │       ├── akc3Fixtures.routes.js
+│   │   │       ├── akc3Standings.routes.js
+│   │   │       └── announcements.routes.js
+│   │   ├── controllers/         # One controller per route file
+│   │   ├── services/            # Business logic layer
+│   │   │   ├── standings.service.js   # Auto-recalculate standings
+│   │   │   ├── liveMatch.service.js   # Socket.IO live events
+│   │   │   └── document.service.js    # Secure document handling
+│   │   ├── utils/
+│   │   │   ├── slugify.js
+│   │   │   ├── paginate.js
+│   │   │   ├── jwt.js
+│   │   │   └── sendMail.js
+│   │   └── app.js               # Express app setup
+│   ├── prisma/
+│   │   ├── schema.prisma        # Full schema (see below)
+│   │   └── seed.js              # Seed file with sample data
+│   └── server.js                # Entry point
+│
+└── frontend/
+    ├── src/
+    │   ├── api/
+    │   │   ├── client.js        # Axios instance (interceptors, refresh token)
+    │   │   └── endpoints/       # One file per domain
+    │   ├── components/
+    │   │   ├── ui/              # shadcn/ui base components
+    │   │   ├── layout/
+    │   │   │   ├── PublicLayout.jsx
+    │   │   │   ├── AdminLayout.jsx
+    │   │   │   └── TeamLayout.jsx
+    │   │   ├── shared/
+    │   │   │   ├── FixtureCard.jsx
+    │   │   │   ├── LeagueCard.jsx
+    │   │   │   ├── StandingsTable.jsx
+    │   │   │   ├── PlayerCard.jsx
+    │   │   │   ├── NewsCard.jsx
+    │   │   │   ├── LiveBadge.jsx
+    │   │   │   ├── SportChip.jsx
+    │   │   │   ├── StatusBadge.jsx
+    │   │   │   ├── FilterBar.jsx
+    │   │   │   ├── Skeleton.jsx
+    │   │   │   ├── Pagination.jsx
+    │   │   │   └── FormField.jsx
+    │   │   ├── home/
+    │   │   │   ├── Hero.jsx
+    │   │   │   ├── LiveScoreBoard.jsx
+    │   │   │   ├── QuickAccessGrid.jsx
+    │   │   │   ├── FeaturedMatch.jsx
+    │   │   │   └── StatsBanner.jsx
+    │   │   ├── admin/
+    │   │   │   ├── Sidebar.jsx
+    │   │   │   ├── Topbar.jsx
+    │   │   │   ├── StatCard.jsx
+    │   │   │   ├── DataTable.jsx
+    │   │   │   ├── DocumentViewer.jsx
+    │   │   │   ├── LiveMatchPanel.jsx
+    │   │   │   └── LineupEditor.jsx
+    │   │   └── akc3/            # AKC3 specific components
+    │   ├── pages/
+    │   │   ├── public/
+    │   │   │   ├── HomePage.jsx
+    │   │   │   ├── SportsPage.jsx
+    │   │   │   ├── LeaguesPage.jsx
+    │   │   │   ├── LeagueDetailPage.jsx
+    │   │   │   ├── FixturesPage.jsx
+    │   │   │   ├── ResultsPage.jsx
+    │   │   │   ├── MatchPage.jsx
+    │   │   │   ├── NewsPage.jsx
+    │   │   │   ├── NewsArticlePage.jsx
+    │   │   │   └── ContactPage.jsx
+    │   │   ├── auth/
+    │   │   │   ├── LoginPage.jsx
+    │   │   │   └── TeamRegisterPage.jsx
+    │   │   ├── admin/
+    │   │   │   ├── DashboardPage.jsx
+    │   │   │   ├── SportsPage.jsx
+    │   │   │   ├── LeaguesPage.jsx
+    │   │   │   ├── FixturesPage.jsx
+    │   │   │   ├── EnterResultPage.jsx
+    │   │   │   ├── LiveMatchPage.jsx
+    │   │   │   ├── LineupsPage.jsx
+    │   │   │   ├── StandingsPage.jsx
