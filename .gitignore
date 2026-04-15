@@ -16,4 +16,22 @@ yarn-debug.log*
 yarn-error.log*
 activity.log
 
-# Build outputs
+# Build outputs
+dist/
+build/
+.vercel
+
+# Editor/OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
+
+# Database
+/api/prisma/*.db
+/api/prisma/*.db-journal
+
+# Sharp/Image processing
+/api/uploads/*
+!/api/uploads/.gitkeep
