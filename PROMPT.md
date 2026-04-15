@@ -266,4 +266,93 @@ model User {
   verified    Boolean  @default(false)
   avatar      String?  @db.VarChar(300)
   lastLogin   DateTime?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  // Relations
+  managedTeam Team?         @relation("TeamManager")
+  newsArticles News[]
+  activityLogs ActivityLog[]
+  refreshTokens RefreshToken[]
+}
+
+enum Role {
+  SUPERADMIN
+  LEAGUE_ADMIN
+  TEAM_MANAGER
+  PUBLIC
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique @db.VarChar(512)
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+// ─── SPORTS ──────────────────────────────────────────────────────
+model Sport {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(150)
+  slug        String?  @db.VarChar(170)
+  icon        String   @default("🏅") @db.VarChar(10)
+  description String?  @db.Text
+  coverImage  String?  @db.VarChar(300)
+  category    SportCategory @default(OTHER)
+  sortOrder   Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  leagues     League[]
+  teams       Team[]
+  federations Federation[]
+}
+
+enum SportCategory {
+  FIELD
+  COURT
+  TRACK
+  WATER
+  COMBAT
+  RACKET
+  OTHER
+}
+
+// ─── FEDERATIONS ─────────────────────────────────────────────────
+model Federation {
+  id           Int      @id @default(autoincrement())
+  name         String   @db.VarChar(200)
+  abbreviation String?  @db.VarChar(20)
+  sportId      Int?
+  sport        Sport?   @relation(fields: [sportId], references: [id], onDelete: SetNull)
+  logo         String?  @db.VarChar(300)
+  description  String?  @db.Text
+  website      String?  @db.VarChar(300)
+  email        String?  @db.VarChar(200)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  leagues      League[]
+}
+
+// ─── LEAGUES ─────────────────────────────────────────────────────
+model League {
+  id            Int      @id @default(autoincrement())
+  name          String   @db.VarChar(200)
+  slug          String?  @db.VarChar(220)
+  sportId       Int
+  sport         Sport    @relation(fields: [sportId], references: [id])
+  federationId  Int?
+  federation    Federation? @relation(fields: [federationId], references: [id], onDelete: SetNull)
+  season        String   @default("2025/2026") @db.VarChar(50)
+  gender        Gender   @default(MALE)
+  ageCategory   AgeCategory @default(SENIOR)
+  level         CompLevel @default(NATIONAL)
+  format        LeagueFormat @default(LEAGUE)
+  status        LeagueStatus @default(UPCOMING)
+  maxTeams      Int      @default(16)
+  description   String?  @db.Text
+  startDate     DateTime?
+  endDate       DateTime?
+  adminUserId   Int?
