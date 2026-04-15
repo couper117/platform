@@ -355,4 +355,93 @@ model League {
   description   String?  @db.Text
   startDate     DateTime?
   endDate       DateTime?
-  adminUserId   Int?
+  adminUserId   Int?
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  teams         LeagueTeam[]
+  fixtures      Fixture[]
+  standings     Standing[]
+  topScorers    TopScorer[]
+  competitions  Competition[]
+  registrations TeamRegistration[]
+  news          News[]
+  admins        LeagueAdmin[]
+}
+
+enum Gender      { MALE; FEMALE; MIXED; DISABLED }
+enum AgeCategory { SENIOR; U20; U17; U15; U13; JUNIOR; VETERAN; ALL }
+enum CompLevel   { NATIONAL; REGIONAL; DISTRICT; SCHOOL }
+enum LeagueFormat{ LEAGUE; KNOCKOUT; GROUP_KNOCKOUT; ROUND_ROBIN }
+enum LeagueStatus{ UPCOMING; ACTIVE; COMPLETED; SUSPENDED }
+
+model LeagueAdmin {
+  id         Int      @id @default(autoincrement())
+  leagueId   Int
+  league     League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  userId     Int
+  assignedAt DateTime @default(now())
+}
+
+// ─── TEAMS ───────────────────────────────────────────────────────
+model Team {
+  id             Int      @id @default(autoincrement())
+  name           String   @db.VarChar(200)
+  shortName      String?  @db.VarChar(10)
+  slug           String?  @db.VarChar(220)
+  sportId        Int?
+  sport          Sport?   @relation(fields: [sportId], references: [id], onDelete: SetNull)
+  logo           String?  @db.VarChar(300)
+  jerseyHome     String?  @db.VarChar(10)
+  jerseyAway     String?  @db.VarChar(10)
+  foundedYear    Int?
+  homeVenue      String?  @db.VarChar(300)
+  city           String?  @db.VarChar(150)
+  province       String?  @db.VarChar(100)
+  description    String?  @db.Text
+  email          String?  @db.VarChar(200)
+  phone          String?  @db.VarChar(50)
+  website        String?  @db.VarChar(300)
+  managerUserId  Int?     @unique
+  managerUser    User?    @relation("TeamManager", fields: [managerUserId], references: [id], onDelete: SetNull)
+  status         TeamStatus @default(PENDING)
+  verifiedAt     DateTime?
+  verifiedBy     Int?
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  leagues        LeagueTeam[]
+  players        Player[]
+  homeFixtures   Fixture[]   @relation("HomeTeam")
+  awayFixtures   Fixture[]   @relation("AwayTeam")
+  standings      Standing[]
+  topScorers     TopScorer[]
+  registrations  TeamRegistration[]
+  transfersFrom  Transfer[]  @relation("TransferFrom")
+  transfersTo    Transfer[]  @relation("TransferTo")
+}
+
+enum TeamStatus { PENDING; VERIFIED; SUSPENDED; REJECTED }
+
+model LeagueTeam {
+  id        Int      @id @default(autoincrement())
+  leagueId  Int
+  league    League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  teamId    Int
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  joinedAt  DateTime @default(now())
+
+  @@unique([leagueId, teamId])
+}
+
+// ─── PLAYERS ─────────────────────────────────────────────────────
+model Player {
+  id            Int      @id @default(autoincrement())
+  teamId        Int
+  team          Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  fullName      String   @db.VarChar(200)
+  photo         String?  @db.VarChar(300)
+  dateOfBirth   DateTime? @db.Date
+  nationality   String   @default("Rwandan") @db.VarChar(100)
+  position      String?  @db.VarChar(100)
+  jerseyNumber  Int?     @db.SmallInt
