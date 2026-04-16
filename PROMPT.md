@@ -891,4 +891,94 @@ PUT    /change-password        Body: {currentPassword, newPassword}
 POST   /team/register          Public team manager registration
        Body: {username, password, fullName, email, phone, teamName, sportId, city, province}
        Creates User(TEAM_MANAGER) + Team(PENDING) atomically
-```
+```
+
+### Settings — `/api/v1/settings`
+```
+GET    /                       Public: returns all published settings as {key:value} map
+PUT    /                       SUPERADMIN: bulk update settings
+       Body: [{skey, sval}]
+```
+
+### Sports — `/api/v1/sports`
+```
+GET    /                       Public: all active sports with league count, team count
+GET    /:slug                  Public: sport detail + leagues list
+POST   /                       SUPERADMIN: create sport
+       Body: {name, icon, description, category, sortOrder, coverImage(file)}
+PUT    /:id                    SUPERADMIN: update sport
+DELETE /:id                    SUPERADMIN: soft delete (active=false)
+```
+
+### Federations — `/api/v1/federations`
+```
+GET    /                       Public: all active federations
+POST   /                       SUPERADMIN: create
+PUT    /:id                    SUPERADMIN: update
+DELETE /:id                    SUPERADMIN: delete
+```
+
+### Leagues — `/api/v1/leagues`
+```
+GET    /                       Public: all active leagues
+                               Query: ?sportId=&gender=&level=&status=&page=&limit=
+GET    /:id                    Public: league detail
+GET    /:id/standings          Public: full standings table
+GET    /:id/fixtures           Public: fixtures (upcoming + live)
+                               Query: ?matchday=&status=
+GET    /:id/results            Public: completed matches
+GET    /:id/top-scorers        Public: top scorer list
+GET    /:id/teams              Public: teams in league
+POST   /                       SUPERADMIN | LEAGUE_ADMIN: create league
+PUT    /:id                    SUPERADMIN | LEAGUE_ADMIN: update league
+DELETE /:id                    SUPERADMIN: delete
+POST   /:id/teams/:teamId      SUPERADMIN: add team to league
+DELETE /:id/teams/:teamId      SUPERADMIN: remove team from league
+```
+
+### Teams — `/api/v1/teams`
+```
+GET    /                       Public: list all active teams
+                               Query: ?sportId=&status=&province=&page=
+GET    /:id                    Public: team detail + players + leagues + recent fixtures
+POST   /                       SUPERADMIN: admin-create team
+PUT    /:id                    SUPERADMIN | own TEAM_MANAGER: update team
+                               Multipart: includes logo file upload
+PUT    /:id/status             SUPERADMIN: approve/reject/suspend team
+                               Body: {status: "verified"|"rejected"|"suspended"}
+```
+
+### Players — `/api/v1/players`
+```
+GET    /                       Admin: list all players
+                               Query: ?teamId=&status=&page=
+GET    /:id                    Public: player profile
+POST   /                       TEAM_MANAGER | SUPERADMIN: add player to team
+       Multipart: photo file + JSON body {fullName, dateOfBirth, nationality, position, jerseyNumber, gender}
+PUT    /:id                    TEAM_MANAGER (own team) | SUPERADMIN: update player
+PUT    /:id/status             SUPERADMIN: verify/reject player
+       Body: {status: "verified"|"rejected"}
+DELETE /:id                    SUPERADMIN: soft delete
+```
+
+### Player Documents — `/api/v1/documents`
+```
+GET    /                       SUPERADMIN | LEAGUE_ADMIN: list all documents
+                               Query: ?status=&playerId=&teamId=&page=
+GET    /:id/view               Admin: view document (streams file securely, no path exposed)
+GET    /:id/download           Admin: download document as attachment
+POST   /upload                 TEAM_MANAGER: upload document for a player
+       Multipart: file + JSON {playerId, docType}
+       Accepts: jpg, jpeg, png, pdf, webp (max 8MB)
+       Stores with hashed filename in /uploads/documents/ (not web-accessible directly)
+PUT    /:id/review             SUPERADMIN | LEAGUE_ADMIN: approve or reject document
+       Body: {status: "approved"|"rejected", reviewNote?}
+       AUTO-LOGIC: if player has Birth Certificate + Passport + National ID all approved
+                   → automatically set player.status = "verified"
+```
+
+### Fixtures — `/api/v1/fixtures`
+```
+GET    /                       Public: list fixtures
+                               Query: ?leagueId=&sportId=&status=&from=&to=&page=
+GET    /:id                    Public: fixture detail with events, lineups, live state
