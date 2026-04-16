@@ -802,4 +802,93 @@ enum AkcIdType { NATIONAL_ID; BIRTH_CERT; PASSPORT }
 model AkcCompetition {
   id           Int      @id @default(autoincrement())
   name         String   @db.VarChar(200)
-  edition      String?  @db.VarChar(50)
+  edition      String?  @db.VarChar(50)
+  sportId      Int?
+  gender       String   @default("mixed")
+  ageCategory  String   @default("Open")
+  level        AkcLevel @default(NATIONAL)
+  startDate    DateTime? @db.Date
+  endDate      DateTime? @db.Date
+  venue        String?  @db.VarChar(200)
+  status       AkcCompStatus @default(UPCOMING)
+  description  String?  @db.Text
+  createdAt    DateTime @default(now())
+
+  fixtures     AkcFixture[]
+  standings    AkcStanding[]
+}
+
+enum AkcCompStatus { UPCOMING; ONGOING; COMPLETED; CANCELLED }
+
+model AkcFixture {
+  id            Int      @id @default(autoincrement())
+  competitionId Int?
+  competition   AkcCompetition? @relation(fields: [competitionId], references: [id], onDelete: SetNull)
+  homeTeamId    Int
+  homeTeam      AkcTeam  @relation("AkcHome", fields: [homeTeamId], references: [id])
+  awayTeamId    Int
+  awayTeam      AkcTeam  @relation("AkcAway", fields: [awayTeamId], references: [id])
+  matchDate     DateTime?
+  venue         String?  @db.VarChar(200)
+  round         String?  @db.VarChar(100)
+  stage         AkcStage @default(GROUP)
+  status        AkcFixtureStatus @default(SCHEDULED)
+  homeScore     Int?
+  awayScore     Int?
+  winnerTeamId  Int?
+  isDraw        Boolean  @default(false)
+  notes         String?  @db.Text
+  createdAt     DateTime @default(now())
+}
+
+enum AkcStage { GROUP; ROUND16; QUARTERFINAL; SEMIFINAL; FINAL; THIRD_PLACE }
+enum AkcFixtureStatus { SCHEDULED; ONGOING; COMPLETED; POSTPONED; CANCELLED }
+
+model AkcStanding {
+  id            Int    @id @default(autoincrement())
+  competitionId Int
+  competition   AkcCompetition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  teamId        Int
+  team          AkcTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  played        Int    @default(0)
+  won           Int    @default(0)
+  drawn         Int    @default(0)
+  lost          Int    @default(0)
+  gf            Int    @default(0)
+  ga            Int    @default(0)
+  points        Int    @default(0)
+  updatedAt     DateTime @updatedAt
+
+  @@unique([competitionId, teamId])
+}
+
+model AkcAnnouncement {
+  id         Int      @id @default(autoincrement())
+  title      String   @db.VarChar(300)
+  body       String   @db.Text
+  category   AkcAnnouncementCategory @default(GENERAL)
+  published  Boolean  @default(true)
+  pinned     Boolean  @default(false)
+  authorId   Int?
+  createdAt  DateTime @default(now())
+}
+
+enum AkcAnnouncementCategory { GENERAL; REGISTRATION; COMPETITION; RESULTS; URGENT }
+```
+
+---
+
+## 🔌 API ENDPOINTS
+
+### Authentication — `/api/v1/auth`
+```
+POST   /login                  Body: {username, password}
+                               Returns: {accessToken, user} + sets refreshToken cookie
+POST   /logout                 Clears refresh token cookie
+POST   /refresh                Reads refreshToken cookie, returns new accessToken
+GET    /me                     Returns current authenticated user profile
+PUT    /change-password        Body: {currentPassword, newPassword}
+POST   /team/register          Public team manager registration
+       Body: {username, password, fullName, email, phone, teamName, sportId, city, province}
+       Creates User(TEAM_MANAGER) + Team(PENDING) atomically
+```
