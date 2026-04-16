@@ -713,4 +713,93 @@ model Page {
 }
 
 // ─── ACTIVITY LOG ─────────────────────────────────────────────────
-model ActivityLog {
+model ActivityLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String   @db.VarChar(200)
+  detail    String?  @db.Text
+  module    String?  @db.VarChar(80)
+  ip        String?  @db.VarChar(50)
+  createdAt DateTime @default(now())
+}
+
+// ─────────────────────────────────────────────────────────────────
+// AKC3 — AMASHURI KAGAME CUP (separate but related module)
+// Uses same database, prefixed with "Akc" in Prisma
+// ─────────────────────────────────────────────────────────────────
+
+model AkcSchool {
+  id           Int      @id @default(autoincrement())
+  name         String   @db.VarChar(200)
+  shortName    String?  @db.VarChar(50)
+  code         String?  @db.VarChar(50)
+  category     SchoolCategory @default(SECONDARY)
+  provinceId   Int?
+  districtId   Int?
+  sector       String?  @db.VarChar(100)
+  address      String?  @db.Text
+  headTeacher  String?  @db.VarChar(200)
+  coordinator  String?  @db.VarChar(200)
+  coordPhone   String?  @db.VarChar(50)
+  coordEmail   String?  @db.VarChar(200)
+  phone        String?  @db.VarChar(50)
+  email        String?  @db.VarChar(200)
+  logo         String?  @db.VarChar(300)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  teams        AkcTeam[]
+}
+
+enum SchoolCategory { SECONDARY; TVET; PRIMARY }
+
+model AkcTeam {
+  id           Int      @id @default(autoincrement())
+  schoolId     Int
+  school       AkcSchool @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  sportId      Int      // references Sports table
+  gender       AkcGender @default(MALE)
+  ageCategory  AkcAgeCategory @default(U17)
+  level        AkcLevel @default(NATIONAL)
+  coachName    String?  @db.VarChar(200)
+  coachPhone   String?  @db.VarChar(50)
+  isInclusive  Boolean  @default(false)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  players      AkcPlayer[]
+  homeFixtures AkcFixture[] @relation("AkcHome")
+  awayFixtures AkcFixture[] @relation("AkcAway")
+  standings    AkcStanding[]
+}
+
+enum AkcGender      { MALE; FEMALE; MIXED; INCLUSIVE }
+enum AkcAgeCategory { U13; U15; U17; U20; OPEN }
+enum AkcLevel       { CELL; SECTOR; DISTRICT; PROVINCE; NATIONAL }
+
+model AkcPlayer {
+  id           Int      @id @default(autoincrement())
+  teamId       Int
+  team         AkcTeam  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  fullName     String   @db.VarChar(200)
+  dob          DateTime? @db.Date
+  gender       PlayerGender @default(MALE)
+  ageCategory  AkcAgeCategory @default(U17)
+  position     String?  @db.VarChar(100)
+  jersey       Int?     @db.SmallInt
+  idNumber     String?  @db.VarChar(100)
+  idType       AkcIdType @default(NATIONAL_ID)
+  docVerified  Boolean  @default(false)
+  hasDisability Boolean @default(false)
+  disabilityType String? @db.VarChar(200)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+enum AkcIdType { NATIONAL_ID; BIRTH_CERT; PASSPORT }
+
+model AkcCompetition {
+  id           Int      @id @default(autoincrement())
+  name         String   @db.VarChar(200)
+  edition      String?  @db.VarChar(50)
