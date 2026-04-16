@@ -444,4 +444,94 @@ model Player {
   dateOfBirth   DateTime? @db.Date
   nationality   String   @default("Rwandan") @db.VarChar(100)
   position      String?  @db.VarChar(100)
-  jerseyNumber  Int?     @db.SmallInt
+  jerseyNumber  Int?     @db.SmallInt
+  skillLevel    PlayerSkill @default(AMATEUR)
+  gender        PlayerGender @default(MALE)
+  height        Int?     // cm
+  weight        Int?     // kg
+  bio           String?  @db.Text
+  status        PlayerStatus @default(PENDING)
+  verifiedAt    DateTime?
+  verifiedBy    Int?
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  documents     PlayerDocument[]
+  lineups       Lineup[]
+  topScorer     TopScorer?
+  events        MatchEvent[]     @relation("PlayerEvent")
+  subEvents     MatchEvent[]     @relation("SubEvent")
+  transfersFrom Transfer[]
+}
+
+enum PlayerSkill  { ELITE; PROFESSIONAL; SEMI_PROFESSIONAL; AMATEUR }
+enum PlayerGender { MALE; FEMALE }
+enum PlayerStatus { PENDING; VERIFIED; SUSPENDED; REJECTED }
+
+// ─── PLAYER DOCUMENTS ────────────────────────────────────────────
+model PlayerDocument {
+  id           Int      @id @default(autoincrement())
+  playerId     Int
+  player       Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  docType      DocType
+  filename     String   @db.VarChar(300)  // stored name (hashed)
+  originalName String?  @db.VarChar(300)  // user's original filename
+  fileSize     Int?
+  mimeType     String?  @db.VarChar(100)
+  status       DocStatus @default(PENDING)
+  reviewNote   String?  @db.Text
+  reviewedBy   Int?
+  uploadedAt   DateTime @default(now())
+}
+
+enum DocType   { BIRTH_CERTIFICATE; PASSPORT; NATIONAL_ID; MEDICAL; OTHER }
+enum DocStatus { PENDING; APPROVED; REJECTED }
+
+// ─── VENUES ──────────────────────────────────────────────────────
+model Venue {
+  id       Int      @id @default(autoincrement())
+  name     String   @db.VarChar(200)
+  city     String?  @db.VarChar(150)
+  province String?  @db.VarChar(100)
+  capacity Int?
+  surface  String?  @db.VarChar(100)
+  active   Boolean  @default(true)
+}
+
+// ─── COMPETITIONS ─────────────────────────────────────────────────
+model Competition {
+  id        Int      @id @default(autoincrement())
+  leagueId  Int
+  league    League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  name      String   @db.VarChar(200)
+  roundType RoundType @default(REGULAR)
+  sortOrder Int      @default(0)
+
+  fixtures  Fixture[]
+}
+
+enum RoundType { GROUP; KNOCKOUT; FINAL; SEMI_FINAL; QUARTER_FINAL; REGULAR }
+
+// ─── FIXTURES ────────────────────────────────────────────────────
+model Fixture {
+  id            Int      @id @default(autoincrement())
+  leagueId      Int
+  league        League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  competitionId Int?
+  competition   Competition? @relation(fields: [competitionId], references: [id], onDelete: SetNull)
+  homeTeamId    Int
+  homeTeam      Team     @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeamId    Int
+  awayTeam      Team     @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  matchday      Int      @default(1) @db.SmallInt
+  venue         String?  @db.VarChar(300)
+  matchDate     DateTime?
+  status        FixtureStatus @default(SCHEDULED)
+  homeScore     Int?     @db.SmallInt
+  awayScore     Int?     @db.SmallInt
+  homeScoreHt   Int?     @db.SmallInt  // half-time
+  awayScoreHt   Int?     @db.SmallInt
+  attendance    Int?
+  referee       String?  @db.VarChar(200)
+  matchNotes    String?  @db.Text
+  streamUrl     String?  @db.VarChar(500)  // live video stream URL
