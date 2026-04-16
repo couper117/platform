@@ -623,4 +623,94 @@ model TopScorer {
   playerId  Int    @unique
   player    Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
   teamId    Int
-  team      Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  team      Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  goals     Int    @default(0)
+  assists   Int    @default(0)
+  updatedAt DateTime @updatedAt
+}
+
+// ─── TRANSFERS ────────────────────────────────────────────────────
+model Transfer {
+  id           Int      @id @default(autoincrement())
+  playerId     Int
+  player       Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  fromTeamId   Int?
+  fromTeam     Team?    @relation("TransferFrom", fields: [fromTeamId], references: [id], onDelete: SetNull)
+  toTeamId     Int
+  toTeam       Team     @relation("TransferTo", fields: [toTeamId], references: [id])
+  transferDate DateTime? @db.Date
+  transferType TransferType @default(PERMANENT)
+  fee          Decimal? @db.Decimal(12, 2)
+  notes        String?  @db.Text
+  createdAt    DateTime @default(now())
+}
+
+enum TransferType { PERMANENT; LOAN; FREE; RETURN_FROM_LOAN }
+
+// ─── TEAM REGISTRATIONS ───────────────────────────────────────────
+model TeamRegistration {
+  id          Int      @id @default(autoincrement())
+  teamId      Int
+  team        Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  leagueId    Int
+  league      League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  status      RegStatus @default(PENDING)
+  submittedAt DateTime  @default(now())
+  reviewedAt  DateTime?
+  reviewedBy  Int?
+  notes       String?  @db.Text
+
+  @@unique([teamId, leagueId])
+}
+
+enum RegStatus { PENDING; APPROVED; REJECTED }
+
+// ─── NEWS ─────────────────────────────────────────────────────────
+model News {
+  id          Int      @id @default(autoincrement())
+  sportId     Int?
+  leagueId    Int?
+  league      League?  @relation(fields: [leagueId], references: [id], onDelete: SetNull)
+  title       String   @db.VarChar(300)
+  slug        String?  @db.VarChar(320)
+  excerpt     String?  @db.Text
+  body        String?  @db.Text  // HTML content
+  coverImage  String?  @db.VarChar(300)
+  authorId    Int?
+  author      User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  category    NewsCategory @default(NEWS)
+  featured    Boolean  @default(false)
+  published   Boolean  @default(true)
+  views       Int      @default(0)
+  createdAt   DateTime @default(now())
+}
+
+enum NewsCategory { NEWS; ANNOUNCEMENT; RESULT; TRANSFER; INJURY; OTHER }
+
+// ─── CONTACTS ─────────────────────────────────────────────────────
+model Contact {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(200)
+  email     String?  @db.VarChar(200)
+  phone     String?  @db.VarChar(50)
+  subject   String?  @db.VarChar(300)
+  message   String   @db.Text
+  status    ContactStatus @default(NEW)
+  createdAt DateTime @default(now())
+}
+
+enum ContactStatus { NEW; READ; REPLIED }
+
+// ─── PAGES (static CMS) ───────────────────────────────────────────
+model Page {
+  id        Int      @id @default(autoincrement())
+  slug      String   @unique @db.VarChar(100)
+  title     String   @db.VarChar(300)
+  content   String?  @db.LongText
+  metaDesc  String?  @db.VarChar(300)
+  published Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+}
+
+// ─── ACTIVITY LOG ─────────────────────────────────────────────────
+model ActivityLog {
