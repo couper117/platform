@@ -981,4 +981,93 @@ PUT    /:id/review             SUPERADMIN | LEAGUE_ADMIN: approve or reject docu
 ```
 GET    /                       Public: list fixtures
                                Query: ?leagueId=&sportId=&status=&from=&to=&page=
-GET    /:id                    Public: fixture detail with events, lineups, live state
+GET    /:id                    Public: fixture detail with events, lineups, live state
+POST   /                       SUPERADMIN | LEAGUE_ADMIN: create fixture
+       Body: {leagueId, homeTeamId, awayTeamId, matchDate, venue, matchday, referee, streamUrl}
+PUT    /:id                    SUPERADMIN | LEAGUE_ADMIN: update fixture
+PUT    /:id/go-live            Admin: set status=LIVE, create LiveMatchState row
+PUT    /:id/end-live           Admin: end live, set status=COMPLETED
+DELETE /:id                    SUPERADMIN: delete
+```
+
+### Results (Enter Result) — `/api/v1/results`
+```
+POST   /fixtures/:id/result    SUPERADMIN | LEAGUE_ADMIN: save full-time result
+       Body: {homeScore, awayScore, homeScoreHt?, awayScoreHt?, attendance?, status}
+       AUTO-LOGIC (standings.service.js):
+         1. Update fixture scores + status = COMPLETED
+         2. Recalculate full standings for that league:
+            - Loop all completed fixtures in league
+            - Rebuild: played, won, drawn, lost, goalsFor, goalsAgainst, points
+            - points = W×3 + D×1
+            - Upsert standings rows for all teams
+            - Update form string (last 5 results W/D/L)
+         3. Update top_scorers from match_events for that fixture
+
+POST   /fixtures/:id/events    SUPERADMIN | LEAGUE_ADMIN: add match event
+       Body: {eventType, minute, teamId, playerId?, player2Id?, description?}
+       AUTO-LOGIC:
+         - If eventType = GOAL or PENALTY: increment that team's score in fixture + LiveMatchState
+         - If OWN_GOAL: increment opponent score
+         - Emit via Socket.IO: 'matchEvent' event to room `fixture-{id}`
+
+DELETE /events/:eventId        Admin: delete a match event
+
+GET    /fixtures/:id/events    Public: all events for a fixture (timeline)
+```
+
+### Lineups — `/api/v1/lineups`
+```
+GET    /fixtures/:id           Public: lineups for a fixture (home + away)
+POST   /fixtures/:id           Admin: save entire lineup for a fixture
+       Body: {
+         home: [{playerId, position, jerseyNo, isStarter, isCaptain}],
+         away: [{playerId, position, jerseyNo, isStarter, isCaptain}]
+       }
+       Deletes existing lineups then inserts new ones (full replace)
+```
+
+### Live Match — `/api/v1/live`
+```
+GET    /                       Public: all currently LIVE fixtures with live state
+GET    /fixtures/:id           Public: live state for specific fixture
+                               (also available via Socket.IO room subscription)
+```
+
+### Standings — `/api/v1/standings`
+```
+GET    /leagues/:id            Public: standings table for a league
+                               Returns: sorted array with goal_diff computed
+POST   /leagues/:id/recalculate Admin: force full standings recalculation
+                                Rebuilds from scratch using all completed fixtures
+```
+
+### Transfers — `/api/v1/transfers`
+```
+GET    /                       Admin: list all transfers
+POST   /                       SUPERADMIN: record a transfer
+       Body: {playerId, fromTeamId?, toTeamId, transferDate, transferType, fee?, notes?}
+       Also updates player.teamId to toTeamId
+```
+
+### Team Registrations — `/api/v1/registrations`
+```
+GET    /                       SUPERADMIN: list all pending/reviewed registrations
+POST   /                       TEAM_MANAGER: apply to join a league
+       Body: {leagueId}
+PUT    /:id/review             SUPERADMIN | LEAGUE_ADMIN: approve/reject
+       Body: {status: "approved"|"rejected", notes?}
+       If APPROVED: creates league_teams row, assigns team to league
+```
+
+### News — `/api/v1/news`
+```
+GET    /                       Public: list published articles
+                               Query: ?sportId=&leagueId=&category=&page=&featured=true
+GET    /:slug                  Public: article detail (also increments views)
+POST   /                       SUPERADMIN | LEAGUE_ADMIN: create article
+       Multipart: coverImage file + JSON body
+       {title, excerpt, body (HTML), category, sportId?, leagueId?, featured, published}
+       AUTO: generate slug from title
+PUT    /:id                    Admin: update article
+DELETE /:id                    Admin: delete
