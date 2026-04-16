@@ -534,4 +534,93 @@ model Fixture {
   attendance    Int?
   referee       String?  @db.VarChar(200)
   matchNotes    String?  @db.Text
-  streamUrl     String?  @db.VarChar(500)  // live video stream URL
+  streamUrl     String?  @db.VarChar(500)  // live video stream URL
+  streamActive  Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  events        MatchEvent[]
+  lineups       Lineup[]
+  liveState     LiveMatchState?
+}
+
+enum FixtureStatus { SCHEDULED; LIVE; COMPLETED; POSTPONED; CANCELLED }
+
+// ─── MATCH EVENTS ────────────────────────────────────────────────
+model MatchEvent {
+  id          Int      @id @default(autoincrement())
+  fixtureId   Int
+  fixture     Fixture  @relation(fields: [fixtureId], references: [id], onDelete: Cascade)
+  playerId    Int?
+  player      Player?  @relation("PlayerEvent", fields: [playerId], references: [id], onDelete: SetNull)
+  player2Id   Int?     // for substitution: player coming on
+  player2     Player?  @relation("SubEvent", fields: [player2Id], references: [id], onDelete: SetNull)
+  teamId      Int?
+  eventType   EventType
+  minute      Int?     @db.SmallInt
+  extraTime   Int      @default(0) @db.SmallInt
+  description String?  @db.VarChar(300)
+  createdAt   DateTime @default(now())
+}
+
+enum EventType {
+  GOAL; OWN_GOAL; PENALTY; RED_CARD; YELLOW_CARD
+  SUBSTITUTION; INJURY; VAR; KICKOFF; HALFTIME; FULLTIME; EXTRA_TIME
+}
+
+// ─── LINEUPS ─────────────────────────────────────────────────────
+model Lineup {
+  id        Int     @id @default(autoincrement())
+  fixtureId Int
+  fixture   Fixture @relation(fields: [fixtureId], references: [id], onDelete: Cascade)
+  teamId    Int
+  playerId  Int
+  player    Player  @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  position  String? @db.VarChar(50)
+  jerseyNo  Int?    @db.SmallInt
+  isStarter Boolean @default(true)
+  isCaptain Boolean @default(false)
+
+  @@unique([fixtureId, playerId])
+}
+
+// ─── LIVE MATCH STATE ─────────────────────────────────────────────
+model LiveMatchState {
+  fixtureId Int     @id
+  fixture   Fixture @relation(fields: [fixtureId], references: [id], onDelete: Cascade)
+  minute    Int     @default(0) @db.SmallInt
+  homeScore Int     @default(0) @db.SmallInt
+  awayScore Int     @default(0) @db.SmallInt
+  status    String  @default("live") @db.VarChar(30)
+  lastEvent String? @db.VarChar(300)
+  updatedAt DateTime @updatedAt
+}
+
+// ─── STANDINGS ────────────────────────────────────────────────────
+model Standing {
+  id            Int    @id @default(autoincrement())
+  leagueId      Int
+  league        League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  teamId        Int
+  team          Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  played        Int    @default(0)
+  won           Int    @default(0)
+  drawn         Int    @default(0)
+  lost          Int    @default(0)
+  goalsFor      Int    @default(0)
+  goalsAgainst  Int    @default(0)
+  points        Int    @default(0)
+  form          String @default("") @db.VarChar(20)  // "WWDLL"
+  updatedAt     DateTime @updatedAt
+
+  @@unique([leagueId, teamId])
+}
+
+// ─── TOP SCORERS ──────────────────────────────────────────────────
+model TopScorer {
+  id        Int    @id @default(autoincrement())
+  leagueId  Int
+  league    League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  playerId  Int    @unique
+  player    Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  teamId    Int
+  team      Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
