@@ -1070,4 +1070,93 @@ POST   /                       SUPERADMIN | LEAGUE_ADMIN: create article
        {title, excerpt, body (HTML), category, sportId?, leagueId?, featured, published}
        AUTO: generate slug from title
 PUT    /:id                    Admin: update article
-DELETE /:id                    Admin: delete
+DELETE /:id                    Admin: delete
+```
+
+### Contacts — `/api/v1/contacts`
+```
+POST   /                       Public: submit contact form
+       Body: {name, email?, phone?, subject?, message}
+       Rate limited: 5 per IP per hour
+GET    /                       SUPERADMIN: list all messages
+PUT    /:id/status             Admin: mark as read/replied
+```
+
+### Venues — `/api/v1/venues`
+```
+GET    /                       Public: list all active venues
+POST   /                       SUPERADMIN: create
+PUT    /:id                    SUPERADMIN: update
+DELETE /:id                    SUPERADMIN: delete
+```
+
+### Users — `/api/v1/users`
+```
+GET    /                       SUPERADMIN: list all users
+POST   /                       SUPERADMIN: create admin user
+PUT    /:id                    SUPERADMIN: update user (role, active, etc.)
+DELETE /:id                    SUPERADMIN: deactivate user
+```
+
+### Activity Log — `/api/v1/activity`
+```
+GET    /                       SUPERADMIN: list activity log
+                               Query: ?userId=&module=&page=
+                               Every write operation throughout the API logs:
+                               {userId, action: "Create Fixture", detail: "...", module: "fixtures", ip}
+```
+
+### Pages (CMS) — `/api/v1/pages`
+```
+GET    /:slug                  Public: get a static page by slug (about, privacy, terms)
+POST   /                       SUPERADMIN: create page
+PUT    /:slug                  SUPERADMIN: update page content (HTML)
+```
+
+### AKC3 — `/api/v1/akc3`
+```
+// --- PUBLIC ---
+GET    /                       AKC3 overview stats (schools, teams, players counts)
+GET    /schools                List all active schools
+GET    /schools/:id            School detail + teams
+GET    /competitions           List competitions by status
+GET    /competitions/:id       Competition detail + fixtures + standings
+GET    /fixtures               List fixtures Query: ?competitionId=&status=&schoolId=
+GET    /fixtures/:id           Fixture detail with score
+GET    /results                Completed fixtures with scores
+GET    /standings/:compId      Standings for competition
+GET    /announcements          Published announcements (pinned first)
+GET    /regulations            Static page content
+
+// --- ADMIN (SUPERADMIN only for AKC3 admin) ---
+POST   /admin/schools          Create school
+PUT    /admin/schools/:id      Update school
+POST   /admin/teams            Create team for a school
+PUT    /admin/teams/:id        Update team
+POST   /admin/players          Add player to team
+PUT    /admin/players/:id      Update player
+PUT    /admin/players/:id/verify  Verify player document
+POST   /admin/competitions     Create competition
+PUT    /admin/competitions/:id Update competition
+POST   /admin/fixtures         Create AKC3 fixture
+PUT    /admin/fixtures/:id     Update fixture
+POST   /admin/results/:fixtureId  Enter result
+       Body: {homeScore, awayScore}
+       AUTO: recalculate AKC3 standings for that competition
+POST   /admin/announcements    Create announcement
+PUT    /admin/announcements/:id Update/publish
+POST   /admin/import/players   CSV bulk import players
+       Parses CSV: schoolCode, teamSportId, gender, ageCategory,
+                   playerFullName, dob, position, jersey, idType, idNumber
+       Returns: {created, skipped, errors[]}
+```
+
+### Dashboard Stats — `/api/v1/dashboard`
+```
+GET    /admin                  SUPERADMIN | LEAGUE_ADMIN: dashboard counters
+       Returns: {
+         sports, leagues, teams, players, fixtures_today,
+         live_fixtures, pending_teams, pending_docs,
+         pending_registrations, unread_contacts,
+         recent_activity[10], upcoming_fixtures[5]
+       }
