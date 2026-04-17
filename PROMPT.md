@@ -1249,4 +1249,93 @@ socket.emit('leaveFixture', fixtureId)    // leave room
 - **Results tab**: completed fixtures
 - **Teams tab**: team cards with logos
 - **Top Scorers tab**: ranked list with player photos, goals count, assists
+
+#### `MatchPage.jsx`
+- Full match board: two team logos, big score, status badge, venue/date
+- Live minute counter (from Socket.IO)
+- Match events timeline: chronological goal/card/sub events with icons
+- Starting lineups (home vs away formation visual if possible, else list)
+- If live: real-time event updates via Socket.IO `matchEvent`
+- If stream_url set: embedded video player / watch live button
+
+#### `SportsPage.jsx`
+- All sports grid (2→3→5 columns responsive)
+- Click → filtered leagues list
+
+#### `NewsPage.jsx`
+- Featured article (large card on top)
+- News grid below
+- Category filter: News | Announcements | Results | Transfers
+
+#### `ContactPage.jsx`
+- Contact form with React Hook Form + Zod validation
+- Contact info cards (email, phone, address)
+- Submit sends POST `/api/v1/contacts`
+
+---
+
+### AUTH PAGES
+
+#### `LoginPage.jsx` (shared — detects redirect to admin vs team portal)
+- Two tabs: Admin Login | Team Portal Login
+- JWT stored in memory (Zustand `authStore`), refresh token in httpOnly cookie
+- On success: redirect to `/admin/dashboard` or `/team/dashboard`
+
+#### `TeamRegisterPage.jsx`
+- Multi-step form (3 steps with progress bar):
+  - Step 1: Account info (username, password, full name, email, phone)
+  - Step 2: Team info (team name, sport, city, province, home venue)
+  - Step 3: Review + submit
+- On submit: POST `/api/v1/auth/team/register`
+- Shows success message with "pending approval" notice
+
+---
+
+### ADMIN PANEL (protected, role-based)
+
+All admin pages use `<AdminLayout>` with collapsible sidebar (mobile: overlay drawer).
+
+#### Sidebar nav groups:
+```
+// Main
+Dashboard
+
+// Competitions
+Sports | Leagues | Fixtures | Enter Results | Live Match | Lineups | Standings
+
+// Teams & Players
+Teams | Players | Documents | Registrations | Transfers
+
+// Content
+News | Messages | Pages
+
+// System (SUPERADMIN only)
+Users | Federations | Venues | Settings | Activity Log
+
+// Kagame Cup
+AKC3 Kagame Cup (link to AKC3 dashboard)
+```
+
+#### `DashboardPage.jsx`
+- 4-col stat grid: Pending Teams, Pending Docs, Live Fixtures, Messages
+- Recent Activity feed (last 10 actions)
+- Upcoming Fixtures list (next 5)
+- Quick action buttons: + Add Fixture, Review Documents, Go Live
+
+#### `FixturesPage.jsx` (Admin)
+- Table: league, home vs away, date, venue, status, score
+- Filters: status tabs (All | Live | Scheduled | Completed | Postponed)
+- League dropdown filter
+- Actions per row: ⚽ Enter Result | 🔴 Live Mode | Edit | Go Live/End Live | Delete
+- `+ Add Fixture` button → modal form or drawer
+
+#### `EnterResultPage.jsx`
+- Match scoreboard at top (live updating if match is live)
+- Form: home score, away score, half-time scores, attendance, final status
+- Match Events section:
+  - Timeline of existing events (delete button per event)
+  - Add Event form: type (goal/card/sub/etc), minute, team selector, player selector
+  - Goal events auto-increment the score display instantly
+- Save Result button → calls POST API → auto-recalculates standings
+- Toast notification: "Standings recalculated!"
 
