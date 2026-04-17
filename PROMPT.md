@@ -1517,4 +1517,93 @@ async function streamDocument(req, res) {
   const doc = await prisma.playerDocument.findUnique({ where: { id: +req.params.id } })
   if (!doc) return res.status(404).end()
   const filePath = path.join(DOCS_PATH, doc.filename)
-  res.setHeader('Content-Type', doc.mimeType || 'application/octet-stream')
+  res.setHeader('Content-Type', doc.mimeType || 'application/octet-stream')
+  res.setHeader('Content-Disposition', 'inline')
+  res.setHeader('X-Content-Type-Options', 'nosniff')
+  res.setHeader('Cache-Control', 'no-store')
+  fs.createReadStream(filePath).pipe(res)
+}
+```
+
+---
+
+## 📡 SOCKET.IO IMPLEMENTATION
+
+```javascript
+// backend/src/config/socket.js
+export function setupSocket(io) {
+  io.on('connection', (socket) => {
+
+    socket.on('joinFixture', (fixtureId) => {
+      socket.join(`fixture-${fixtureId}`)
+    })
+
+    socket.on('leaveFixture', (fixtureId) => {
+      socket.leave(`fixture-${fixtureId}`)
+    })
+  })
+}
+
+// In results.controller.js, after saving event:
+export async function addMatchEvent(req, res) {
+  // ... save event to DB ...
+  const liveState = await updateLiveScore(fixtureId, event)
+
+  // Emit to specific fixture room
+  req.io.to(`fixture-${fixtureId}`).emit('matchEvent', {
+    fixtureId,
+    event: { type, minute, player: playerName, team: teamName, description }
+  })
+
+  // Emit global live update (for ticker + scoreboard)
+  req.io.emit('liveUpdate', {
+    fixtureId,
+    minute: liveState.minute,
+    homeScore: liveState.homeScore,
+    awayScore: liveState.awayScore,
+    status: liveState.status,
+    lastEvent: `${minute}' ${eventType} — ${playerName}`
+  })
+
+  res.json({ success: true, liveState })
+}
+```
+
+---
+
+## ⚙️ BUSINESS LOGIC — STANDINGS RECALCULATION
+
+```javascript
+// services/standings.service.js
+export async function recalcStandings(leagueId) {
+  // Get all completed fixtures for this league
+  const fixtures = await prisma.fixture.findMany({
+    where: { leagueId, status: 'COMPLETED' }
+  })
+
+  // Build standings map: teamId → stats
+  const stats = new Map()
+
+  for (const f of fixtures) {
+    // Ensure both teams exist in map
+    for (const tid of [f.homeTeamId, f.awayTeamId]) {
+      if (!stats.has(tid)) stats.set(tid, { played:0, won:0, drawn:0, lost:0, gf:0, ga:0, points:0, results:[] })
+    }
+
+    const h = stats.get(f.homeTeamId)
+    const a = stats.get(f.awayTeamId)
+    const hs = f.homeScore, as2 = f.awayScore
+
+    h.played++; a.played++
+    h.gf += hs; h.ga += as2
+    a.gf += as2; a.ga += hs
+
+    if (hs > as2)      { h.won++; h.points+=3; h.results.push('W'); a.lost++; a.results.push('L') }
+    else if (hs < as2) { a.won++; a.points+=3; a.results.push('W'); h.lost++; h.results.push('L') }
+    else               { h.drawn++; h.points++; h.results.push('D'); a.drawn++; a.points++; a.results.push('D') }
+  }
+
+  // Upsert all standings rows in a transaction
+  await prisma.$transaction(
+    Array.from(stats.entries()).map(([teamId, s]) =>
+      prisma.standing.upsert({
