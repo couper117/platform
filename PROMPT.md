@@ -1338,4 +1338,94 @@ AKC3 Kagame Cup (link to AKC3 dashboard)
   - Goal events auto-increment the score display instantly
 - Save Result button → calls POST API → auto-recalculates standings
 - Toast notification: "Standings recalculated!"
-
+
+#### `LiveMatchPage.jsx`
+- Split panel:
+  - Left: real-time scoreboard (minute counter ticking via Socket.IO)
+  - Right: quick event buttons (Goal ⚽, Yellow 🟨, Red 🟥, Sub 🔄, HT ⏸)
+- Event feed (live stream below, newest on top)
+- Each quick action fires POST /results/fixtures/:id/events
+- Socket.IO room subscription: `fixture-{id}`
+
+#### `LineupsPage.jsx`
+- Left: fixture picker list (upcoming + live)
+- Right: two-column lineup editor (home | away)
+  - Check each player to include, set position, jersey, starter, captain
+- Save button → POST /lineups/fixtures/:id
+
+#### `DocumentsPage.jsx`
+- Status tabs: Pending | Approved | Rejected | All (with counts)
+- Table: player name, team, document type, file, upload date, status
+- Actions: 👁 View | ✅ Approve | ❌ Reject
+- View → opens `<DocumentViewer />` modal:
+  - PDF: renders inline via `<iframe>` or PDF.js
+  - Images: renders `<img>` tag
+  - Download button
+- Reject → modal prompts for reject reason (stored as reviewNote)
+- Auto-verification indicator: "3/3 docs approved → Player will be auto-verified"
+
+#### `TeamsPage.jsx`
+- Team table with logo, name, sport, city, status, players count, actions
+- Filter by status: All | Pending | Verified | Suspended
+- Click team name → `ViewTeamPage`
+
+#### `ViewTeamPage.jsx`
+- Team profile card (logo, name, sport, city, manager details)
+- Status update form (approve / suspend / reject with note)
+- Team eligibility checker: "11 verified players needed. Currently X/11"
+- Players table with doc status per player (3/3 ✅ or 2/3 ⚠️)
+- Recent fixtures (last 5)
+- Leagues this team is in
+
+#### `SettingsPage.jsx`
+- Tab-per-group: Branding | Homepage | Contact | Social | Footer
+- Each group renders its settings as labeled form fields
+- Text inputs for most; textarea for multi-line; file upload for images
+- Single "Save All" button per tab
+- Fixes the PHP bug: uses `strpos()` equivalent logic (string includes check for textarea)
+
+#### `Akc3DashboardPage.jsx`
+- Stats: schools, teams, players, competitions, matches played
+- Quick links: Schools | Teams | Players | Fixtures | Results | Standings | CSV Import
+- Recent Results table
+- Upcoming Fixtures table
+- Schools list with team count
+
+---
+
+### TEAM PORTAL (role: TEAM_MANAGER)
+
+Protected by JWT. Shows only data for the manager's own team.
+
+#### `TeamDashboard.jsx`
+- 4 stat cards: Players, Verified Players, Pending Docs, Leagues Joined
+- Quick actions: + Add Player | Upload Document | Apply to League
+- Upcoming fixtures for this team
+- Latest results
+
+#### `TeamPlayers.jsx`
+- Player table: photo, name, position, jersey, status (Verified ✅ / Pending ⏳)
+- Per player: doc status (3/3 approved → verified automatically)
+- + Add Player button → modal form with photo upload
+- Click player → doc management
+
+#### `TeamDocuments.jsx` / `upload_doc.jsx`
+- Upload documents per player
+- Accepted types: Birth Certificate | Passport | National ID | Medical | Other
+- File: image (jpg/png/webp) or PDF, max 8MB
+- Shows upload status and admin review notes
+
+#### `TeamLeagues.jsx`
+- Available leagues to apply for
+- Already-joined leagues with status
+- Apply button → POST /registrations
+
+#### `TeamFixtures.jsx`
+- Upcoming fixtures for this team across all their leagues
+- Past results
+
+---
+
+### AKC3 MODULE (Amashuri Kagame Cup)
+
+Accessible at `/akc3/` routes. Uses the same main app layout but with AKC3 branding.
