@@ -1428,4 +1428,93 @@ Protected by JWT. Shows only data for the manager's own team.
 
 ### AKC3 MODULE (Amashuri Kagame Cup)
 
-Accessible at `/akc3/` routes. Uses the same main app layout but with AKC3 branding.
+Accessible at `/akc3/` routes. Uses the same main app layout but with AKC3 branding.
+
+#### Public pages:
+- `Akc3HomePage` — overview, stats, recent results, upcoming fixtures, announcements
+- `SchoolsPage` — list all schools by province/district filter
+- `Akc3FixturesPage` — fixtures filtered by competition/sport/status
+- `Akc3ResultsPage` — completed fixtures with scores
+- `Akc3StandingsPage` — standings per competition
+- `AnnouncementsPage` — news/announcements with pinned items first
+
+#### AKC3 Admin (all require SUPERADMIN):
+All CRUD for: Schools, Teams, Players, Competitions, Fixtures, Enter Results, Standings recalculate, Announcements, CSV Import
+
+**CSV Import feature:**
+- Upload a `.csv` file with columns:
+  `schoolCode, sportId, gender, ageCategory, playerFullName, dateOfBirth, position, jersey, idType, idNumber`
+- Backend parses CSV row by row (using `csv-parse` npm package)
+- Per row: find or create school by code, find or create team, create player
+- Returns `{created: N, skipped: M, errors: [{row, reason}]}`
+- Frontend shows import summary with error details
+
+---
+
+## 🔒 AUTHENTICATION & AUTHORIZATION
+
+```javascript
+// JWT Payload
+{
+  sub: userId,
+  role: "SUPERADMIN" | "LEAGUE_ADMIN" | "TEAM_MANAGER" | "PUBLIC",
+  teamId: number | null,   // for TEAM_MANAGER
+  iat: timestamp,
+  exp: timestamp  // 15 minutes
+}
+
+// Middleware chain example:
+router.put('/teams/:id/status',
+  authenticateJWT,        // verify access token
+  requireRole(['SUPERADMIN']),
+  validateBody(teamStatusSchema),
+  teamController.updateStatus
+)
+
+// Role hierarchy:
+SUPERADMIN    → all operations, all leagues, all teams
+LEAGUE_ADMIN  → only leagues they are assigned to (via LeagueAdmin table)
+               → can manage fixtures, results, documents for their leagues
+TEAM_MANAGER  → only their own team data (players, documents, registrations)
+PUBLIC        → read-only (news, fixtures, standings, etc.)
+
+// League admin check for fixtures:
+async function requireLeagueAccess(req, res, next) {
+  if (req.user.role === 'SUPERADMIN') return next()
+  const fixture = await getFixture(req.params.id)
+  const isAdmin = await isLeagueAdmin(req.user.sub, fixture.leagueId)
+  if (!isAdmin) return res.status(403).json({ error: 'Not your league' })
+  next()
+}
+```
+
+---
+
+## 📂 FILE UPLOAD SECURITY
+
+```javascript
+// Multer config (middleware/upload.js)
+const imageUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 8 * 1024 * 1024 },  // 8MB
+  fileFilter: (req, file, cb) => {
+    const allowed = ['image/jpeg','image/png','image/gif','image/webp']
+    cb(null, allowed.includes(file.mimetype))
+  }
+})
+
+// After upload, Sharp resizes:
+// Logos → 200x200 cover, webp format
+// Photos → 400x400 cover, webp
+// News images → 800x450 cover, webp
+// Documents: stored as-is (no resize), hashed filename
+
+// Document storage: NOT served statically
+// Server streams them through authenticated endpoint
+app.get('/api/v1/documents/:id/view', authenticateJWT, streamDocument)
+
+async function streamDocument(req, res) {
+  const doc = await prisma.playerDocument.findUnique({ where: { id: +req.params.id } })
+  if (!doc) return res.status(404).end()
+  const filePath = path.join(DOCS_PATH, doc.filename)
+  res.setHeader('Content-Type', doc.mimeType || 'application/octet-stream')
