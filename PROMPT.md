@@ -1159,4 +1159,94 @@ GET    /admin                  SUPERADMIN | LEAGUE_ADMIN: dashboard counters
          live_fixtures, pending_teams, pending_docs,
          pending_registrations, unread_contacts,
          recent_activity[10], upcoming_fixtures[5]
-       }
+       }
+
+GET    /team                   TEAM_MANAGER: own team dashboard
+       Returns: {
+         team, players_count, verified_players, pending_docs,
+         leagues_count, upcoming_fixtures[5], recent_results[5]
+       }
+```
+
+---
+
+## ⚡ SOCKET.IO — REAL-TIME LIVE SCORES
+
+```javascript
+// Server emits these events:
+// ---------------------------------
+// 'liveUpdate'    → broadcast to all connected clients
+//   payload: { fixtureId, minute, homeScore, awayScore, status, lastEvent }
+
+// 'matchEvent'    → broadcast to room `fixture-{id}`
+//   payload: { fixtureId, event: { type, minute, player, team, description } }
+
+// 'liveStart'     → broadcast when match goes LIVE
+//   payload: { fixtureId, homeTeam, awayTeam, leagueName }
+
+// 'liveEnd'       → broadcast when match ends
+//   payload: { fixtureId, homeScore, awayScore }
+
+// Client subscribes like this:
+socket.emit('joinFixture', fixtureId)     // join room for a specific match
+socket.emit('leaveFixture', fixtureId)    // leave room
+
+// Admin emits live events through the REST API (POST /results/fixtures/:id/events)
+// The API controller calls socket.io.emit() internally after saving to DB
+```
+
+---
+
+## 🎨 FRONTEND PAGES & COMPONENTS
+
+### PUBLIC SITE
+
+#### `HomePage.jsx`
+- Sticky live ticker (scores scrolling from Socket.IO `liveUpdate`)
+- Hero section: `font-['Bebas_Neue']` bold headline, animated gradient background
+  with dot grid overlay (CSS `background-image: radial-gradient`), Rwanda flag color
+  accents (green #20603D, yellow #FAD201, blue #00A1DE)
+- `<LiveScoreBoard />` panel (right side on desktop): shows live/upcoming fixtures,
+  polls Socket.IO `liveUpdate` event in real-time
+- `<QuickAccessGrid />`: 4 cards → Fixtures, Results, Standings, Leagues
+- `<StatsBanner />`: animated count-up numbers (sports, teams, players, matches played)
+- "Featured Match of the Week" section: admin-pinned featured fixture card with
+  full-width layout, team logos, big score display, venue + date
+- Active Leagues grid: filterable by sport (Framer Motion `AnimatePresence` for filter transitions)
+- Latest News: 3-column grid on desktop
+- `FeaturedNewsCard`: large hero-style article with image overlay
+- CTA section: "Register Your Team" with form or redirect
+- Footer with social links, admin portal link, AKC3 link
+
+#### `FixturesPage.jsx`
+- Page banner with background gradient
+- Horizontally scrollable sport filter chips (touch-friendly, no wrapping)
+- Group fixtures by date (sticky date headers)
+- Each `<FixtureCard />`:
+  - Team logos (or initials fallback)
+  - Score (if live/completed) or match time (if scheduled)
+  - Live badge with animated pulse dot
+  - League name, venue, matchday number
+  - Click → `MatchPage`
+- Skeleton loading state (6 cards) while fetching
+- Real-time: Socket.IO `liveUpdate` updates scores in place without re-render
+
+#### `ResultsPage.jsx`
+- Same filter chips as Fixtures
+- Shows completed matches, grouped by date DESC
+- Each card shows final score prominently
+- Highlight winner side (bold team name)
+
+#### `LeaguesPage.jsx`
+- Filter bar: by sport + by gender (dual filter bars)
+- `LeagueCard` with left red accent animation on hover
+- Status badges: Active (green), Upcoming (blue), Completed (grey)
+
+#### `LeagueDetailPage.jsx`
+- Tabs (Framer Motion `AnimatePresence`): Standings | Fixtures | Results | Teams | Top Scorers
+- **Standings tab**: full table with form pills (W/D/L colored circles), goal difference
+- **Fixtures tab**: upcoming fixtures for this league
+- **Results tab**: completed fixtures
+- **Teams tab**: team cards with logos
+- **Top Scorers tab**: ranked list with player photos, goals count, assists
+
