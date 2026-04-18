@@ -1696,4 +1696,93 @@ module.exports = {
 ```
 
 ### `<DocumentViewer docId={} />`
-```jsx
+```jsx
+// Modal component
+// Features:
+// - GET /api/v1/documents/:id/view → fetch blob → URL.createObjectURL
+// - If PDF: renders in <iframe src={blobUrl}> at 100% width
+// - If image: renders <img src={blobUrl}>
+// - Download button: fetch /api/v1/documents/:id/download (Content-Disposition: attachment)
+// - Approve / Reject buttons (admin only) — calls PUT /documents/:id/review
+// - Reject: input for review note (required)
+// - Auto-verification notice: "Approving this will auto-verify the player (3/3 docs)"
+```
+
+### `<LiveScoreBoard />`
+```jsx
+// Features:
+// - Subscribes to Socket.IO 'liveUpdate' event
+// - Displays live matches with real-time score updates
+// - Score change: brief scale animation (scorePop keyframe)
+// - If no live matches: shows next 4 upcoming fixtures
+// - Panel header: animated red dot + "LIVE SCORES"
+// - Max height with overflow scroll for many matches
+```
+
+### `<FilterBar items={[{label, value}]} value={} onChange={} />`
+```jsx
+// Features:
+// - Horizontally scrollable on mobile (overflow-x:auto, no-scrollbar class)
+// - Pill buttons with active state (red background)
+// - Framer Motion: AnimatePresence on content change when filter applied
+```
+
+### `<Skeleton type="fixture-card" count={6} />`
+```jsx
+// Shows animated shimmer placeholders
+// Types: fixture-card | news-card | table-row | stat-card | league-card
+// Uses Tailwind's animate-pulse with bg-gray-200 dark:bg-gray-700
+```
+
+### `<StatusBadge status="verified|pending|live|completed|..." />`
+```jsx
+const statusMap = {
+  live:      { bg:'bg-red-100 dark:bg-red-900/30',    text:'text-red-600',   label:'LIVE' },
+  scheduled: { bg:'bg-blue-100 dark:bg-blue-900/30',  text:'text-blue-600',  label:'Scheduled' },
+  completed: { bg:'bg-green-100 dark:bg-green-900/30',text:'text-green-600', label:'FT' },
+  postponed: { bg:'bg-yellow-100',                     text:'text-yellow-600',label:'Postponed' },
+  verified:  { bg:'bg-green-100',                      text:'text-green-600', label:'Verified' },
+  pending:   { bg:'bg-yellow-100',                     text:'text-yellow-600',label:'Pending' },
+  rejected:  { bg:'bg-red-100',                        text:'text-red-600',   label:'Rejected' },
+}
+```
+
+---
+
+## 🌍 MULTI-LANGUAGE SUPPORT
+
+The system supports: English (en), French (fr), Kinyarwanda (rw), Swahili (sw).
+
+```javascript
+// Use react-i18next
+// Translation files: /public/locales/{en,fr,rw,sw}/common.json
+// Language preference stored in: localStorage('rnsp-lang') + HTTP cookie
+// Language switcher in header: EN | FR | RW | SW pills
+
+// Key translation namespaces:
+// common: nav, buttons, statuses, errors
+// fixtures: page titles, filter labels
+// standings: table headers
+// admin: admin-specific labels
+```
+
+---
+
+## 🔧 ENVIRONMENT VARIABLES
+
+```env
+# Backend (.env)
+NODE_ENV=development
+PORT=5000
+DATABASE_URL=postgresql://user:pass@localhost:5432/rnsp_db
+JWT_SECRET=your-super-secret-256-bit-key
+JWT_EXPIRES_IN=15m
+REFRESH_SECRET=another-super-secret-key
+REFRESH_EXPIRES_IN=7d
+FRONTEND_URL=http://localhost:5173
+UPLOAD_PATH=./uploads
+MAX_FILE_SIZE=8388608
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USER=noreply@rnsp.rw
+SMTP_PASS=smtppassword
