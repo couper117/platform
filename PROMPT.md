@@ -1606,4 +1606,94 @@ export async function recalcStandings(leagueId) {
   // Upsert all standings rows in a transaction
   await prisma.$transaction(
     Array.from(stats.entries()).map(([teamId, s]) =>
-      prisma.standing.upsert({
+      prisma.standing.upsert({
+        where: { leagueId_teamId: { leagueId, teamId } },
+        create: { leagueId, teamId, ...s, form: s.results.slice(-5).join('') },
+        update: { ...s, form: s.results.slice(-5).join('') }
+      })
+    )
+  )
+}
+```
+
+---
+
+## 🎨 DESIGN SYSTEM (Tailwind Config)
+
+```javascript
+// tailwind.config.js
+module.exports = {
+  darkMode: 'class',
+  content: ['./src/**/*.{js,jsx}'],
+  theme: {
+    extend: {
+      fontFamily: {
+        display: ['"Bebas Neue"', 'sans-serif'],
+        body:    ['"DM Sans"', 'sans-serif'],
+      },
+      colors: {
+        red:   { DEFAULT:'#E8002D', dark:'#C40024', glow:'rgba(232,0,45,0.12)' },
+        gold:  { DEFAULT:'#F5A623' },
+        green: { DEFAULT:'#00C853' },
+        cyan:  { DEFAULT:'#00D4FF' },
+        surface: {
+          DEFAULT: '#FFFFFF',
+          2: '#F7F7F8',
+          3: '#EDEDEF',
+          dark: '#111120',
+          dark2: '#16162A',
+        }
+      },
+      backgroundImage: {
+        'hero-gradient': 'radial-gradient(ellipse 90% 60% at 50% 0%, rgba(232,0,45,0.16) 0%, transparent 55%), radial-gradient(ellipse 70% 50% at 90% 70%, rgba(0,212,255,0.07) 0%, transparent 50%), radial-gradient(ellipse 60% 40% at 10% 80%, rgba(245,166,35,0.07) 0%, transparent 50%)',
+        'hero-gradient-dark': 'radial-gradient(ellipse 90% 60% at 50% 0%, rgba(232,0,45,0.28) 0%, transparent 55%), ...',
+        'cta-pattern': "url(\"data:image/svg+xml,...\")",
+      },
+      animation: {
+        'live-pulse':  'pulse 1.2s ease-in-out infinite',
+        'ticker':      'ticker 60s linear infinite',
+        'count-up':    'none',  // done via JS/Framer Motion
+        'slide-down':  'slideDown 0.28s ease',
+        'fade-in':     'fadeIn 0.6s ease',
+        'score-pop':   'scorePop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+      },
+      keyframes: {
+        slideDown: { from:{ opacity:'0', transform:'translateY(-10px)' }, to:{ opacity:'1', transform:'translateY(0)' } },
+        fadeIn:    { from:{ opacity:'0' }, to:{ opacity:'1' } },
+        scorePop:  { '0%':{ transform:'scale(1)' }, '50%':{ transform:'scale(1.35)', color:'#E8002D' }, '100%':{ transform:'scale(1)' } },
+      }
+    }
+  }
+}
+```
+
+---
+
+## 📦 COMPONENT SPECIFICATIONS
+
+### `<FixtureCard fixture={} showLeague={true} />`
+```jsx
+// Features:
+// - Team logos with letter-fallback (initials in colored circle)
+// - Score display: "2 — 1" (Bebas Neue font, large)
+// - Live badge: animated red dot + "LIVE" text
+// - Scheduled: shows formatted date/time
+// - Completed: shows FT + score with winner name bolded
+// - On hover: translateY(-4px) with shadow increase
+// - On click: navigate to /matches/:id
+// - Socket.IO: if status=LIVE, subscribes to liveUpdate and updates score in place
+//   using React Query's updateQueryData or Zustand liveStore
+```
+
+### `<StandingsTable league={} />`
+```jsx
+// Features:
+// - Columns: # | Team (logo + name) | P | W | D | L | GF | GA | GD | Pts | Form
+// - Form column: 5 colored circles (green=W, gold=D, red=L)
+// - Top 3 rows: gold position number
+// - Responsive: horizontally scrollable on mobile with sticky Team column
+// - Highlight: own team row if user is team manager (based on authStore.teamId)
+```
+
+### `<DocumentViewer docId={} />`
+```jsx
