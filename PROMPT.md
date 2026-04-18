@@ -1785,4 +1785,93 @@ MAX_FILE_SIZE=8388608
 SMTP_HOST=smtp.example.com
 SMTP_PORT=587
 SMTP_USER=noreply@rnsp.rw
-SMTP_PASS=smtppassword
+SMTP_PASS=smtppassword
+SMTP_FROM="RNSP <noreply@rnsp.rw>"
+RATE_LIMIT_WINDOW=15
+RATE_LIMIT_MAX=100
+
+# Frontend (.env)
+VITE_API_URL=http://localhost:5000/api/v1
+VITE_SOCKET_URL=http://localhost:5000
+VITE_APP_NAME="Rwanda National Sports Platform"
+```
+
+---
+
+## 📋 SEEDING (prisma/seed.js)
+
+The seed file must create:
+```
+- 1 superadmin user: username=admin, password=Manager@123 (bcrypt hashed)
+- 15 sports (Football ⚽, Basketball 🏀, Volleyball 🏐, Rugby 🏉, Handball 🤾,
+             Tennis 🎾, Table Tennis 🏓, Athletics 🏃, Cycling 🚴, Rally 🏎️,
+             Swimming 🏊, Boxing 🥊, Taekwondo 🥋, Judo 🥋, Cricket 🏏)
+- 12 federations (FERWAFA, FERWABA, FRVB, RRF, RAF, FERWACY, etc.)
+- 11 venues (Amahoro National Stadium, Kigali Arena, Huye Stadium, etc.)
+- 5 settings groups: branding(3), homepage(3), contact(3), social(4), footer(1)
+- 16 teams (AS Kigali FC, Rayon Sports, APR FC, Mukura Victory, Patriots BBC, REG BBC...)
+- 6 leagues (Rwanda Premier League, Women Football League, Basketball Men/Women, Volleyball M/W)
+- 40+ players distributed across main teams
+- 40 fixtures (6 completed matchdays + upcoming matchdays)
+- Standings calculated from completed fixtures
+- 7 news articles
+- 3 static pages (about, privacy, terms)
+```
+
+---
+
+## 🚀 DEPLOYMENT CHECKLIST
+
+```
+Backend:
+□ Set NODE_ENV=production
+□ Serve /uploads as static (or configure CDN)
+□ Enable HTTPS (SSL cert via Let's Encrypt)
+□ Set secure, httpOnly, sameSite='strict' on cookie
+□ Configure CORS for production frontend domain
+□ Add Helmet CSP headers
+□ Enable compression middleware (express-compression)
+□ Run database migrations: npx prisma migrate deploy
+□ Run seed: node prisma/seed.js
+□ Set up PM2 or similar process manager
+
+Frontend:
+□ Run: npm run build (outputs /dist)
+□ Serve /dist as static (Nginx or Vercel/Netlify)
+□ Configure Nginx proxy /api → backend:5000
+□ Set VITE_API_URL to production backend URL
+□ Enable gzip/brotli compression
+```
+
+---
+
+## ⚠️ CRITICAL IMPLEMENTATION NOTES
+
+1. **Standings auto-recalculation** must run on every result save — never let standings go stale. Call `recalcStandings(leagueId)` inside a DB transaction with the result save.
+
+2. **Document security** — never expose actual file paths via API. Always stream through authenticated endpoint. Use hashed filenames (UUID + original extension) on disk.
+
+3. **Player auto-verification** — when approving a document, check if that player now has ≥1 APPROVED document of each required type (BIRTH_CERTIFICATE + PASSPORT + NATIONAL_ID). If yes, auto-set player.status = VERIFIED.
+
+4. **League admin scope** — LEAGUE_ADMIN users can only see and modify data for leagues where they exist in the `league_admins` table. This applies to fixtures, results, documents, registrations.
+
+5. **Socket.IO + TanStack Query** — on receiving a `liveUpdate` event, call `queryClient.setQueryData(['fixtures', 'live'], updater)` to update the cached fixture list in-place without a new HTTP request.
+
+6. **CSRF** — since JWT is stored in httpOnly cookie for refresh, add the `sameSite: 'strict'` cookie attribute. For the access token (short-lived, in memory/Zustand), no CSRF needed.
+
+7. **Mobile sidebar** — admin sidebar must be completely hidden on mobile, slide in as overlay on hamburger tap, close on overlay click or navigation.
+
+8. **AKC3 uses same Prisma client** — do NOT create a separate database. AKC3 tables are prefixed with `Akc` in Prisma but live in the same `rnsp_db` PostgreSQL database.
+
+9. **Real-time ticker** — the live score ticker must work even if Socket.IO is unavailable (fallback to HTTP polling every 15s via React Query `refetchInterval`).
+
+10. **Image upload pipeline** — all uploaded images must go through Sharp for resizing before saving to disk. This prevents huge file storage and ensures consistent dimensions.
+
+11. **Refresh token rotation** — on every `/auth/refresh` call, issue a new refresh token and invalidate the old one (delete from DB). Store refresh tokens in the `RefreshToken` table with expiry.
+
+12. **Form validation** — use Zod schemas that are **shared** between backend (via `validate.js` middleware) and frontend (via `zodResolver` in React Hook Form). Store them in a shared `packages/schemas` folder or just duplicate in both.
+```
+
+---
+
+*End of Prompt — Total coverage: 2 databases → 27 RNSP tables + 16 AKC3 tables, 60+ API endpoints, 50+ React components, real-time Socket.IO, JWT auth with refresh rotation, role-based access, automatic standings recalculation, secure document streaming, CSV bulk import, multi-language, dark/light mode.*
