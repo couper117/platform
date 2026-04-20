@@ -22,3 +22,26 @@ const submit = async (req, res, next) => {
 
 const getAll = async (req, res, next) => {
   try {
+    const { status } = req.query;
+    const query = {};
+    if (status) query.status = status;
+
+    const contacts = await Contact.find(query).sort({ createdAt: -1 });
+    res.json(contacts);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateStatus = async (req, res, next) => {
+  try {
+    const { status } = req.body;
+    const contact = await Contact.findByIdAndUpdate(req.params.id, { status }, { new: true });
+    if (!contact) return res.status(404).json({ error: 'Contact not found' });
+    res.json({ message: 'Status updated' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { submit, getAll, updateStatus };
