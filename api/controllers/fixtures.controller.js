@@ -47,3 +47,52 @@ const getAll = async (req, res, next) => {
 
 const getById = async (req, res, next) => {
   try {
+    const fixture = await Fixture.findById(req.params.id)
+      .populate('home_team_id away_team_id', 'name logo slug')
+      .populate({
+        path: 'league_id',
+        select: 'name sport_id',
+        populate: { path: 'sport_id', select: 'name icon' }
+      });
+
+    if (!fixture) return res.status(404).json({ error: 'Match not found' });
+
+    const events = await MatchEvent.find({ fixture_id: fixture._id })
+      .populate('player_id player2_id', 'full_name photo')
+      .sort({ minute: 1 });
+
+    const lineups = await Lineup.find({ fixture_id: fixture._id })
+      .populate('player_id', 'full_name photo')
+      .sort({ team_id: 1, is_starter: -1, position: 1 });
+
+    res.json({
+      ...fixture.toObject(),
+      home_team: fixture.home_team_id?.name,
+      home_logo: fixture.home_team_id?.logo,
+      home_slug: fixture.home_team_id?.slug,
+      away_team: fixture.away_team_id?.name,
+      away_logo: fixture.away_team_id?.logo,
+      away_slug: fixture.away_team_id?.slug,
+      league_name: fixture.league_id?.name,
+      sport_name: fixture.league_id?.sport_id?.name,
+      sport_icon: fixture.league_id?.sport_id?.icon,
+      events: events.map(e => ({
+        ...e.toObject(),
+        player_name: e.player_id?.full_name,
+        player_photo: e.player_id?.photo,
+        player2_name: e.player2_id?.full_name
+      })),
+      lineups: lineups.map(l => ({
+        ...l.toObject(),
+        player_name: l.player_id?.full_name,
+        player_photo: l.player_id?.photo
+      }))
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const create = async (req, res, next) => {
+  try {
+    const fixture = new Fixture({ ...req.body, status: 'scheduled' });
