@@ -107,3 +107,57 @@ const refresh = async (req, res, next) => {
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
+
+    res.json({ accessToken });
+  } catch (error) {
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'Refresh token expired', code: 'REFRESH_EXPIRED' });
+    }
+    next(error);
+  }
+};
+
+const logout = (req, res) => {
+  res.clearCookie('refreshToken');
+  res.json({ message: 'Logged out' });
+};
+
+const me = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json(user);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const register = async (req, res, next) => {
+  try {
+    const { username, email, password, full_name, phone } = req.body;
+    if (!username || !email || !password) {
+      return res.status(400).json({ error: 'Username, email and password required' });
+    }
+
+    const user = new User({
+      username,
+      email,
+      password, // Will be hashed by pre-save hook
+      full_name: full_name || username,
+      phone: phone || '',
+      role: 'team_manager',
+      active: true,
+      verified: false
+    });
+
+    await user.save();
+
+    res.status(201).json({ message: 'Registration successful', userId: user._id });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { login, refresh, logout, me, register };
