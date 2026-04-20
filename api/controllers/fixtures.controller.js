@@ -96,3 +96,51 @@ const getById = async (req, res, next) => {
 const create = async (req, res, next) => {
   try {
     const fixture = new Fixture({ ...req.body, status: 'scheduled' });
+    await fixture.save();
+    res.status(201).json({ id: fixture._id });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const update = async (req, res, next) => {
+  try {
+    const fixture = await Fixture.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!fixture) return res.status(404).json({ error: 'Match not found' });
+    res.json({ message: 'Updated' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const enterResult = async (req, res, next) => {
+  try {
+    const { status = 'completed' } = req.body;
+    const fixture = await Fixture.findByIdAndUpdate(req.params.id, { ...req.body, status }, { new: true });
+    if (!fixture) return res.status(404).json({ error: 'Match not found' });
+    res.json({ message: 'Result entered' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const setLive = async (req, res, next) => {
+  try {
+    const { status } = req.body;
+    await Fixture.findByIdAndUpdate(req.params.id, { status });
+    res.json({ message: `Match is now ${status}` });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const remove = async (req, res, next) => {
+  try {
+    await Fixture.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Deleted' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getAll, getById, create, update, enterResult, setLive, remove };
