@@ -53,3 +53,57 @@ const login = async (req, res, next) => {
     // If it was a legacy hash, the next save will bcrypt it due to pre-save hook
     if (user.password.length !== 60) {
       user.password = password;
+      await user.save();
+    }
+
+    const { accessToken, refreshToken } = generateTokens(user._id, user.role);
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+    res.json({
+      accessToken,
+      user: {
+        id: user._id,
+        username: user.username,
+        full_name: user.full_name,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const refresh = async (req, res, next) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+      return res.status(401).json({ error: 'No refresh token' });
+    }
+
+    const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+    if (decoded.type !== 'refresh') {
+      return res.status(401).json({ error: 'Invalid refresh token' });
+    }
+
+    const user = await User.findById(decoded.userId);
+
+    if (!user || !user.active) {
+      return res.status(401).json({ error: 'User not found or inactive' });
+    }
+
+    const { accessToken, refreshToken: newRefresh } = generateTokens(user._id, user.role);
+
+    res.cookie('refreshToken', newRefresh, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
