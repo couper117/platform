@@ -23,3 +23,26 @@ const setLineup = async (req, res, next) => {
   try {
     const { team_id, player_id, position, jersey_no, is_starter, is_captain } = req.body;
     
+    // Upsert logic in Mongoose
+    await Lineup.findOneAndUpdate(
+      { fixture_id: req.params.id, player_id },
+      { team_id, position, jersey_no, is_starter: !!is_starter, is_captain: !!is_captain },
+      { upsert: true, new: true }
+    );
+
+    res.json({ message: 'Lineup set' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const removeLineup = async (req, res, next) => {
+  try {
+    await Lineup.findOneAndDelete({ fixture_id: req.params.id, player_id: req.params.playerId });
+    res.json({ message: 'Lineup entry removed' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getLineups, setLineup, removeLineup };
