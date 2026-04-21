@@ -140,3 +140,72 @@ const getTopScorers = async (req, res, next) => {
         $lookup: {
           from: 'players',
           localField: '_id',
+          foreignField: '_id',
+          as: 'player'
+        }
+      },
+      { $unwind: '$player' },
+      {
+        $lookup: {
+          from: 'teams',
+          localField: 'player.team_id',
+          foreignField: '_id',
+          as: 'team'
+        }
+      },
+      { $unwind: '$team' },
+      {
+        $project: {
+          id: '$_id',
+          full_name: '$player.full_name',
+          photo: '$player.photo',
+          team_name: '$team.name',
+          team_logo: '$team.logo',
+          goals: 1,
+          assists: 1
+        }
+      },
+      { $sort: { goals: -1, assists: -1 } },
+      { $limit: 20 }
+    ]);
+
+    res.json(scorers);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const create = async (req, res, next) => {
+  try {
+    const league = new League({
+      ...req.body,
+      admin_user_id: req.user.id
+    });
+    await league.save();
+    res.status(201).json({ id: league._id });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const update = async (req, res, next) => {
+  try {
+    const league = await League.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!league) return res.status(404).json({ error: 'League not found' });
+    res.json({ message: 'Updated' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const remove = async (req, res, next) => {
+  try {
+    const league = await League.findByIdAndDelete(req.params.id);
+    if (!league) return res.status(404).json({ error: 'League not found' });
+    res.json({ message: 'Deleted' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getAll, getBySlug, getStandings, getTopScorers, create, update, remove };
