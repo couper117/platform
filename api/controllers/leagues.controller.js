@@ -69,3 +69,74 @@ const getStandings = async (req, res, next) => {
 
     fixtures.forEach(f => {
       [f.home_team_id, f.away_team_id].forEach(t => {
+        if (!t) return;
+        const id = t._id.toString();
+        if (!teamsMap.has(id)) {
+          teamsMap.set(id, { 
+            team_id: t._id, name: t.name, short_name: t.short_name, logo: t.logo,
+            gp: 0, gw: 0, gd: 0, gl: 0, gf: 0, ga: 0, pts: 0 
+          });
+        }
+      });
+
+      const home = teamsMap.get(f.home_team_id._id.toString());
+      const away = teamsMap.get(f.away_team_id._id.toString());
+
+      home.gp++;
+      away.gp++;
+      home.gf += f.home_score;
+      home.ga += f.away_score;
+      away.gf += f.away_score;
+      away.ga += f.home_score;
+
+      if (f.home_score > f.away_score) {
+        home.gw++; home.pts += 3;
+        away.gl++;
+      } else if (f.home_score < f.away_score) {
+        away.gw++; away.pts += 3;
+        home.gl++;
+      } else {
+        home.gd++; home.pts += 1;
+        away.gd++; away.pts += 1;
+      }
+    });
+
+    const standings = Array.from(teamsMap.values()).map(s => ({
+      ...s,
+      gd: s.gf - s.ga
+    })).sort((a, b) => b.pts - a.pts || b.gd - a.gd);
+
+    res.json(standings.map((s, i) => ({ ...s, rank: i + 1 })));
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getTopScorers = async (req, res, next) => {
+  try {
+    const league = await League.findOne({ slug: req.params.slug });
+    if (!league) return res.status(404).json({ error: 'League not found' });
+
+    // Use aggregation for top scorers
+    const scorers = await MatchEvent.aggregate([
+      {
+        $lookup: {
+          from: 'fixtures',
+          localField: 'fixture_id',
+          foreignField: '_id',
+          as: 'fixture'
+        }
+      },
+      { $unwind: '$fixture' },
+      { $match: { 'fixture.league_id': league._id, event_type: 'goal' } },
+      {
+        $group: {
+          _id: '$player_id',
+          goals: { $sum: 1 },
+          assists: { $sum: { $cond: [{ $ne: ['$assist', null] }, 1, 0] } }
+        }
+      },
+      {
+        $lookup: {
+          from: 'players',
+          localField: '_id',
