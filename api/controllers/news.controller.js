@@ -44,3 +44,48 @@ const getBySlug = async (req, res, next) => {
 
     const response = {
       ...news.toObject(),
+      sport_name: news.sport_id?.name,
+      author_name: news.author_id?.full_name
+    };
+
+    res.json(response);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const create = async (req, res, next) => {
+  try {
+    const news = new News({
+      ...req.body,
+      author_id: req.user.id,
+      published: true
+    });
+    await news.save();
+    res.status(201).json({ id: news._id });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const update = async (req, res, next) => {
+  try {
+    const news = await News.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!news) return res.status(404).json({ error: 'Article not found' });
+    res.json({ message: 'Updated' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const remove = async (req, res, next) => {
+  try {
+    const news = await News.findByIdAndDelete(req.params.id);
+    if (!news) return res.status(404).json({ error: 'Article not found' });
+    res.json({ message: 'Deleted' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getAll, getBySlug, create, update, remove };
