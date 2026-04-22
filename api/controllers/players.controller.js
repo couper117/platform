@@ -38,3 +38,44 @@ const getById = async (req, res, next) => {
       team_name: player.team_id?.name,
       team_slug: player.team_id?.slug
     };
+
+    res.json(response);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const create = async (req, res, next) => {
+  try {
+    const player = new Player({
+      ...req.body,
+      status: 'pending'
+    });
+    await player.save();
+    res.status(201).json({ id: player._id });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const update = async (req, res, next) => {
+  try {
+    const player = await Player.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!player) return res.status(404).json({ error: 'Player not found' });
+    res.json({ message: 'Updated' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const remove = async (req, res, next) => {
+  try {
+    const player = await Player.findByIdAndDelete(req.params.id);
+    if (!player) return res.status(404).json({ error: 'Player not found' });
+    res.json({ message: 'Deleted' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getAll, getById, create, update, remove };
