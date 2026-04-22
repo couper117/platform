@@ -17,3 +17,21 @@ const update = async (req, res, next) => {
   try {
     const entries = Object.entries(req.body);
     const operations = entries.map(([key, value]) => ({
+      updateOne: {
+        filter: { skey: key },
+        update: { $set: { sval: value } },
+        upsert: true
+      }
+    }));
+
+    if (operations.length > 0) {
+      await Setting.bulkWrite(operations);
+    }
+    
+    res.json({ message: 'Settings updated' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getAll, update };
