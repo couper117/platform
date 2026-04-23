@@ -84,3 +84,45 @@ const getFixtures = async (req, res, next) => {
       away_logo: f.away_team_id?.logo,
       league_name: f.league_id?.name
     }));
+
+    res.json(response);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const create = async (req, res, next) => {
+  try {
+    const team = new Team({
+      ...req.body,
+      manager_user_id: req.user.id,
+      status: 'pending'
+    });
+    await team.save();
+    res.status(201).json({ id: team._id });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const update = async (req, res, next) => {
+  try {
+    const team = await Team.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!team) return res.status(404).json({ error: 'Team not found' });
+    res.json({ message: 'Updated' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const remove = async (req, res, next) => {
+  try {
+    const team = await Team.findByIdAndDelete(req.params.id);
+    if (!team) return res.status(404).json({ error: 'Team not found' });
+    res.json({ message: 'Deleted' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getAll, getBySlug, getPlayers, getFixtures, create, update, remove };
