@@ -51,3 +51,55 @@ const create = async (req, res, next) => {
       active: true,
       verified: true
     });
+
+    await user.save();
+    res.status(201).json({ id: user._id });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const update = async (req, res, next) => {
+  try {
+    const { full_name, email, phone, role, active } = req.body;
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { full_name, email, phone, role, active },
+      { new: true, runValidators: true }
+    );
+    
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({ message: 'Updated' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const changePassword = async (req, res, next) => {
+  try {
+    const { password } = req.body;
+    if (!password) return res.status(400).json({ error: 'Password required' });
+
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    user.password = password; // Pre-save hook will hash it
+    await user.save();
+    
+    res.json({ message: 'Password changed' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const remove = async (req, res, next) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({ message: 'Deleted' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getAll, getById, create, update, changePassword, remove };
