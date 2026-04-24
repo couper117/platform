@@ -11,4 +11,16 @@ const leagueSchema = new mongoose.Schema({
   format: String,
   status: { type: String, enum: ['active', 'inactive', 'completed', 'upcoming'], default: 'active' },
   start_date: Date,
-  end_date: Date,
+  end_date: Date,
+  max_teams: Number,
+  country: String,
+  logo: String,
+  banner: String,
+  description: String,
+  sort_order: { type: Number, default: 0 },
+  admin_user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  active: { type: Boolean, default: true }
+}, { timestamps: true });
+
+const League = mongoose.model('League', leagueSchema);
+module.exports = League;
