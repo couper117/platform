@@ -9,4 +9,14 @@ const teamSchema = new mongoose.Schema({
   logo: String,
   home_venue: String,
   city: String,
-  province: String,
+  province: String,
+  founded_year: Number,
+  jersey_home: String,
+  jersey_away: String,
+  description: String,
+  manager_user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  status: { type: String, enum: ['pending', 'verified', 'rejected'], default: 'pending' }
+}, { timestamps: true });
+
+const Team = mongoose.model('Team', teamSchema);
+module.exports = Team;
