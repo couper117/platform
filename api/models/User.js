@@ -32,4 +32,38 @@ const userSchema = new mongoose.Schema({
     enum: ['super_admin', 'league_admin', 'team_admin', 'user'],
     default: 'league_admin'
   },
-  active: {
+  active: {
+    type: Boolean,
+    default: true
+  },
+  verified: {
+    type: Boolean,
+    default: true
+  },
+  avatar: {
+    type: String,
+    default: null
+  }
+}, {
+  timestamps: true
+});
+
+// Hash password before saving
+userSchema.pre('save', async function(next) {
+  if (!this.isModified('password')) return next();
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Method to compare password
+userSchema.methods.comparePassword = async function(candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.password);
+};
+
+const User = mongoose.model('User', userSchema);
+module.exports = User;
