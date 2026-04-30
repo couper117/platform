@@ -1,0 +1,83 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Setting {
+  id    Int    @id @default(autoincrement())
+  skey  String @unique @db.VarChar(100)
+  sval  String? @db.Text
+  label String? @db.VarChar(200)
+  grp   String  @default("general") @db.VarChar(80)
+}
+
+model Ad {
+  id        Int      @id @default(autoincrement())
+  title     String
+  imageUrl  String
+  targetUrl String?
+  position  String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model User {
+  id          Int      @id @default(autoincrement())
+  username    String   @unique @db.VarChar(80)
+  password    String   @db.VarChar(255)
+  fullName    String   @db.VarChar(200)
+  email       String?  @unique @db.VarChar(200)
+  phone       String?  @db.VarChar(50)
+  role        Role     @default(PUBLIC)
+  active      Boolean  @default(true)
+  verified    Boolean  @default(false)
+  avatar      String?  @db.VarChar(300)
+  lastLogin   DateTime?
+  createdAt   DateTime @default(now())
+
+  managedTeam Team?         @relation("TeamManager")
+  newsArticles News[]
+  activityLogs ActivityLog[]
+  refreshTokens RefreshToken[]
+  
+  leaguesManaged  LeagueAdminAssignment[]
+  federationsManaged FederationAdminAssignment[]
+  matchAssignments ReporterAssignment[]
+}
+
+enum Role {
+  SUPERADMIN
+  FEDERATION_ADMIN
+  LEAGUE_ADMIN
+  MATCH_REPORTER
+  TEAM_MANAGER
+  PUBLIC
+}
+
+model FederationAdminAssignment {
+  id        Int      @id @default(autoincrement())
+  federationId Int
+  federation   Federation @relation(fields: [federationId], references: [id], onDelete: Cascade)
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignedBy Int?
+  assignedAt DateTime @default(now())
+
+  @@unique([federationId, userId])
+}
+
+model LeagueAdminAssignment {
+  id         Int      @id @default(autoincrement())
+  leagueId   Int
+  league     League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignedBy Int?     // Superadmin ID
+  assignedAt DateTime @default(now())
+
