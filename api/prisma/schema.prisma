@@ -163,4 +163,87 @@ model League {
   season        String   @default("2025/2026") @db.VarChar(50)
   gender        Gender   @default(MALE)
   ageCategory   AgeCategory @default(SENIOR)
-  level         CompLevel @default(NATIONAL)
+  level         CompLevel @default(NATIONAL)
+  format        LeagueFormat @default(LEAGUE)
+  status        LeagueStatus @default(UPCOMING)
+  maxTeams      Int      @default(16)
+  description   String?  @db.Text
+  startDate     DateTime?
+  endDate       DateTime?
+  adminUserId   Int?
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  teams         LeagueTeam[]
+  fixtures      Fixture[]
+  standings     Standing[]
+  topScorers    TopScorer[]
+  competitions  Competition[]
+  registrations TeamRegistration[]
+  news          News[]
+  
+  admins           LeagueAdminAssignment[]
+  assignedReporters ReporterAssignment[]
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  MIXED
+  DISABLED
+}
+
+enum AgeCategory {
+  SENIOR
+  U20
+  U17
+  U15
+  U13
+  JUNIOR
+  VETERAN
+  ALL
+}
+
+enum CompLevel {
+  NATIONAL
+  REGIONAL
+  DISTRICT
+  SCHOOL
+}
+
+enum LeagueFormat {
+  LEAGUE
+  KNOCKOUT
+  GROUP_KNOCKOUT
+  ROUND_ROBIN
+}
+
+enum LeagueStatus {
+  UPCOMING
+  ACTIVE
+  COMPLETED
+  SUSPENDED
+}
+
+model Team {
+  id             Int      @id @default(autoincrement())
+  name           String   @db.VarChar(200)
+  shortName      String?  @db.VarChar(10)
+  slug           String?  @unique @db.VarChar(220)
+  sportId        Int?
+  sport          Sport?   @relation(fields: [sportId], references: [id], onDelete: SetNull)
+  logo           String?  @db.VarChar(300)
+  jerseyHome     String?  @db.VarChar(10)
+  jerseyAway     String?  @db.VarChar(10)
+  foundedYear    Int?
+  homeVenue      String?  @db.VarChar(300)
+  city           String?  @db.VarChar(150)
+  province       String?  @db.VarChar(100)
+  description    String?  @db.Text
+  email          String?  @db.VarChar(200)
+  phone          String?  @db.VarChar(50)
+  website        String?  @db.VarChar(300)
+  managerUserId  Int?     @unique
+  managerUser    User?    @relation("TeamManager", fields: [managerUserId], references: [id], onDelete: SetNull)
+  status         TeamStatus @default(PENDING)
+  verifiedAt     DateTime?
