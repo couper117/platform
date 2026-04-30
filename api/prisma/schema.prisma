@@ -246,4 +246,87 @@ model Team {
   managerUserId  Int?     @unique
   managerUser    User?    @relation("TeamManager", fields: [managerUserId], references: [id], onDelete: SetNull)
   status         TeamStatus @default(PENDING)
-  verifiedAt     DateTime?
+  verifiedAt     DateTime?
+  verifiedBy     Int?
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  leagues        LeagueTeam[]
+  players        Player[]
+  homeFixtures   Fixture[]   @relation("HomeTeam")
+  awayFixtures   Fixture[]   @relation("AwayTeam")
+  standings      Standing[]
+  topScorers     TopScorer[]
+  registrations  TeamRegistration[]
+  transfersFrom  Transfer[]  @relation("TransferFrom")
+  transfersTo    Transfer[]  @relation("TransferTo")
+}
+
+enum TeamStatus {
+  PENDING
+  VERIFIED
+  SUSPENDED
+  REJECTED
+}
+
+model LeagueTeam {
+  id        Int      @id @default(autoincrement())
+  leagueId  Int
+  league    League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  teamId    Int
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  joinedAt  DateTime @default(now())
+
+  @@unique([leagueId, teamId])
+}
+
+model Player {
+  id            Int      @id @default(autoincrement())
+  teamId        Int
+  team          Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  fullName      String   @db.VarChar(200)
+  photo         String?  @db.VarChar(300)
+  dateOfBirth   DateTime? @db.Date
+  nationality   String   @default("Rwandan") @db.VarChar(100)
+  position      String?  @db.VarChar(100)
+  jerseyNumber  Int?     @db.SmallInt
+  skillLevel    PlayerSkill @default(AMATEUR)
+  gender        PlayerGender @default(MALE)
+  height        Int?     
+  weight        Int?     
+  bio           String?  @db.Text
+  status        PlayerStatus @default(PENDING)
+  verifiedAt    DateTime?
+  verifiedBy    Int?
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  documents     PlayerDocument[]
+  lineups       Lineup[]
+  topScorer     TopScorer?
+  events        MatchEvent[]     @relation("PlayerEvent")
+  subEvents     MatchEvent[]     @relation("SubEvent")
+  transfersFrom Transfer[]
+}
+
+enum PlayerSkill {
+  ELITE
+  PROFESSIONAL
+  SEMI_PROFESSIONAL
+  AMATEUR
+}
+
+enum PlayerGender {
+  MALE
+  FEMALE
+}
+
+enum PlayerStatus {
+  PENDING
+  VERIFIED
+  SUSPENDED
+  REJECTED
+}
+
+model PlayerDocument {
+  id           Int      @id @default(autoincrement())
