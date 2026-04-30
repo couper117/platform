@@ -80,4 +80,87 @@ model LeagueAdminAssignment {
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   assignedBy Int?     // Superadmin ID
   assignedAt DateTime @default(now())
-
+
+  @@unique([leagueId, userId])
+}
+
+model ReporterAssignment {
+  id         Int      @id @default(autoincrement())
+  leagueId   Int?
+  league     League?  @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  fixtureId  Int?
+  fixture    Fixture? @relation(fields: [fixtureId], references: [id], onDelete: Cascade)
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignedBy Int?     // League Admin ID
+  assignedAt DateTime @default(now())
+
+  @@unique([leagueId, userId])
+  @@unique([fixtureId, userId])
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique @db.VarChar(512)
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Sport {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(150)
+  slug        String?  @db.VarChar(170)
+  icon        String   @default("🏅") @db.VarChar(10)
+  description String?  @db.Text
+  coverImage  String?  @db.VarChar(300)
+  category    SportCategory @default(OTHER)
+  sortOrder   Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  leagues     League[]
+  teams       Team[]
+  federations Federation[]
+}
+
+enum SportCategory {
+  FIELD
+  COURT
+  TRACK
+  WATER
+  COMBAT
+  RACKET
+  OTHER
+}
+
+model Federation {
+  id           Int      @id @default(autoincrement())
+  name         String   @db.VarChar(200)
+  abbreviation String?  @db.VarChar(20)
+  sportId      Int?
+  sport        Sport?   @relation(fields: [sportId], references: [id], onDelete: SetNull)
+  logo         String?  @db.VarChar(300)
+  description  String?  @db.Text
+  website      String?  @db.VarChar(300)
+  email        String?  @db.VarChar(200)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  leagues      League[]
+  admins       FederationAdminAssignment[]
+}
+
+model League {
+  id            Int      @id @default(autoincrement())
+  name          String   @db.VarChar(200)
+  slug          String?  @db.VarChar(220)
+  sportId       Int
+  sport         Sport    @relation(fields: [sportId], references: [id])
+  federationId  Int?
+  federation    Federation? @relation(fields: [federationId], references: [id], onDelete: SetNull)
+  season        String   @default("2025/2026") @db.VarChar(50)
+  gender        Gender   @default(MALE)
+  ageCategory   AgeCategory @default(SENIOR)
+  level         CompLevel @default(NATIONAL)
