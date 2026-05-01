@@ -744,4 +744,85 @@ model AkcCompetition {
   fixtures     AkcFixture[]
   standings    AkcStanding[]
 }
-
+
+enum AkcCompStatus {
+  UPCOMING
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+model AkcFixture {
+  id            Int      @id @default(autoincrement())
+  competitionId Int?
+  competition   AkcCompetition? @relation(fields: [competitionId], references: [id], onDelete: SetNull)
+  homeTeamId    Int
+  homeTeam      AkcTeam  @relation("AkcHome", fields: [homeTeamId], references: [id])
+  awayTeamId    Int
+  awayTeam      AkcTeam  @relation("AkcAway", fields: [awayTeamId], references: [id])
+  matchDate     DateTime?
+  venue         String?  @db.VarChar(200)
+  round         String?  @db.VarChar(100)
+  stage         AkcStage @default(GROUP)
+  status        AkcFixtureStatus @default(SCHEDULED)
+  homeScore     Int?
+  awayScore     Int?
+  winnerTeamId  Int?
+  isDraw        Boolean  @default(false)
+  notes         String?  @db.Text
+  createdAt     DateTime @default(now())
+}
+
+enum AkcStage {
+  GROUP
+  ROUND16
+  QUARTERFINAL
+  SEMIFINAL
+  FINAL
+  THIRD_PLACE
+}
+
+enum AkcFixtureStatus {
+  SCHEDULED
+  ONGOING
+  COMPLETED
+  POSTPONED
+  CANCELLED
+}
+
+model AkcStanding {
+  id            Int    @id @default(autoincrement())
+  competitionId Int
+  competition   AkcCompetition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  teamId        Int
+  team          AkcTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  played        Int    @default(0)
+  won           Int    @default(0)
+  drawn         Int    @default(0)
+  lost          Int    @default(0)
+  gf            Int    @default(0)
+  ga            Int    @default(0)
+  points        Int    @default(0)
+  updatedAt     DateTime @updatedAt
+
+  @@unique([competitionId, teamId])
+}
+
+model AkcAnnouncement {
+  id         Int      @id @default(autoincrement())
+  title      String   @db.VarChar(300)
+  body       String   @db.Text
+  category   AkcAnnouncementCategory @default(GENERAL)
+  published  Boolean  @default(true)
+  pinned     Boolean  @default(false)
+  authorId   Int?
+  createdAt  DateTime @default(now())
+}
+
+enum AkcAnnouncementCategory {
+  GENERAL
+  REGISTRATION
+  COMPETITION
+  RESULTS
+  URGENT
+}
