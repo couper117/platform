@@ -578,4 +578,87 @@ model News {
   views       Int      @default(0)
   createdAt   DateTime @default(now())
 }
-
+
+enum NewsCategory {
+  NEWS
+  ANNOUNCEMENT
+  RESULT
+  TRANSFER
+  INJURY
+  OTHER
+}
+
+model Contact {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(200)
+  email     String?  @db.VarChar(200)
+  phone     String?  @db.VarChar(50)
+  subject   String?  @db.VarChar(300)
+  message   String   @db.Text
+  status    ContactStatus @default(NEW)
+  createdAt DateTime @default(now())
+}
+
+enum ContactStatus {
+  NEW
+  READ
+  REPLIED
+}
+
+model Page {
+  id        Int      @id @default(autoincrement())
+  slug      String   @unique @db.VarChar(100)
+  title     String   @db.VarChar(300)
+  content   String?  @db.Text
+  metaDesc  String?  @db.VarChar(300)
+  published Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+}
+
+model ActivityLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String   @db.VarChar(200)
+  detail    String?  @db.Text
+  module    String?  @db.VarChar(80)
+  ip        String?  @db.VarChar(50)
+  sessionId String?  @db.VarChar(255)
+  pagePath  String?  @db.VarChar(255)
+  userAgent String?  @db.Text
+  createdAt DateTime @default(now())
+}
+
+model AkcSchool {
+  id           Int      @id @default(autoincrement())
+  name         String   @db.VarChar(200)
+  shortName    String?  @db.VarChar(50)
+  code         String?  @db.VarChar(50)
+  category     SchoolCategory @default(SECONDARY)
+  provinceId   Int?
+  districtId   Int?
+  sector       String?  @db.VarChar(100)
+  address      String?  @db.Text
+  headTeacher  String?  @db.VarChar(200)
+  coordinator  String?  @db.VarChar(200)
+  coordPhone   String?  @db.VarChar(50)
+  coordEmail   String?  @db.VarChar(200)
+  phone        String?  @db.VarChar(50)
+  email        String?  @db.VarChar(200)
+  logo         String?  @db.VarChar(300)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  teams        AkcTeam[]
+}
+
+enum SchoolCategory {
+  SECONDARY
+  TVET
+  PRIMARY
+}
+
+model AkcTeam {
+  id           Int      @id @default(autoincrement())
+  schoolId     Int
+  school       AkcSchool @relation(fields: [schoolId], references: [id], onDelete: Cascade)
