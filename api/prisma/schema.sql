@@ -158,4 +158,84 @@ CREATE TABLE "LeagueTeam" (
     "teamId" INTEGER NOT NULL,
     "joinedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "LeagueTeam_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "Player" (
+    "id" SERIAL NOT NULL,
+    "teamId" INTEGER NOT NULL,
+    "fullName" VARCHAR(200) NOT NULL,
+    "photo" VARCHAR(300),
+    "dateOfBirth" DATE,
+    "nationality" VARCHAR(100) NOT NULL DEFAULT 'Rwandan',
+    "position" VARCHAR(100),
+    "jerseyNumber" SMALLINT,
+    "skillLevel" "PlayerSkill" NOT NULL DEFAULT 'AMATEUR',
+    "gender" "PlayerGender" NOT NULL DEFAULT 'MALE',
+    "height" INTEGER,
+    "weight" INTEGER,
+    "bio" TEXT,
+    "status" "PlayerStatus" NOT NULL DEFAULT 'PENDING',
+    "verifiedAt" TIMESTAMP(3),
+    "verifiedBy" INTEGER,
+    "active" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Player_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "PlayerDocument" (
+    "id" SERIAL NOT NULL,
+    "playerId" INTEGER NOT NULL,
+    "docType" "DocType" NOT NULL,
+    "filename" VARCHAR(300) NOT NULL,
+    "originalName" VARCHAR(300),
+    "fileSize" INTEGER,
+    "mimeType" VARCHAR(100),
+    "status" "DocStatus" NOT NULL DEFAULT 'PENDING',
+    "reviewNote" TEXT,
+    "reviewedBy" INTEGER,
+    "uploadedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "PlayerDocument_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "Venue" (
+    "id" SERIAL NOT NULL,
+    "name" VARCHAR(200) NOT NULL,
+    "city" VARCHAR(150),
+    "province" VARCHAR(100),
+    "capacity" INTEGER,
+    "surface" VARCHAR(100),
+    "active" BOOLEAN NOT NULL DEFAULT true,
+    CONSTRAINT "Venue_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "Competition" (
+    "id" SERIAL NOT NULL,
+    "leagueId" INTEGER NOT NULL,
+    "name" VARCHAR(200) NOT NULL,
+    "roundType" "RoundType" NOT NULL DEFAULT 'REGULAR',
+    "sortOrder" INTEGER NOT NULL DEFAULT 0,
+    CONSTRAINT "Competition_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "Fixture" (
+    "id" SERIAL NOT NULL,
+    "leagueId" INTEGER NOT NULL,
+    "competitionId" INTEGER,
+    "homeTeamId" INTEGER NOT NULL,
+    "awayTeamId" INTEGER NOT NULL,
+    "matchday" SMALLINT NOT NULL DEFAULT 1,
+    "venue" VARCHAR(300),
+    "matchDate" TIMESTAMP(3),
+    "status" "FixtureStatus" NOT NULL DEFAULT 'SCHEDULED',
+    "homeScore" SMALLINT,
+    "awayScore" SMALLINT,
+    "homeScoreHt" SMALLINT,
+    "awayScoreHt" SMALLINT,
+    "attendance" INTEGER,
+    "referee" VARCHAR(200),
+    "matchNotes" TEXT,
+    "streamUrl" VARCHAR(500),
+    "streamActive" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Fixture_pkey" PRIMARY KEY ("id")
 );
