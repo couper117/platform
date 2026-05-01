@@ -78,4 +78,84 @@ CREATE TABLE "Sport" (
     "category" "SportCategory" NOT NULL DEFAULT 'OTHER',
     "sortOrder" INTEGER NOT NULL DEFAULT 0,
     "active" BOOLEAN NOT NULL DEFAULT true,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Sport_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "Federation" (
+    "id" SERIAL NOT NULL,
+    "name" VARCHAR(200) NOT NULL,
+    "abbreviation" VARCHAR(20),
+    "sportId" INTEGER,
+    "logo" VARCHAR(300),
+    "description" TEXT,
+    "website" VARCHAR(300),
+    "email" VARCHAR(200),
+    "active" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Federation_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "League" (
+    "id" SERIAL NOT NULL,
+    "name" VARCHAR(200) NOT NULL,
+    "slug" VARCHAR(220),
+    "sportId" INTEGER NOT NULL,
+    "federationId" INTEGER,
+    "season" VARCHAR(50) NOT NULL DEFAULT '2025/2026',
+    "gender" "Gender" NOT NULL DEFAULT 'MALE',
+    "ageCategory" "AgeCategory" NOT NULL DEFAULT 'SENIOR',
+    "level" "CompLevel" NOT NULL DEFAULT 'NATIONAL',
+    "format" "LeagueFormat" NOT NULL DEFAULT 'LEAGUE',
+    "status" "LeagueStatus" NOT NULL DEFAULT 'UPCOMING',
+    "maxTeams" INTEGER NOT NULL DEFAULT 16,
+    "description" TEXT,
+    "startDate" TIMESTAMP(3),
+    "endDate" TIMESTAMP(3),
+    "adminUserId" INTEGER,
+    "active" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "League_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "LeagueAdmin" (
+    "id" SERIAL NOT NULL,
+    "leagueId" INTEGER NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "assignedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "LeagueAdmin_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "Team" (
+    "id" SERIAL NOT NULL,
+    "name" VARCHAR(200) NOT NULL,
+    "shortName" VARCHAR(10),
+    "slug" VARCHAR(220),
+    "sportId" INTEGER,
+    "logo" VARCHAR(300),
+    "jerseyHome" VARCHAR(10),
+    "jerseyAway" VARCHAR(10),
+    "foundedYear" INTEGER,
+    "homeVenue" VARCHAR(300),
+    "city" VARCHAR(150),
+    "province" VARCHAR(100),
+    "description" TEXT,
+    "email" VARCHAR(200),
+    "phone" VARCHAR(50),
+    "website" VARCHAR(300),
+    "managerUserId" INTEGER,
+    "status" "TeamStatus" NOT NULL DEFAULT 'PENDING',
+    "verifiedAt" TIMESTAMP(3),
+    "verifiedBy" INTEGER,
+    "active" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Team_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "LeagueTeam" (
+    "id" SERIAL NOT NULL,
+    "leagueId" INTEGER NOT NULL,
+    "teamId" INTEGER NOT NULL,
+    "joinedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "LeagueTeam_pkey" PRIMARY KEY ("id")
+);
