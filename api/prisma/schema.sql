@@ -398,4 +398,84 @@ CREATE TABLE "AkcSchool" (
     "phone" VARCHAR(50),
     "email" VARCHAR(200),
     "logo" VARCHAR(300),
-    "active" BOOLEAN NOT NULL DEFAULT true,
+    "active" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "AkcSchool_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "AkcTeam" (
+    "id" SERIAL NOT NULL,
+    "schoolId" INTEGER NOT NULL,
+    "sportId" INTEGER NOT NULL,
+    "gender" "AkcGender" NOT NULL DEFAULT 'MALE',
+    "ageCategory" "AkcAgeCategory" NOT NULL DEFAULT 'U17',
+    "level" "AkcLevel" NOT NULL DEFAULT 'NATIONAL',
+    "coachName" VARCHAR(200),
+    "coachPhone" VARCHAR(50),
+    "isInclusive" BOOLEAN NOT NULL DEFAULT false,
+    "active" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "AkcTeam_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "AkcPlayer" (
+    "id" SERIAL NOT NULL,
+    "teamId" INTEGER NOT NULL,
+    "fullName" VARCHAR(200) NOT NULL,
+    "dob" DATE,
+    "gender" "PlayerGender" NOT NULL DEFAULT 'MALE',
+    "ageCategory" "AkcAgeCategory" NOT NULL DEFAULT 'U17',
+    "position" VARCHAR(100),
+    "jersey" SMALLINT,
+    "idNumber" VARCHAR(100),
+    "idType" "AkcIdType" NOT NULL DEFAULT 'NATIONAL_ID',
+    "docVerified" BOOLEAN NOT NULL DEFAULT false,
+    "hasDisability" BOOLEAN NOT NULL DEFAULT false,
+    "disabilityType" VARCHAR(200),
+    "active" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "AkcPlayer_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "AkcCompetition" (
+    "id" SERIAL NOT NULL,
+    "name" VARCHAR(200) NOT NULL,
+    "edition" VARCHAR(50),
+    "sportId" INTEGER,
+    "gender" TEXT NOT NULL DEFAULT 'mixed',
+    "ageCategory" TEXT NOT NULL DEFAULT 'Open',
+    "level" "AkcLevel" NOT NULL DEFAULT 'NATIONAL',
+    "startDate" DATE,
+    "endDate" DATE,
+    "venue" VARCHAR(200),
+    "status" "AkcCompStatus" NOT NULL DEFAULT 'UPCOMING',
+    "description" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "AkcCompetition_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "AkcFixture" (
+    "id" SERIAL NOT NULL,
+    "competitionId" INTEGER,
+    "homeTeamId" INTEGER NOT NULL,
+    "awayTeamId" INTEGER NOT NULL,
+    "matchDate" TIMESTAMP(3),
+    "venue" VARCHAR(200),
+    "round" VARCHAR(100),
+    "stage" "AkcStage" NOT NULL DEFAULT 'GROUP',
+    "status" "AkcFixtureStatus" NOT NULL DEFAULT 'SCHEDULED',
+    "homeScore" INTEGER,
+    "awayScore" INTEGER,
+    "winnerTeamId" INTEGER,
+    "isDraw" BOOLEAN NOT NULL DEFAULT false,
+    "notes" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "AkcFixture_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "AkcStanding" (
+    "id" SERIAL NOT NULL,
+    "competitionId" INTEGER NOT NULL,
+    "teamId" INTEGER NOT NULL,
+    "played" INTEGER NOT NULL DEFAULT 0,
+    "won" INTEGER NOT NULL DEFAULT 0,
