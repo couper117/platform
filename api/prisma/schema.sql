@@ -318,4 +318,84 @@ CREATE TABLE "Transfer" (
 );
 
 CREATE TABLE "TeamRegistration" (
-    "id" SERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
+    "teamId" INTEGER NOT NULL,
+    "leagueId" INTEGER NOT NULL,
+    "status" "RegStatus" NOT NULL DEFAULT 'PENDING',
+    "submittedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "reviewedAt" TIMESTAMP(3),
+    "reviewedBy" INTEGER,
+    "notes" TEXT,
+    CONSTRAINT "TeamRegistration_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "News" (
+    "id" SERIAL NOT NULL,
+    "sportId" INTEGER,
+    "leagueId" INTEGER,
+    "title" VARCHAR(300) NOT NULL,
+    "slug" VARCHAR(320),
+    "excerpt" TEXT,
+    "body" TEXT,
+    "coverImage" VARCHAR(300),
+    "authorId" INTEGER,
+    "category" "NewsCategory" NOT NULL DEFAULT 'NEWS',
+    "featured" BOOLEAN NOT NULL DEFAULT false,
+    "published" BOOLEAN NOT NULL DEFAULT true,
+    "views" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "News_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "Contact" (
+    "id" SERIAL NOT NULL,
+    "name" VARCHAR(200) NOT NULL,
+    "email" VARCHAR(200),
+    "phone" VARCHAR(50),
+    "subject" VARCHAR(300),
+    "message" TEXT NOT NULL,
+    "status" "ContactStatus" NOT NULL DEFAULT 'NEW',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Contact_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "Page" (
+    "id" SERIAL NOT NULL,
+    "slug" VARCHAR(100) NOT NULL,
+    "title" VARCHAR(300) NOT NULL,
+    "content" TEXT,
+    "metaDesc" VARCHAR(300),
+    "published" BOOLEAN NOT NULL DEFAULT true,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "Page_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "ActivityLog" (
+    "id" SERIAL NOT NULL,
+    "userId" INTEGER,
+    "action" VARCHAR(200) NOT NULL,
+    "detail" TEXT,
+    "module" VARCHAR(80),
+    "ip" VARCHAR(50),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "ActivityLog_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "AkcSchool" (
+    "id" SERIAL NOT NULL,
+    "name" VARCHAR(200) NOT NULL,
+    "shortName" VARCHAR(50),
+    "code" VARCHAR(50),
+    "category" "SchoolCategory" NOT NULL DEFAULT 'SECONDARY',
+    "provinceId" INTEGER,
+    "districtId" INTEGER,
+    "sector" VARCHAR(100),
+    "address" TEXT,
+    "headTeacher" VARCHAR(200),
+    "coordinator" VARCHAR(200),
+    "coordPhone" VARCHAR(50),
+    "coordEmail" VARCHAR(200),
+    "phone" VARCHAR(50),
+    "email" VARCHAR(200),
+    "logo" VARCHAR(300),
+    "active" BOOLEAN NOT NULL DEFAULT true,
