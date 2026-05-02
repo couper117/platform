@@ -238,4 +238,84 @@ CREATE TABLE "Fixture" (
     "streamActive" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "Fixture_pkey" PRIMARY KEY ("id")
-);
+);
+
+CREATE TABLE "MatchEvent" (
+    "id" SERIAL NOT NULL,
+    "fixtureId" INTEGER NOT NULL,
+    "playerId" INTEGER,
+    "player2Id" INTEGER,
+    "teamId" INTEGER,
+    "eventType" "EventType" NOT NULL,
+    "minute" SMALLINT,
+    "extraTime" SMALLINT NOT NULL DEFAULT 0,
+    "description" VARCHAR(300),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "MatchEvent_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "Lineup" (
+    "id" SERIAL NOT NULL,
+    "fixtureId" INTEGER NOT NULL,
+    "teamId" INTEGER NOT NULL,
+    "playerId" INTEGER NOT NULL,
+    "position" VARCHAR(50),
+    "jerseyNo" SMALLINT,
+    "isStarter" BOOLEAN NOT NULL DEFAULT true,
+    "isCaptain" BOOLEAN NOT NULL DEFAULT false,
+    CONSTRAINT "Lineup_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "LiveMatchState" (
+    "fixtureId" INTEGER NOT NULL,
+    "minute" SMALLINT NOT NULL DEFAULT 0,
+    "homeScore" SMALLINT NOT NULL DEFAULT 0,
+    "awayScore" SMALLINT NOT NULL DEFAULT 0,
+    "status" VARCHAR(30) NOT NULL DEFAULT 'live',
+    "lastEvent" VARCHAR(300),
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "LiveMatchState_pkey" PRIMARY KEY ("fixtureId")
+);
+
+CREATE TABLE "Standing" (
+    "id" SERIAL NOT NULL,
+    "leagueId" INTEGER NOT NULL,
+    "teamId" INTEGER NOT NULL,
+    "played" INTEGER NOT NULL DEFAULT 0,
+    "won" INTEGER NOT NULL DEFAULT 0,
+    "drawn" INTEGER NOT NULL DEFAULT 0,
+    "lost" INTEGER NOT NULL DEFAULT 0,
+    "goalsFor" INTEGER NOT NULL DEFAULT 0,
+    "goalsAgainst" INTEGER NOT NULL DEFAULT 0,
+    "points" INTEGER NOT NULL DEFAULT 0,
+    "form" VARCHAR(20) NOT NULL DEFAULT '',
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "Standing_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "TopScorer" (
+    "id" SERIAL NOT NULL,
+    "leagueId" INTEGER NOT NULL,
+    "playerId" INTEGER NOT NULL,
+    "teamId" INTEGER NOT NULL,
+    "goals" INTEGER NOT NULL DEFAULT 0,
+    "assists" INTEGER NOT NULL DEFAULT 0,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "TopScorer_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "Transfer" (
+    "id" SERIAL NOT NULL,
+    "playerId" INTEGER NOT NULL,
+    "fromTeamId" INTEGER,
+    "toTeamId" INTEGER NOT NULL,
+    "transferDate" DATE,
+    "transferType" "TransferType" NOT NULL DEFAULT 'PERMANENT',
+    "fee" DECIMAL(12,2),
+    "notes" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Transfer_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "TeamRegistration" (
+    "id" SERIAL NOT NULL,
