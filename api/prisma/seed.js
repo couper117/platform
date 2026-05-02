@@ -58,4 +58,65 @@ async function main() {
 
   // 5. TEAMS
   console.log('Creating Teams...');
-  const apr = await prisma.team.upsert({
+  const apr = await prisma.team.upsert({
+    where: { slug: 'apr-fc' },
+    update: {},
+    create: { 
+      name: 'APR FC', 
+      shortName: 'APR', 
+      sportId: football.id, 
+      slug: 'apr-fc', 
+      city: 'Kigali', 
+      status: 'VERIFIED', 
+      managerUserId: teamManagerUser.id 
+    }
+  });
+
+  const rayon = await prisma.team.upsert({
+    where: { slug: 'rayon-sports' },
+    update: {},
+    create: { 
+      name: 'Rayon Sports', 
+      shortName: 'RS', 
+      sportId: football.id, 
+      slug: 'rayon-sports', 
+      city: 'Nyanza', 
+      status: 'VERIFIED' 
+    }
+  });
+
+  // Assign teams to RPL
+  await prisma.leagueTeam.createMany({
+    data: [
+      { leagueId: rpl.id, teamId: apr.id },
+      { leagueId: rpl.id, teamId: rayon.id }
+    ]
+  });
+
+  // 6. FIXTURES
+  console.log('Creating Fixtures...');
+  // A Completed Match
+  await prisma.fixture.create({
+    data: {
+      leagueId: rpl.id, homeTeamId: apr.id, awayTeamId: rayon.id, status: 'COMPLETED',
+      homeScore: 2, awayScore: 1, venue: 'Amahoro Stadium', matchDate: new Date('2026-05-20T15:00:00Z')
+    }
+  });
+
+  // A Live Match
+  const liveMatch = await prisma.fixture.create({
+    data: {
+      leagueId: rpl.id, homeTeamId: rayon.id, awayTeamId: apr.id, status: 'LIVE',
+      homeScore: 0, awayScore: 0, venue: 'Kigali Arena Pitch', matchDate: new Date()
+    }
+  });
+
+  // An Upcoming Match
+  await prisma.fixture.create({
+    data: {
+      leagueId: rpl.id, homeTeamId: apr.id, awayTeamId: rayon.id, status: 'SCHEDULED',
+      venue: 'Huye Stadium', matchDate: new Date('2026-06-01T18:00:00Z')
+    }
+  });
+
+  // 7. ASSIGNMENTS
