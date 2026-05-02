@@ -478,4 +478,83 @@ CREATE TABLE "AkcStanding" (
     "competitionId" INTEGER NOT NULL,
     "teamId" INTEGER NOT NULL,
     "played" INTEGER NOT NULL DEFAULT 0,
-    "won" INTEGER NOT NULL DEFAULT 0,
+    "won" INTEGER NOT NULL DEFAULT 0,
+    "drawn" INTEGER NOT NULL DEFAULT 0,
+    "lost" INTEGER NOT NULL DEFAULT 0,
+    "gf" INTEGER NOT NULL DEFAULT 0,
+    "ga" INTEGER NOT NULL DEFAULT 0,
+    "points" INTEGER NOT NULL DEFAULT 0,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "AkcStanding_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "AkcAnnouncement" (
+    "id" SERIAL NOT NULL,
+    "title" VARCHAR(300) NOT NULL,
+    "body" TEXT NOT NULL,
+    "category" "AkcAnnouncementCategory" NOT NULL DEFAULT 'GENERAL',
+    "published" BOOLEAN NOT NULL DEFAULT true,
+    "pinned" BOOLEAN NOT NULL DEFAULT false,
+    "authorId" INTEGER,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "AkcAnnouncement_pkey" PRIMARY KEY ("id")
+);
+
+-- 3. CREATE INDEXES
+CREATE UNIQUE INDEX "Setting_skey_key" ON "Setting"("skey");
+CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+CREATE UNIQUE INDEX "RefreshToken_token_key" ON "RefreshToken"("token");
+CREATE UNIQUE INDEX "Sport_name_key" ON "Sport"("name");
+CREATE UNIQUE INDEX "Team_managerUserId_key" ON "Team"("managerUserId");
+CREATE UNIQUE INDEX "LeagueTeam_leagueId_teamId_key" ON "LeagueTeam"("leagueId", "teamId");
+CREATE UNIQUE INDEX "Lineup_fixtureId_playerId_key" ON "Lineup"("fixtureId", "playerId");
+CREATE UNIQUE INDEX "Standing_leagueId_teamId_key" ON "Standing"("leagueId", "teamId");
+CREATE UNIQUE INDEX "TopScorer_playerId_key" ON "TopScorer"("playerId");
+CREATE UNIQUE INDEX "TeamRegistration_teamId_leagueId_key" ON "TeamRegistration"("teamId", "leagueId");
+CREATE UNIQUE INDEX "Page_slug_key" ON "Page"("slug");
+CREATE UNIQUE INDEX "AkcStanding_competitionId_teamId_key" ON "AkcStanding"("competitionId", "teamId");
+
+-- 4. ADD FOREIGN KEYS
+ALTER TABLE "RefreshToken" ADD CONSTRAINT "RefreshToken_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Federation" ADD CONSTRAINT "Federation_sportId_fkey" FOREIGN KEY ("sportId") REFERENCES "Sport"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "League" ADD CONSTRAINT "League_sportId_fkey" FOREIGN KEY ("sportId") REFERENCES "Sport"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "League" ADD CONSTRAINT "League_federationId_fkey" FOREIGN KEY ("federationId") REFERENCES "Federation"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "LeagueAdmin" ADD CONSTRAINT "LeagueAdmin_leagueId_fkey" FOREIGN KEY ("leagueId") REFERENCES "League"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Team" ADD CONSTRAINT "Team_sportId_fkey" FOREIGN KEY ("sportId") REFERENCES "Sport"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Team" ADD CONSTRAINT "Team_managerUserId_fkey" FOREIGN KEY ("managerUserId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "LeagueTeam" ADD CONSTRAINT "LeagueTeam_leagueId_fkey" FOREIGN KEY ("leagueId") REFERENCES "League"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "LeagueTeam" ADD CONSTRAINT "LeagueTeam_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Player" ADD CONSTRAINT "Player_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "PlayerDocument" ADD CONSTRAINT "PlayerDocument_playerId_fkey" FOREIGN KEY ("playerId") REFERENCES "Player"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Competition" ADD CONSTRAINT "Competition_leagueId_fkey" FOREIGN KEY ("leagueId") REFERENCES "League"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Fixture" ADD CONSTRAINT "Fixture_leagueId_fkey" FOREIGN KEY ("leagueId") REFERENCES "League"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Fixture" ADD CONSTRAINT "Fixture_competitionId_fkey" FOREIGN KEY ("competitionId") REFERENCES "Competition"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Fixture" ADD CONSTRAINT "Fixture_homeTeamId_fkey" FOREIGN KEY ("homeTeamId") REFERENCES "Team"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Fixture" ADD CONSTRAINT "Fixture_awayTeamId_fkey" FOREIGN KEY ("awayTeamId") REFERENCES "Team"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "MatchEvent" ADD CONSTRAINT "MatchEvent_fixtureId_fkey" FOREIGN KEY ("fixtureId") REFERENCES "Fixture"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "MatchEvent" ADD CONSTRAINT "MatchEvent_playerId_fkey" FOREIGN KEY ("playerId") REFERENCES "Player"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "MatchEvent" ADD CONSTRAINT "MatchEvent_player2Id_fkey" FOREIGN KEY ("player2Id") REFERENCES "Player"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Lineup" ADD CONSTRAINT "Lineup_fixtureId_fkey" FOREIGN KEY ("fixtureId") REFERENCES "Fixture"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Lineup" ADD CONSTRAINT "Lineup_playerId_fkey" FOREIGN KEY ("playerId") REFERENCES "Player"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "LiveMatchState" ADD CONSTRAINT "LiveMatchState_fixtureId_fkey" FOREIGN KEY ("fixtureId") REFERENCES "Fixture"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Standing" ADD CONSTRAINT "Standing_leagueId_fkey" FOREIGN KEY ("leagueId") REFERENCES "League"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Standing" ADD CONSTRAINT "Standing_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "TopScorer" ADD CONSTRAINT "TopScorer_leagueId_fkey" FOREIGN KEY ("leagueId") REFERENCES "League"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "TopScorer" ADD CONSTRAINT "TopScorer_playerId_fkey" FOREIGN KEY ("playerId") REFERENCES "Player"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "TopScorer" ADD CONSTRAINT "TopScorer_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Transfer" ADD CONSTRAINT "Transfer_playerId_fkey" FOREIGN KEY ("playerId") REFERENCES "Player"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Transfer" ADD CONSTRAINT "Transfer_fromTeamId_fkey" FOREIGN KEY ("fromTeamId") REFERENCES "Team"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Transfer" ADD CONSTRAINT "Transfer_toTeamId_fkey" FOREIGN KEY ("toTeamId") REFERENCES "Team"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "TeamRegistration" ADD CONSTRAINT "TeamRegistration_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "TeamRegistration" ADD CONSTRAINT "TeamRegistration_leagueId_fkey" FOREIGN KEY ("leagueId") REFERENCES "League"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "News" ADD CONSTRAINT "News_leagueId_fkey" FOREIGN KEY ("leagueId") REFERENCES "League"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "News" ADD CONSTRAINT "News_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "ActivityLog" ADD CONSTRAINT "ActivityLog_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "AkcTeam" ADD CONSTRAINT "AkcTeam_schoolId_fkey" FOREIGN KEY ("schoolId") REFERENCES "AkcSchool"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "AkcPlayer" ADD CONSTRAINT "AkcPlayer_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "AkcTeam"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "AkcFixture" ADD CONSTRAINT "AkcFixture_competitionId_fkey" FOREIGN KEY ("competitionId") REFERENCES "AkcCompetition"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "AkcFixture" ADD CONSTRAINT "AkcFixture_homeTeamId_fkey" FOREIGN KEY ("homeTeamId") REFERENCES "AkcTeam"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "AkcFixture" ADD CONSTRAINT "AkcFixture_awayTeamId_fkey" FOREIGN KEY ("awayTeamId") REFERENCES "AkcTeam"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "AkcStanding" ADD CONSTRAINT "AkcStanding_competitionId_fkey" FOREIGN KEY ("competitionId") REFERENCES "AkcCompetition"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "AkcStanding" ADD CONSTRAINT "AkcStanding_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "AkcTeam"("id") ON DELETE CASCADE ON UPDATE CASCADE;
