@@ -119,4 +119,64 @@ async function main() {
     }
   });
 
-  // 7. ASSIGNMENTS
+  // 7. ASSIGNMENTS
+  console.log('Assigning Admin Roles...');
+  // Assign League Admin to RPL
+  await prisma.leagueAdminAssignment.create({
+    data: { leagueId: rpl.id, userId: leagueAdminUser.id, assignedBy: superadmin.id }
+  });
+
+  // Assign Reporter to the Live Match
+  await prisma.reporterAssignment.create({
+    data: { leagueId: rpl.id, fixtureId: liveMatch.id, userId: reporterUser.id, assignedBy: leagueAdminUser.id }
+  });
+
+  // 8. AKC3 DATA
+  console.log('Creating AKC3 Specific Data...');
+  const school1 = await prisma.akcSchool.create({
+    data: { name: 'Kigali International School', code: 'KIS-001', category: 'SECONDARY', sector: 'Gasabo', active: true }
+  });
+
+  const akcTeam = await prisma.akcTeam.create({
+    data: { schoolId: school1.id, sportId: football.id, gender: 'MALE', ageCategory: 'U17', coachName: 'Jean Damascene' }
+  });
+
+  await prisma.akcPlayer.create({
+    data: { teamId: akcTeam.id, fullName: 'Mugisha Emmanuel', ageCategory: 'U17', position: 'Striker', jersey: 10, docVerified: true }
+  });
+
+  // 9. STANDINGS (Recalc for RPL)
+  // Normally the service does this, but for seed we initialize
+  await prisma.standing.createMany({
+    data: [
+      { leagueId: rpl.id, teamId: apr.id, played: 1, won: 1, drawn: 0, lost: 0, goalsFor: 2, goalsAgainst: 1, points: 3, form: 'W' },
+      { leagueId: rpl.id, teamId: rayon.id, played: 1, won: 0, drawn: 0, lost: 1, goalsFor: 1, goalsAgainst: 2, points: 0, form: 'L' }
+    ]
+  });
+
+  // 10. ADVERTISING
+  console.log('Creating Sample Ads...');
+  await prisma.ad.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      id: 1,
+      title: 'Inyange Summer Campaign',
+      imageUrl: 'https://images.unsplash.com/photo-1550537687-c9107db4d4a5?auto=format&fit=crop&w=1200&q=80',
+      targetUrl: 'https://inyangeindustries.rw',
+      position: 'HOME_BANNER',
+      active: true
+    }
+  });
+
+  console.log('✅ Comprehensive Seeding Complete!');
+}
+
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
