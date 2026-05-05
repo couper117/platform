@@ -17,4 +17,22 @@ const envSchema = z.object({
   PUSHER_CLUSTER: z.string().optional(),
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.string().optional(),
-  SMTP_USER: z.string().optional(),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  SMTP_FROM: z.string().optional(),
+  FRONTEND_URL: z.string().url().default('http://localhost:5173'),
+});
+
+const env = envSchema.safeParse(process.env);
+
+if (!env.success) {
+  console.error('❌ Invalid environment variables:', JSON.stringify(env.error.format(), null, 2));
+  if (process.env.NODE_ENV === 'production') {
+    // Only exit if critical vars like DATABASE_URL or JWT_SECRET are missing
+    const criticalFields = ['DATABASE_URL', 'JWT_SECRET'];
+    const hasMissingCritical = criticalFields.some(field => !process.env[field]);
+    if (hasMissingCritical) process.exit(1);
+  }
+}
+
+module.exports = env.success ? env.data : process.env;
