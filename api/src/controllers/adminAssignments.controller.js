@@ -99,4 +99,53 @@ const assignLeagueAdmin = async (req, res, next) => {
 // @route   POST /api/v1/leagues/:leagueId/assign-reporter
 // @access  Private/LeagueAdmin
 const assignReporter = async (req, res, next) => {
-  try {
+  try {
+    const { email, fixtureId } = req.body;
+    const leagueId = parseInt(req.params.leagueId);
+
+    // Verify req.user is an admin for this league
+    if (req.user.role !== 'SUPERADMIN') {
+      const isAdmin = await prisma.leagueAdminAssignment.findUnique({
+        where: { leagueId_userId: { leagueId, userId: req.user.id } }
+      });
+      if (!isAdmin) return res.status(403).json({ success: false, message: 'Not authorized for this league' });
+    }
+
+    let user = await prisma.user.findUnique({ where: { email } });
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    if (user.role === 'PUBLIC') {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: { role: 'MATCH_REPORTER' },
+      });
+    }
+
+    const assignment = await prisma.reporterAssignment.create({
+      data: {
+        leagueId: leagueId,
+        fixtureId: fixtureId ? parseInt(fixtureId) : null,
+        userId: user.id,
+        assignedBy: req.user.id,
+      },
+    });
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Assign Match Reporter',
+      detail: `Assigned ${user.email} as reporter`,
+      module: 'league-admin',
+      ip: req.ip,
+    });
+
+    res.status(201).json({ success: true, data: assignment });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  assignFederationAdmin,
+  assignLeagueAdmin,
+  assignReporter,
+};
