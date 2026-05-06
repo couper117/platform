@@ -17,4 +17,23 @@ const getActivityLogs = async (req, res, next) => {
     const [logs, total] = await prisma.$transaction([
       prisma.activityLog.findMany({
         where,
-        include: { user: { select: { fullName: true, username: true } } },
+        include: { user: { select: { fullName: true, username: true } } },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: parseInt(limit),
+      }),
+      prisma.activityLog.count({ where }),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      total,
+      pages: Math.ceil(total / limit),
+      data: logs,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getActivityLogs };
