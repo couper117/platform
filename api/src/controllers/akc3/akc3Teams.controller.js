@@ -17,4 +17,22 @@ const getTeams = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-};
+};
+
+const createTeam = async (req, res, next) => {
+  try {
+    const team = await prisma.akcTeam.create({ data: req.body });
+    await logActivity({
+      userId: req.user.id,
+      action: 'Create AKC Team',
+      detail: `Created AKC team for school ${team.schoolId}`,
+      module: 'akc3',
+      ip: req.ip,
+    });
+    res.status(201).json({ success: true, data: team });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getTeams, createTeam };
