@@ -111,4 +111,61 @@ const login = async (req, res, next) => {
 
     await logActivity({
       userId: user.id,
-      action: 'Login',
+      action: 'Login',
+      detail: 'User logged in successfully',
+      module: 'auth',
+      ip: req.ip,
+    });
+
+    // Remove password from response
+    user.password = undefined;
+
+    res.status(200).json({
+      success: true,
+      accessToken,
+      user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Refresh token
+// @route   POST /api/v1/auth/refresh
+// @access  Public
+const refresh = async (req, res, next) => {
+  const token = req.cookies.refreshToken;
+
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'No refresh token provided' });
+  }
+
+  try {
+    const savedToken = await prisma.refreshToken.findUnique({
+      where: { token },
+      include: { user: { include: { managedTeam: true } } },
+    });
+
+    if (!savedToken || savedToken.expiresAt < new Date()) {
+      if (savedToken) await prisma.refreshToken.delete({ where: { id: savedToken.id } });
+      return res.status(401).json({ success: false, message: 'Invalid or expired refresh token' });
+    }
+
+    const decoded = verifyToken(token);
+    if (decoded.sub !== savedToken.userId) {
+      return res.status(401).json({ success: false, message: 'Invalid token' });
+    }
+
+    // Refresh token rotation
+    const newRefreshToken = generateRefreshToken(savedToken.user);
+    const newAccessToken = generateAccessToken(savedToken.user);
+
+    await prisma.$transaction([
+      prisma.refreshToken.delete({ where: { id: savedToken.id } }),
+      prisma.refreshToken.create({
+        data: {
+          token: newRefreshToken,
+          userId: savedToken.userId,
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        },
+      }),
