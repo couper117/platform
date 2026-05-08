@@ -89,4 +89,49 @@ const reviewDocument = async (req, res, next) => {
       data: {
         status,
         reviewNote,
-        reviewedBy: req.user.id,
+        reviewedBy: req.user.id,
+      },
+      include: { player: true },
+    });
+
+    // Auto-verification logic
+    if (status === 'APPROVED') {
+      const allDocs = await prisma.playerDocument.findMany({
+        where: { playerId: document.playerId, status: 'APPROVED' },
+      });
+
+      const types = allDocs.map(d => d.docType);
+      const required = ['BIRTH_CERTIFICATE', 'PASSPORT', 'NATIONAL_ID'];
+      const hasAllRequired = required.every(r => types.includes(r));
+
+      if (hasAllRequired) {
+        await prisma.player.update({
+          where: { id: document.playerId },
+          data: {
+            status: 'VERIFIED',
+            verifiedAt: new Date(),
+            verifiedBy: req.user.id,
+          },
+        });
+      }
+    }
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Review Document',
+      detail: `${status} document ${docId} for player ${document.player.fullName}`,
+      module: 'documents',
+      ip: req.ip,
+    });
+
+    res.status(200).json({ success: true, data: document });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  getDocuments,
+  uploadDocument,
+  reviewDocument,
+};
