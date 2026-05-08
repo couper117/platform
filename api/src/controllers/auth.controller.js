@@ -54,4 +54,61 @@ const registerTeam = async (req, res, next) => {
       module: 'auth',
       ip: req.ip,
     });
-
+
+    res.status(201).json({
+      success: true,
+      message: 'Team registration submitted successfully. Awaiting approval.',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Login user
+// @route   POST /api/v1/auth/login
+// @access  Public
+const login = async (req, res, next) => {
+  const { username, password } = req.body;
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { username },
+      include: { managedTeam: true },
+    });
+
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
+
+    if (!user.active) {
+      return res.status(401).json({ success: false, message: 'Account is deactivated' });
+    }
+
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+
+    // Save refresh token to DB
+    await prisma.refreshToken.create({
+      data: {
+        token: refreshToken,
+        userId: user.id,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+      },
+    });
+
+    // Set refresh token in httpOnly cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastLogin: new Date() },
+    });
+
+    await logActivity({
+      userId: user.id,
+      action: 'Login',
