@@ -101,4 +101,55 @@ const updateFederation = async (req, res, next) => {
         abbreviation,
         sportId: sportId ? parseInt(sportId) : undefined,
         description,
-        website,
+        website,
+        email,
+        active: active !== undefined ? (active === 'true' || active === true) : undefined,
+        logo,
+      },
+    });
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Update Federation',
+      detail: `Updated federation ${federation.name}`,
+      module: 'federations',
+      ip: req.ip,
+    });
+
+    res.status(200).json({ success: true, data: federation });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Delete federation
+// @route   DELETE /api/v1/federations/:id
+// @access  Private/Admin
+const deleteFederation = async (req, res, next) => {
+  try {
+    const federation = await prisma.federation.update({
+      where: { id: parseInt(req.params.id) },
+      data: { active: false },
+    });
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Delete Federation',
+      detail: `Soft-deleted federation ${federation.name}`,
+      module: 'federations',
+      ip: req.ip,
+    });
+
+    res.status(200).json({ success: true, message: 'Federation deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  getFederations,
+  getFederation,
+  createFederation,
+  updateFederation,
+  deleteFederation,
+};
