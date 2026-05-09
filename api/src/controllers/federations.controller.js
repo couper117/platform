@@ -49,4 +49,56 @@ const createFederation = async (req, res, next) => {
     if (req.file) {
       logo = await uploadImage(req.file, 'federations', 200, 200);
     }
-
+
+    const federation = await prisma.federation.create({
+      data: {
+        name,
+        abbreviation,
+        sportId: sportId ? parseInt(sportId) : null,
+        description,
+        website,
+        email,
+        logo,
+      },
+    });
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Create Federation',
+      detail: `Created federation ${name}`,
+      module: 'federations',
+      ip: req.ip,
+    });
+
+    res.status(201).json({ success: true, data: federation });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update federation
+// @route   PUT /api/v1/federations/:id
+// @access  Private/Admin
+const updateFederation = async (req, res, next) => {
+  try {
+    const { name, abbreviation, sportId, description, website, email, active } = req.body;
+    let federation = await prisma.federation.findUnique({ where: { id: parseInt(req.params.id) } });
+
+    if (!federation) {
+      return res.status(404).json({ success: false, message: 'Federation not found' });
+    }
+
+    let logo = federation.logo;
+    if (req.file) {
+      if (federation.logo) await deleteImage(federation.logo);
+      logo = await uploadImage(req.file, 'federations', 200, 200);
+    }
+
+    federation = await prisma.federation.update({
+      where: { id: parseInt(req.params.id) },
+      data: {
+        name,
+        abbreviation,
+        sportId: sportId ? parseInt(sportId) : undefined,
+        description,
+        website,
