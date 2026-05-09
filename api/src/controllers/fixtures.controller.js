@@ -122,4 +122,66 @@ const saveResult = async (req, res, next) => {
     const fixture = await prisma.fixture.findUnique({ where: { id: fixtureId } });
     if (!fixture) return res.status(404).json({ success: false, message: 'Fixture not found' });
 
-    // Authorization check
+    // Authorization check
+    if (req.user.role === 'MATCH_REPORTER') {
+      const isAssigned = await prisma.reporterAssignment.findFirst({
+        where: { fixtureId, userId: req.user.id }
+      });
+      if (!isAssigned) return res.status(403).json({ success: false, message: 'Not assigned to this match' });
+    } else if (req.user.role === 'LEAGUE_ADMIN') {
+      const isAssigned = await prisma.leagueAdminAssignment.findUnique({
+        where: { leagueId_userId: { leagueId: fixture.leagueId, userId: req.user.id } }
+      });
+      if (!isAssigned) return res.status(403).json({ success: false, message: 'Not assigned to this league' });
+    }
+
+    const result = await prisma.fixture.update({
+      where: { id: fixtureId },
+      data: {
+        homeScore: parseInt(homeScore),
+        awayScore: parseInt(awayScore),
+        homeScoreHt: homeScoreHt ? parseInt(homeScoreHt) : null,
+        awayScoreHt: awayScoreHt ? parseInt(awayScoreHt) : null,
+        attendance: attendance ? parseInt(attendance) : null,
+        status: status || 'COMPLETED',
+      },
+    });
+
+    if (result.status === 'COMPLETED') {
+      await recalcStandings(result.leagueId);
+    }
+
+    emitMatchUpdate(fixtureId, {
+      homeScore: result.homeScore,
+      awayScore: result.awayScore,
+      status: result.status,
+    });
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Save Result',
+      detail: `Saved result for fixture ${fixtureId}: ${homeScore}-${awayScore}`,
+      module: 'fixtures',
+      ip: req.ip,
+    });
+
+    res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const addMatchEvent = async (req, res, next) => {
+  try {
+    const { eventType, minute, extraTime, teamId, playerId, player2Id, description, refereeName } = req.body;
+    const fixtureId = parseInt(req.params.id);
+    if (isNaN(fixtureId)) return res.status(400).json({ success: false, message: 'Invalid ID' });
+
+    const fixture = await prisma.fixture.findUnique({ where: { id: fixtureId } });
+    if (!fixture) return res.status(404).json({ success: false, message: 'Fixture not found' });
+
+    // Authorization check
+    if (req.user.role === 'MATCH_REPORTER') {
+      const isAssigned = await prisma.reporterAssignment.findFirst({
+        where: { 
+          OR: [
