@@ -184,4 +184,65 @@ const addMatchEvent = async (req, res, next) => {
     if (req.user.role === 'MATCH_REPORTER') {
       const isAssigned = await prisma.reporterAssignment.findFirst({
         where: { 
-          OR: [
+          OR: [
+            { fixtureId, userId: req.user.id },
+            { leagueId: fixture.leagueId, userId: req.user.id }
+          ]
+        }
+      });
+      if (!isAssigned) return res.status(403).json({ success: false, message: 'Not assigned to this match/league' });
+    } else if (req.user.role === 'LEAGUE_ADMIN') {
+      const isAssigned = await prisma.leagueAdminAssignment.findUnique({
+        where: { leagueId_userId: { leagueId: fixture.leagueId, userId: req.user.id } }
+      });
+      if (!isAssigned) return res.status(403).json({ success: false, message: 'Not assigned to this league' });
+    }
+
+    const event = await prisma.matchEvent.create({
+      data: {
+        fixtureId,
+        eventType,
+        minute: parseInt(minute),
+        extraTime: parseInt(extraTime) || 0,
+        teamId: teamId ? parseInt(teamId) : null,
+        playerId: playerId ? parseInt(playerId) : null,
+        player2Id: player2Id ? parseInt(player2Id) : null,
+        description,
+        refereeName,
+      },
+      include: { player: true, player2: true },
+    });
+
+    // Auto-increment score logic
+    if (eventType === 'GOAL' || eventType === 'PENALTY') {
+      const isHome = teamId == fixture.homeTeamId;
+      
+      const updatedFixture = await prisma.fixture.update({
+        where: { id: fixtureId },
+        data: {
+          homeScore: isHome ? (fixture.homeScore || 0) + 1 : fixture.homeScore,
+          awayScore: !isHome ? (fixture.awayScore || 0) + 1 : fixture.awayScore,
+        },
+      });
+
+      emitMatchUpdate(fixtureId, {
+        homeScore: updatedFixture.homeScore,
+        awayScore: updatedFixture.awayScore,
+      });
+    }
+
+    emitMatchEvent(fixtureId, event);
+
+    res.status(201).json({ success: true, data: event });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  getFixtures,
+  getFixture,
+  createFixture,
+  saveResult,
+  addMatchEvent,
+};
