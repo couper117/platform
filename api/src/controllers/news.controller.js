@@ -121,4 +121,65 @@ const updateArticle = async (req, res, next) => {
       coverImage = await uploadImage(req.file, 'news', 800, 450);
     }
 
-    news = await prisma.news.update({
+    news = await prisma.news.update({
+      where: { id: newsId },
+      data: {
+        title,
+        slug: title ? slugify(title, { lower: true }) : undefined,
+        excerpt,
+        body,
+        category,
+        sportId: sportId ? parseInt(sportId) : undefined,
+        leagueId: leagueId ? parseInt(leagueId) : undefined,
+        featured: featured !== undefined ? (featured === 'true' || featured === true) : undefined,
+        published: published !== undefined ? (published === 'true' || published === true) : undefined,
+        coverImage,
+      },
+    });
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Update News',
+      detail: `Updated news article: ${news.title}`,
+      module: 'news',
+      ip: req.ip,
+    });
+
+    res.status(200).json({ success: true, data: news });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Delete news article
+// @route   DELETE /api/v1/news/:id
+// @access  Private/Admin
+const deleteArticle = async (req, res, next) => {
+  try {
+    const news = await prisma.news.delete({
+      where: { id: parseInt(req.params.id) },
+    });
+
+    if (news.coverImage) await deleteImage(news.coverImage);
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Delete News',
+      detail: `Deleted news article: ${news.title}`,
+      module: 'news',
+      ip: req.ip,
+    });
+
+    res.status(200).json({ success: true, message: 'Article deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  getNews,
+  getArticle,
+  createArticle,
+  updateArticle,
+  deleteArticle,
+};
