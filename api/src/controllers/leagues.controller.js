@@ -188,4 +188,66 @@ const addTeamToLeague = async (req, res, next) => {
       },
     });
 
-    // Also initialize standings row for this team in this league
+    // Also initialize standings row for this team in this league
+    await prisma.standing.upsert({
+      where: {
+        leagueId_teamId: { leagueId, teamId },
+      },
+      update: {},
+      create: {
+        leagueId,
+        teamId,
+      },
+    });
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Add Team to League',
+      detail: `Added team ${teamId} to league ${leagueId}`,
+      module: 'leagues',
+      ip: req.ip,
+    });
+
+    res.status(200).json({ success: true, data: leagueTeam });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Remove team from league
+// @route   DELETE /api/v1/leagues/:id/teams/:teamId
+// @access  Private/Admin
+const removeTeamFromLeague = async (req, res, next) => {
+  try {
+    const leagueId = parseInt(req.params.id);
+    const teamId = parseInt(req.params.teamId);
+
+    await prisma.leagueTeam.delete({
+      where: {
+        leagueId_teamId: { leagueId, teamId },
+      },
+    });
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Remove Team from League',
+      detail: `Removed team ${teamId} from league ${leagueId}`,
+      module: 'leagues',
+      ip: req.ip,
+    });
+
+    res.status(200).json({ success: true, message: 'Team removed from league' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  getLeagues,
+  getLeague,
+  createLeague,
+  updateLeague,
+  deleteLeague,
+  addTeamToLeague,
+  removeTeamFromLeague,
+};
