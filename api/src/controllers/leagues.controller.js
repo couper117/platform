@@ -61,4 +61,67 @@ const getLeague = async (req, res, next) => {
 
 // @desc    Create league
 // @route   POST /api/v1/leagues
-// @access  Private/Admin
+// @access  Private/Admin
+const createLeague = async (req, res, next) => {
+  try {
+    const { 
+      name, sportId, federationId, season, gender, 
+      ageCategory, level, format, status, maxTeams, 
+      description, startDate, endDate 
+    } = req.body;
+
+    const league = await prisma.league.create({
+      data: {
+        name,
+        slug: slugify(name, { lower: true }),
+        sportId: parseInt(sportId),
+        federationId: federationId ? parseInt(federationId) : null,
+        season,
+        gender,
+        ageCategory,
+        level,
+        format,
+        status,
+        maxTeams: parseInt(maxTeams) || 16,
+        description,
+        startDate: startDate ? new Date(startDate) : null,
+        endDate: endDate ? new Date(endDate) : null,
+      },
+    });
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Create League',
+      detail: `Created league ${name}`,
+      module: 'leagues',
+      ip: req.ip,
+    });
+
+    res.status(201).json({ success: true, data: league });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update league
+// @route   PUT /api/v1/leagues/:id
+// @access  Private/Admin
+const updateLeague = async (req, res, next) => {
+  try {
+    const { 
+      name, sportId, federationId, season, gender, 
+      ageCategory, level, format, status, maxTeams, 
+      description, startDate, endDate, active 
+    } = req.body;
+
+    const league = await prisma.league.update({
+      where: { id: parseInt(req.params.id) },
+      data: {
+        name,
+        slug: name ? slugify(name, { lower: true }) : undefined,
+        sportId: sportId ? parseInt(sportId) : undefined,
+        federationId: federationId ? parseInt(federationId) : undefined,
+        season,
+        gender,
+        ageCategory,
+        level,
