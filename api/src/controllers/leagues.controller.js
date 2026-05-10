@@ -124,4 +124,68 @@ const updateLeague = async (req, res, next) => {
         season,
         gender,
         ageCategory,
-        level,
+        level,
+        format,
+        status,
+        maxTeams: maxTeams ? parseInt(maxTeams) : undefined,
+        description,
+        startDate: startDate ? new Date(startDate) : undefined,
+        endDate: endDate ? new Date(endDate) : undefined,
+        active: active !== undefined ? (active === 'true' || active === true) : undefined,
+      },
+    });
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Update League',
+      detail: `Updated league ${league.name}`,
+      module: 'leagues',
+      ip: req.ip,
+    });
+
+    res.status(200).json({ success: true, data: league });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Delete league
+// @route   DELETE /api/v1/leagues/:id
+// @access  Private/Admin
+const deleteLeague = async (req, res, next) => {
+  try {
+    const league = await prisma.league.update({
+      where: { id: parseInt(req.params.id) },
+      data: { active: false },
+    });
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Delete League',
+      detail: `Soft-deleted league ${league.name}`,
+      module: 'leagues',
+      ip: req.ip,
+    });
+
+    res.status(200).json({ success: true, message: 'League deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Add team to league
+// @route   POST /api/v1/leagues/:id/teams/:teamId
+// @access  Private/Admin
+const addTeamToLeague = async (req, res, next) => {
+  try {
+    const leagueId = parseInt(req.params.id);
+    const teamId = parseInt(req.params.teamId);
+
+    const leagueTeam = await prisma.leagueTeam.create({
+      data: {
+        leagueId,
+        teamId,
+      },
+    });
+
+    // Also initialize standings row for this team in this league
