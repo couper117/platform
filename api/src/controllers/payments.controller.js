@@ -35,4 +35,40 @@ const initiateSubscription = async (req, res, next) => {
 // @route   POST /api/v1/payments/verify/:reference
 // @access  Private (Admin or Webhook)
 const verifyPayment = async (req, res, next) => {
-  try {
+  try {
+    const { reference } = req.params;
+    const transaction = await prisma.transaction.findUnique({ where: { reference } });
+
+    if (!transaction) return res.status(404).json({ success: false, message: 'Transaction not found' });
+
+    const updatedTransaction = await prisma.transaction.update({
+      where: { reference },
+      data: { status: 'SUCCESS' },
+    });
+
+    // If it's a subscription, update the team status
+    if (updatedTransaction.type === 'SUBSCRIPTION') {
+      const team = await prisma.team.findFirst({ where: { managerUserId: updatedTransaction.userId } });
+      if (team) {
+        await prisma.team.update({
+          where: { id: team.id },
+          data: { status: 'VERIFIED', verifiedAt: new Date() },
+        });
+      }
+    }
+
+    await logActivity({
+      userId: req.user ? req.user.id : updatedTransaction.userId,
+      action: 'Payment Verified',
+      detail: `Transaction ${reference} succeeded`,
+      module: 'payments',
+      ip: req.ip,
+    });
+
+    res.status(200).json({ success: true, data: updatedTransaction });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { initiateSubscription, verifyPayment };
