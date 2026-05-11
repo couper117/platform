@@ -109,4 +109,58 @@ const updatePlayer = async (req, res, next) => {
     const playerId = parseInt(req.params.id);
     let player = await prisma.player.findUnique({ 
       where: { id: playerId },
-      include: { team: true }
+      include: { team: true }
+    });
+
+    if (!player) return res.status(404).json({ success: false, message: 'Player not found' });
+
+    if (req.user.role !== 'SUPERADMIN' && req.user.id !== player.team.managerUserId) {
+      return res.status(403).json({ success: false, message: 'Not authorized to update this player' });
+    }
+
+    const { fullName, dateOfBirth, nationality, position, jerseyNumber, skillLevel, gender, height, weight, bio, active } = req.body;
+
+    let photo = player.photo;
+    if (req.file) {
+      if (player.photo) await deleteImage(player.photo);
+      photo = await uploadImage(req.file, 'players', 400, 400);
+    }
+
+    player = await prisma.player.update({
+      where: { id: playerId },
+      data: {
+        fullName,
+        photo,
+        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
+        nationality,
+        position,
+        jerseyNumber: jerseyNumber ? parseInt(jerseyNumber) : undefined,
+        skillLevel,
+        gender,
+        height: height ? parseInt(height) : undefined,
+        weight: weight ? parseInt(weight) : undefined,
+        bio,
+        active: active !== undefined ? (active === 'true' || active === true) : undefined,
+      },
+    });
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Update Player',
+      detail: `Updated player ${player.fullName}`,
+      module: 'players',
+      ip: req.ip,
+    });
+
+    res.status(200).json({ success: true, data: player });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  getPlayers,
+  getPlayer,
+  createPlayer,
+  updatePlayer,
+};
