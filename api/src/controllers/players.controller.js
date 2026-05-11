@@ -53,4 +53,60 @@ const getPlayer = async (req, res, next) => {
 // @desc    Add player to team
 // @route   POST /api/v1/players
 // @access  Private (Team Manager or Admin)
-const createPlayer = async (req, res, next) => {
+const createPlayer = async (req, res, next) => {
+  try {
+    const { teamId, fullName, dateOfBirth, nationality, position, jerseyNumber, skillLevel, gender, height, weight, bio } = req.body;
+    
+    // Auth check
+    const team = await prisma.team.findUnique({ where: { id: parseInt(teamId) } });
+    if (!team) return res.status(404).json({ success: false, message: 'Team not found' });
+    
+    if (req.user.role !== 'SUPERADMIN' && req.user.id !== team.managerUserId) {
+      return res.status(403).json({ success: false, message: 'Not authorized to add players to this team' });
+    }
+
+    let photo = null;
+    if (req.file) {
+      photo = await uploadImage(req.file, 'players', 400, 400);
+    }
+
+    const player = await prisma.player.create({
+      data: {
+        teamId: parseInt(teamId),
+        fullName,
+        photo,
+        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
+        nationality,
+        position,
+        jerseyNumber: jerseyNumber ? parseInt(jerseyNumber) : null,
+        skillLevel,
+        gender,
+        height: height ? parseInt(height) : null,
+        weight: weight ? parseInt(weight) : null,
+        bio,
+      },
+    });
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Create Player',
+      detail: `Created player ${fullName} in team ${team.name}`,
+      module: 'players',
+      ip: req.ip,
+    });
+
+    res.status(201).json({ success: true, data: player });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update player
+// @route   PUT /api/v1/players/:id
+// @access  Private (Team Manager or Admin)
+const updatePlayer = async (req, res, next) => {
+  try {
+    const playerId = parseInt(req.params.id);
+    let player = await prisma.player.findUnique({ 
+      where: { id: playerId },
+      include: { team: true }
