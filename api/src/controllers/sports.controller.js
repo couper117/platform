@@ -53,4 +53,59 @@ const getSport = async (req, res, next) => {
 // @access  Private/Admin
 const createSport = async (req, res, next) => {
   try {
-    const { name, icon, description, category, sortOrder } = req.body;
+    const { name, icon, description, category, sortOrder } = req.body;
+    let coverImage = null;
+
+    if (req.file) {
+      coverImage = await uploadImage(req.file, 'sports', 800, 450);
+    }
+
+    const sport = await prisma.sport.create({
+      data: {
+        name,
+        slug: slugify(name, { lower: true }),
+        icon,
+        description,
+        category,
+        sortOrder: parseInt(sortOrder) || 0,
+        coverImage,
+      },
+    });
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Create Sport',
+      detail: `Created sport ${name}`,
+      module: 'sports',
+      ip: req.ip,
+    });
+
+    res.status(201).json({ success: true, data: sport });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update sport
+// @route   PUT /api/v1/sports/:id
+// @access  Private/Admin
+const updateSport = async (req, res, next) => {
+  try {
+    const { name, icon, description, category, sortOrder, active } = req.body;
+    let sport = await prisma.sport.findUnique({ where: { id: parseInt(req.params.id) } });
+
+    if (!sport) {
+      return res.status(404).json({ success: false, message: 'Sport not found' });
+    }
+
+    let coverImage = sport.coverImage;
+    if (req.file) {
+      if (sport.coverImage) await deleteImage(sport.coverImage);
+      coverImage = await uploadImage(req.file, 'sports', 800, 450);
+    }
+
+    sport = await prisma.sport.update({
+      where: { id: parseInt(req.params.id) },
+      data: {
+        name,
+        slug: name ? slugify(name, { lower: true }) : undefined,
