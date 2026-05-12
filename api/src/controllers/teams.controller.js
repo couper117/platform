@@ -172,4 +172,61 @@ const updateTeam = async (req, res, next) => {
         description,
         email,
         phone,
-        website,
+        website,
+        active: active !== undefined ? (active === 'true' || active === true) : undefined,
+        logo,
+      },
+    });
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Update Team',
+      detail: `Updated team ${team.name}`,
+      module: 'teams',
+      ip: req.ip,
+    });
+
+    res.status(200).json({ success: true, data: team });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update team status (Verify/Reject/Suspend)
+// @route   PUT /api/v1/teams/:id/status
+// @access  Private/Admin
+const updateTeamStatus = async (req, res, next) => {
+  try {
+    const { status } = req.body;
+    const teamId = parseInt(req.params.id);
+
+    const team = await prisma.team.update({
+      where: { id: teamId },
+      data: {
+        status,
+        verifiedAt: status === 'VERIFIED' ? new Date() : undefined,
+        verifiedBy: status === 'VERIFIED' ? req.user.id : undefined,
+      },
+    });
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Update Team Status',
+      detail: `Updated team ${team.name} status to ${status}`,
+      module: 'teams',
+      ip: req.ip,
+    });
+
+    res.status(200).json({ success: true, data: team });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  getTeams,
+  getTeam,
+  createTeam,
+  updateTeam,
+  updateTeamStatus,
+};
