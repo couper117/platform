@@ -56,4 +56,62 @@ const getTeam = async (req, res, next) => {
           },
         },
       });
-    } else {
+    } else {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ success: false, message: 'Invalid ID' });
+      
+      team = await prisma.team.findUnique({
+        where: { id },
+        include: {
+          sport: true,
+          managerUser: {
+            select: { id: true, fullName: true, email: true, phone: true },
+          },
+          players: {
+            where: { active: true },
+            include: { documents: true },
+          },
+          leagues: {
+            include: { league: true },
+          },
+        },
+      });
+    }
+
+    if (!team || !team.active) {
+      return res.status(404).json({ success: false, message: 'Team not found' });
+    }
+
+    res.status(200).json({ success: true, data: team });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Create team (Admin only)
+// @route   POST /api/v1/teams
+// @access  Private/Admin
+const createTeam = async (req, res, next) => {
+  try {
+    const { name, shortName, sportId, foundedYear, homeVenue, city, province, description, email, phone, website, managerUserId } = req.body;
+    let logo = null;
+
+    if (req.file) {
+      logo = await uploadImage(req.file, 'teams', 200, 200);
+    }
+
+    const team = await prisma.team.create({
+      data: {
+        name,
+        shortName,
+        slug: slugify(name, { lower: true }),
+        sportId: sportId ? parseInt(sportId) : null,
+        foundedYear: foundedYear ? parseInt(foundedYear) : null,
+        homeVenue,
+        city,
+        province,
+        description,
+        email,
+        phone,
+        website,
+        managerUserId: managerUserId ? parseInt(managerUserId) : null,
