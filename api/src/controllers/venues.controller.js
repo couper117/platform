@@ -46,4 +46,51 @@ const updateVenue = async (req, res, next) => {
   try {
     const { name, city, province, capacity, surface, active } = req.body;
     const venue = await prisma.venue.update({
-      where: { id: parseInt(req.params.id) },
+      where: { id: parseInt(req.params.id) },
+      data: {
+        name, city, province,
+        capacity: capacity ? parseInt(capacity) : undefined,
+        surface,
+        active: active !== undefined ? (active === 'true' || active === true) : undefined,
+      },
+    });
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Update Venue',
+      detail: `Updated venue ${venue.name}`,
+      module: 'venues',
+      ip: req.ip,
+    });
+
+    res.status(200).json({ success: true, data: venue });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Delete venue
+// @route   DELETE /api/v1/venues/:id
+// @access  Private/Admin
+const deleteVenue = async (req, res, next) => {
+  try {
+    const venue = await prisma.venue.update({
+      where: { id: parseInt(req.params.id) },
+      data: { active: false },
+    });
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Delete Venue',
+      detail: `Deleted venue ${venue.name}`,
+      module: 'venues',
+      ip: req.ip,
+    });
+
+    res.status(200).json({ success: true, message: 'Venue deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getVenues, createVenue, updateVenue, deleteVenue };
