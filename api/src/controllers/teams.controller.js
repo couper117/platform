@@ -114,4 +114,62 @@ const createTeam = async (req, res, next) => {
         email,
         phone,
         website,
-        managerUserId: managerUserId ? parseInt(managerUserId) : null,
+        managerUserId: managerUserId ? parseInt(managerUserId) : null,
+        status: 'VERIFIED',
+      },
+    });
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Create Team',
+      detail: `Created team ${name}`,
+      module: 'teams',
+      ip: req.ip,
+    });
+
+    res.status(201).json({ success: true, data: team });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update team
+// @route   PUT /api/v1/teams/:id
+// @access  Private/Admin or Owner
+const updateTeam = async (req, res, next) => {
+  try {
+    const teamId = parseInt(req.params.id);
+    let team = await prisma.team.findUnique({ where: { id: teamId } });
+
+    if (!team) {
+      return res.status(404).json({ success: false, message: 'Team not found' });
+    }
+
+    // Authorization check: Admin or Team Manager
+    if (req.user.role !== 'SUPERADMIN' && req.user.id !== team.managerUserId) {
+      return res.status(403).json({ success: false, message: 'Not authorized to update this team' });
+    }
+
+    const { name, shortName, sportId, foundedYear, homeVenue, city, province, description, email, phone, website, active } = req.body;
+
+    let logo = team.logo;
+    if (req.file) {
+      if (team.logo) await deleteImage(team.logo);
+      logo = await uploadImage(req.file, 'teams', 200, 200);
+    }
+
+    team = await prisma.team.update({
+      where: { id: teamId },
+      data: {
+        name,
+        shortName,
+        slug: name ? slugify(name, { lower: true }) : undefined,
+        sportId: sportId ? parseInt(sportId) : undefined,
+        foundedYear: foundedYear ? parseInt(foundedYear) : undefined,
+        homeVenue,
+        city,
+        province,
+        description,
+        email,
+        phone,
+        website,
