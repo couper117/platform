@@ -108,4 +108,58 @@ const updateSport = async (req, res, next) => {
       where: { id: parseInt(req.params.id) },
       data: {
         name,
-        slug: name ? slugify(name, { lower: true }) : undefined,
+        slug: name ? slugify(name, { lower: true }) : undefined,
+        icon,
+        description,
+        category,
+        sortOrder: sortOrder ? parseInt(sortOrder) : undefined,
+        active: active !== undefined ? (active === 'true' || active === true) : undefined,
+        coverImage,
+      },
+    });
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Update Sport',
+      detail: `Updated sport ${sport.name}`,
+      module: 'sports',
+      ip: req.ip,
+    });
+
+    res.status(200).json({ success: true, data: sport });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Delete sport (soft delete)
+// @route   DELETE /api/v1/sports/:id
+// @access  Private/Admin
+const deleteSport = async (req, res, next) => {
+  try {
+    const sport = await prisma.sport.update({
+      where: { id: parseInt(req.params.id) },
+      data: { active: false },
+    });
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Delete Sport',
+      detail: `Soft-deleted sport ${sport.name}`,
+      module: 'sports',
+      ip: req.ip,
+    });
+
+    res.status(200).json({ success: true, message: 'Sport deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  getSports,
+  getSport,
+  createSport,
+  updateSport,
+  deleteSport,
+};
