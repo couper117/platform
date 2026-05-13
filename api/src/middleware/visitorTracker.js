@@ -12,4 +12,18 @@ const visitorTracker = async (req, res, next) => {
       data: {
         action: 'PAGE_VIEW',
         module: 'VISITOR_TRACKING',
-        detail: `Visited: ${pagePath}`,
+        detail: `Visited: ${pagePath}`,
+        userId: userId,
+        ip: ip,
+        sessionId: req.sessionID || 'anonymous',
+        pagePath: pagePath,
+        userAgent: userAgent
+      }
+    });
+  } catch (error) {
+    console.error('Visitor logging failed:', error);
+  }
+  next();
+};
+
+module.exports = visitorTracker;
