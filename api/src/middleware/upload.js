@@ -9,4 +9,15 @@ const fileFilter = (req, file, cb) => {
     cb(null, true);
   } else {
     cb(new Error('Only images and PDFs are allowed'), false);
-  }
+  }
+};
+
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: {
+    fileSize: 8 * 1024 * 1024, // 8MB
+  },
+});
+
+module.exports = upload;
