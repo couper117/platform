@@ -45,4 +45,52 @@ router.get('/standings', async (req, res, next) => {
 });
 
 // List all school championships (the umbrella for "Amashuri Games", incl. the Kagame Cup)
-router.get('/competitions', async (req, res, next) => {
+router.get('/competitions', async (req, res, next) => {
+  try {
+    const { status, level } = req.query;
+    const where = {};
+    if (status) where.status = status;
+    if (level) where.level = level;
+
+    const competitions = await prisma.akcCompetition.findMany({
+      where,
+      orderBy: [{ startDate: 'desc' }, { id: 'desc' }],
+      include: {
+        _count: { select: { fixtures: true, standings: true } },
+      },
+    });
+    res.status(200).json({ success: true, count: competitions.length, data: competitions });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Admin Routes (SUPERADMIN only for AKC3 management)
+router.post('/admin/schools', protect, authorize('SUPERADMIN'), createSchool);
+router.post('/admin/teams', protect, authorize('SUPERADMIN'), createTeam);
+router.post('/admin/fixtures', protect, authorize('SUPERADMIN'), createFixture);
+router.post('/admin/results/:fixtureId', protect, authorize('SUPERADMIN'), enterResult);
+
+router.post('/admin/import/players', protect, authorize('SUPERADMIN'), async (req, res, next) => {
+  try {
+    const { rows } = req.body; // In production, use a proper CSV parser middleware
+    const result = await importPlayersFromCSV(rows);
+    res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// --- Championships (AkcCompetition) admin CRUD ---
+
+// Pick + coerce only the fields the AkcCompetition model accepts.
+const buildCompetitionData = (body = {}) => {
+  const data = {};
+  if (body.name !== undefined) data.name = body.name;
+  if (body.edition !== undefined) data.edition = body.edition || null;
+  if (body.gender !== undefined) data.gender = body.gender || 'mixed';
+  if (body.ageCategory !== undefined) data.ageCategory = body.ageCategory || 'Open';
+  if (body.level !== undefined) data.level = body.level;
+  if (body.status !== undefined) data.status = body.status;
+  if (body.venue !== undefined) data.venue = body.venue || null;
+  if (body.description !== undefined) data.description = body.description || null;
