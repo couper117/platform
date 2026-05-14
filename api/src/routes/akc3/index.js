@@ -93,4 +93,50 @@ const buildCompetitionData = (body = {}) => {
   if (body.level !== undefined) data.level = body.level;
   if (body.status !== undefined) data.status = body.status;
   if (body.venue !== undefined) data.venue = body.venue || null;
-  if (body.description !== undefined) data.description = body.description || null;
+  if (body.description !== undefined) data.description = body.description || null;
+  if (body.sportId !== undefined) data.sportId = body.sportId ? parseInt(body.sportId) : null;
+  if (body.startDate !== undefined) data.startDate = body.startDate ? new Date(body.startDate) : null;
+  if (body.endDate !== undefined) data.endDate = body.endDate ? new Date(body.endDate) : null;
+  return data;
+};
+
+router.post('/admin/competitions', protect, authorize('SUPERADMIN'), async (req, res, next) => {
+  try {
+    if (!req.body?.name) {
+      return res.status(400).json({ success: false, message: 'Championship name is required' });
+    }
+    const competition = await prisma.akcCompetition.create({ data: buildCompetitionData(req.body) });
+    res.status(201).json({ success: true, data: competition });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.put('/admin/competitions/:id', protect, authorize('SUPERADMIN'), async (req, res, next) => {
+  try {
+    const competition = await prisma.akcCompetition.update({
+      where: { id: parseInt(req.params.id) },
+      data: buildCompetitionData(req.body),
+    });
+    res.status(200).json({ success: true, data: competition });
+  } catch (error) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ success: false, message: 'Championship not found' });
+    }
+    next(error);
+  }
+});
+
+router.delete('/admin/competitions/:id', protect, authorize('SUPERADMIN'), async (req, res, next) => {
+  try {
+    await prisma.akcCompetition.delete({ where: { id: parseInt(req.params.id) } });
+    res.status(200).json({ success: true, message: 'Championship deleted' });
+  } catch (error) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ success: false, message: 'Championship not found' });
+    }
+    next(error);
+  }
+});
+
+module.exports = router;
