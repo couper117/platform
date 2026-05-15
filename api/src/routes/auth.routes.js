@@ -16,4 +16,21 @@ const registerSchema = z.object({
     teamName: z.string().min(2),
     sportId: z.union([z.string(), z.number()]),
     city: z.string().optional(),
-    province: z.string().optional(),
+    province: z.string().optional(),
+  }),
+});
+
+const loginSchema = z.object({
+  body: z.object({
+    username: z.string(),
+    password: z.string(),
+  }),
+});
+
+router.post('/team/register', validate(registerSchema), registerTeam);
+router.post('/login', validate(loginSchema), login);
+router.post('/refresh', refresh);
+router.post('/logout', logout);
+router.get('/me', protect, getMe);
+
+module.exports = router;
