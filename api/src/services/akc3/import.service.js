@@ -30,4 +30,36 @@ const importPlayersFromCSV = async (rows) => {
         team = await prisma.akcTeam.create({
           data: {
             schoolId: school.id,
-            sportId: parseInt(sportId),
+            sportId: parseInt(sportId),
+            gender: gender,
+            ageCategory: ageCategory,
+            level: 'NATIONAL',
+          }
+        });
+      }
+
+      await prisma.akcPlayer.create({
+        data: {
+          teamId: team.id,
+          fullName: playerFullName,
+          dob: dob ? new Date(dob) : null,
+          gender: gender === 'FEMALE' ? 'FEMALE' : 'MALE',
+          ageCategory: ageCategory,
+          position: position,
+          jersey: jersey ? parseInt(jersey) : null,
+          idType: idType || 'NATIONAL_ID',
+          idNumber: idNumber,
+        }
+      });
+
+      results.created++;
+    } catch (error) {
+      results.skipped++;
+      results.errors.push({ row: index + 1, reason: error.message });
+    }
+  }
+
+  return results;
+};
+
+module.exports = { importPlayersFromCSV };
