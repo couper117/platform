@@ -32,4 +32,37 @@ const recalcAkcStandings = async (competitionId) => {
         h.drawn++; h.points += 1; a.drawn++; a.points += 1;
       }
     }
-
+
+    await prisma.$transaction(
+      Array.from(stats.entries()).map(([teamId, s]) =>
+        prisma.akcStanding.upsert({
+          where: { competitionId_teamId: { competitionId, teamId } },
+          create: {
+            competitionId,
+            teamId,
+            played: s.played,
+            won: s.won,
+            drawn: s.drawn,
+            lost: s.lost,
+            gf: s.gf,
+            ga: s.ga,
+            points: s.points,
+          },
+          update: {
+            played: s.played,
+            won: s.won,
+            drawn: s.drawn,
+            lost: s.lost,
+            gf: s.gf,
+            ga: s.ga,
+            points: s.points,
+          },
+        })
+      )
+    );
+  } catch (error) {
+    console.error(`Failed to recalc AKC standings for competition ${competitionId}:`, error);
+  }
+};
+
+module.exports = { recalcAkcStandings };
