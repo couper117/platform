@@ -35,4 +35,41 @@ const recalcStandings = async (leagueId) => {
         h.drawn++; h.points += 1; h.results.push('D');
         a.drawn++; a.points += 1; a.results.push('D');
       }
-    }
+    }
+
+    // Upsert standings in a transaction
+    await prisma.$transaction(
+      Array.from(stats.entries()).map(([teamId, s]) =>
+        prisma.standing.upsert({
+          where: { leagueId_teamId: { leagueId, teamId } },
+          create: {
+            leagueId,
+            teamId,
+            played: s.played,
+            won: s.won,
+            drawn: s.drawn,
+            lost: s.lost,
+            goalsFor: s.goalsFor,
+            goalsAgainst: s.goalsAgainst,
+            points: s.points,
+            form: s.results.slice(-5).join(''),
+          },
+          update: {
+            played: s.played,
+            won: s.won,
+            drawn: s.drawn,
+            lost: s.lost,
+            goalsFor: s.goalsFor,
+            goalsAgainst: s.goalsAgainst,
+            points: s.points,
+            form: s.results.slice(-5).join(''),
+          },
+        })
+      )
+    );
+  } catch (error) {
+    console.error(`Failed to recalculate standings for league ${leagueId}:`, error);
+  }
+};
+
+module.exports = { recalcStandings };
