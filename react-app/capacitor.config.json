@@ -1,0 +1,12 @@
+{
+  "appId": "rw.rwasport.platform",
+  "appName": "RwaSport",
+  "bundledWebRuntime": false,
+  "npmClient": "npm",
+  "webDir": "dist",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2500
+    }
+  }
+}
