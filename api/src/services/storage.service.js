@@ -19,4 +19,24 @@ const uploadImage = async (file, folder, width = 400, height = 400) => {
       ).end(buffer);
     });
   } catch (error) {
-    throw new Error(`Failed to upload image: ${error.message}`);
+    throw new Error(`Failed to upload image: ${error.message}`);
+  }
+};
+
+const deleteImage = async (url) => {
+  if (!url) return;
+  try {
+    // Extract public_id from url
+    // Cloudinary URLs look like: https://res.cloudinary.com/[cloud_name]/image/upload/v[version]/rnsp/[folder]/[public_id].webp
+    const parts = url.split('/');
+    const filename = parts[parts.length - 1];
+    const publicId = filename.split('.')[0];
+    const folder = parts[parts.length - 2];
+    
+    await cloudinary.uploader.destroy(`rnsp/${folder}/${publicId}`);
+  } catch (error) {
+    console.error('Failed to delete image:', error);
+  }
+};
+
+module.exports = { uploadImage, deleteImage };
