@@ -96,4 +96,52 @@ const routes = [
     const limit = Number(p.limit) || 20;
     const page = Number(p.page) || 1;
     return ok({ data: db.activityLogs.slice((page - 1) * limit, page * limit), total: db.activityLogs.length, pages: Math.ceil(db.activityLogs.length / limit), page });
-  }],
+  }],
+  ['GET', /^\/settings\/?$/, () => ok({ data: db.settings })],
+
+  ['GET', /^\/ads\/?$/, (_m, p) => ok({ data: p.position ? db.adsList.filter((a) => a.position === p.position) : db.adsList })],
+
+  // Amashuri Games (served under /akc3/*)
+  ['GET', /^\/akc3\/schools\/?$/, (_m, p) => ok({ data: filterSchools(p) })],
+  ['GET', /^\/akc3\/schools\/([^/]+)\/?$/, (m) => ok({ data: db.buildSchoolDetail(byId(db.schools, m[1]) || db.schools[0]) })],
+  ['GET', /^\/akc3\/teams\/?$/, () => ok({ data: db.akcTeams })],
+  ['GET', /^\/akc3\/fixtures\/?$/, (_m, p) => ok({ data: filterAkcFixtures(p) })],
+  ['GET', /^\/akc3\/fixtures\/([^/]+)\/?$/, (m) => ok({ data: byId(db.akcFixtures, m[1]) || db.akcFixtures[0] })],
+  ['GET', /^\/akc3\/standings\/?$/, (_m, p) => {
+    let list = db.akcStandings;
+    if (p.competitionId) list = list.filter((s) => String(s.competitionId) === String(p.competitionId));
+    return ok({ data: list });
+  }],
+  ['GET', /^\/akc3\/competitions\/?$/, () => ok({ data: db.akcCompetitions })],
+
+  // Auth — demo login accepts any credentials; username hints the role/portal.
+  ['POST', /^\/auth\/login\/?$/, (_m, _p, body) => ok({ user: db.loginUser(body?.username), accessToken: 'demo-token', refreshToken: 'demo-refresh' })],
+  ['POST', /^\/auth\/refresh\/?$/, () => ok({ accessToken: 'demo-token' })],
+  ['POST', /^\/auth\/logout\/?$/, () => ok({ message: 'Logged out' })],
+  ['GET', /^\/auth\/me\/?$/, () => ok(db.demoUser)],
+];
+
+export default function mockAdapter(config) {
+  const method = (config.method || 'get').toUpperCase();
+  const url = (config.url || '').split('?')[0];
+  const params = config.params || {};
+  let body = config.data;
+  if (typeof body === 'string') {
+    try { body = JSON.parse(body); } catch { /* leave as-is */ }
+  }
+
+  for (const [m, re, handler] of routes) {
+    if (m !== method) continue;
+    const match = url.match(re);
+    if (match) {
+      const res = handler(match, params, body);
+      return Promise.resolve({ ...res, config, request: {} });
+    }
+  }
+
+  // Safe fallbacks so unmapped endpoints never crash a screen.
+  if (method === 'GET') {
+    return Promise.resolve({ ...ok({ data: [] }), config, request: {} });
+  }
+  return Promise.resolve({ ...ok({ success: true }, 200), config, request: {} });
+}
