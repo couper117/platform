@@ -66,4 +66,73 @@ export const topScorers = [
   { id: 1, player: { fullName: 'Innocent Nshuti' }, team: teamRef(1), goals: 14 },
   { id: 2, player: { fullName: 'Bonheur Mugiraneza' }, team: teamRef(3), goals: 11 },
   { id: 3, player: { fullName: 'Olivier Niyonzima' }, team: teamRef(2), goals: 9 },
-  { id: 4, player: { fullName: 'Yannick Mukunzi' }, team: teamRef(4), goals: 7 },
+  { id: 4, player: { fullName: 'Yannick Mukunzi' }, team: teamRef(4), goals: 7 },
+  { id: 5, player: { fullName: 'Thierry Manzi' }, team: teamRef(5), goals: 6 },
+];
+
+// --- Players (national league registry) ---
+const POSITIONS = ['Goalkeeper', 'Defender', 'Midfielder', 'Striker'];
+const SKILLS = ['PROFESSIONAL', 'SEMI_PRO', 'AMATEUR'];
+const FIRST = ['Innocent', 'Bonheur', 'Olivier', 'Yannick', 'Thierry', 'Eric', 'Patrick', 'Kevin', 'Jean', 'Fiston', 'Aimable', 'Samuel'];
+const LAST = ['Nshuti', 'Mugiraneza', 'Niyonzima', 'Mukunzi', 'Manzi', 'Habimana', 'Ndayisaba', 'Bizimana', 'Hakizimana', 'Tuyishime', 'Rwema', 'Iradukunda'];
+
+export const players = Array.from({ length: 18 }, (_, i) => {
+  const team = teams[i % teams.length];
+  return {
+    id: i + 1,
+    fullName: `${FIRST[i % FIRST.length]} ${LAST[i % LAST.length]}`,
+    nationality: 'Rwanda',
+    photo: null,
+    team: { id: team.id, name: team.name },
+    teamId: team.id,
+    position: POSITIONS[i % POSITIONS.length],
+    skillLevel: SKILLS[i % SKILLS.length],
+    jerseyNumber: (i % 23) + 1,
+    status: i % 4 === 0 ? 'PENDING' : 'VERIFIED',
+  };
+});
+
+const DOC_TYPES = ['NATIONAL_ID', 'BIRTH_CERTIFICATE', 'MEDICAL_CLEARANCE'];
+
+export const documents = players.slice(0, 10).map((p, i) => ({
+  id: i + 1,
+  player: { fullName: p.fullName, team: { name: p.team.name } },
+  docType: DOC_TYPES[i % DOC_TYPES.length],
+  originalName: `${p.fullName.toLowerCase().replace(/\s+/g, '_')}_${DOC_TYPES[i % DOC_TYPES.length].toLowerCase()}.pdf`,
+  filename: `https://example.com/docs/${i + 1}.pdf`,
+  uploadedAt: days(-(i + 1)),
+  status: i % 3 === 0 ? 'PENDING' : i % 3 === 1 ? 'APPROVED' : 'REJECTED',
+}));
+
+// --- Activity logs (visitor analytics) ---
+const PATHS = ['/', '/leagues', '/fixtures', '/amashuri', '/amashuri/standings', '/news', '/leagues/1', '/matches/101'];
+const AGENTS = ['Chrome/Windows', 'Safari/iPhone', 'Chrome/Android', 'Firefox/macOS'];
+export const activityLogs = Array.from({ length: 20 }, (_, i) => ({
+  id: i + 1,
+  createdAt: mins(-(i * 7 + 2)),
+  user: i % 5 === 0 ? { fullName: 'Demo Administrator' } : null,
+  action: i % 4 === 0 ? 'LOGIN' : 'PAGE_VIEW',
+  ip: `41.74.${100 + (i % 50)}.${10 + i}`,
+  userAgent: AGENTS[i % AGENTS.length],
+  pagePath: PATHS[i % PATHS.length],
+}));
+
+export const news = [
+  { id: 1, slug: 'apr-clinch-derby', title: 'APR Clinch the Kigali Derby in Style', category: 'Match Report', coverImage: img('1551958219-acbc608c6377'), createdAt: days(-1), author: { fullName: 'Eric Niyonzima' }, excerpt: 'A second-half surge sealed a memorable derby night at Amahoro Stadium.', body: 'A second-half surge sealed a memorable derby night at Amahoro Stadium, with the champions reasserting their dominance in front of a roaring home crowd.' },
+  { id: 2, slug: 'rayon-sign-striker', title: 'Rayon Sports Complete Marquee Striker Signing', category: 'Transfers', coverImage: img('1431324155629-1a6deb1dec8d'), createdAt: days(-2), author: { fullName: 'Aline Uwase' }, excerpt: 'The Blues bolster their attack ahead of the title run-in.', body: 'The Blues have bolstered their attacking options ahead of a crucial title run-in, announcing the capture of one of the league\'s most prolific forwards.' },
+  { id: 3, slug: 'kagame-cup-preview', title: 'Kagame Cup: Schools Gear Up for National Finals', category: 'Amashuri', coverImage: img('1459865264687-595d652de67e'), createdAt: days(-3), author: { fullName: 'Jean Damascene' }, excerpt: 'The road to the national schools championship reaches its climax.', body: 'The road to the national schools championship reaches its climax this month as district winners converge on Kigali for the final stages.' },
+  { id: 4, slug: 'volleyball-league-roundup', title: "Women's Volleyball League Weekend Roundup", category: 'Roundup', coverImage: img('1612872087720-bb876e2e67d1'), createdAt: days(-5), author: { fullName: 'Claudine Mukamana' }, excerpt: 'Title contenders trade blows in a thrilling weekend of action.', body: 'Title contenders traded blows in a thrilling weekend of action, leaving the championship race finely poised heading into the final rounds.' },
+];
+
+// Flat ad list (admin) + position lookup (public banners).
+export const adsList = [
+  { id: 1, title: 'Inyange Summer Campaign', imageUrl: img('1550537687-c9107db4d4a5'), targetUrl: 'https://example.com', position: 'HOME_BANNER', active: true },
+  { id: 2, title: 'BK Arena Events', imageUrl: img('1493711662062-fa541adb3fc8'), targetUrl: 'https://example.com', position: 'SPOTLIGHT_BANNER', active: true },
+  { id: 3, title: 'MTN Rwanda Sponsorship', imageUrl: img('1574629810360-7efbbe195018'), targetUrl: 'https://example.com', position: 'SIDEBAR', active: true },
+];
+
+export const settings = {
+  site_name: 'RwaSport',
+  hero_title: 'The Heartbeat of Rwandan Sport',
+  contact_email: 'info@rwasport.rw',
+  support_phone: '+250 788 000 000',
