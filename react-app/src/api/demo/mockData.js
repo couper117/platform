@@ -204,4 +204,72 @@ export const demoUser = {
   active: true,
   verified: true,
 };
-
+
+/**
+ * Role-aware demo login: the username hints which portal to open, so every
+ * area (admin, team, reporter) is reachable. Any password works.
+ *   coach* / team* / manager*  → TEAM_MANAGER  (team portal)
+ *   reporter*                  → MATCH_REPORTER (live reporting)
+ *   league*                    → LEAGUE_ADMIN   (admin area)
+ *   anything else (e.g. admin) → SUPERADMIN     (full admin area)
+ */
+export const loginUser = (username = '') => {
+  const u = String(username).toLowerCase();
+  if (/coach|team|manager/.test(u)) return { ...demoUser, id: 4, username, fullName: 'Demo Team Manager', role: 'TEAM_MANAGER' };
+  if (/reporter/.test(u)) return { ...demoUser, id: 3, username, fullName: 'Demo Reporter', role: 'MATCH_REPORTER' };
+  if (/league/.test(u)) return { ...demoUser, id: 2, username, fullName: 'Demo League Admin', role: 'LEAGUE_ADMIN' };
+  return { ...demoUser, username: username || 'admin' };
+};
+
+// ---------- Detail builders (relations the detail screens expect) ----------
+
+// League detail: teams as { team } wrappers + standings + top scorers.
+export const buildLeagueDetail = (league) => ({
+  ...league,
+  teams: standings.map((s) => ({ team: s.team })),
+  standings,
+  topScorers,
+});
+
+// Fixture detail: match events + lineups for the timeline / lineups / stats tabs.
+const lineupFor = (teamId) => players
+  .filter((p) => p.teamId === teamId)
+  .slice(0, 5)
+  .map((p, i) => ({ id: teamId * 50 + i, teamId, jerseyNo: p.jerseyNumber, isCaptain: i === 0, position: p.position, player: { fullName: p.fullName } }));
+
+export const buildFixtureDetail = (fx) => {
+  const homePlayers = players.filter((p) => p.teamId === fx.homeTeamId);
+  const awayPlayers = players.filter((p) => p.teamId === fx.awayTeamId);
+  const events = [];
+  if (fx.status === 'COMPLETED' || fx.status === 'LIVE') {
+    for (let i = 0; i < (fx.homeScore || 0); i++) {
+      events.push({ id: `${fx.id}-h-${i}`, eventType: 'GOAL', minute: 12 + i * 20, teamId: fx.homeTeamId, player: { fullName: homePlayers[i % homePlayers.length]?.fullName || 'Player' } });
+    }
+    for (let i = 0; i < (fx.awayScore || 0); i++) {
+      events.push({ id: `${fx.id}-a-${i}`, eventType: 'GOAL', minute: 20 + i * 18, teamId: fx.awayTeamId, player: { fullName: awayPlayers[i % awayPlayers.length]?.fullName || 'Player' } });
+    }
+    events.push({ id: `${fx.id}-yc`, eventType: 'YELLOW_CARD', minute: 55, teamId: fx.awayTeamId, player: { fullName: awayPlayers[0]?.fullName || 'Player' } });
+  }
+  return {
+    ...fx,
+    referee: fx.referee || 'TBD',
+    streamActive: false,
+    events,
+    lineups: [...lineupFor(fx.homeTeamId), ...lineupFor(fx.awayTeamId)],
+  };
+};
+
+// "My team" dashboard: roster + per-player documents.
+export const buildMyTeam = () => {
+  const roster = players.filter((p) => p.teamId === 1).map((p) => ({
+    ...p,
+    documents: Array.from({ length: p.status === 'VERIFIED' ? 3 : 1 }, () => ({ status: 'APPROVED' })),
+  }));
+  return { ...teams[0], players: roster };
+};
+
+// School profile: school + its teams (with rosters).
+export const buildSchoolDetail = (school) => ({
+  ...school,
+  teams: akcTeams.filter((tm) => tm.schoolId === school.id),
+});
