@@ -135,4 +135,73 @@ export const settings = {
   site_name: 'RwaSport',
   hero_title: 'The Heartbeat of Rwandan Sport',
   contact_email: 'info@rwasport.rw',
-  support_phone: '+250 788 000 000',
+  support_phone: '+250 788 000 000',
+};
+
+// --- Amashuri Games (inter-school) ---
+export const schools = [
+  { id: 1, name: 'Kigali International School', code: 'KIS-001', category: 'SECONDARY', sector: 'Gasabo', logo: null, active: true },
+  { id: 2, name: 'Lycee de Kigali', code: 'LDK-002', category: 'SECONDARY', sector: 'Nyarugenge', logo: null, active: true },
+  { id: 3, name: 'Groupe Scolaire Officiel de Butare', code: 'GSOB-003', category: 'SECONDARY', sector: 'Huye', logo: null, active: true },
+  { id: 4, name: 'Ecole des Sciences Byimana', code: 'ESB-004', category: 'SECONDARY', sector: 'Ruhango', logo: null, active: true },
+  { id: 5, name: 'FAWE Girls School', code: 'FAWE-005', category: 'SECONDARY', sector: 'Gasabo', logo: null, active: true },
+  { id: 6, name: 'IPRC Kigali', code: 'IPRC-006', category: 'TVET', sector: 'Kicukiro', logo: null, active: true },
+];
+
+const schoolRef = (id) => {
+  const s = schools.find((x) => x.id === id);
+  return { id: s.id, name: s.name, logo: s.logo, sector: s.sector };
+};
+
+// Each school fields a few teams; players keep the roster counts honest.
+const akcPlayersFor = (teamId, n) => Array.from({ length: n }, (_, i) => ({
+  id: teamId * 100 + i + 1,
+  fullName: `${FIRST[(teamId + i) % FIRST.length]} ${LAST[(teamId * 2 + i) % LAST.length]}`,
+  position: POSITIONS[i % POSITIONS.length],
+  jersey: i + 1,
+  docVerified: i % 3 !== 0,
+}));
+
+export const akcTeams = [
+  { id: 1, schoolId: 1, school: schoolRef(1), sport: sports[0], gender: 'MALE', ageCategory: 'U17', coachName: 'Jean Damascene', players: akcPlayersFor(1, 11) },
+  { id: 2, schoolId: 1, school: schoolRef(1), sport: sports[2], gender: 'FEMALE', ageCategory: 'U19', coachName: 'Grace Ingabire', players: akcPlayersFor(2, 9) },
+  { id: 3, schoolId: 2, school: schoolRef(2), sport: sports[0], gender: 'MALE', ageCategory: 'U17', coachName: 'Patrick Habimana', players: akcPlayersFor(3, 11) },
+  { id: 4, schoolId: 3, school: schoolRef(3), sport: sports[0], gender: 'MALE', ageCategory: 'U17', coachName: 'Eric Mutoni', players: akcPlayersFor(4, 10) },
+  { id: 5, schoolId: 5, school: schoolRef(5), sport: sports[2], gender: 'FEMALE', ageCategory: 'U19', coachName: 'Claudine Uwera', players: akcPlayersFor(5, 12) },
+];
+
+export const akcCompetitions = [
+  { id: 1, name: 'Kagame Cup Schools', edition: '2026 Edition', status: 'ONGOING', level: 'National', venue: 'Amahoro Stadium', startDate: days(-10), _count: { fixtures: 12, standings: 6 } },
+  { id: 2, name: 'Genocide Memorial Tournament', edition: '2026 Edition', status: 'UPCOMING', level: 'Provincial', venue: 'Huye Stadium', startDate: days(14), _count: { fixtures: 8, standings: 8 } },
+  { id: 3, name: 'Inter-District Basketball Championship', edition: '2025 Edition', status: 'COMPLETED', level: 'District', venue: 'BK Arena', startDate: days(-90), _count: { fixtures: 20, standings: 10 } },
+];
+
+export const akcStandings = [
+  { id: 1, competitionId: 1, teamId: 1, team: { id: 1, school: schoolRef(1) }, played: 5, won: 5, drawn: 0, lost: 0, gf: 14, ga: 3, points: 15 },
+  { id: 2, competitionId: 1, teamId: 2, team: { id: 2, school: schoolRef(2) }, played: 5, won: 3, drawn: 1, lost: 1, gf: 9, ga: 5, points: 10 },
+  { id: 3, competitionId: 1, teamId: 3, team: { id: 3, school: schoolRef(3) }, played: 5, won: 3, drawn: 0, lost: 2, gf: 8, ga: 7, points: 9 },
+  { id: 4, competitionId: 1, teamId: 4, team: { id: 4, school: schoolRef(4) }, played: 5, won: 2, drawn: 1, lost: 2, gf: 6, ga: 6, points: 7 },
+  { id: 5, competitionId: 1, teamId: 5, team: { id: 5, school: schoolRef(5) }, played: 5, won: 1, drawn: 1, lost: 3, gf: 4, ga: 9, points: 4 },
+  { id: 6, competitionId: 1, teamId: 6, team: { id: 6, school: schoolRef(6) }, played: 5, won: 0, drawn: 1, lost: 4, gf: 2, ga: 13, points: 1 },
+];
+
+const akcTeamSide = (schoolId, ageCategory, gender) => ({ schoolId, school: schoolRef(schoolId), ageCategory, gender });
+
+export const akcFixtures = [
+  { id: 201, competitionId: 1, competition: { id: 1, name: 'Kagame Cup Schools' }, status: 'COMPLETED', homeTeamId: 1, winnerTeamId: 1, isDraw: false, stage: 'GROUP_STAGE', round: 'Round 4', homeTeam: akcTeamSide(1, 'U17', 'MALE'), awayTeam: akcTeamSide(3, 'U17', 'MALE'), homeScore: 3, awayScore: 1, matchDate: days(-2), venue: 'Amahoro Stadium', notes: 'A commanding group-stage win sends Kigali International top of the table.' },
+  { id: 202, competitionId: 1, competition: { id: 1, name: 'Kagame Cup Schools' }, status: 'ONGOING', homeTeamId: 2, stage: 'GROUP_STAGE', round: 'Round 5', homeTeam: akcTeamSide(2, 'U17', 'MALE'), awayTeam: akcTeamSide(4, 'U17', 'MALE'), homeScore: 1, awayScore: 1, matchDate: hours(-1), venue: 'Kigali Pelé Stadium' },
+  { id: 203, competitionId: 1, competition: { id: 1, name: 'Kagame Cup Schools' }, status: 'SCHEDULED', homeTeamId: 5, stage: 'GROUP_STAGE', round: 'Round 5', homeTeam: akcTeamSide(5, 'U19', 'FEMALE'), awayTeam: akcTeamSide(6, 'U19', 'FEMALE'), homeScore: null, awayScore: null, matchDate: days(2), venue: 'Petit Stade' },
+  { id: 204, competitionId: 1, competition: { id: 1, name: 'Kagame Cup Schools' }, status: 'SCHEDULED', homeTeamId: 1, stage: 'SEMI_FINAL', round: 'Semi-final', homeTeam: akcTeamSide(1, 'U17', 'MALE'), awayTeam: akcTeamSide(2, 'U17', 'MALE'), homeScore: null, awayScore: null, matchDate: days(4), venue: 'Amahoro Stadium' },
+];
+
+// Demo admin account surfaced on the login screen.
+export const demoUser = {
+  id: 1,
+  username: 'admin',
+  fullName: 'Demo Administrator',
+  email: 'admin@rwasport.rw',
+  role: 'SUPERADMIN',
+  active: true,
+  verified: true,
+};
+
