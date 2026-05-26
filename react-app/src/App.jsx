@@ -12,6 +12,7 @@ import HomePage from './pages/public/HomePage';
 import LeaguesPage from './pages/public/LeaguesPage';
 import LeagueDetailsPage from './pages/public/LeagueDetailsPage';
 import FixturesPage from './pages/public/FixturesPage';
+import MatchDetailsPage from './pages/public/MatchDetailsPage';
 
 // Auth Pages
 import LoginPage from './pages/auth/LoginPage';
@@ -20,6 +21,9 @@ import RegisterTeamPage from './pages/auth/RegisterTeamPage';
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AkcAdminDashboard from './pages/admin/AkcAdminDashboard';
+
+// Team Pages
+import TeamDashboard from './pages/team/TeamDashboard';
 
 // AKC3 Pages
 import AkcHome from './pages/akc3/AkcHome';
@@ -84,8 +88,10 @@ function App() {
               <Route path="/fixtures" element={<FixturesPage />} />
               <Route path="/results" element={<FixturesPage />} />
               <Route path="/news" element={<div className="p-20 font-display text-3xl text-center opacity-20 py-40 italic">RwaSport News Center</div>} />
+              <Route path="/news/:slug" element={<div className="p-20 font-display text-3xl">Article Page</div>} />
+              <Route path="/matches/:id" element={<MatchDetailsPage />} />
               
-              {/* AKC3 (Kagame Cup) - WHOLE SYSTEM FOR SCHOOLS */}
+              {/* AKC3 (Kagame Cup) */}
               <Route path="/akc3" element={<AkcHome />} />
               <Route path="/akc3/schools" element={<SchoolDirectory />} />
               <Route path="/akc3/schools/:id" element={<SchoolProfilePage />} />
@@ -112,8 +118,11 @@ function App() {
             {/* Team Manager Routes */}
             <Route path="/team" element={<TeamLayout />}>
               <Route index element={<Navigate to="/team/dashboard" replace />} />
-              <Route path="dashboard" element={<div className="font-display text-3xl opacity-20 py-20 uppercase">Manager Hub</div>} />
-              <Route path="profile" element={<div className="font-display text-3xl opacity-20 py-20 uppercase">Club Profile</div>} />
+              <Route path="dashboard" element={<TeamDashboard />} />
+              <Route path="players" element={<div className="font-display text-3xl uppercase opacity-20 py-20 uppercase">Roster Management</div>} />
+              <Route path="documents" element={<div className="font-display text-3xl uppercase opacity-20 py-20 uppercase">Document Uploads</div>} />
+              <Route path="fixtures" element={<div className="font-display text-3xl uppercase opacity-20 py-20 uppercase">Team Schedule</div>} />
+              <Route path="profile" element={<div className="font-display text-3xl uppercase opacity-20 py-20 uppercase">Club Profile</div>} />
             </Route>
             
             <Route path="*" element={<Navigate to="/" replace />} />

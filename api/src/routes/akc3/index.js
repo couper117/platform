@@ -11,6 +11,19 @@ const router = express.Router();
 router.get('/schools', getSchools);
 router.get('/teams', getTeams);
 router.get('/fixtures', getFixtures);
+router.get('/standings', async (req, res, next) => {
+  try {
+    const { competitionId } = req.query;
+    const standings = await prisma.akcStanding.findMany({
+      where: { competitionId: competitionId ? parseInt(competitionId) : undefined },
+      include: { team: { include: { school: true } } },
+      orderBy: { points: 'desc' },
+    });
+    res.status(200).json({ success: true, data: standings });
+  } catch (error) {
+    next(error);
+  }
+});
 
 // Admin Routes (SUPERADMIN only for AKC3 management)
 router.post('/admin/schools', protect, authorize('SUPERADMIN'), createSchool);
