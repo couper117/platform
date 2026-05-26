@@ -64,3 +64,69 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+const RouteWatcher = ({ children }) => {
+  const location = useLocation();
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  useEffect(() => {
+    // Only show loader for Home and Admin pages
+    const isTargetPage = location.pathname === '/' || location.pathname.startsWith('/admin');
+    
+    if (isTargetPage) {
+      setIsTransitioning(true);
+      const timer = setTimeout(() => {
+        setIsTransitioning(false);
+        window.scrollTo(0, 0);
+      }, 600);
+      return () => clearTimeout(timer);
+    } else {
+      setIsTransitioning(false);
+      window.scrollTo(0, 0);
+    }
+  }, [location.pathname]);
+
+  return (
+    <>
+      {isTransitioning && <PageLoader />}
+      {children}
+    </>
+  );
+};
+
+function App() {
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSplash(false), 1200);
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <HelmetProvider>
+      <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        {showSplash && <SplashScreen />}
+        <BrowserRouter>
+        <CommandPaletteProvider>
+        <CommandPalette />
+        <RouteWatcher>
+          <Suspense fallback={<PageLoader />}>
+          <Routes>
+            {/* Public Routes */}
+            <Route element={<PublicLayout />}>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/leagues" element={<LeaguesPage />} />
+              <Route path="/leagues/:id" element={<LeagueDetailsPage />} />
+              <Route path="/fixtures" element={<FixturesPage />} />
+              <Route path="/results" element={<FixturesPage />} />
+              <Route path="/news" element={<div className="p-20 font-display text-3xl text-center opacity-20 py-40 italic">RwaSport News Center</div>} />
+              <Route path="/news/:slug" element={<div className="p-20 font-display text-3xl">Article Page</div>} />
+              <Route path="/matches/:id" element={<MatchDetailsPage />} />
+              
+              {/* Amashuri Games — Rwanda Inter-School Sports (umbrella incl. Kagame Cup) */}
+              <Route path="/amashuri" element={<AkcHome />} />
+              <Route path="/amashuri/championships" element={<ChampionshipsPage />} />
+              <Route path="/amashuri/schools" element={<SchoolDirectory />} />
+              <Route path="/amashuri/schools/:id" element={<SchoolProfilePage />} />
+              <Route path="/amashuri/fixtures" element={<AkcFixturesPage />} />
