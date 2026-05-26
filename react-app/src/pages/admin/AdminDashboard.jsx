@@ -1,6 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Trophy, Users, UserSquare2, FileText, Activity, ArrowUpRight, Clock } from 'lucide-react';
+import { Trophy, Users, UserSquare2, FileText, Activity, ArrowUpRight, Clock, Settings } from 'lucide-react';
 import { getLeagues } from '../../api/endpoints/leagues';
 import { getFixtures } from '../../api/endpoints/fixtures';
 import Skeleton from '../../components/shared/Skeleton';
