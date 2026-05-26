@@ -11,6 +11,7 @@ const PageLoader = () => {
       </div>
       
       <div className="text-center space-y-1">
+        <p className="text-red font-display text-lg uppercase tracking-[0.3em] mb-1">Murakaza Neza</p>
         <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/40 animate-pulse">
           Synchronizing Data
         </p>
