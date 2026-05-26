@@ -1,5 +1,6 @@
 {
   "nav": {
+    "home": "Home",
     "leagues": "Leagues",
     "fixtures": "Fixtures",
     "results": "Results",
@@ -31,7 +32,7 @@
   },
   "auth": {
     "login_title": "Access Portal",
-    "login_subtitle": "Rwanda National Sports Platform",
+    "login_subtitle": "RwaSport Platform",
     "username": "Username",
     "password": "Password",
     "enter_portal": "Enter Portal",

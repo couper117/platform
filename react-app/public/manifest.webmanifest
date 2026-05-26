@@ -1,6 +1,6 @@
 {
-  "name": "Rwanda National Sports Platform",
-  "short_name": "RNSP",
+  "name": "RwaSport — Rwanda National Sports Platform",
+  "short_name": "RwaSport",
   "description": "The official digital home for Rwandan Sports.",
   "start_url": "/",
   "display": "standalone",

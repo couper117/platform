@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { Menu, X, User, LogOut, ChevronRight, Languages } from 'lucide-react';
+import { Menu, X, User, LogOut, ChevronRight, Languages, Home } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import useAuthStore from '../../store/authStore';
 
@@ -17,6 +17,7 @@ const Navbar = () => {
   };
 
   const navLinks = [
+    { to: '/', label: t('nav.home'), icon: <Home size={16} /> },
     { to: '/leagues', label: t('nav.leagues') },
     { to: '/fixtures', label: t('nav.fixtures') },
     { to: '/results', label: t('nav.results') },
@@ -37,7 +38,7 @@ const Navbar = () => {
         {/* Logo */}
         <Link to="/" className="flex items-center space-x-2 group">
           <div className="bg-red p-1.5 rounded-lg transform group-hover:rotate-12 transition-transform">
-            <span className="text-xl font-display leading-none">RNSP</span>
+            <span className="text-xl font-display leading-none text-white uppercase tracking-tighter">RwaSport</span>
           </div>
           <span className="hidden sm:inline text-[10px] border-l border-white/20 pl-2 opacity-50 uppercase tracking-[0.2em] font-medium">
             Rwanda National <br/> Sports Platform
@@ -51,7 +52,7 @@ const Navbar = () => {
               key={link.to} 
               to={link.to} 
               className={({isActive}) => 
-                `transition-all hover:text-red ${isActive ? 'text-red' : link.highlight ? 'text-rwanda-yellow' : 'text-white/70'}`
+                `transition-all hover:text-red flex items-center space-x-1 ${isActive ? 'text-red' : link.highlight ? 'text-rwanda-yellow' : 'text-white/70'}`
               }
             >
               {link.label}
@@ -106,7 +107,7 @@ const Navbar = () => {
                 </button>
               </div>
             ) : (
-              <Link to="/auth/login" className="bg-red px-6 py-2 font-display text-sm rounded-lg hover:bg-red-dark transition-all hover:scale-105 active:scale-95 shadow-lg shadow-red/20">
+              <Link to="/auth/login" className="bg-red text-white font-display text-sm uppercase tracking-widest px-6 py-2 rounded-lg hover:bg-red-dark transition-all hover:scale-105 active:scale-95 shadow-lg shadow-red/20">
                 {t('nav.login')}
               </Link>
             )}
@@ -134,7 +135,10 @@ const Navbar = () => {
                   onClick={() => setIsMenuOpen(false)}
                   className={`flex justify-between items-center text-2xl font-display uppercase tracking-tight py-2 border-b border-white/5 ${link.highlight ? 'text-rwanda-yellow' : 'text-white'}`}
                 >
-                  {link.label}
+                  <div className="flex items-center space-x-3">
+                    {link.icon}
+                    <span>{link.label}</span>
+                  </div>
                   <ChevronRight className="text-white/20" />
                 </Link>
               ))}

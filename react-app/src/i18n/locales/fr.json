@@ -1,5 +1,6 @@
 {
   "nav": {
+    "home": "Accueil",
     "leagues": "Ligues",
     "fixtures": "Calendrier",
     "results": "Résultats",
@@ -31,7 +32,7 @@
   },
   "auth": {
     "login_title": "Portail d'Accès",
-    "login_subtitle": "Plateforme Nationale des Sports du Rwanda",
+    "login_subtitle": "RwaSport",
     "username": "Nom d'utilisateur",
     "password": "Mot de passe",
     "enter_portal": "Entrer dans le Portail",

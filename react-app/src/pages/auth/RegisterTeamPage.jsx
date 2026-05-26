@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { UserPlus, Loader2, AlertCircle, ChevronLeft, Building2, User, Trophy } from 'lucide-react';
 import { getSports } from '../../api/endpoints/sports';
 import apiClient from '../../api/client';
@@ -21,6 +22,7 @@ const registerSchema = z.object({
 });
 
 const RegisterTeamPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -79,9 +81,9 @@ const RegisterTeamPage = () => {
     <div className="min-h-screen bg-surface-dark py-20 flex flex-col items-center justify-center p-4 relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red via-rwanda-yellow to-rwanda-green" />
       
-      <Link to="/auth/login" className="absolute top-8 left-8 hidden sm:flex items-center space-x-2 text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-red transition-colors">
+      <Link to="/auth/login" className="absolute top-8 left-8 flex items-center space-x-2 text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-red transition-colors z-50">
         <ChevronLeft size={14} />
-        <span>Back to Login</span>
+        <span>{t('common.back')}</span>
       </Link>
 
       <div className="w-full max-w-xl space-y-12 relative z-10">
@@ -92,7 +94,7 @@ const RegisterTeamPage = () => {
           <h1 className="text-4xl sm:text-6xl font-display text-white uppercase tracking-tighter leading-none">
             Manager <span className="text-red">Registration</span>
           </h1>
-          <p className="text-white/40 text-[10px] font-bold uppercase tracking-[0.3em]">Join the Rwanda National Sports Community</p>
+          <p className="text-white/40 text-[10px] font-bold uppercase tracking-[0.3em]">Join the RwaSport Community</p>
         </div>
 
         {/* Step Indicator */}

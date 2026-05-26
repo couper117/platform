@@ -1,5 +1,6 @@
 {
   "nav": {
+    "home": "Nyumbani",
     "leagues": "Ligi",
     "fixtures": "Ratiba",
     "results": "Matokeo",
@@ -31,7 +32,7 @@
   },
   "auth": {
     "login_title": "Lango la Ufikiaji",
-    "login_subtitle": "Jukwaa la Michezo la Kitaifa la Rwanda",
+    "login_subtitle": "RwaSport",
     "username": "Jina la mtumiaji",
     "password": "Nywila",
     "enter_portal": "Ingia Langoni",

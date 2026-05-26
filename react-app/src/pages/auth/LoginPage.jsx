@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { LogIn, Loader2, AlertCircle, ChevronLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import useAuthStore from '../../store/authStore';
 import apiClient from '../../api/client';
 
@@ -13,6 +14,7 @@ const loginSchema = z.object({
 });
 
 const LoginPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const setAuth = useAuthStore(state => state.setAuth);
   const [error, setError] = useState('');
@@ -44,14 +46,13 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen bg-surface-dark flex flex-col items-center justify-center p-4 sm:p-6 relative overflow-hidden">
-      {/* Decorative background */}
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red via-rwanda-yellow to-rwanda-green" />
       <div className="absolute -top-[10%] -right-[10%] w-[40%] h-[40%] bg-red/10 rounded-full blur-[120px]" />
       <div className="absolute -bottom-[10%] -left-[10%] w-[40%] h-[40%] bg-rwanda-green/10 rounded-full blur-[120px]" />
 
-      <Link to="/" className="absolute top-8 left-8 hidden sm:flex items-center space-x-2 text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-red transition-colors">
+      <Link to="/" className="absolute top-8 left-8 flex items-center space-x-2 text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-red transition-colors z-50">
         <ChevronLeft size={14} />
-        <span>Back to Home</span>
+        <span>{t('common.back')}</span>
       </Link>
 
       <div className="w-full max-w-md space-y-8 animate-in fade-in zoom-in-95 duration-500 relative z-10">
@@ -62,7 +63,7 @@ const LoginPage = () => {
           <h1 className="text-4xl sm:text-5xl font-display text-white uppercase tracking-tighter">
             Access <span className="text-red">Portal</span>
           </h1>
-          <p className="text-white/40 text-[10px] font-bold uppercase tracking-[0.3em]">Rwanda National Sports Platform</p>
+          <p className="text-white/40 text-[10px] font-bold uppercase tracking-[0.3em]">{t('auth.login_subtitle')}</p>
         </div>
 
         <div className="bg-white/5 backdrop-blur-2xl p-8 rounded-3xl border border-white/10 shadow-2xl">
@@ -76,7 +77,7 @@ const LoginPage = () => {
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">Username</label>
+                <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">{t('auth.username')}</label>
                 <input
                   {...register('username')}
                   className={`w-full bg-white/5 border ${errors.username ? 'border-red/50' : 'border-white/10'} text-white p-4 rounded-xl focus:border-red focus:bg-white/10 outline-none transition-all placeholder:text-white/10`}
@@ -86,7 +87,7 @@ const LoginPage = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">Password</label>
+                <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">{t('auth.password')}</label>
                 <input
                   {...register('password')}
                   type="password"
@@ -102,23 +103,23 @@ const LoginPage = () => {
               disabled={isLoading}
               className="w-full bg-red text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-red/20 flex items-center justify-center space-x-3 disabled:opacity-50 disabled:hover:scale-100"
             >
-              {isLoading ? <Loader2 className="animate-spin" size={24} /> : <span>Enter Portal</span>}
+              {isLoading ? <Loader2 className="animate-spin" size={24} /> : <span>{t('auth.enter_portal')}</span>}
             </button>
           </form>
         </div>
 
         <div className="text-center space-y-4">
           <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest">
-            Don't have an account?
+            {t('auth.no_account')}
           </p>
           <Link to="/auth/team/register" className="inline-block text-white font-display text-lg uppercase tracking-widest border border-white/20 px-8 py-2 rounded-lg hover:bg-white/5 transition-all">
-            Register Your Team
+            {t('auth.register_now')}
           </Link>
         </div>
       </div>
 
       <div className="mt-20 text-white/20 text-[8px] uppercase font-bold tracking-[0.4em]">
-        Secured by RNSP Identity Service
+        Secured by RwaSport Identity Service
       </div>
     </div>
   );

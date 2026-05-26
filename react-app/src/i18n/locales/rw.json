@@ -1,5 +1,6 @@
 {
   "nav": {
+    "home": "Ahabanza",
     "leagues": "Amarigoro",
     "fixtures": "Imikino",
     "results": "Ibyavuye mu mikino",
@@ -31,7 +32,7 @@
   },
   "auth": {
     "login_title": "Injira mu Rubuga",
-    "login_subtitle": "Urubuga rw'Imikino mu Rwanda",
+    "login_subtitle": "RwaSport",
     "username": "Izina ry'ukoresha",
     "password": "Ijambo ry'ibanga",
     "enter_portal": "Injira",
