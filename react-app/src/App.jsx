@@ -20,6 +20,10 @@ import RegisterTeamPage from './pages/auth/RegisterTeamPage';
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 
+// AKC3 Pages
+import AkcHome from './pages/akc3/AkcHome';
+import SchoolDirectory from './pages/akc3/SchoolDirectory';
+
 // Shared
 import SplashScreen from './components/shared/SplashScreen';
 import PageLoader from './components/shared/PageLoader';
@@ -39,14 +43,11 @@ const RouteWatcher = ({ children }) => {
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   useEffect(() => {
-    // Start loader on location change
     setIsTransitioning(true);
-    // Force 2-second visibility as requested
     const timer = setTimeout(() => {
       setIsTransitioning(false);
       window.scrollTo(0, 0);
     }, 2000);
-
     return () => clearTimeout(timer);
   }, [location.pathname]);
 
@@ -79,11 +80,14 @@ function App() {
               <Route path="/leagues/:id" element={<LeagueDetailsPage />} />
               <Route path="/fixtures" element={<FixturesPage />} />
               <Route path="/results" element={<FixturesPage />} />
-              <Route path="/news" element={<div className="p-20 font-display text-3xl text-center uppercase tracking-widest opacity-40 py-40">News Center Coming Soon</div>} />
-              <Route path="/news/:slug" element={<div className="p-20 font-display text-3xl">Article Page</div>} />
-              <Route path="/matches/:id" element={<div className="p-20 font-display text-3xl">Match Details</div>} />
+              <Route path="/news" element={<div className="p-20 font-display text-3xl text-center uppercase tracking-widest opacity-40 py-40 italic">RwaSport News Center</div>} />
+              
+              {/* AKC3 Public Routes */}
+              <Route path="/akc3" element={<AkcHome />} />
+              <Route path="/akc3/schools" element={<SchoolDirectory />} />
+              <Route path="/akc3/schools/:id" element={<div className="p-20 font-display text-3xl text-center uppercase tracking-widest opacity-40 py-40">School Profile & Teams</div>} />
+              
               <Route path="/contact" element={<div className="p-20 font-display text-3xl text-center uppercase tracking-widest opacity-40 py-40">Contact Support Center</div>} />
-              <Route path="/akc3" element={<div className="p-20 font-display text-3xl text-center uppercase tracking-widest opacity-40 py-40">Amashuri Kagame Cup Portal</div>} />
             </Route>
 
             {/* Auth Routes */}
@@ -95,12 +99,7 @@ function App() {
               <Route index element={<Navigate to="/admin/dashboard" replace />} />
               <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="leagues" element={<div className="font-display text-3xl uppercase opacity-20 py-20">Leagues Management</div>} />
-              <Route path="fixtures" element={<div className="font-display text-3xl uppercase opacity-20 py-20">Schedule Management</div>} />
-              <Route path="teams" element={<div className="font-display text-3xl uppercase opacity-20 py-20">Team Verification</div>} />
-              <Route path="players" element={<div className="font-display text-3xl uppercase opacity-20 py-20">Athlete Registry</div>} />
-              <Route path="documents" element={<div className="font-display text-3xl uppercase opacity-20 py-20">Document Review</div>} />
-              <Route path="news" element={<div className="font-display text-3xl uppercase opacity-20 py-20">News Publisher</div>} />
-              <Route path="akc3" element={<div className="font-display text-3xl uppercase opacity-20 py-20">AKC3 Competition Suite</div>} />
+              <Route path="akc3" element={<div className="font-display text-3xl uppercase opacity-20 py-20">AKC3 Management Center</div>} />
               <Route path="settings" element={<div className="font-display text-3xl uppercase opacity-20 py-20">System Configuration</div>} />
             </Route>
 
@@ -108,9 +107,6 @@ function App() {
             <Route path="/team" element={<TeamLayout />}>
               <Route index element={<Navigate to="/team/dashboard" replace />} />
               <Route path="dashboard" element={<div className="font-display text-3xl uppercase opacity-20 py-20">Manager Hub</div>} />
-              <Route path="players" element={<div className="font-display text-3xl uppercase opacity-20 py-20">Roster Management</div>} />
-              <Route path="documents" element={<div className="font-display text-3xl uppercase opacity-20 py-20">Document Uploads</div>} />
-              <Route path="fixtures" element={<div className="font-display text-3xl uppercase opacity-20 py-20">Team Schedule</div>} />
               <Route path="profile" element={<div className="font-display text-3xl uppercase opacity-20 py-20">Club Profile</div>} />
             </Route>
             
