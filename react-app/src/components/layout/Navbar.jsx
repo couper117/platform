@@ -1,18 +1,34 @@
 import React, { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { Menu, X, User, LogOut, ChevronRight } from 'lucide-react';
+import { Menu, X, User, LogOut, ChevronRight, Languages } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import useAuthStore from '../../store/authStore';
 
 const Navbar = () => {
+  const { t, i18n } = useTranslation();
   const { isAuthenticated, user, logout, role } = useAuthStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLangOpen, setIsLangOpen] = useState(false);
+
+  const changeLanguage = (lng) => {
+    i18n.changeLanguage(lng);
+    localStorage.setItem('rnsp-lang', lng);
+    setIsLangOpen(false);
+  };
 
   const navLinks = [
-    { to: '/leagues', label: 'Leagues' },
-    { to: '/fixtures', label: 'Fixtures' },
-    { to: '/results', label: 'Results' },
-    { to: '/news', label: 'News' },
-    { to: '/akc3', label: 'Kagame Cup', highlight: true },
+    { to: '/leagues', label: t('nav.leagues') },
+    { to: '/fixtures', label: t('nav.fixtures') },
+    { to: '/results', label: t('nav.results') },
+    { to: '/news', label: t('nav.news') },
+    { to: '/akc3', label: t('nav.akc3'), highlight: true },
+  ];
+
+  const languages = [
+    { code: 'en', label: 'English' },
+    { code: 'fr', label: 'Français' },
+    { code: 'rw', label: 'Kinyarwanda' },
+    { code: 'sw', label: 'Kiswahili' },
   ];
 
   return (
@@ -43,8 +59,32 @@ const Navbar = () => {
           ))}
         </div>
 
-        {/* Auth & Mobile Toggle */}
+        {/* Auth & Language & Mobile Toggle */}
         <div className="flex items-center space-x-4">
+          {/* Language Switcher Desktop */}
+          <div className="relative hidden sm:block">
+            <button 
+              onClick={() => setIsLangOpen(!isLangOpen)}
+              className="p-2 hover:bg-white/5 rounded-full text-white/60 hover:text-white transition-all flex items-center space-x-1"
+            >
+              <Languages size={18} />
+              <span className="text-[10px] font-bold uppercase">{i18n.language}</span>
+            </button>
+            {isLangOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-surface-dark border border-white/10 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                {languages.map(lang => (
+                  <button
+                    key={lang.code}
+                    onClick={() => changeLanguage(lang.code)}
+                    className={`w-full text-left px-4 py-3 text-xs font-bold uppercase tracking-widest hover:bg-white/5 transition-colors ${i18n.language === lang.code ? 'text-red' : 'text-white/60'}`}
+                  >
+                    {lang.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="hidden md:flex items-center space-x-3">
             {isAuthenticated ? (
               <div className="flex items-center space-x-3 bg-white/5 pl-1 pr-1 py-1 rounded-full border border-white/10">
@@ -60,14 +100,14 @@ const Navbar = () => {
                 <button 
                   onClick={logout}
                   className="p-1.5 text-white/40 hover:text-red transition-colors"
-                  title="Logout"
+                  title={t('nav.logout')}
                 >
                   <LogOut size={14} />
                 </button>
               </div>
             ) : (
               <Link to="/auth/login" className="bg-red px-6 py-2 font-display text-sm rounded-lg hover:bg-red-dark transition-all hover:scale-105 active:scale-95 shadow-lg shadow-red/20">
-                Login
+                {t('nav.login')}
               </Link>
             )}
           </div>
@@ -85,7 +125,7 @@ const Navbar = () => {
       {/* Mobile Menu Overlay */}
       {isMenuOpen && (
         <div className="lg:hidden fixed inset-0 top-[60px] bg-surface-dark z-50 animate-in fade-in slide-in-from-top-4 duration-300">
-          <div className="p-6 space-y-8">
+          <div className="p-6 space-y-8 overflow-y-auto max-h-screen">
             <div className="flex flex-col space-y-4">
               {navLinks.map(link => (
                 <Link 
@@ -98,6 +138,22 @@ const Navbar = () => {
                   <ChevronRight className="text-white/20" />
                 </Link>
               ))}
+            </div>
+
+            {/* Mobile Language Switcher */}
+            <div className="space-y-4">
+              <h3 className="text-[10px] uppercase font-bold tracking-[0.3em] text-white/30">Language</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {languages.map(lang => (
+                  <button
+                    key={lang.code}
+                    onClick={() => changeLanguage(lang.code)}
+                    className={`py-3 rounded-lg border text-[10px] font-bold uppercase tracking-widest transition-all ${i18n.language === lang.code ? 'border-red text-red bg-red/5' : 'border-white/10 text-white/40 bg-white/5'}`}
+                  >
+                    {lang.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="pt-8">
@@ -117,13 +173,13 @@ const Navbar = () => {
                     onClick={() => setIsMenuOpen(false)}
                     className="flex items-center justify-center w-full bg-white/5 py-4 rounded-xl font-display text-lg uppercase tracking-widest border border-white/10"
                   >
-                    Go to Dashboard
+                    {t('nav.dashboard')}
                   </Link>
                   <button 
                     onClick={() => { logout(); setIsMenuOpen(false); }}
                     className="w-full text-red font-display text-lg uppercase py-4"
                   >
-                    Log Out
+                    {t('nav.logout')}
                   </button>
                 </div>
               ) : (
@@ -132,7 +188,7 @@ const Navbar = () => {
                   onClick={() => setIsMenuOpen(false)}
                   className="flex items-center justify-center w-full bg-red py-4 rounded-xl font-display text-xl uppercase tracking-widest shadow-xl shadow-red/20"
                 >
-                  Login to Portal
+                  {t('nav.login')}
                 </Link>
               )}
             </div>
