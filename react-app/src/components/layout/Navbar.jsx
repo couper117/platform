@@ -1,0 +1,146 @@
+import React, { useState } from 'react';
+import { Link, NavLink } from 'react-router-dom';
+import { Menu, X, User, LogOut, ChevronRight } from 'lucide-react';
+import useAuthStore from '../../store/authStore';
+
+const Navbar = () => {
+  const { isAuthenticated, user, logout, role } = useAuthStore();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const navLinks = [
+    { to: '/leagues', label: 'Leagues' },
+    { to: '/fixtures', label: 'Fixtures' },
+    { to: '/results', label: 'Results' },
+    { to: '/news', label: 'News' },
+    { to: '/akc3', label: 'Kagame Cup', highlight: true },
+  ];
+
+  return (
+    <nav className="bg-surface-dark text-white sticky top-0 z-[100] shadow-xl border-b border-white/5">
+      <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+        {/* Logo */}
+        <Link to="/" className="flex items-center space-x-2 group">
+          <div className="bg-red p-1.5 rounded-lg transform group-hover:rotate-12 transition-transform">
+            <span className="text-xl font-display leading-none">RNSP</span>
+          </div>
+          <span className="hidden sm:inline text-[10px] border-l border-white/20 pl-2 opacity-50 uppercase tracking-[0.2em] font-medium">
+            Rwanda National <br/> Sports Platform
+          </span>
+        </Link>
+
+        {/* Desktop Navigation */}
+        <div className="hidden lg:flex space-x-8 items-center font-display text-[13px] uppercase tracking-widest">
+          {navLinks.map(link => (
+            <NavLink 
+              key={link.to} 
+              to={link.to} 
+              className={({isActive}) => 
+                `transition-all hover:text-red ${isActive ? 'text-red' : link.highlight ? 'text-rwanda-yellow' : 'text-white/70'}`
+              }
+            >
+              {link.label}
+            </NavLink>
+          ))}
+        </div>
+
+        {/* Auth & Mobile Toggle */}
+        <div className="flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-3">
+            {isAuthenticated ? (
+              <div className="flex items-center space-x-3 bg-white/5 pl-1 pr-1 py-1 rounded-full border border-white/10">
+                <Link 
+                  to={role === 'SUPERADMIN' || role === 'LEAGUE_ADMIN' ? '/admin/dashboard' : '/team/dashboard'}
+                  className="flex items-center space-x-2 px-3 py-1 hover:bg-white/10 rounded-full transition-colors"
+                >
+                  <div className="w-6 h-6 bg-red rounded-full flex items-center justify-center text-[10px] font-bold uppercase">
+                    {user.fullName.charAt(0)}
+                  </div>
+                  <span className="text-[10px] uppercase font-bold tracking-tighter">{user.fullName.split(' ')[0]}</span>
+                </Link>
+                <button 
+                  onClick={logout}
+                  className="p-1.5 text-white/40 hover:text-red transition-colors"
+                  title="Logout"
+                >
+                  <LogOut size={14} />
+                </button>
+              </div>
+            ) : (
+              <Link to="/auth/login" className="bg-red px-6 py-2 font-display text-sm rounded-lg hover:bg-red-dark transition-all hover:scale-105 active:scale-95 shadow-lg shadow-red/20">
+                Login
+              </Link>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button 
+            className="lg:hidden p-2 text-white/80 hover:text-white transition-colors"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Menu Overlay */}
+      {isMenuOpen && (
+        <div className="lg:hidden fixed inset-0 top-[60px] bg-surface-dark z-50 animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="p-6 space-y-8">
+            <div className="flex flex-col space-y-4">
+              {navLinks.map(link => (
+                <Link 
+                  key={link.to} 
+                  to={link.to} 
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`flex justify-between items-center text-2xl font-display uppercase tracking-tight py-2 border-b border-white/5 ${link.highlight ? 'text-rwanda-yellow' : 'text-white'}`}
+                >
+                  {link.label}
+                  <ChevronRight className="text-white/20" />
+                </Link>
+              ))}
+            </div>
+
+            <div className="pt-8">
+              {isAuthenticated ? (
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-4 p-4 bg-white/5 rounded-xl border border-white/10">
+                    <div className="w-12 h-12 bg-red rounded-full flex items-center justify-center text-xl font-bold uppercase">
+                      {user.fullName.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="font-display text-xl leading-none">{user.fullName}</p>
+                      <p className="text-[10px] uppercase tracking-widest text-white/40">{role.replace('_', ' ')}</p>
+                    </div>
+                  </div>
+                  <Link 
+                    to={role === 'SUPERADMIN' || role === 'LEAGUE_ADMIN' ? '/admin/dashboard' : '/team/dashboard'}
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center justify-center w-full bg-white/5 py-4 rounded-xl font-display text-lg uppercase tracking-widest border border-white/10"
+                  >
+                    Go to Dashboard
+                  </Link>
+                  <button 
+                    onClick={() => { logout(); setIsMenuOpen(false); }}
+                    className="w-full text-red font-display text-lg uppercase py-4"
+                  >
+                    Log Out
+                  </button>
+                </div>
+              ) : (
+                <Link 
+                  to="/auth/login" 
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center justify-center w-full bg-red py-4 rounded-xl font-display text-xl uppercase tracking-widest shadow-xl shadow-red/20"
+                >
+                  Login to Portal
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+};
+
+export default Navbar;
