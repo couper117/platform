@@ -41,11 +41,11 @@ const RouteWatcher = ({ children }) => {
   useEffect(() => {
     // Start loader on location change
     setIsTransitioning(true);
-    // Force 3-second visibility as requested
+    // Force 2-second visibility as requested
     const timer = setTimeout(() => {
       setIsTransitioning(false);
       window.scrollTo(0, 0);
-    }, 3000);
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, [location.pathname]);
