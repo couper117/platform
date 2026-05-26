@@ -1,0 +1,18 @@
+{
+  "name": "Rwanda National Sports Platform",
+  "short_name": "RNSP",
+  "description": "The official digital home for Rwandan Sports.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111120",
+  "theme_color": "#E8002D",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
