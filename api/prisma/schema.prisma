@@ -37,13 +37,45 @@ model User {
   newsArticles News[]
   activityLogs ActivityLog[]
   refreshTokens RefreshToken[]
+  
+  // Advanced Admin Relations
+  leaguesManaged  LeagueAdminAssignment[]
+  matchAssignments ReporterAssignment[]
 }
 
 enum Role {
   SUPERADMIN
   LEAGUE_ADMIN
+  MATCH_REPORTER
   TEAM_MANAGER
   PUBLIC
+}
+
+model LeagueAdminAssignment {
+  id         Int      @id @default(autoincrement())
+  leagueId   Int
+  league     League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignedBy Int?     // Superadmin ID
+  assignedAt DateTime @default(now())
+
+  @@unique([leagueId, userId])
+}
+
+model ReporterAssignment {
+  id         Int      @id @default(autoincrement())
+  leagueId   Int?
+  league     League?  @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  fixtureId  Int?
+  fixture    Fixture? @relation(fields: [fixtureId], references: [id], onDelete: Cascade)
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignedBy Int?     // League Admin ID
+  assignedAt DateTime @default(now())
+
+  @@unique([leagueId, userId])
+  @@unique([fixtureId, userId])
 }
 
 model RefreshToken {
@@ -130,7 +162,10 @@ model League {
   competitions  Competition[]
   registrations TeamRegistration[]
   news          News[]
-  admins        LeagueAdmin[]
+  
+  // Administrative Relations
+  admins           LeagueAdminAssignment[]
+  assignedReporters ReporterAssignment[]
 }
 
 enum Gender {
@@ -170,14 +205,6 @@ enum LeagueStatus {
   ACTIVE
   COMPLETED
   SUSPENDED
-}
-
-model LeagueAdmin {
-  id         Int      @id @default(autoincrement())
-  leagueId   Int
-  league     League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
-  userId     Int
-  assignedAt DateTime @default(now())
 }
 
 // ─── TEAMS ───────────────────────────────────────────────────────
@@ -376,6 +403,9 @@ model Fixture {
   events        MatchEvent[]
   lineups       Lineup[]
   liveState     LiveMatchState?
+  
+  // Administrative Relations
+  assignedReporters ReporterAssignment[]
 }
 
 enum FixtureStatus {

@@ -22,6 +22,7 @@ const venueRoutes = require('./routes/venues.routes');
 const activityRoutes = require('./routes/activity.routes');
 const settingsRoutes = require('./routes/settings.routes');
 const akc3Routes = require('./routes/akc3/index');
+const adminRoutes = require('./routes/admin.routes');
 
 const app = express();
 
@@ -63,6 +64,7 @@ app.use('/api/v1/venues', venueRoutes);
 app.use('/api/v1/activity', activityRoutes);
 app.use('/api/v1/settings', settingsRoutes);
 app.use('/api/v1/akc3', akc3Routes);
+app.use('/api/v1/admin', adminRoutes);
 
 // Health check
 app.get('/api/v1/health', (req, res) => {

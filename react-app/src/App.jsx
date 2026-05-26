@@ -6,6 +6,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import PublicLayout from './components/layout/PublicLayout';
 import AdminLayout from './components/layout/AdminLayout';
 import TeamLayout from './components/layout/TeamLayout';
+import ReporterLayout from './components/layout/ReporterLayout';
 
 // Public Pages
 import HomePage from './pages/public/HomePage';
@@ -21,6 +22,10 @@ import RegisterTeamPage from './pages/auth/RegisterTeamPage';
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AkcAdminDashboard from './pages/admin/AkcAdminDashboard';
+import AdminLeaguesPage from './pages/admin/AdminLeaguesPage';
+import AdminTeamsPage from './pages/admin/AdminTeamsPage';
+import AdminFixturesPage from './pages/admin/AdminFixturesPage';
+import LiveReportingPage from './pages/admin/LiveReportingPage';
 
 // Team Pages
 import TeamDashboard from './pages/team/TeamDashboard';
@@ -110,8 +115,13 @@ function App() {
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<Navigate to="/admin/dashboard" replace />} />
               <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="leagues" element={<AdminLeaguesPage />} />
+              <Route path="teams" element={<AdminTeamsPage />} />
               <Route path="akc3" element={<AkcAdminDashboard />} />
-              <Route path="leagues" element={<div className="font-display text-3xl opacity-20 py-20 uppercase">Competition Management</div>} />
+              <Route path="fixtures" element={<AdminFixturesPage />} />
+              <Route path="players" element={<div className="font-display text-3xl opacity-20 py-20 uppercase">Athlete Registry</div>} />
+              <Route path="documents" element={<div className="font-display text-3xl opacity-20 py-20 uppercase">Document Review</div>} />
+              <Route path="news" element={<div className="font-display text-3xl opacity-20 py-20 uppercase">News Publisher</div>} />
               <Route path="settings" element={<div className="font-display text-3xl opacity-20 py-20 uppercase">System Config</div>} />
             </Route>
 
@@ -123,6 +133,11 @@ function App() {
               <Route path="documents" element={<div className="font-display text-3xl uppercase opacity-20 py-20 uppercase">Document Uploads</div>} />
               <Route path="fixtures" element={<div className="font-display text-3xl uppercase opacity-20 py-20 uppercase">Team Schedule</div>} />
               <Route path="profile" element={<div className="font-display text-3xl uppercase opacity-20 py-20 uppercase">Club Profile</div>} />
+            </Route>
+
+            {/* Match Reporter Portal */}
+            <Route element={<ReporterLayout />}>
+              <Route path="/reporter/dashboard" element={<LiveReportingPage />} />
             </Route>
             
             <Route path="*" element={<Navigate to="/" replace />} />
