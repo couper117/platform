@@ -25,6 +25,10 @@ import AkcAdminDashboard from './pages/admin/AkcAdminDashboard';
 import AdminLeaguesPage from './pages/admin/AdminLeaguesPage';
 import AdminTeamsPage from './pages/admin/AdminTeamsPage';
 import AdminFixturesPage from './pages/admin/AdminFixturesPage';
+import AdminPlayersPage from './pages/admin/AdminPlayersPage';
+import AdminDocumentsPage from './pages/admin/AdminDocumentsPage';
+import AdminNewsPage from './pages/admin/AdminNewsPage';
+import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 import LiveReportingPage from './pages/admin/LiveReportingPage';
 
 // Team Pages
@@ -117,12 +121,12 @@ function App() {
               <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="leagues" element={<AdminLeaguesPage />} />
               <Route path="teams" element={<AdminTeamsPage />} />
-              <Route path="akc3" element={<AkcAdminDashboard />} />
               <Route path="fixtures" element={<AdminFixturesPage />} />
-              <Route path="players" element={<div className="font-display text-3xl opacity-20 py-20 uppercase">Athlete Registry</div>} />
-              <Route path="documents" element={<div className="font-display text-3xl opacity-20 py-20 uppercase">Document Review</div>} />
-              <Route path="news" element={<div className="font-display text-3xl opacity-20 py-20 uppercase">News Publisher</div>} />
-              <Route path="settings" element={<div className="font-display text-3xl opacity-20 py-20 uppercase">System Config</div>} />
+              <Route path="players" element={<AdminPlayersPage />} />
+              <Route path="documents" element={<AdminDocumentsPage />} />
+              <Route path="news" element={<AdminNewsPage />} />
+              <Route path="akc3" element={<AkcAdminDashboard />} />
+              <Route path="settings" element={<AdminSettingsPage />} />
             </Route>
 
             {/* Team Manager Routes */}

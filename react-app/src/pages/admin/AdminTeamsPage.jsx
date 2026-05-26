@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Users, CheckCircle2, XCircle, AlertTriangle, ShieldCheck, Mail, Globe } from 'lucide-react';
+import { Users, ShieldCheck, XCircle, Mail, Trash2, Loader2 } from 'lucide-react';
 import apiClient from '../../api/client';
 import AdminTable from '../../components/admin/AdminTable';
 import Skeleton from '../../components/shared/Skeleton';
@@ -28,6 +28,25 @@ const AdminTeamsPage = () => {
       alert(err.response?.data?.message || 'Failed to update team status');
     }
   });
+
+  const deleteTeamMutation = useMutation({
+    mutationFn: async (id) => {
+      await apiClient.delete(`/teams/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['admin-teams']);
+      alert('Team deleted successfully');
+    },
+    onError: (err) => {
+      alert(err.response?.data?.message || 'Failed to delete team');
+    }
+  });
+
+  const handleDeleteTeam = (id) => {
+    if (window.confirm('Are you sure you want to delete this team? This will remove all its players and matches.')) {
+      deleteTeamMutation.mutate(id);
+    }
+  };
 
   return (
     <div className="space-y-10 animate-in fade-in duration-500">
@@ -77,7 +96,7 @@ const AdminTeamsPage = () => {
               <td className="px-6 py-5">
                 <div className="flex flex-col space-y-1">
                   <span className="text-xs font-bold uppercase tracking-tight">{team.managerUser?.fullName || 'Unassigned'}</span>
-                  <span className="text-[8px] opacity-40 lowercase">{team.email || 'No email'}</span>
+                  <span className="text-[8px] opacity-40 lowercase">{team.managerUser?.email || 'No email'}</span>
                 </div>
               </td>
               <td className="px-6 py-5">
@@ -103,8 +122,11 @@ const AdminTeamsPage = () => {
                       <XCircle size={18} />
                     </button>
                   )}
-                  <button className="p-2 hover:bg-surface-3 dark:hover:bg-white/10 rounded-lg transition-colors">
-                    <Mail size={16} className="opacity-40" />
+                  <button 
+                    onClick={() => handleDeleteTeam(team.id)}
+                    className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors" title="Delete Team"
+                  >
+                    <Trash2 size={18} />
                   </button>
                 </div>
               </td>

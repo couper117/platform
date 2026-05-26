@@ -4,110 +4,138 @@ const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Seeding database...');
+  console.log('🌱 Starting Comprehensive Seeding...');
 
-  // 1. Create Superadmin
+  // 1. CLEAR EXISTING DATA (Optional, but good for clean test)
+  // console.log('Cleaning existing data...');
+  // await prisma.$transaction([ ...delete operations... ]);
+
   const hashedPassword = await bcrypt.hash('Manager@123', 12);
-  const admin = await prisma.user.upsert({
+
+  // 2. CREATE USERS (ONE FOR EACH ROLE)
+  console.log('Creating Test Users...');
+  const superadmin = await prisma.user.upsert({
     where: { username: 'admin' },
     update: {},
-    create: {
-      username: 'admin',
-      password: hashedPassword,
-      fullName: 'System Administrator',
-      email: 'admin@rnsp.rw',
-      role: 'SUPERADMIN',
-      active: true,
-      verified: true,
-    },
+    create: { username: 'admin', password: hashedPassword, fullName: 'System Admin', email: 'admin@rwasport.rw', role: 'SUPERADMIN', active: true, verified: true }
   });
 
-  // 2. Create Sports
-  const sportsData = [
-    { name: 'Football', icon: '⚽', category: 'FIELD', sortOrder: 1 },
-    { name: 'Basketball', icon: '🏀', category: 'COURT', sortOrder: 2 },
-    { name: 'Volleyball', icon: '🏐', category: 'COURT', sortOrder: 3 },
-    { name: 'Rugby', icon: '🏉', category: 'FIELD', sortOrder: 4 },
-    { name: 'Handball', icon: '🤾', category: 'COURT', sortOrder: 5 },
-    { name: 'Tennis', icon: '🎾', category: 'RACKET', sortOrder: 6 },
-    { name: 'Table Tennis', icon: '🏓', category: 'RACKET', sortOrder: 7 },
-    { name: 'Athletics', icon: '🏃', category: 'TRACK', sortOrder: 8 },
-    { name: 'Cycling', icon: '🚴', category: 'TRACK', sortOrder: 9 },
-    { name: 'Rally', icon: '🏎️', category: 'OTHER', sortOrder: 10 },
-    { name: 'Swimming', icon: '🏊', category: 'WATER', sortOrder: 11 },
-    { name: 'Boxing', icon: '🥊', category: 'COMBAT', sortOrder: 12 },
-    { name: 'Taekwondo', icon: '🥋', category: 'COMBAT', sortOrder: 13 },
-    { name: 'Judo', icon: '🥋', category: 'COMBAT', sortOrder: 14 },
-    { name: 'Cricket', icon: '🏏', category: 'FIELD', sortOrder: 15 },
-  ];
+  const leagueAdminUser = await prisma.user.upsert({
+    where: { username: 'league_boss' },
+    update: {},
+    create: { username: 'league_boss', password: hashedPassword, fullName: 'League Administrator', email: 'league@rwasport.rw', role: 'LEAGUE_ADMIN', active: true, verified: true }
+  });
 
-  for (const s of sportsData) {
-    await prisma.sport.upsert({
-      where: { name: s.name },
-      update: {},
-      create: {
-        ...s,
-        slug: s.name.toLowerCase().replace(' ', '-'),
-      },
-    });
-  }
+  const reporterUser = await prisma.user.upsert({
+    where: { username: 'reporter1' },
+    update: {},
+    create: { username: 'reporter1', password: hashedPassword, fullName: 'Pitch Reporter', email: 'reporter@rwasport.rw', role: 'MATCH_REPORTER', active: true, verified: true }
+  });
 
-  const football = await prisma.sport.findUnique({ where: { name: 'Football' } });
+  const teamManagerUser = await prisma.user.upsert({
+    where: { username: 'coach1' },
+    update: {},
+    create: { username: 'coach1', password: hashedPassword, fullName: 'Head Coach', email: 'coach@rwasport.rw', role: 'TEAM_MANAGER', active: true, verified: true }
+  });
 
-  // 3. Federations
-  const federations = [
-    { name: 'Federation Rwandaise de Football Association', abbreviation: 'FERWAFA', sportId: football.id },
-    { name: 'Rwanda Basketball Federation', abbreviation: 'FERWABA' },
-    { name: 'Rwanda Volleyball Federation', abbreviation: 'FRVB' },
-  ];
+  // 3. SPORTS
+  console.log('Creating Sports...');
+  const football = await prisma.sport.upsert({
+    where: { name: 'Football' },
+    update: {},
+    create: { name: 'Football', icon: '⚽', slug: 'football', category: 'FIELD', sortOrder: 1 }
+  });
 
-  for (const f of federations) {
-    await prisma.federation.create({ data: f });
-  }
+  // 4. LEAGUES
+  console.log('Creating Leagues...');
+  const rpl = await prisma.league.create({
+    data: { name: 'Rwanda Premier League', slug: 'rpl', sportId: football.id, season: '2025/2026', gender: 'MALE', status: 'ACTIVE', level: 'NATIONAL' }
+  });
 
-  // 4. Venues
-  const venues = [
-    { name: 'Amahoro National Stadium', city: 'Kigali', province: 'Kigali City', capacity: 45000 },
-    { name: 'Kigali Arena', city: 'Kigali', province: 'Kigali City', capacity: 10000 },
-    { name: 'Huye Stadium', city: 'Butare', province: 'Southern Province', capacity: 15000 },
-  ];
+  const akcCup = await prisma.league.create({
+    data: { name: 'Kagame Cup Schools', slug: 'akc-cup', sportId: football.id, season: '2025/2026', gender: 'MIXED', status: 'UPCOMING', level: 'SCHOOL' }
+  });
 
-  for (const v of venues) {
-    await prisma.venue.create({ data: v });
-  }
+  // 5. TEAMS
+  console.log('Creating Teams...');
+  const apr = await prisma.team.create({
+    data: { name: 'APR FC', shortName: 'APR', sportId: football.id, slug: 'apr-fc', city: 'Kigali', status: 'VERIFIED', managerUserId: teamManagerUser.id }
+  });
 
-  // 5. Settings
-  const settings = [
-    { skey: 'site_name', sval: 'Rwanda National Sports Platform', label: 'Site Name', grp: 'branding' },
-    { skey: 'contact_email', sval: 'info@rnsp.rw', label: 'Contact Email', grp: 'contact' },
-    { skey: 'hero_title', sval: 'Excellence in Rwandan Sports', label: 'Hero Title', grp: 'homepage' },
-  ];
+  const rayon = await prisma.team.create({
+    data: { name: 'Rayon Sports', shortName: 'RS', sportId: football.id, slug: 'rayon-sports', city: 'Nyanza', status: 'VERIFIED' }
+  });
 
-  for (const s of settings) {
-    await prisma.setting.upsert({
-      where: { skey: s.skey },
-      update: {},
-      create: s,
-    });
-  }
+  // Assign teams to RPL
+  await prisma.leagueTeam.createMany({
+    data: [
+      { leagueId: rpl.id, teamId: apr.id },
+      { leagueId: rpl.id, teamId: rayon.id }
+    ]
+  });
 
-  // 6. Teams
-  const teams = [
-    { name: 'APR FC', shortName: 'APR', sportId: football.id, city: 'Kigali', status: 'VERIFIED' },
-    { name: 'Rayon Sports', shortName: 'RS', sportId: football.id, city: 'Nyanza', status: 'VERIFIED' },
-    { name: 'AS Kigali', shortName: 'ASK', sportId: football.id, city: 'Kigali', status: 'VERIFIED' },
-  ];
+  // 6. FIXTURES
+  console.log('Creating Fixtures...');
+  // A Completed Match
+  await prisma.fixture.create({
+    data: {
+      leagueId: rpl.id, homeTeamId: apr.id, awayTeamId: rayon.id, status: 'COMPLETED',
+      homeScore: 2, awayScore: 1, venue: 'Amahoro Stadium', matchDate: new Date('2026-05-20T15:00:00Z')
+    }
+  });
 
-  for (const t of teams) {
-    await prisma.team.create({
-      data: {
-        ...t,
-        slug: t.name.toLowerCase().replace(' ', '-'),
-      },
-    });
-  }
+  // A Live Match
+  const liveMatch = await prisma.fixture.create({
+    data: {
+      leagueId: rpl.id, homeTeamId: rayon.id, awayTeamId: apr.id, status: 'LIVE',
+      homeScore: 0, awayScore: 0, venue: 'Kigali Arena Pitch', matchDate: new Date()
+    }
+  });
 
-  console.log('✅ Seeding complete!');
+  // An Upcoming Match
+  await prisma.fixture.create({
+    data: {
+      leagueId: rpl.id, homeTeamId: apr.id, awayTeamId: rayon.id, status: 'SCHEDULED',
+      venue: 'Huye Stadium', matchDate: new Date('2026-06-01T18:00:00Z')
+    }
+  });
+
+  // 7. ASSIGNMENTS
+  console.log('Assigning Admin Roles...');
+  // Assign League Admin to RPL
+  await prisma.leagueAdminAssignment.create({
+    data: { leagueId: rpl.id, userId: leagueAdminUser.id, assignedBy: superadmin.id }
+  });
+
+  // Assign Reporter to the Live Match
+  await prisma.reporterAssignment.create({
+    data: { leagueId: rpl.id, fixtureId: liveMatch.id, userId: reporterUser.id, assignedBy: leagueAdminUser.id }
+  });
+
+  // 8. AKC3 DATA
+  console.log('Creating AKC3 Specific Data...');
+  const school1 = await prisma.akcSchool.create({
+    data: { name: 'Kigali International School', code: 'KIS-001', category: 'SECONDARY', sector: 'Gasabo', active: true }
+  });
+
+  const akcTeam = await prisma.akcTeam.create({
+    data: { schoolId: school1.id, sportId: football.id, gender: 'MALE', ageCategory: 'U17', coachName: 'Jean Damascene' }
+  });
+
+  await prisma.akcPlayer.create({
+    data: { teamId: akcTeam.id, fullName: 'Mugisha Emmanuel', ageCategory: 'U17', position: 'Striker', jersey: 10, docVerified: true }
+  });
+
+  // 9. STANDINGS (Recalc for RPL)
+  // Normally the service does this, but for seed we initialize
+  await prisma.standing.createMany({
+    data: [
+      { leagueId: rpl.id, teamId: apr.id, played: 1, won: 1, drawn: 0, lost: 0, goalsFor: 2, goalsAgainst: 1, points: 3, form: 'W' },
+      { leagueId: rpl.id, teamId: rayon.id, played: 1, won: 0, drawn: 0, lost: 1, goalsFor: 1, goalsAgainst: 2, points: 0, form: 'L' }
+    ]
+  });
+
+  console.log('✅ Comprehensive Seeding Complete!');
 }
 
 main()

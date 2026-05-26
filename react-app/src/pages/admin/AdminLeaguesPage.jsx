@@ -23,6 +23,19 @@ const AdminLeaguesPage = () => {
     },
   });
 
+  const deleteLeagueMutation = useMutation({
+    mutationFn: async (id) => {
+      await apiClient.delete(`/leagues/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['admin-leagues']);
+      alert('League deleted successfully');
+    },
+    onError: (err) => {
+      alert(err.response?.data?.message || 'Failed to delete league');
+    }
+  });
+
   const assignReporterMutation = useMutation({
     mutationFn: async ({ leagueId, email }) => {
       await apiClient.post(`/leagues/${leagueId}/assign-reporter`, { email });
@@ -59,6 +72,12 @@ const AdminLeaguesPage = () => {
   const handleOpenAdmin = (league) => {
     setSelectedLeague(league);
     setIsModalAdminOpen(true);
+  };
+
+  const handleDeleteLeague = (id) => {
+    if (window.confirm('Are you sure you want to delete this league? This will also affect its standings and fixtures.')) {
+      deleteLeagueMutation.mutate(id);
+    }
   };
 
   return (
@@ -104,6 +123,12 @@ const AdminLeaguesPage = () => {
                   </button>
                   <button className="p-2 hover:bg-surface-3 dark:hover:bg-white/10 rounded-lg transition-colors">
                     <Edit2 size={16} />
+                  </button>
+                  <button 
+                    onClick={() => handleDeleteLeague(league.id)}
+                    className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors"
+                  >
+                    <Trash2 size={16} />
                   </button>
                 </div>
               </td>

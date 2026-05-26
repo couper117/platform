@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Activity, Plus, Calendar, MapPin, Trophy, Clock, Search, Trash2 } from 'lucide-react';
+import { Activity, Plus, Calendar, MapPin, Trophy, Clock, Search, Trash2, Edit2, Loader2 } from 'lucide-react';
 import apiClient from '../../api/client';
 import AdminTable from '../../components/admin/AdminTable';
 import AdminModal from '../../components/admin/AdminModal';
@@ -37,7 +37,7 @@ const AdminFixturesPage = () => {
   const { data: teams } = useQuery({
     queryKey: ['admin-teams-list', formData.leagueId],
     queryFn: async () => {
-      if (!formData.leagueId) return { data: [] };
+      if (!formData.leagueId) return [];
       const { data } = await apiClient.get('/teams', { params: { leagueId: formData.leagueId } });
       return data.data;
     },
@@ -54,6 +54,25 @@ const AdminFixturesPage = () => {
       alert('Match scheduled successfully!');
     }
   });
+
+  const deleteFixtureMutation = useMutation({
+    mutationFn: async (id) => {
+      await apiClient.delete(`/fixtures/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['admin-fixtures']);
+      alert('Fixture deleted successfully');
+    },
+    onError: (err) => {
+      alert(err.response?.data?.message || 'Failed to delete fixture');
+    }
+  });
+
+  const handleDeleteFixture = (id) => {
+    if (window.confirm('Are you sure you want to delete this fixture?')) {
+      deleteFixtureMutation.mutate(id);
+    }
+  };
 
   return (
     <div className="space-y-10 animate-in fade-in duration-500">
@@ -103,7 +122,13 @@ const AdminFixturesPage = () => {
               </td>
               <td className="px-6 py-5">
                 <div className="flex items-center space-x-2">
-                  <button className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors">
+                  <button className="p-2 hover:bg-surface-3 dark:hover:bg-white/10 rounded-lg transition-colors">
+                    <Edit2 size={16} />
+                  </button>
+                  <button 
+                    onClick={() => handleDeleteFixture(f.id)}
+                    className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors"
+                  >
                     <Trash2 size={16} />
                   </button>
                 </div>
@@ -177,9 +202,10 @@ const AdminFixturesPage = () => {
 
           <button 
             onClick={() => createFixtureMutation.mutate(formData)}
-            className="w-full bg-red text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all"
+            disabled={createFixtureMutation.isPending}
+            className="w-full bg-red text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all disabled:opacity-50"
           >
-            Create Fixture
+            {createFixtureMutation.isPending ? <Loader2 className="animate-spin mx-auto" /> : <span>Create Fixture</span>}
           </button>
         </div>
       </AdminModal>
