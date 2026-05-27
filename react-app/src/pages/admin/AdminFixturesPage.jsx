@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
 import { Activity, Plus, Calendar, MapPin, Trophy, Clock, Search, Trash2, Edit2, Loader2 } from 'lucide-react';
 import apiClient from '../../api/client';
 import AdminTable from '../../components/admin/AdminTable';
@@ -9,14 +10,8 @@ import Skeleton from '../../components/shared/Skeleton';
 const AdminFixturesPage = () => {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    leagueId: '',
-    homeTeamId: '',
-    awayTeamId: '',
-    matchDate: '',
-    venue: '',
-    matchday: '1'
-  });
+  
+  const { register, handleSubmit, reset } = useForm();
 
   const { data: fixtures, isLoading: fixturesLoading } = useQuery({
     queryKey: ['admin-fixtures'],
@@ -34,14 +29,16 @@ const AdminFixturesPage = () => {
     },
   });
 
+  // Fetch teams based on selected league (needs reactive state from form)
+  const [selectedLeagueId, setSelectedLeagueId] = useState('');
   const { data: teams } = useQuery({
-    queryKey: ['admin-teams-list', formData.leagueId],
+    queryKey: ['admin-teams-list', selectedLeagueId],
     queryFn: async () => {
-      if (!formData.leagueId) return [];
-      const { data } = await apiClient.get('/teams', { params: { leagueId: formData.leagueId } });
+      if (!selectedLeagueId) return [];
+      const { data } = await apiClient.get('/teams', { params: { leagueId: selectedLeagueId } });
       return data.data;
     },
-    enabled: !!formData.leagueId
+    enabled: !!selectedLeagueId
   });
 
   const createFixtureMutation = useMutation({
@@ -51,6 +48,7 @@ const AdminFixturesPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries(['admin-fixtures']);
       setIsModalOpen(false);
+      reset();
       alert('Match scheduled successfully!');
     }
   });
@@ -62,16 +60,11 @@ const AdminFixturesPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries(['admin-fixtures']);
       alert('Fixture deleted successfully');
-    },
-    onError: (err) => {
-      alert(err.response?.data?.message || 'Failed to delete fixture');
     }
   });
 
-  const handleDeleteFixture = (id) => {
-    if (window.confirm('Are you sure you want to delete this fixture?')) {
-      deleteFixtureMutation.mutate(id);
-    }
+  const onSubmit = (data) => {
+    createFixtureMutation.mutate(data);
   };
 
   return (
@@ -122,13 +115,7 @@ const AdminFixturesPage = () => {
               </td>
               <td className="px-6 py-5">
                 <div className="flex items-center space-x-2">
-                  <button className="p-2 hover:bg-surface-3 dark:hover:bg-white/10 rounded-lg transition-colors">
-                    <Edit2 size={16} />
-                  </button>
-                  <button 
-                    onClick={() => handleDeleteFixture(f.id)}
-                    className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors"
-                  >
+                  <button onClick={() => { if(window.confirm('Delete this fixture?')) deleteFixtureMutation.mutate(f.id) }} className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors">
                     <Trash2 size={16} />
                   </button>
                 </div>
@@ -140,14 +127,14 @@ const AdminFixturesPage = () => {
 
       {/* New Fixture Modal */}
       <AdminModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Schedule New Match">
-        <div className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2 col-span-2">
               <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Select League</label>
               <select 
+                {...register('leagueId', { required: true })} 
                 className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none"
-                value={formData.leagueId}
-                onChange={(e) => setFormData({...formData, leagueId: e.target.value})}
+                onChange={(e) => setSelectedLeagueId(e.target.value)}
               >
                 <option value="">Choose a competition...</option>
                 {leagues?.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
@@ -156,11 +143,7 @@ const AdminFixturesPage = () => {
             
             <div className="space-y-2">
               <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Home Team</label>
-              <select 
-                className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none"
-                value={formData.homeTeamId}
-                onChange={(e) => setFormData({...formData, homeTeamId: e.target.value})}
-              >
+              <select {...register('homeTeamId', { required: true })} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none">
                 <option value="">Select Home...</option>
                 {teams?.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
@@ -168,11 +151,7 @@ const AdminFixturesPage = () => {
 
             <div className="space-y-2">
               <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Away Team</label>
-              <select 
-                className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none"
-                value={formData.awayTeamId}
-                onChange={(e) => setFormData({...formData, awayTeamId: e.target.value})}
-              >
+              <select {...register('awayTeamId', { required: true })} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none">
                 <option value="">Select Away...</option>
                 {teams?.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
@@ -180,34 +159,19 @@ const AdminFixturesPage = () => {
 
             <div className="space-y-2">
               <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Match Date & Time</label>
-              <input 
-                type="datetime-local" 
-                className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none"
-                value={formData.matchDate}
-                onChange={(e) => setFormData({...formData, matchDate: e.target.value})}
-              />
+              <input {...register('matchDate', { required: true })} type="datetime-local" className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none" />
             </div>
 
             <div className="space-y-2">
               <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Venue</label>
-              <input 
-                type="text" 
-                className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none"
-                placeholder="Stadium name"
-                value={formData.venue}
-                onChange={(e) => setFormData({...formData, venue: e.target.value})}
-              />
+              <input {...register('venue')} type="text" className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none" placeholder="Stadium name" />
             </div>
           </div>
 
-          <button 
-            onClick={() => createFixtureMutation.mutate(formData)}
-            disabled={createFixtureMutation.isPending}
-            className="w-full bg-red text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all disabled:opacity-50"
-          >
+          <button type="submit" disabled={createFixtureMutation.isPending} className="w-full bg-red text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all disabled:opacity-50">
             {createFixtureMutation.isPending ? <Loader2 className="animate-spin mx-auto" /> : <span>Create Fixture</span>}
           </button>
-        </div>
+        </form>
       </AdminModal>
     </div>
   );

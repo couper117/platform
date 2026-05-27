@@ -9,7 +9,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ─── SETTINGS ────────────────────────────────────────────────────
 model Setting {
   id    Int    @id @default(autoincrement())
   skey  String @unique @db.VarChar(100)
@@ -18,7 +17,6 @@ model Setting {
   grp   String  @default("general") @db.VarChar(80)
 }
 
-// ─── USERS ───────────────────────────────────────────────────────
 model User {
   id          Int      @id @default(autoincrement())
   username    String   @unique @db.VarChar(80)
@@ -38,17 +36,30 @@ model User {
   activityLogs ActivityLog[]
   refreshTokens RefreshToken[]
   
-  // Advanced Admin Relations
   leaguesManaged  LeagueAdminAssignment[]
+  federationsManaged FederationAdminAssignment[]
   matchAssignments ReporterAssignment[]
 }
 
 enum Role {
   SUPERADMIN
+  FEDERATION_ADMIN
   LEAGUE_ADMIN
   MATCH_REPORTER
   TEAM_MANAGER
   PUBLIC
+}
+
+model FederationAdminAssignment {
+  id        Int      @id @default(autoincrement())
+  federationId Int
+  federation   Federation @relation(fields: [federationId], references: [id], onDelete: Cascade)
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignedBy Int?
+  assignedAt DateTime @default(now())
+
+  @@unique([federationId, userId])
 }
 
 model LeagueAdminAssignment {
@@ -87,7 +98,6 @@ model RefreshToken {
   createdAt DateTime @default(now())
 }
 
-// ─── SPORTS ──────────────────────────────────────────────────────
 model Sport {
   id          Int      @id @default(autoincrement())
   name        String   @unique @db.VarChar(150)
@@ -115,7 +125,6 @@ enum SportCategory {
   OTHER
 }
 
-// ─── FEDERATIONS ─────────────────────────────────────────────────
 model Federation {
   id           Int      @id @default(autoincrement())
   name         String   @db.VarChar(200)
@@ -130,9 +139,9 @@ model Federation {
   createdAt    DateTime @default(now())
 
   leagues      League[]
+  admins       FederationAdminAssignment[]
 }
 
-// ─── LEAGUES ─────────────────────────────────────────────────────
 model League {
   id            Int      @id @default(autoincrement())
   name          String   @db.VarChar(200)
@@ -163,7 +172,6 @@ model League {
   registrations TeamRegistration[]
   news          News[]
   
-  // Administrative Relations
   admins           LeagueAdminAssignment[]
   assignedReporters ReporterAssignment[]
 }
@@ -207,7 +215,6 @@ enum LeagueStatus {
   SUSPENDED
 }
 
-// ─── TEAMS ───────────────────────────────────────────────────────
 model Team {
   id             Int      @id @default(autoincrement())
   name           String   @db.VarChar(200)
@@ -263,7 +270,6 @@ model LeagueTeam {
   @@unique([leagueId, teamId])
 }
 
-// ─── PLAYERS ─────────────────────────────────────────────────────
 model Player {
   id            Int      @id @default(autoincrement())
   teamId        Int
@@ -312,7 +318,6 @@ enum PlayerStatus {
   REJECTED
 }
 
-// ─── PLAYER DOCUMENTS ────────────────────────────────────────────
 model PlayerDocument {
   id           Int      @id @default(autoincrement())
   playerId     Int
@@ -342,7 +347,6 @@ enum DocStatus {
   REJECTED
 }
 
-// ─── VENUES ──────────────────────────────────────────────────────
 model Venue {
   id       Int      @id @default(autoincrement())
   name     String   @db.VarChar(200)
@@ -353,7 +357,6 @@ model Venue {
   active   Boolean  @default(true)
 }
 
-// ─── COMPETITIONS ─────────────────────────────────────────────────
 model Competition {
   id        Int      @id @default(autoincrement())
   leagueId  Int
@@ -374,7 +377,6 @@ enum RoundType {
   REGULAR
 }
 
-// ─── FIXTURES ────────────────────────────────────────────────────
 model Fixture {
   id            Int      @id @default(autoincrement())
   leagueId      Int
@@ -404,7 +406,6 @@ model Fixture {
   lineups       Lineup[]
   liveState     LiveMatchState?
   
-  // Administrative Relations
   assignedReporters ReporterAssignment[]
 }
 
@@ -416,7 +417,6 @@ enum FixtureStatus {
   CANCELLED
 }
 
-// ─── MATCH EVENTS ────────────────────────────────────────────────
 model MatchEvent {
   id          Int      @id @default(autoincrement())
   fixtureId   Int
@@ -425,6 +425,7 @@ model MatchEvent {
   player      Player?  @relation("PlayerEvent", fields: [playerId], references: [id], onDelete: SetNull)
   player2Id   Int?     
   player2     Player?  @relation("SubEvent", fields: [player2Id], references: [id], onDelete: SetNull)
+  refereeName String?  // Optional: Reporter can tag referee name if needed
   teamId      Int?
   eventType   EventType
   minute      Int?     @db.SmallInt
@@ -448,7 +449,6 @@ enum EventType {
   EXTRA_TIME
 }
 
-// ─── LINEUPS ─────────────────────────────────────────────────────
 model Lineup {
   id        Int     @id @default(autoincrement())
   fixtureId Int
@@ -464,7 +464,6 @@ model Lineup {
   @@unique([fixtureId, playerId])
 }
 
-// ─── LIVE MATCH STATE ─────────────────────────────────────────────
 model LiveMatchState {
   fixtureId Int     @id
   fixture   Fixture @relation(fields: [fixtureId], references: [id], onDelete: Cascade)
@@ -476,7 +475,6 @@ model LiveMatchState {
   updatedAt DateTime @updatedAt
 }
 
-// ─── STANDINGS ────────────────────────────────────────────────────
 model Standing {
   id            Int    @id @default(autoincrement())
   leagueId      Int
@@ -496,7 +494,6 @@ model Standing {
   @@unique([leagueId, teamId])
 }
 
-// ─── TOP SCORERS ──────────────────────────────────────────────────
 model TopScorer {
   id        Int    @id @default(autoincrement())
   leagueId  Int
@@ -510,7 +507,6 @@ model TopScorer {
   updatedAt DateTime @updatedAt
 }
 
-// ─── TRANSFERS ────────────────────────────────────────────────────
 model Transfer {
   id           Int      @id @default(autoincrement())
   playerId     Int
@@ -533,7 +529,6 @@ enum TransferType {
   RETURN_FROM_LOAN
 }
 
-// ─── TEAM REGISTRATIONS ───────────────────────────────────────────
 model TeamRegistration {
   id          Int      @id @default(autoincrement())
   teamId      Int
@@ -555,7 +550,6 @@ enum RegStatus {
   REJECTED
 }
 
-// ─── NEWS ─────────────────────────────────────────────────────────
 model News {
   id          Int      @id @default(autoincrement())
   sportId     Int?
@@ -584,7 +578,6 @@ enum NewsCategory {
   OTHER
 }
 
-// ─── CONTACTS ─────────────────────────────────────────────────────
 model Contact {
   id        Int      @id @default(autoincrement())
   name      String   @db.VarChar(200)
@@ -602,7 +595,6 @@ enum ContactStatus {
   REPLIED
 }
 
-// ─── PAGES (static CMS) ───────────────────────────────────────────
 model Page {
   id        Int      @id @default(autoincrement())
   slug      String   @unique @db.VarChar(100)
@@ -613,7 +605,6 @@ model Page {
   updatedAt DateTime @updatedAt
 }
 
-// ─── ACTIVITY LOG ─────────────────────────────────────────────────
 model ActivityLog {
   id        Int      @id @default(autoincrement())
   userId    Int?
@@ -624,8 +615,6 @@ model ActivityLog {
   ip        String?  @db.VarChar(50)
   createdAt DateTime @default(now())
 }
-
-// ─── AKC3 ─────────────────────────────────────────────────────────
 
 model AkcSchool {
   id           Int      @id @default(autoincrement())

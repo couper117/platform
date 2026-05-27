@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Trophy, Plus, Edit2, Trash2, UserPlus, AlertCircle, Loader2, ShieldCheck } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { Trophy, Plus, Edit2, Trash2, UserPlus, AlertCircle, Loader2, ShieldCheck, X } from 'lucide-react';
 import apiClient from '../../api/client';
 import AdminTable from '../../components/admin/AdminTable';
 import AdminModal from '../../components/admin/AdminModal';
@@ -15,12 +16,37 @@ const AdminLeaguesPage = () => {
   const [reporterEmail, setReporterEmail] = useState('');
   const [adminEmail, setAdminEmail] = useState('');
 
+  const { register, handleSubmit, reset, formState: { errors } } = useForm();
+
   const { data: leagues, isLoading } = useQuery({
     queryKey: ['admin-leagues'],
     queryFn: async () => {
       const { data } = await apiClient.get('/leagues');
       return data.data;
     },
+  });
+
+  const { data: sports } = useQuery({
+    queryKey: ['admin-sports-list'],
+    queryFn: async () => {
+      const { data } = await apiClient.get('/sports');
+      return data.data;
+    },
+  });
+
+  const createLeagueMutation = useMutation({
+    mutationFn: async (data) => {
+      await apiClient.post('/leagues', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['admin-leagues']);
+      setIsModalOpen(false);
+      reset();
+      alert('League created successfully!');
+    },
+    onError: (err) => {
+      alert(err.response?.data?.message || 'Failed to create league');
+    }
   });
 
   const deleteLeagueMutation = useMutation({
@@ -30,9 +56,6 @@ const AdminLeaguesPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries(['admin-leagues']);
       alert('League deleted successfully');
-    },
-    onError: (err) => {
-      alert(err.response?.data?.message || 'Failed to delete league');
     }
   });
 
@@ -44,9 +67,6 @@ const AdminLeaguesPage = () => {
       setIsModalReporterOpen(false);
       setReporterEmail('');
       alert('Reporter authorized successfully!');
-    },
-    onError: (err) => {
-      alert(err.response?.data?.message || 'Failed to assign reporter');
     }
   });
 
@@ -58,26 +78,11 @@ const AdminLeaguesPage = () => {
       setIsModalAdminOpen(false);
       setAdminEmail('');
       alert('League Admin assigned successfully!');
-    },
-    onError: (err) => {
-      alert(err.response?.data?.message || 'Failed to assign admin');
     }
   });
 
-  const handleOpenReporter = (league) => {
-    setSelectedLeague(league);
-    setIsModalReporterOpen(true);
-  };
-
-  const handleOpenAdmin = (league) => {
-    setSelectedLeague(league);
-    setIsModalAdminOpen(true);
-  };
-
-  const handleDeleteLeague = (id) => {
-    if (window.confirm('Are you sure you want to delete this league? This will also affect its standings and fixtures.')) {
-      deleteLeagueMutation.mutate(id);
-    }
+  const onSubmit = (data) => {
+    createLeagueMutation.mutate(data);
   };
 
   return (
@@ -85,7 +90,7 @@ const AdminLeaguesPage = () => {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-2">
           <h1 className="text-4xl font-display uppercase tracking-tighter">Manage <span className="text-red">Leagues</span></h1>
-          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">System-wide competition management</p>
+          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Create and delegate sports competitions</p>
         </div>
         <button 
           onClick={() => setIsModalOpen(true)}
@@ -99,7 +104,7 @@ const AdminLeaguesPage = () => {
       {isLoading ? (
         <Skeleton type="card" count={3} />
       ) : (
-        <AdminTable headers={['League Name', 'Sport', 'Season', 'Teams', 'Status', 'Actions']}>
+        <AdminTable headers={['League Name', 'Sport', 'Season', 'Status', 'Actions']}>
           {leagues?.map(league => (
             <tr key={league.id} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors">
               <td className="px-6 py-5">
@@ -107,7 +112,6 @@ const AdminLeaguesPage = () => {
               </td>
               <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{league.sport?.name}</td>
               <td className="px-6 py-5 text-sm opacity-40">{league.season}</td>
-              <td className="px-6 py-5 text-sm">{league._count?.teams || 0}</td>
               <td className="px-6 py-5">
                 <span className={`text-[8px] font-bold px-2 py-1 rounded border uppercase ${league.status === 'ACTIVE' ? 'bg-green/5 text-green border-green/10' : 'bg-gold/5 text-gold border-gold/10'}`}>
                   {league.status}
@@ -115,19 +119,13 @@ const AdminLeaguesPage = () => {
               </td>
               <td className="px-6 py-5">
                 <div className="flex items-center space-x-3">
-                  <button onClick={() => handleOpenAdmin(league)} className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors" title="Assign League Admin">
+                  <button onClick={() => { setSelectedLeague(league); setIsModalAdminOpen(true); }} className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors" title="Assign League Admin">
                     <ShieldCheck size={18} />
                   </button>
-                  <button onClick={() => handleOpenReporter(league)} className="p-2 hover:bg-blue-500/10 text-blue-500 rounded-lg transition-colors" title="Authorize Reporter">
+                  <button onClick={() => { setSelectedLeague(league); setIsModalReporterOpen(true); }} className="p-2 hover:bg-blue-500/10 text-blue-500 rounded-lg transition-colors" title="Authorize Reporter">
                     <UserPlus size={18} />
                   </button>
-                  <button className="p-2 hover:bg-surface-3 dark:hover:bg-white/10 rounded-lg transition-colors">
-                    <Edit2 size={16} />
-                  </button>
-                  <button 
-                    onClick={() => handleDeleteLeague(league.id)}
-                    className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors"
-                  >
+                  <button onClick={() => { if(window.confirm('Delete this league?')) deleteLeagueMutation.mutate(league.id) }} className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors">
                     <Trash2 size={16} />
                   </button>
                 </div>
@@ -137,73 +135,65 @@ const AdminLeaguesPage = () => {
         </AdminTable>
       )}
 
-      {/* Authorize Reporter Modal */}
-      <AdminModal 
-        isOpen={isReporterModalOpen} 
-        onClose={() => setIsModalReporterOpen(false)} 
-        title={`Authorize Reporter for ${selectedLeague?.name}`}
-      >
-        <div className="space-y-6">
-          <div className="p-4 bg-blue-500/5 border border-blue-500/10 rounded-2xl flex items-start space-x-4 text-blue-500">
-            <AlertCircle size={20} className="mt-0.5" />
-            <p className="text-xs font-bold uppercase tracking-widest leading-relaxed">
-              Entering an email here will grant the user "Match Reporter" privileges for this league. They will be able to log live match events from the pitch.
-            </p>
+      {/* Create League Modal */}
+      <AdminModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create New League">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2 col-span-2">
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">League Name</label>
+              <input {...register('name', { required: true })} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl focus:border-red outline-none" placeholder="e.g. Rwanda Premier League" />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Sport</label>
+              <select {...register('sportId', { required: true })} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none">
+                <option value="">Select Sport...</option>
+                {sports?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Season</label>
+              <input {...register('season', { required: true })} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none" placeholder="2025/2026" />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Gender</label>
+              <select {...register('gender')} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none">
+                <option value="MALE">Male</option>
+                <option value="FEMALE">Female</option>
+                <option value="MIXED">Mixed</option>
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Competition Level</label>
+              <select {...register('level')} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none">
+                <option value="NATIONAL">National</option>
+                <option value="REGIONAL">Regional</option>
+                <option value="SCHOOL">School</option>
+              </select>
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-[10px] uppercase font-bold tracking-widest opacity-40 ml-1">Reporter Email Address</label>
-            <input 
-              type="email" 
-              className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl focus:border-red outline-none transition-all placeholder:opacity-20"
-              placeholder="e.g. reporter@rwasport.rw"
-              value={reporterEmail}
-              onChange={(e) => setReporterEmail(e.target.value)}
-            />
-          </div>
-
-          <button 
-            onClick={() => assignReporterMutation.mutate({ leagueId: selectedLeague.id, email: reporterEmail })}
-            disabled={assignReporterMutation.isPending || !reporterEmail}
-            className="w-full bg-red text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all disabled:opacity-50 flex items-center justify-center space-x-3"
-          >
-            {assignReporterMutation.isPending ? <Loader2 className="animate-spin" /> : <span>Authorize Access</span>}
+          <button type="submit" disabled={createLeagueMutation.isPending} className="w-full bg-red text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all flex items-center justify-center space-x-3">
+            {createLeagueMutation.isPending ? <Loader2 className="animate-spin" /> : <span>Create League</span>}
           </button>
+        </form>
+      </AdminModal>
+
+      {/* Delegation Modals (Same as before but integrated) */}
+      <AdminModal isOpen={isReporterModalOpen} onClose={() => setIsModalReporterOpen(false)} title="Authorize Match Reporter">
+        <div className="space-y-6">
+          <input type="email" value={reporterEmail} onChange={e => setReporterEmail(e.target.value)} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl" placeholder="reporter@email.com" />
+          <button onClick={() => assignReporterMutation.mutate({ leagueId: selectedLeague.id, email: reporterEmail })} className="w-full bg-red text-white font-display text-xl uppercase py-4 rounded-xl">Authorize</button>
         </div>
       </AdminModal>
 
-      {/* Assign League Admin Modal */}
-      <AdminModal 
-        isOpen={isAdminModalOpen} 
-        onClose={() => setIsModalAdminOpen(false)} 
-        title={`Assign Admin for ${selectedLeague?.name}`}
-      >
+      <AdminModal isOpen={isAdminModalOpen} onClose={() => setIsModalAdminOpen(false)} title="Assign League Admin">
         <div className="space-y-6">
-          <div className="p-4 bg-red/5 border border-red/10 rounded-2xl flex items-start space-x-4 text-red">
-            <ShieldCheck size={20} className="mt-0.5" />
-            <p className="text-xs font-bold uppercase tracking-widest leading-relaxed">
-              Superadmin Action: Granting "League Admin" status will allow this user to manage matches, verify teams, and authorize reporters for this specific competition.
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-[10px] uppercase font-bold tracking-widest opacity-40 ml-1">Admin Email Address</label>
-            <input 
-              type="email" 
-              className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl focus:border-red outline-none transition-all"
-              placeholder="e.g. admin@rwasport.rw"
-              value={adminEmail}
-              onChange={(e) => setAdminEmail(e.target.value)}
-            />
-          </div>
-
-          <button 
-            onClick={() => assignAdminMutation.mutate({ leagueId: selectedLeague.id, email: adminEmail })}
-            disabled={assignAdminMutation.isPending || !adminEmail}
-            className="w-full bg-red text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all disabled:opacity-50 flex items-center justify-center space-x-3"
-          >
-            {assignAdminMutation.isPending ? <Loader2 className="animate-spin" /> : <span>Confirm Assignment</span>}
-          </button>
+          <input type="email" value={adminEmail} onChange={e => setAdminEmail(e.target.value)} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl" placeholder="admin@email.com" />
+          <button onClick={() => assignAdminMutation.mutate({ leagueId: selectedLeague.id, email: adminEmail })} className="w-full bg-red text-white font-display text-xl uppercase py-4 rounded-xl">Assign Admin</button>
         </div>
       </AdminModal>
     </div>
