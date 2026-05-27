@@ -46,3 +46,49 @@ const AmashuriFixtureCard = ({ fixture, showCompetition = true }) => {
             {fixture.competition?.name || fixture.stage?.replace(/_/g, ' ') || 'Schools Championship'}
           </span>
           {isLive && <LiveBadge />}
+        </div>
+      )}
+
+      <div className="p-4 sm:p-6 flex flex-col items-center">
+        <div className="w-full flex items-center justify-between gap-2 sm:gap-4">
+          <SchoolSide team={fixture.homeTeam} />
+
+          <div className="flex flex-col items-center justify-center min-w-[80px] sm:min-w-[110px]">
+            {isLive || isCompleted ? (
+              <div className="flex flex-col items-center gap-1">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <span className={`text-3xl sm:text-5xl font-display ${fixture.homeScore > fixture.awayScore ? 'text-rwanda-blue' : ''}`}>{fixture.homeScore ?? 0}</span>
+                  <span className="text-xl font-display opacity-20">—</span>
+                  <span className={`text-3xl sm:text-5xl font-display ${fixture.awayScore > fixture.homeScore ? 'text-rwanda-blue' : ''}`}>{fixture.awayScore ?? 0}</span>
+                </div>
+                <span className="text-[10px] uppercase font-bold tracking-[0.2em] opacity-30">{isCompleted ? 'Full Time' : 'Live'}</span>
+              </div>
+            ) : (
+              <div className="bg-surface-2 dark:bg-white/5 px-4 py-2 rounded-xl border border-surface-3 dark:border-white/10 flex flex-col items-center">
+                <span className="text-xl sm:text-2xl font-display text-rwanda-blue leading-none">
+                  {fixture.matchDate ? format(new Date(fixture.matchDate), 'HH:mm') : 'TBD'}
+                </span>
+                <span className="text-[8px] uppercase font-bold tracking-widest opacity-40 mt-1">Kick-off</span>
+              </div>
+            )}
+          </div>
+
+          <SchoolSide team={fixture.awayTeam} />
+        </div>
+
+        <div className="mt-6 w-full pt-4 border-t border-surface-3 dark:border-white/5 flex items-center justify-between text-[10px] uppercase font-bold tracking-widest opacity-50">
+          <div className="flex items-center gap-1">
+            <Calendar size={12} className="text-rwanda-blue" />
+            <span>{fixture.matchDate ? format(new Date(fixture.matchDate), 'dd MMM') : 'TBD'}</span>
+          </div>
+          <div className="flex items-center gap-1 min-w-0">
+            <MapPin size={12} className="text-rwanda-blue" />
+            <span className="line-clamp-1">{fixture.venue || 'TBD'}</span>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+};
+
+export default AmashuriFixtureCard;
