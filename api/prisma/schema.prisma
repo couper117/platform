@@ -219,7 +219,7 @@ model Team {
   id             Int      @id @default(autoincrement())
   name           String   @db.VarChar(200)
   shortName      String?  @db.VarChar(10)
-  slug           String?  @db.VarChar(220)
+  slug           String?  @unique @db.VarChar(220)
   sportId        Int?
   sport          Sport?   @relation(fields: [sportId], references: [id], onDelete: SetNull)
   logo           String?  @db.VarChar(300)

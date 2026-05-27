@@ -58,12 +58,31 @@ async function main() {
 
   // 5. TEAMS
   console.log('Creating Teams...');
-  const apr = await prisma.team.create({
-    data: { name: 'APR FC', shortName: 'APR', sportId: football.id, slug: 'apr-fc', city: 'Kigali', status: 'VERIFIED', managerUserId: teamManagerUser.id }
+  const apr = await prisma.team.upsert({
+    where: { slug: 'apr-fc' },
+    update: {},
+    create: { 
+      name: 'APR FC', 
+      shortName: 'APR', 
+      sportId: football.id, 
+      slug: 'apr-fc', 
+      city: 'Kigali', 
+      status: 'VERIFIED', 
+      managerUserId: teamManagerUser.id 
+    }
   });
 
-  const rayon = await prisma.team.create({
-    data: { name: 'Rayon Sports', shortName: 'RS', sportId: football.id, slug: 'rayon-sports', city: 'Nyanza', status: 'VERIFIED' }
+  const rayon = await prisma.team.upsert({
+    where: { slug: 'rayon-sports' },
+    update: {},
+    create: { 
+      name: 'Rayon Sports', 
+      shortName: 'RS', 
+      sportId: football.id, 
+      slug: 'rayon-sports', 
+      city: 'Nyanza', 
+      status: 'VERIFIED' 
+    }
   });
 
   // Assign teams to RPL
