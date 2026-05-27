@@ -31,7 +31,9 @@ app.set('trust proxy', 1);
 // Security Middleware
 app.use(helmet());
 app.use(cors({
-  origin: env.FRONTEND_URL,
+  origin: (origin, callback) => {
+    callback(null, true);
+  },
   credentials: true,
 }));
 
