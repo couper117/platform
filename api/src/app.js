@@ -29,7 +29,7 @@ const app = express();
 // Security Middleware
 app.use(helmet());
 app.use(cors({
-  origin: '*',
+  origin: env.FRONTEND_URL,
   credentials: true,
 }));
 
