@@ -10,4 +10,16 @@ const AdminTable = ({ headers, children, className = "" }) => {
             <tr className="bg-surface-2 dark:bg-white/5 text-[10px] uppercase font-bold tracking-[0.2em] text-surface-dark/40 dark:text-white/40">
               {headers.map((h, i) => (
                 <th key={i} className="px-6 py-5">{h}</th>
-              ))}
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-surface-3 dark:divide-white/5">
+            {children}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+export default AdminTable;
