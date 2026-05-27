@@ -27,4 +27,33 @@ const AmashuriHero = ({ eyebrow, title, accent, subtitle, children, compact = fa
     <div
       className="absolute inset-0 opacity-[0.07]"
       style={{
-        backgroundImage:
+        backgroundImage:
+          'linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)',
+        backgroundSize: '48px 48px',
+        maskImage: 'radial-gradient(ellipse at top left, black 20%, transparent 70%)',
+        WebkitMaskImage: 'radial-gradient(ellipse at top left, black 20%, transparent 70%)',
+      }}
+    />
+
+    <ResponsiveWrapper className="relative z-10">
+      <div className="space-y-5">
+        {resolvedEyebrow && (
+          <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 px-4 py-1.5 rounded-full backdrop-blur-sm">
+            <GraduationCap size={14} className="text-rwanda-yellow" />
+            <span className="text-[10px] font-bold uppercase tracking-widest">{resolvedEyebrow}</span>
+          </div>
+        )}
+        {title && (
+          <h1 className={cn('font-display uppercase tracking-tighter leading-none', compact ? 'text-4xl sm:text-6xl' : 'text-5xl sm:text-7xl')}>
+            {title} {accent && <span className="text-rwanda-yellow">{accent}</span>}
+          </h1>
+        )}
+        {subtitle && <p className="text-base sm:text-lg opacity-80 max-w-xl font-light">{subtitle}</p>}
+        {children}
+      </div>
+    </ResponsiveWrapper>
+  </section>
+  );
+};
+
+export default AmashuriHero;
