@@ -54,3 +54,57 @@ const AmashuriStats = ({ schools = [], championships = [] }) => {
   }
 
   const catCount = schools.reduce((acc, s) => {
+    const k = s.category || 'OTHER';
+    acc[k] = (acc[k] || 0) + 1;
+    return acc;
+  }, {});
+  const categoryData = Object.entries(catCount).map(([name, value]) => ({ name, value }));
+  const catColors = { PRIMARY: GREEN, SECONDARY: BLUE, TVET: YELLOW, OTHER: '#94A3B8' };
+
+  const statusCount = championships.reduce((acc, c) => {
+    const k = c.status || 'UPCOMING';
+    acc[k] = (acc[k] || 0) + 1;
+    return acc;
+  }, {});
+  const statusData = Object.entries(statusCount).map(([name, count]) => ({ name, count }));
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {categoryData.length > 0 && (
+        <ChartCard icon={School} title="Schools by Category" subtitle="Primary · Secondary · TVET">
+          <ResponsiveContainer width="100%" height={260}>
+            <PieChart>
+              <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={55} outerRadius={90} paddingAngle={3}>
+                {categoryData.map((entry) => (
+                  <Cell key={entry.name} fill={catColors[entry.name] || catColors.OTHER} stroke="none" />
+                ))}
+              </Pie>
+              <Tooltip content={<ChartTooltip />} />
+              <Legend
+                verticalAlign="bottom"
+                iconType="circle"
+                formatter={(v) => <span className="text-[10px] uppercase tracking-widest opacity-60">{v}</span>}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </ChartCard>
+      )}
+
+      {statusData.length > 0 && (
+        <ChartCard icon={Layers} title="Championships" subtitle="By status">
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={statusData} margin={{ left: 0, right: 8, top: 8 }}>
+              <CartesianGrid vertical={false} stroke={grid} />
+              <XAxis dataKey="name" tick={{ fill: axis, fontSize: 10, fontWeight: 700 }} tickLine={false} axisLine={{ stroke: grid }} />
+              <YAxis allowDecimals={false} tick={{ fill: axis, fontSize: 10, fontWeight: 700 }} tickLine={false} axisLine={{ stroke: grid }} width={28} />
+              <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(0,161,222,0.06)' }} />
+              <Bar dataKey="count" name="Championships" fill={BLUE} radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartCard>
+      )}
+    </div>
+  );
+};
+
+export default AmashuriStats;
