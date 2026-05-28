@@ -32,3 +32,35 @@ const Footer = () => {
           <ul className="space-y-2 text-sm opacity-70">
             <li><Link to="/sports/football" className="hover:text-red transition-colors">Football</Link></li>
             <li><Link to="/sports/basketball" className="hover:text-red transition-colors">Basketball</Link></li>
+            <li><Link to="/sports/volleyball" className="hover:text-red transition-colors">Volleyball</Link></li>
+            <li><Link to="/akc3" className="hover:text-red transition-colors">Amashuri Kagame Cup</Link></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="font-display text-lg mb-4 text-rwanda-yellow uppercase">Contact Us</h4>
+          <ul className="space-y-2 text-sm opacity-70">
+            <li>Email: info@rwasport.rw</li>
+            <li>Phone: +250 123 456 789</li>
+            <li>Address: Kigali, Rwanda</li>
+            <li className="pt-2">
+              <Link to="/contact" className="inline-block bg-surface-dark2 px-4 py-2 border border-surface-3 rounded hover:border-red hover:text-red transition-colors font-display text-xs uppercase tracking-widest">
+                Send a Message
+              </Link>
+            </li>
+          </ul>
+        </div>
+      </div>
+      
+      <div className="container mx-auto px-4 mt-12 pt-6 border-t border-surface-dark2 flex flex-col md:flex-row justify-between items-center text-[10px] opacity-40 uppercase tracking-widest">
+        <p>&copy; 2026 RwaSport Platform. All rights reserved.</p>
+        <div className="flex space-x-6 mt-4 md:mt-0">
+          <Link to="/privacy">Privacy Policy</Link>
+          <Link to="/terms">Terms of Service</Link>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+export default Footer;
