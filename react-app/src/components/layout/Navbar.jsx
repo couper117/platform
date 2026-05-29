@@ -177,4 +177,62 @@ const Navbar = () => {
             </div>
 
             {/* Mobile Language Switcher */}
-            <div className="space-y-4">
+            <div className="space-y-4">
+              <h3 className="text-[10px] uppercase font-bold tracking-[0.3em] text-white/30">Language</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {languages.map(lang => (
+                  <button
+                    key={lang.code}
+                    onClick={() => changeLanguage(lang.code)}
+                    className={`py-3 rounded-lg border text-[10px] font-bold uppercase tracking-widest transition-all ${i18n.language === lang.code ? 'border-red text-red bg-red/5' : 'border-white/10 text-white/40 bg-white/5'}`}
+                  >
+                    {lang.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-8">
+              {isAuthenticated ? (
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-4 p-4 bg-white/5 rounded-xl border border-white/10">
+                    <div className="w-12 h-12 bg-red rounded-full flex items-center justify-center text-xl font-bold uppercase">
+                      {user.fullName.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="font-display text-xl leading-none">{user.fullName}</p>
+                      <p className="text-[10px] uppercase tracking-widest text-white/40">{role.replace('_', ' ')}</p>
+                    </div>
+                  </div>
+                  <Link 
+                    to={role === 'SUPERADMIN' || role === 'LEAGUE_ADMIN' ? '/admin/dashboard' : '/team/dashboard'}
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center justify-center w-full bg-white/5 py-4 rounded-xl font-display text-lg uppercase tracking-widest border border-white/10"
+                  >
+                    {t('nav.dashboard')}
+                  </Link>
+                  <button 
+                    onClick={() => { logout(); setIsMenuOpen(false); }}
+                    className="w-full text-red font-display text-lg uppercase py-4"
+                  >
+                    {t('nav.logout')}
+                  </button>
+                </div>
+              ) : (
+                <Link 
+                  to="/auth/login" 
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center justify-center w-full bg-red py-4 rounded-xl font-display text-xl uppercase tracking-widest shadow-xl shadow-red/20"
+                >
+                  {t('nav.login')}
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+};
+
+export default Navbar;
