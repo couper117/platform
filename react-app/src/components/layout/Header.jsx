@@ -34,3 +34,39 @@ export default function Header() {
             ))}
           </div>
         </div>
+      )}
+      <div className="container">
+        <div className="header-inner">
+          <Link to="/" className="header-logo">
+            <svg width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14" fill="#DC2626"/><path d="M10 20 L16 12 L22 20 Z" fill="white"/></svg>
+            RNSP
+          </Link>
+          <nav className="header-nav">
+            <Link to="/">{t('home')}</Link>
+            <Link to="/sports">{t('sports')}</Link>
+            <Link to="/leagues">{t('leagues')}</Link>
+            <Link to="/fixtures">{t('fixtures')}</Link>
+            <Link to="/results">{t('results')}</Link>
+            <Link to="/news">{t('news')}</Link>
+          </nav>
+          <div className="header-actions">
+            <div className="lang-switch">
+              {['en', 'fr', 'rw', 'sw'].map(l => (
+                <button key={l} className={`lang-btn ${currentLang === l ? 'active' : ''}`} onClick={() => changeLang(l)}>{l.toUpperCase()}</button>
+              ))}
+            </div>
+            <button className="theme-toggle" onClick={() => document.documentElement.classList.toggle('dark')}>🌓</button>
+            {isAuthenticated ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
+                {user?.role === 'superadmin' && <Link to="/admin" className="btn btn-primary">{t('admin_panel')}</Link>}
+                <button className="btn btn-outline" onClick={logout}>{t('logout')}</button>
+              </div>
+            ) : (
+              <Link to="/login" className="btn btn-primary">{t('login')}</Link>
+            )}
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
