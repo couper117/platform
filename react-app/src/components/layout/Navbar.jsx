@@ -57,4 +57,64 @@ const Navbar = () => {
               className={({isActive}) => 
                 `transition-all hover:text-red flex items-center space-x-1 ${isActive ? 'text-red' : link.highlight ? 'text-rwanda-yellow' : 'text-white/70'}`
               }
-            >
+            >
+              {link.label}
+            </NavLink>
+          ))}
+        </div>
+
+        {/* Auth & Language & Mobile Toggle */}
+        <div className="flex items-center space-x-2 sm:space-x-3">
+          {/* Search trigger — desktop pill */}
+          <button
+            onClick={openPalette}
+            className="hidden md:flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-full bg-white/5 border border-white/10 text-white/40 hover:text-white hover:border-white/20 transition-colors cursor-pointer"
+            aria-label="Search"
+          >
+            <Search size={14} />
+            <span className="text-[10px] uppercase tracking-widest">Search</span>
+            <kbd className="text-[9px] font-bold bg-white/10 rounded px-1.5 py-0.5 leading-none">⌘K</kbd>
+          </button>
+
+          {/* Search trigger — mobile icon */}
+          <button
+            onClick={openPalette}
+            className="md:hidden p-2 rounded-full text-white/60 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+            aria-label="Search"
+          >
+            <Search size={18} />
+          </button>
+
+          {/* Theme Toggle */}
+          <ThemeToggle />
+
+          {/* Language Switcher Desktop */}
+          <div className="relative hidden sm:block">
+            <button 
+              onClick={() => setIsLangOpen(!isLangOpen)}
+              className="p-2 hover:bg-white/5 rounded-full text-white/60 hover:text-white transition-all flex items-center space-x-1"
+            >
+              <Languages size={18} />
+              <span className="text-[10px] font-bold uppercase">{i18n.language}</span>
+            </button>
+            {isLangOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-surface-dark border border-white/10 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                {languages.map(lang => (
+                  <button
+                    key={lang.code}
+                    onClick={() => changeLanguage(lang.code)}
+                    className={`w-full text-left px-4 py-3 text-xs font-bold uppercase tracking-widest hover:bg-white/5 transition-colors ${i18n.language === lang.code ? 'text-red' : 'text-white/60'}`}
+                  >
+                    {lang.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="hidden md:flex items-center space-x-3">
+            {isAuthenticated ? (
+              <div className="flex items-center space-x-3 bg-white/5 pl-1 pr-1 py-1 rounded-full border border-white/10">
+                <Link 
+                  to={role === 'SUPERADMIN' || role === 'LEAGUE_ADMIN' ? '/admin/dashboard' : '/team/dashboard'}
+                  className="flex items-center space-x-2 px-3 py-1 hover:bg-white/10 rounded-full transition-colors"
