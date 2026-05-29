@@ -117,4 +117,64 @@ const Navbar = () => {
               <div className="flex items-center space-x-3 bg-white/5 pl-1 pr-1 py-1 rounded-full border border-white/10">
                 <Link 
                   to={role === 'SUPERADMIN' || role === 'LEAGUE_ADMIN' ? '/admin/dashboard' : '/team/dashboard'}
-                  className="flex items-center space-x-2 px-3 py-1 hover:bg-white/10 rounded-full transition-colors"
+                  className="flex items-center space-x-2 px-3 py-1 hover:bg-white/10 rounded-full transition-colors"
+                >
+                  <div className="w-6 h-6 bg-red rounded-full flex items-center justify-center text-[10px] font-bold uppercase">
+                    {user.fullName.charAt(0)}
+                  </div>
+                  <span className="text-[10px] uppercase font-bold tracking-tighter">{user.fullName.split(' ')[0]}</span>
+                </Link>
+                <button 
+                  onClick={logout}
+                  className="p-1.5 text-white/40 hover:text-red transition-colors"
+                  title={t('nav.logout')}
+                >
+                  <LogOut size={14} />
+                </button>
+              </div>
+            ) : (
+              <Link to="/auth/login" className="bg-red text-white font-display text-sm uppercase tracking-widest px-6 py-2 rounded-lg hover:bg-red-dark transition-all hover:scale-105 active:scale-95 shadow-lg shadow-red/20">
+                {t('nav.login')}
+              </Link>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button 
+            className="lg:hidden p-2 text-white/80 hover:text-white transition-colors"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Menu Overlay */}
+      {isMenuOpen && (
+        <div className="lg:hidden fixed inset-0 top-[60px] bg-surface-dark z-50 animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="p-6 space-y-8 overflow-y-auto max-h-screen">
+            <div className="flex flex-col space-y-4">
+              {navLinks.map(link => (
+                <Link 
+                  key={link.to} 
+                  to={link.to} 
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`flex justify-between items-center text-2xl font-display uppercase tracking-tight py-2 border-b border-white/5 ${link.highlight ? 'text-rwanda-yellow' : 'text-white'}`}
+                >
+                  <div className="flex items-center space-x-3">
+                    {link.icon}
+                    <span>{link.label}</span>
+                  </div>
+                  <ChevronRight className="text-white/20" />
+                </Link>
+              ))}
+            </div>
+
+            {/* Mobile Appearance */}
+            <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+              <span className="text-[10px] uppercase font-bold tracking-[0.3em] text-white/40">Appearance</span>
+              <ThemeToggle />
+            </div>
+
+            {/* Mobile Language Switcher */}
+            <div className="space-y-4">
