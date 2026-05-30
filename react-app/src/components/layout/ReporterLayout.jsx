@@ -9,4 +9,15 @@ const ReporterLayout = () => {
   if (!isAuthenticated || role !== 'MATCH_REPORTER') {
     return <Navigate to="/auth/login" />;
   }
-
+
+  return (
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
+      <main className="flex-grow bg-surface-2 overflow-x-hidden">
+        <Outlet />
+      </main>
+    </div>
+  );
+};
+
+export default ReporterLayout;
