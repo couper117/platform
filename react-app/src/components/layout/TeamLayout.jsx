@@ -18,4 +18,24 @@ const TeamLayout = () => {
       <Navbar />
 
       {/* Mobile Sidebar Trigger */}
-      <div className="lg:hidden bg-surface-dark border-b border-white/5 px-4 py-2 flex items-center justify-between">
+      <div className="lg:hidden bg-surface-dark border-b border-white/5 px-4 py-2 flex items-center justify-between">
+        <button 
+          onClick={() => setIsSidebarOpen(true)}
+          className="flex items-center space-x-2 text-white/60 hover:text-red transition-colors"
+        >
+          <Menu size={20} />
+          <span className="text-[10px] uppercase font-bold tracking-widest">Team Menu</span>
+        </button>
+      </div>
+
+      <div className="flex flex-grow relative">
+        <Sidebar type="team" isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+        <main className="flex-grow bg-surface-2 p-4 sm:p-6 md:p-8 overflow-x-hidden">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default TeamLayout;
