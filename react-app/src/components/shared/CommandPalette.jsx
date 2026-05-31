@@ -132,4 +132,72 @@ const CommandPalette = () => {
   useEffect(() => {
     setActive((a) => Math.min(a, Math.max(flat.length - 1, 0)));
   }, [flat.length]);
-
+
+  const go = (item) => {
+    if (!item) return;
+    closePalette();
+    navigate(item.to);
+  };
+
+  const onKeyDown = (e) => {
+    if (e.key === 'Escape') { closePalette(); return; }
+    if (e.key === 'ArrowDown') { e.preventDefault(); setActive((a) => Math.min(a + 1, flat.length - 1)); }
+    if (e.key === 'ArrowUp') { e.preventDefault(); setActive((a) => Math.max(a - 1, 0)); }
+    if (e.key === 'Enter') { e.preventDefault(); go(flat[active]); }
+  };
+
+  if (!open) return null;
+
+  let runningIndex = -1;
+
+  return (
+    <div
+      className="fixed inset-0 z-[200] flex items-start justify-center p-4 sm:pt-[12vh]"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Search RwaSport"
+    >
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-surface-dark/70 backdrop-blur-sm animate-in fade-in duration-200"
+        onClick={closePalette}
+      />
+
+      {/* Panel */}
+      <div className="relative w-full max-w-xl bg-white dark:bg-surface-dark2 rounded-2xl border border-surface-3 dark:border-white/10 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 slide-in-from-top-4 duration-200">
+        {/* Search input */}
+        <div className="flex items-center gap-3 px-4 border-b border-surface-3 dark:border-white/10">
+          {isFetching ? (
+            <Loader2 size={18} className="text-red animate-spin shrink-0" />
+          ) : (
+            <Search size={18} className="text-surface-dark/40 dark:text-white/40 shrink-0" />
+          )}
+          <input
+            ref={inputRef}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={onKeyDown}
+            placeholder={t('search.placeholder')}
+            className="flex-1 bg-transparent py-4 text-base text-surface-dark dark:text-white placeholder:text-surface-dark/30 dark:placeholder:text-white/30 focus:outline-none"
+            aria-label={t('common.search')}
+          />
+          <button
+            onClick={closePalette}
+            className="p-1.5 rounded-lg text-surface-dark/30 dark:text-white/30 hover:text-red hover:bg-red/5 transition-colors cursor-pointer"
+            aria-label="Close search"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Results */}
+        <div className="max-h-[55vh] overflow-y-auto py-2">
+          {flat.length === 0 ? (
+            <div className="px-4 py-12 text-center text-surface-dark/40 dark:text-white/40">
+              {hasQuery ? (
+                <>
+                  <Search size={28} className="mx-auto mb-3 opacity-50" />
+                  <p className="font-display uppercase tracking-widest text-lg">{t('search.no_results')}</p>
+                  <p className="text-xs mt-1">{t('search.no_results_hint')}</p>
+                </>
+              ) : (
