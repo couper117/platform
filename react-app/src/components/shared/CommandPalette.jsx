@@ -65,4 +65,71 @@ const CommandPalette = () => {
 
   const { data: leaguesData, isFetching: lf } = useQuery({
     queryKey: ['cmd-leagues', debouncedQuery],
-    queryFn: () => getLeagues({ search: debouncedQuery, limit: 5 }),
+    queryFn: () => getLeagues({ search: debouncedQuery, limit: 5 }),
+    enabled: open && hasQuery,
+    retry: false,
+  });
+  const { data: teamsData, isFetching: tf } = useQuery({
+    queryKey: ['cmd-teams', debouncedQuery],
+    queryFn: () => getTeams({ search: debouncedQuery, limit: 5 }),
+    enabled: open && hasQuery,
+    retry: false,
+  });
+  const { data: newsData, isFetching: nf } = useQuery({
+    queryKey: ['cmd-news', debouncedQuery],
+    queryFn: () => getNews({ search: debouncedQuery, limit: 5 }),
+    enabled: open && hasQuery,
+    retry: false,
+  });
+  const { data: schoolsData, isFetching: sf } = useQuery({
+    queryKey: ['cmd-schools', debouncedQuery],
+    queryFn: () => getSchools({ search: debouncedQuery, limit: 5 }),
+    enabled: open && hasQuery,
+    retry: false,
+  });
+
+  const isFetching = lf || tf || nf || sf;
+
+  // Build the flat, ordered list of selectable items + section groupings.
+  const { groups, flat } = useMemo(() => {
+    const q = debouncedQuery.toLowerCase();
+
+    // Resolve translated labels, then filter against label + (multilingual) keywords.
+    const resolvedPages = PAGES.map((p) => ({ ...p, label: t(p.labelKey), type: 'page' }));
+    const pageItems = q
+      ? resolvedPages.filter((p) => (p.label + ' ' + p.keywords).toLowerCase().includes(q))
+      : resolvedPages;
+
+    const leagueItems = (leaguesData?.data || []).map((l) => ({
+      id: `l-${l.id}`, type: 'league', label: l.name, sub: l.season || t('search.leagues'),
+      icon: Trophy, to: `/leagues/${l.id}`,
+    }));
+    const teamItems = (teamsData?.data || []).map((tm) => ({
+      id: `t-${tm.id}`, type: 'team', label: tm.name, sub: tm.city || t('search.teams'),
+      icon: Shield, to: `/leagues`, logo: tm.logo,
+    }));
+    const newsItems = (newsData?.data || []).map((a) => ({
+      id: `n-${a.id}`, type: 'news', label: a.title, sub: t('search.news'),
+      icon: Newspaper, to: a.slug ? `/news/${a.slug}` : '/news',
+    }));
+    const schoolItems = (schoolsData?.data || []).map((s) => ({
+      id: `s-${s.id}`, type: 'school', label: s.name, sub: s.category || t('search.schools'),
+      icon: GraduationCap, to: `/amashuri/schools/${s.id}`, logo: s.logo,
+    }));
+
+    const g = [
+      { key: 'pages', heading: t('search.pages'), items: pageItems },
+      { key: 'leagues', heading: t('search.leagues'), items: leagueItems },
+      { key: 'teams', heading: t('search.teams'), items: teamItems },
+      { key: 'schools', heading: t('search.schools'), items: schoolItems },
+      { key: 'news', heading: t('search.news'), items: newsItems },
+    ].filter((grp) => grp.items.length > 0);
+
+    return { groups: g, flat: g.flatMap((grp) => grp.items) };
+  }, [debouncedQuery, leaguesData, teamsData, newsData, schoolsData, t]);
+
+  // Keep active index in range
+  useEffect(() => {
+    setActive((a) => Math.min(a, Math.max(flat.length - 1, 0)));
+  }, [flat.length]);
+
