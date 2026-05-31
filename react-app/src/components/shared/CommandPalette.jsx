@@ -200,4 +200,70 @@ const CommandPalette = () => {
                   <p className="font-display uppercase tracking-widest text-lg">{t('search.no_results')}</p>
                   <p className="text-xs mt-1">{t('search.no_results_hint')}</p>
                 </>
-              ) : (
+              ) : (
+                <p className="text-xs tracking-wide">{t('search.type_to_search')}</p>
+              )}
+            </div>
+          ) : (
+            groups.map((group) => (
+              <div key={group.key} className="px-2 py-1">
+                <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.25em] text-surface-dark/30 dark:text-white/30">
+                  {group.heading}
+                </p>
+                {group.items.map((item) => {
+                  runningIndex += 1;
+                  const idx = runningIndex;
+                  const isActive = idx === active;
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.id}
+                      onMouseEnter={() => setActive(idx)}
+                      onClick={() => go(item)}
+                      className={cn(
+                        'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left cursor-pointer transition-colors',
+                        isActive ? 'bg-red/10 text-red' : 'text-surface-dark dark:text-white/80 hover:bg-surface-2 dark:hover:bg-white/5'
+                      )}
+                    >
+                      <span className={cn(
+                        'w-8 h-8 rounded-lg flex items-center justify-center shrink-0 overflow-hidden',
+                        isActive ? 'bg-red/15' : 'bg-surface-2 dark:bg-white/5'
+                      )}>
+                        {item.logo ? (
+                          <img src={item.logo} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <Icon size={16} className={isActive ? 'text-red' : 'text-surface-dark/50 dark:text-white/50'} />
+                        )}
+                      </span>
+                      <span className="flex-1 min-w-0">
+                        <span className="block font-medium truncate">{item.label}</span>
+                        {item.sub && (
+                          <span className="block text-[10px] uppercase tracking-widest opacity-40 truncate">{item.sub}</span>
+                        )}
+                      </span>
+                      {isActive && <CornerDownLeft size={14} className="opacity-50 shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Footer hint */}
+        <div className="flex items-center justify-between px-4 py-2.5 border-t border-surface-3 dark:border-white/10 text-[10px] uppercase tracking-widest text-surface-dark/30 dark:text-white/30">
+          <span className="flex items-center gap-1.5">
+            <Users size={12} /> {t('search.label')}
+          </span>
+          <span className="flex items-center gap-2">
+            <kbd className="px-1.5 py-0.5 rounded bg-surface-2 dark:bg-white/10 font-sans">↑↓</kbd>
+            <kbd className="px-1.5 py-0.5 rounded bg-surface-2 dark:bg-white/10 font-sans">↵</kbd>
+            <kbd className="px-1.5 py-0.5 rounded bg-surface-2 dark:bg-white/10 font-sans">esc</kbd>
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CommandPalette;
