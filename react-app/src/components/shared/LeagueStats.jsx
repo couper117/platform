@@ -47,3 +47,52 @@ const shortName = (name = '') =>
 
 const LeagueStats = ({ standings = [], topScorers = [] }) => {
   const theme = useTheme();
+  const grid = theme?.dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+  const axis = theme?.dark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)';
+
+  if (!standings.length && !topScorers.length) {
+    return <EmptyState icon={TrendingUp} title="No statistics yet" hint="Stats appear once matches are played." />;
+  }
+
+  const sortedStandings = [...standings].sort((a, b) => b.points - a.points);
+  const pointsData = sortedStandings.map((s) => ({
+    name: shortName(s.team?.name),
+    full: s.team?.name,
+    points: s.points,
+  }));
+  const goalsData = sortedStandings.map((s) => ({
+    name: shortName(s.team?.name),
+    full: s.team?.name,
+    For: s.goalsFor,
+    Against: s.goalsAgainst,
+  }));
+  const scorersData = [...topScorers]
+    .sort((a, b) => b.goals - a.goals)
+    .slice(0, 8)
+    .map((s) => ({
+      name: s.player?.fullName ? s.player.fullName.split(' ').slice(-1)[0] : 'Player',
+      full: s.player?.fullName,
+      goals: s.goals,
+      assists: s.assists || 0,
+    }));
+
+  const axisProps = {
+    tick: { fill: axis, fontSize: 10, fontWeight: 700 },
+    tickLine: false,
+    axisLine: { stroke: grid },
+  };
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Points */}
+      {pointsData.length > 0 && (
+        <ChartCard icon={TrendingUp} title="Points" subtitle="Table by points">
+          <ResponsiveContainer width="100%" height={Math.max(220, pointsData.length * 34)}>
+            <BarChart data={pointsData} layout="vertical" margin={{ left: 8, right: 24 }}>
+              <CartesianGrid horizontal={false} stroke={grid} />
+              <XAxis type="number" {...axisProps} />
+              <YAxis type="category" dataKey="name" width={56} {...axisProps} />
+              <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(232,0,45,0.06)' }} />
+              <Bar dataKey="points" radius={[0, 6, 6, 0]}>
+                {pointsData.map((entry, i) => (
+                  <Cell key={i} fill={i === 0 ? GOLD : i === 1 ? BLUE : i === 2 ? GREEN : RED} />
