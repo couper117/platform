@@ -96,3 +96,51 @@ const LeagueStats = ({ standings = [], topScorers = [] }) => {
               <Bar dataKey="points" radius={[0, 6, 6, 0]}>
                 {pointsData.map((entry, i) => (
                   <Cell key={i} fill={i === 0 ? GOLD : i === 1 ? BLUE : i === 2 ? GREEN : RED} />
+                ))}
+                <LabelList dataKey="points" position="right" style={{ fill: axis, fontSize: 11, fontWeight: 700 }} />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartCard>
+      )}
+
+      {/* Top scorers */}
+      {scorersData.length > 0 && (
+        <ChartCard icon={Goal} title="Top Scorers" subtitle="Goals & assists">
+          <ResponsiveContainer width="100%" height={Math.max(220, scorersData.length * 34)}>
+            <BarChart data={scorersData} layout="vertical" margin={{ left: 8, right: 24 }}>
+              <CartesianGrid horizontal={false} stroke={grid} />
+              <XAxis type="number" {...axisProps} />
+              <YAxis type="category" dataKey="name" width={64} {...axisProps} />
+              <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(232,0,45,0.06)' }} />
+              <Bar dataKey="goals" stackId="a" fill={RED} radius={[0, 0, 0, 0]} />
+              <Bar dataKey="assists" stackId="a" fill={GOLD} radius={[0, 6, 6, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartCard>
+      )}
+
+      {/* Goals for / against */}
+      {goalsData.length > 0 && (
+        <ChartCard icon={Shield} title="Goals For / Against" subtitle="Attack vs defence">
+          <ResponsiveContainer width="100%" height={Math.max(240, goalsData.length * 38)}>
+            <BarChart data={goalsData} margin={{ left: 0, right: 8, top: 8 }}>
+              <CartesianGrid vertical={false} stroke={grid} />
+              <XAxis dataKey="name" {...axisProps} interval={0} angle={-30} textAnchor="end" height={50} />
+              <YAxis {...axisProps} width={28} />
+              <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(0,161,222,0.06)' }} />
+              <Bar dataKey="For" fill={GREEN} radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Against" fill={RED} radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+          <div className="flex items-center justify-center gap-6 mt-3 text-[10px] uppercase tracking-widest font-bold">
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm" style={{ background: GREEN }} />For</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm" style={{ background: RED }} />Against</span>
+          </div>
+        </ChartCard>
+      )}
+    </div>
+  );
+};
+
+export default LeagueStats;
