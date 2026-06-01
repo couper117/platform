@@ -35,3 +35,39 @@ const MatchEventTimeline = ({ events = [], homeTeamId }) => {
               className={`relative flex items-stretch gap-3 sm:gap-0 ${isHome ? 'sm:flex-row' : 'sm:flex-row-reverse'}`}
             >
               {/* Card */}
+              <div className={`flex-1 ${isHome ? 'sm:pr-8 sm:text-right' : 'sm:pl-8 sm:text-left'}`}>
+                <div className={`inline-flex flex-col gap-0.5 rounded-2xl border p-3 sm:p-4 w-full sm:w-auto ${meta.ring} ${meta.major ? 'shadow-sm' : ''} ${isHome ? 'sm:items-end' : 'sm:items-start'}`}>
+                  <span className={`text-[10px] font-bold uppercase tracking-widest ${meta.color}`}>{meta.label}</span>
+                  {event.player?.fullName && (
+                    <span className="font-display uppercase tracking-tight text-sm text-surface-dark dark:text-white">{event.player.fullName}</span>
+                  )}
+                  {event.player2?.fullName && (
+                    <span className="text-[10px] uppercase tracking-widest opacity-50">↳ {event.player2.fullName}</span>
+                  )}
+                  {event.description && (
+                    <span className="text-[10px] opacity-50 tracking-wide">{event.description}</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Minute marker */}
+              <div className="flex sm:flex-col items-center justify-center shrink-0 sm:w-16 order-first sm:order-none">
+                <span className={`w-10 h-10 rounded-full border flex items-center justify-center font-display text-sm bg-white dark:bg-surface-dark2 ${meta.ring} ${meta.color}`}>
+                  <Icon size={16} />
+                </span>
+                <span className="ml-2 sm:ml-0 sm:mt-1 text-[10px] font-bold tracking-widest opacity-40">
+                  {event.minute != null ? `${event.minute}'` : ''}
+                </span>
+              </div>
+
+              {/* Spacer for the empty side on desktop */}
+              <div className="hidden sm:block flex-1" />
+            </motion.li>
+          );
+        })}
+      </AnimatePresence>
+    </ol>
+  );
+};
+
+export default MatchEventTimeline;
