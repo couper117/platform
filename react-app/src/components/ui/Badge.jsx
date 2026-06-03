@@ -22,3 +22,26 @@ const Badge = ({ tone = 'neutral', className, children, ...props }) => (
       className
     )}
     {...props}
+  >
+    {children}
+  </span>
+);
+
+/**
+ * Animated "LIVE" indicator used across fixtures and match pages.
+ */
+export const LiveBadge = ({ minute, className }) => (
+  <span
+    className={cn(
+      'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full',
+      'bg-red/10 border border-red/20 text-red',
+      'text-[10px] font-bold uppercase tracking-widest italic',
+      className
+    )}
+  >
+    <span className="w-1.5 h-1.5 bg-red rounded-full animate-pulse shadow-sm shadow-red" />
+    Live{typeof minute === 'number' ? ` • ${minute}'` : ''}
+  </span>
+);
+
+export default Badge;
