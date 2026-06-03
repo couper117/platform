@@ -12,4 +12,17 @@ const SplashScreen = () => {
         </div>
       </div>
 
-      <div className="text-center space-y-2 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
+      <div className="text-center space-y-2 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
+        <p className="text-red font-display text-xl sm:text-2xl uppercase tracking-[0.4em] mb-2 animate-pulse">Murakaza Neza</p>
+        <h1 className="text-3xl sm:text-4xl font-display text-white uppercase tracking-[0.2em]">Rwanda National</h1>
+        <p className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.5em] text-white/30">Sports Platform</p>
+      </div>
+
+      <div className="w-48 h-1 bg-white/5 rounded-full overflow-hidden relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-red via-rwanda-yellow to-rwanda-green animate-progress" />
+      </div>
+    </div>
+  );
+};
+
+export default SplashScreen;
