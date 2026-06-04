@@ -47,3 +47,51 @@ const Button = React.forwardRef(
     ref
   ) => {
     const classes = cn(
+      'inline-flex items-center justify-center gap-2 font-display uppercase tracking-widest',
+      'transition-all duration-200 active:scale-95 cursor-pointer select-none',
+      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red focus-visible:ring-offset-2 focus-visible:ring-offset-transparent',
+      'disabled:opacity-50 disabled:pointer-events-none',
+      variants[variant],
+      sizes[size],
+      className
+    );
+
+    const content = (
+      <>
+        {loading && <Loader2 size={16} className="animate-spin" />}
+        {!loading && Icon && !iconRight && <Icon size={size === 'lg' ? 20 : 16} />}
+        {children}
+        {!loading && Icon && iconRight && <Icon size={size === 'lg' ? 20 : 16} />}
+      </>
+    );
+
+    if (to) {
+      return (
+        <Link ref={ref} to={to} className={classes} {...props}>
+          {content}
+        </Link>
+      );
+    }
+    if (href) {
+      return (
+        <a ref={ref} href={href} className={classes} {...props}>
+          {content}
+        </a>
+      );
+    }
+    return (
+      <button
+        ref={ref}
+        className={classes}
+        disabled={disabled || loading}
+        {...props}
+      >
+        {content}
+      </button>
+    );
+  }
+);
+
+Button.displayName = 'Button';
+
+export default Button;
