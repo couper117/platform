@@ -16,3 +16,19 @@ const Card = ({ as = 'div', to, hover = false, className, children, ...props }) 
   );
 
   if (to) {
+    return (
+      <Link to={to} className={classes} {...props}>
+        {children}
+      </Link>
+    );
+  }
+
+  const Comp = as;
+  return (
+    <Comp className={classes} {...props}>
+      {children}
+    </Comp>
+  );
+};
+
+export default Card;
