@@ -21,3 +21,25 @@ const ThemeToggle = ({ className }) => {
         'relative p-2 rounded-full cursor-pointer transition-colors',
         'text-white/60 hover:text-white hover:bg-white/5',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red',
+        className
+      )}
+    >
+      <Sun
+        size={18}
+        className={cn(
+          'transition-all duration-300',
+          dark ? 'opacity-0 rotate-90 scale-0 absolute inset-2' : 'opacity-100 rotate-0 scale-100'
+        )}
+      />
+      <Moon
+        size={18}
+        className={cn(
+          'transition-all duration-300',
+          dark ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-0 absolute inset-2'
+        )}
+      />
+    </button>
+  );
+};
+
+export default ThemeToggle;
