@@ -11,3 +11,16 @@ export const ThemeProvider = ({ children }) => {
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
+    localStorage.setItem('rnsp-theme', dark ? 'dark' : 'light');
+  }, [dark]);
+
+  const toggle = () => setDark(d => !d);
+
+  return (
+    <ThemeContext.Provider value={{ dark, toggle }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+};
+
+export const useTheme = () => useContext(ThemeContext);
