@@ -19,3 +19,25 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }
   }, []);
+
+  const login = async (username, password) => {
+    const { data } = await api.post('/auth/login', { username, password });
+    localStorage.setItem('rnsp-access-token', data.accessToken);
+    setUser(data.user);
+    return data.user;
+  };
+
+  const logout = async () => {
+    await api.post('/auth/logout');
+    localStorage.removeItem('rnsp-access-token');
+    setUser(null);
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, login, logout, loading, isAuthenticated: !!user }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => useContext(AuthContext);
