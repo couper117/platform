@@ -17,3 +17,21 @@ export const CommandPaletteProvider = ({ children }) => {
         toggle();
       }
     };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [toggle]);
+
+  return (
+    <CommandPaletteContext.Provider value={{ open, openPalette, closePalette, toggle }}>
+      {children}
+    </CommandPaletteContext.Provider>
+  );
+};
+
+export const useCommandPalette = () => {
+  const ctx = useContext(CommandPaletteContext);
+  if (!ctx) {
+    return { open: false, openPalette: () => {}, closePalette: () => {}, toggle: () => {} };
+  }
+  return ctx;
+};
