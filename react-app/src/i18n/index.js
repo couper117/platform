@@ -11,3 +11,15 @@ i18n
   .init({
     resources: {
       en: { translation: en },
+      fr: { translation: fr },
+      rw: { translation: rw },
+      sw: { translation: sw },
+    },
+    lng: localStorage.getItem('rnsp-lang') || 'en',
+    fallbackLng: 'en',
+    interpolation: {
+      escapeValue: false,
+    },
+  });
+
+export default i18n;
