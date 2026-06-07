@@ -1,0 +1,62 @@
+{
+  "nav": {
+    "home": "Home",
+    "leagues": "Leagues",
+    "fixtures": "Fixtures",
+    "results": "Results",
+    "news": "News",
+    "akc3": "Amashuri Games",
+    "amashuri": "Amashuri Games",
+    "login": "Login",
+    "logout": "Logout",
+    "dashboard": "Dashboard"
+  },
+  "home": {
+    "hero_title": "Fueling the Spirit of Rwanda",
+    "hero_subtitle": "Experience the heartbeat of Rwandan sports. Real-time scores, in-depth league management, and the journey of every national athlete.",
+    "explore_leagues": "Explore Leagues",
+    "live_scores": "Live Scores",
+    "latest_headlines": "Latest Headlines",
+    "upcoming_matches": "Upcoming Matches",
+    "manager_cta_title": "Are you a Sports Manager?",
+    "manager_cta_text": "Join the national platform to manage your team, track athlete progress, and compete in official leagues.",
+    "register_team": "Register Your Team"
+  },
+  "common": {
+    "loading": "Loading...",
+    "no_data": "No data found",
+    "no_results": "No results",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "view_all": "View All",
+    "read_more": "Read More",
+    "search": "Search"
+  },
+  "auth": {
+    "login_title": "Access Portal",
+    "login_subtitle": "RwaSport Platform",
+    "username": "Username",
+    "password": "Password",
+    "enter_portal": "Enter Portal",
+    "no_account": "Don't have an account?",
+    "register_now": "Register Your Team"
+  },
+  "search": {
+    "placeholder": "Search teams, leagues, news…",
+    "pages": "Pages",
+    "leagues": "Leagues",
+    "teams": "Teams",
+    "schools": "Schools",
+    "news": "News",
+    "no_results": "No results",
+    "no_results_hint": "Try a different search term.",
+    "type_to_search": "Type to search across the platform.",
+    "label": "RwaSport Search"
+  },
+  "amashuri": {
+    "tagline": "Rwanda Inter-School Sports",
+    "subtitle": "The home of Rwandan inter-school sport — from the Kagame Cup to district and provincial leagues. Nurturing the next generation of champions, from Primary to TVET.",
+    "find_school": "Find Your School",
+    "view_championships": "View Championships",
+    "explore_championships": "Explore Championships",
