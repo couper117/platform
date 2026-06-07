@@ -1,0 +1,62 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "leagues": "Ligues",
+    "fixtures": "Calendrier",
+    "results": "Résultats",
+    "news": "Nouvelles",
+    "akc3": "Amashuri Games",
+    "amashuri": "Amashuri Games",
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "dashboard": "Tableau de bord"
+  },
+  "home": {
+    "hero_title": "Nourrir l'esprit du Rwanda",
+    "hero_subtitle": "Découvrez le cœur du sport rwandais. Scores en temps réel, gestion approfondie des ligues et le parcours de chaque athlète national.",
+    "explore_leagues": "Explorer les Ligues",
+    "live_scores": "Scores en Direct",
+    "latest_headlines": "Dernières Nouvelles",
+    "upcoming_matches": "Matchs à Venir",
+    "manager_cta_title": "Êtes-vous un Manager Sportif ?",
+    "manager_cta_text": "Rejoignez la plateforme nationale pour gérer votre équipe, suivre les progrès des athlètes et participer aux ligues officielles.",
+    "register_team": "Inscrire Votre Équipe"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "no_data": "Aucune donnée trouvée",
+    "no_results": "Aucun résultat",
+    "back": "Retour",
+    "next": "Suivant",
+    "submit": "Soumettre",
+    "view_all": "Voir tout",
+    "read_more": "Lire la suite",
+    "search": "Rechercher"
+  },
+  "auth": {
+    "login_title": "Portail d'Accès",
+    "login_subtitle": "RwaSport",
+    "username": "Nom d'utilisateur",
+    "password": "Mot de passe",
+    "enter_portal": "Entrer dans le Portail",
+    "no_account": "Vous n'avez pas de compte ?",
+    "register_now": "Inscrire Votre Équipe"
+  },
+  "search": {
+    "placeholder": "Rechercher équipes, ligues, actualités…",
+    "pages": "Pages",
+    "leagues": "Ligues",
+    "teams": "Équipes",
+    "schools": "Écoles",
+    "news": "Actualités",
+    "no_results": "Aucun résultat",
+    "no_results_hint": "Essayez un autre terme de recherche.",
+    "type_to_search": "Tapez pour rechercher sur toute la plateforme.",
+    "label": "Recherche RwaSport"
+  },
+  "amashuri": {
+    "tagline": "Sport interscolaire du Rwanda",
+    "subtitle": "La maison du sport interscolaire rwandais — de la Coupe Kagame aux ligues de district et de province. Former la prochaine génération de champions, du primaire à l'EFTP.",
+    "find_school": "Trouvez votre école",
+    "view_championships": "Voir les championnats",
+    "explore_championships": "Explorer les championnats",
