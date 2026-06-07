@@ -50,3 +50,56 @@ export default function useLiveMatch(fixtureId, initial) {
     } catch {
       return undefined;
     }
+
+    pusher.connection.bind('connected', () => setConnected(true));
+    pusher.connection.bind('disconnected', () => setConnected(false));
+    pusher.connection.bind('error', () => setConnected(false));
+
+    const mergeScore = (u = {}) => {
+      setLive((prev) => ({
+        ...prev,
+        homeScore: u.homeScore ?? prev.homeScore,
+        awayScore: u.awayScore ?? prev.awayScore,
+        minute: u.minute ?? prev.minute,
+        status: u.status ?? prev.status,
+        lastUpdate: Date.now(),
+      }));
+    };
+
+    const addEvent = (evt) => {
+      if (!evt) return;
+      if (evt.id != null && seenEventIds.current.has(evt.id)) return;
+      if (evt.id != null) seenEventIds.current.add(evt.id);
+      setLive((prev) => ({
+        ...prev,
+        events: [evt, ...(prev.events || [])],
+        minute: evt.minute ?? prev.minute,
+        lastUpdate: Date.now(),
+      }));
+    };
+
+    // Global ticker channel (filter to this fixture)
+    const global = pusher.subscribe('live-scores');
+    global.bind('liveUpdate', (u) => {
+      if (String(u.fixtureId) === String(fixtureId)) mergeScore(u);
+    });
+
+    // Dedicated per-match channel
+    const matchChan = pusher.subscribe(`match-${fixtureId}`);
+    matchChan.bind('scoreUpdate', mergeScore);
+    matchChan.bind('statusUpdate', mergeScore);
+    matchChan.bind('event', addEvent);
+
+    return () => {
+      try {
+        pusher.unsubscribe('live-scores');
+        pusher.unsubscribe(`match-${fixtureId}`);
+        pusher.disconnect();
+      } catch {
+        /* noop */
+      }
+    };
+  }, [fixtureId]);
+
+  return { live, connected };
+}
