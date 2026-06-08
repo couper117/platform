@@ -1,0 +1,62 @@
+{
+  "nav": {
+    "home": "Nyumbani",
+    "leagues": "Ligi",
+    "fixtures": "Ratiba",
+    "results": "Matokeo",
+    "news": "Habari",
+    "akc3": "Amashuri Games",
+    "amashuri": "Amashuri Games",
+    "login": "Ingia",
+    "logout": "Ondoka",
+    "dashboard": "Dashibodi"
+  },
+  "home": {
+    "hero_title": "Kuchochea Moyo wa Rwanda",
+    "hero_subtitle": "Pata mapigo ya moyo wa michezo ya Rwanda. Matokeo ya moja kwa moja, usimamizi wa kina wa ligi, na safari ya kila mwanamichezo wa kitaifa.",
+    "explore_leagues": "Chunguza Ligi",
+    "live_scores": "Matokeo Mubashara",
+    "latest_headlines": "Habari za Hivi Punde",
+    "upcoming_matches": "Mechi Zinazokuja",
+    "manager_cta_title": "Je, wewe ni Meneja wa Michezo?",
+    "manager_cta_text": "Jiunge na jukwaa la kitaifa ili kudhibiti timu yako, kufuatilia maendeleo ya mwanamichezo, na kushindana katika ligi rasmi.",
+    "register_team": "Sajili Timu Yako"
+  },
+  "common": {
+    "loading": "Inapakia...",
+    "no_data": "Hakuna data iliyopatikana",
+    "no_results": "Hakuna matokeo",
+    "back": "Nyuma",
+    "next": "Inayofuata",
+    "submit": "Wasilisha",
+    "view_all": "Tazama Zote",
+    "read_more": "Soma Zaidi",
+    "search": "Tafuta"
+  },
+  "auth": {
+    "login_title": "Lango la Ufikiaji",
+    "login_subtitle": "RwaSport",
+    "username": "Jina la mtumiaji",
+    "password": "Nywila",
+    "enter_portal": "Ingia Langoni",
+    "no_account": "Huna akaunti?",
+    "register_now": "Sajili Timu Yako"
+  },
+  "search": {
+    "placeholder": "Tafuta timu, ligi, habari…",
+    "pages": "Kurasa",
+    "leagues": "Ligi",
+    "teams": "Timu",
+    "schools": "Shule",
+    "news": "Habari",
+    "no_results": "Hakuna matokeo",
+    "no_results_hint": "Jaribu neno lingine la kutafuta.",
+    "type_to_search": "Andika ili kutafuta kwenye jukwaa zima.",
+    "label": "Utafutaji wa RwaSport"
+  },
+  "amashuri": {
+    "tagline": "Michezo ya Shule za Rwanda",
+    "subtitle": "Makao ya michezo ya shule za Rwanda — kutoka Kombe la Kagame hadi ligi za wilaya na mkoa. Kulea kizazi kijacho cha mabingwa, kutoka Msingi hadi TVET.",
+    "find_school": "Tafuta Shule Yako",
+    "view_championships": "Tazama Mashindano",
+    "explore_championships": "Chunguza Mashindano",
