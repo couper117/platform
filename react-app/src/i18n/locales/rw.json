@@ -1,0 +1,62 @@
+{
+  "nav": {
+    "home": "Ahabanza",
+    "leagues": "Amarigoro",
+    "fixtures": "Imikino",
+    "results": "Ibyavuye mu mikino",
+    "news": "Amakuru",
+    "akc3": "Amashuri Games",
+    "amashuri": "Amashuri Games",
+    "login": "Injira",
+    "logout": "Sohoka",
+    "dashboard": "Indahiro"
+  },
+  "home": {
+    "hero_title": "Guhura n'Umwuka w'u Rwanda",
+    "hero_subtitle": "Inararibonye mu mikino y'u Rwanda. Amanota ya ako kanya, imicungire y'amarushanwa, n'urugendo rwa buri mukinnyi w'igihugu.",
+    "explore_leagues": "Shakisha Amarigoro",
+    "live_scores": "Amanota Ako Kanya",
+    "latest_headlines": "Amakuru Mashya",
+    "upcoming_matches": "Imikino Iteganyijwe",
+    "manager_cta_title": "Ese uri Umuyobozi w'Ikipe?",
+    "manager_cta_text": "Winjira ku rubuga rw'igihugu kugira ngo ucunge ikipe yawe, ukurikire iterambere ry'abakinnyi, kandi urushanwe mu marushanwa yemewe.",
+    "register_team": "Yandikisha Ikipe Yawe"
+  },
+  "common": {
+    "loading": "Biratunganywa...",
+    "no_data": "Nta makuru yabonetse",
+    "no_results": "Nta byabonetse",
+    "back": "Subira inyuma",
+    "next": "Komeza",
+    "submit": "Ohereza",
+    "view_all": "Reba byose",
+    "read_more": "Soma byose",
+    "search": "Shakisha"
+  },
+  "auth": {
+    "login_title": "Injira mu Rubuga",
+    "login_subtitle": "RwaSport",
+    "username": "Izina ry'ukoresha",
+    "password": "Ijambo ry'ibanga",
+    "enter_portal": "Injira",
+    "no_account": "Ntabwo ufite konti?",
+    "register_now": "Yandikisha Ikipe Yawe"
+  },
+  "search": {
+    "placeholder": "Shakisha amakipe, amarigoro, amakuru…",
+    "pages": "Amapaji",
+    "leagues": "Amarigoro",
+    "teams": "Amakipe",
+    "schools": "Amashuri",
+    "news": "Amakuru",
+    "no_results": "Nta byabonetse",
+    "no_results_hint": "Gerageza ijambo rindi.",
+    "type_to_search": "Andika kugira ngo ushakishe kuri urubuga.",
+    "label": "Ishakisha rya RwaSport"
+  },
+  "amashuri": {
+    "tagline": "Imikino y'Amashuri mu Rwanda",
+    "subtitle": "Urugo rw'imikino y'amashuri mu Rwanda — kuva kuri Kagame Cup kugeza ku marushanwa y'uturere n'intara. Tubyara abahiganwa b'ejo, kuva mu mashuri abanza kugeza muri TVET.",
+    "find_school": "Shakisha Ishuri Ryawe",
+    "view_championships": "Reba Amarushanwa",
+    "explore_championships": "Shakisha Amarushanwa",
