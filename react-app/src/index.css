@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+  }
+
+  body {
+    @apply bg-surface text-surface-dark font-body dark:bg-surface-dark dark:text-white/90 transition-colors duration-300;
+  }
+
+  h1, h2, h3, h4, h5, h6, .font-display {
+    font-family: "Bebas Neue", sans-serif;
+    @apply tracking-wider uppercase;
+  }
