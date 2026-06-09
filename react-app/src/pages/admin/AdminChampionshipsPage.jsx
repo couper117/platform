@@ -59,3 +59,64 @@ const AdminChampionshipsPage = () => {
         }
       : {
           name: '', edition: '', level: 'NATIONAL', status: 'UPCOMING',
+          gender: 'mixed', ageCategory: 'Open', venue: '', startDate: '', endDate: '', description: '',
+        });
+  }, [isModalOpen, editing, reset]);
+
+  const saveMutation = useMutation({
+    mutationFn: (payload) =>
+      editing ? updateChampionship(editing.id, payload) : createChampionship(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-championships'] });
+      queryClient.invalidateQueries({ queryKey: ['amashuri-championships'] });
+      setIsModalOpen(false);
+      setEditing(null);
+    },
+    onError: (err) => alert(err.response?.data?.message || 'Failed to save championship'),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => deleteChampionship(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-championships'] });
+      queryClient.invalidateQueries({ queryKey: ['amashuri-championships'] });
+    },
+    onError: (err) => alert(err.response?.data?.message || 'Failed to delete championship'),
+  });
+
+  const openCreate = () => { setEditing(null); setIsModalOpen(true); };
+  const openEdit = (c) => { setEditing(c); setIsModalOpen(true); };
+  const onSubmit = (form) => saveMutation.mutate(form);
+
+  return (
+    <div className="space-y-10 animate-in fade-in duration-500">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="space-y-2">
+          <h1 className="text-4xl font-display uppercase tracking-tighter">
+            Amashuri <span className="text-rwanda-blue">Championships</span>
+          </h1>
+          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">
+            Create and manage all school championships, including the Kagame Cup
+          </p>
+        </div>
+        <button
+          onClick={openCreate}
+          className="bg-rwanda-blue text-white px-8 py-3 rounded-xl font-display text-lg uppercase tracking-widest hover:brightness-110 transition-all shadow-xl shadow-rwanda-blue/20 flex items-center gap-2 cursor-pointer"
+        >
+          <Plus size={20} />
+          <span>New Championship</span>
+        </button>
+      </div>
+
+      {isLoading ? (
+        <Skeleton type="card" count={3} />
+      ) : championships.length > 0 ? (
+        <AdminTable headers={['Championship', 'Level', 'Window', 'Fixtures', 'Status', 'Actions']}>
+          {championships.map((c) => (
+            <tr key={c.id} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors">
+              <td className="px-6 py-5">
+                <div className="flex items-center gap-3">
+                  <span className="w-9 h-9 rounded-xl bg-rwanda-blue/10 text-rwanda-blue flex items-center justify-center shrink-0">
+                    <Trophy size={16} />
+                  </span>
+                  <div>
