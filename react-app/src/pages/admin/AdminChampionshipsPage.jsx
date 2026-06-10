@@ -181,3 +181,63 @@ const AdminChampionshipsPage = () => {
               <label className={labelCls}>Edition</label>
               <input {...register('edition')} className={inputCls} placeholder="e.g. 12th Edition" />
             </div>
+            <div className="space-y-2">
+              <label className={labelCls}>Venue</label>
+              <input {...register('venue')} className={inputCls} placeholder="e.g. Amahoro Stadium" />
+            </div>
+
+            <div className="space-y-2">
+              <label className={labelCls}>Level</label>
+              <select {...register('level')} className={inputCls}>
+                {LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className={labelCls}>Status</label>
+              <select {...register('status')} className={inputCls}>
+                {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className={labelCls}>Gender</label>
+              <select {...register('gender')} className={inputCls}>
+                <option value="mixed">Mixed</option>
+                <option value="male">Boys</option>
+                <option value="female">Girls</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className={labelCls}>Age Category</label>
+              <input {...register('ageCategory')} className={inputCls} placeholder="e.g. U17 / Open" />
+            </div>
+
+            <div className="space-y-2">
+              <label className={labelCls}>Start Date</label>
+              <input type="date" {...register('startDate')} className={inputCls} />
+            </div>
+            <div className="space-y-2">
+              <label className={labelCls}>End Date</label>
+              <input type="date" {...register('endDate')} className={inputCls} />
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
+              <label className={labelCls}>Description</label>
+              <textarea {...register('description')} rows={3} className={inputCls} placeholder="Short description of the championship…" />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={saveMutation.isPending}
+            className="w-full bg-rwanda-blue text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:brightness-110 transition-all flex items-center justify-center gap-3 cursor-pointer disabled:opacity-60"
+          >
+            {saveMutation.isPending ? <Loader2 className="animate-spin" /> : <span>{editing ? 'Save Changes' : 'Create Championship'}</span>}
+          </button>
+        </form>
+      </AdminModal>
+    </div>
+  );
+};
+
+export default AdminChampionshipsPage;
