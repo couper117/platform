@@ -79,4 +79,44 @@ const AdminDashboard = () => {
               <div key={i} className="flex items-center justify-between p-4 bg-white dark:bg-surface-dark2 rounded-2xl border border-surface-3 dark:border-white/5">
                 <div className="flex items-center space-x-4">
                   <div className="p-2 bg-surface-2 dark:bg-white/5 rounded-lg opacity-40">
-                    <Clock size={16} />
+                    <Clock size={16} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold uppercase tracking-tight">{log.action}</p>
+                    <p className="text-[10px] opacity-40 uppercase tracking-widest">{log.detail}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] font-bold uppercase tracking-widest opacity-60">{log.user}</p>
+                  <p className="text-[8px] opacity-30 uppercase tracking-tighter">{log.time}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Quick Links / Tasks */}
+        <div className="space-y-6">
+          <div className="border-b border-surface-3 dark:border-white/5 pb-4">
+            <h2 className="text-xl font-display uppercase tracking-tight">Quick Actions</h2>
+          </div>
+          <div className="grid grid-cols-1 gap-3">
+            {[
+              { label: 'Create New League', icon: <Trophy size={16} /> },
+              { label: 'Verify Pending Teams', icon: <Users size={16} /> },
+              { label: 'Input Match Results', icon: <Activity size={16} /> },
+              { label: 'System Settings', icon: <Settings size={16} /> },
+            ].map((link, i) => (
+              <button key={i} className="flex items-center space-x-3 p-4 bg-red text-white rounded-2xl hover:bg-red-dark transition-all shadow-lg shadow-red/20 text-[11px] font-bold uppercase tracking-widest">
+                {link.icon}
+                <span>{link.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AdminDashboard;
