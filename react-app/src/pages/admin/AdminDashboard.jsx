@@ -38,4 +38,45 @@ const AdminDashboard = () => {
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="space-y-2">
+          <h1 className="text-4xl font-display uppercase tracking-tighter">System <span className="text-red">Overview</span></h1>
+          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Live platform performance and metrics</p>
+        </div>
+        <div className="text-[10px] font-bold uppercase tracking-widest opacity-30 italic">
+          Last updated: Just now
+        </div>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {leaguesLoading ? (
+          <Skeleton type="stat" count={4} />
+        ) : (
+          <>
+            <StatCard icon={<Trophy size={20} />} label="Active Leagues" value={leagues?.count || 0} trend={12} color="red" />
+            <StatCard icon={<Users size={20} />} label="Total Teams" value="842" trend={5} color="rwanda-yellow" />
+            <StatCard icon={<UserSquare2 size={20} />} label="Elite Athletes" value="12,402" trend={8} color="rwanda-green" />
+            <StatCard icon={<FileText size={20} />} label="Pending Docs" value="124" color="red" />
+          </>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        {/* Activity Feed Placeholder */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="flex items-center justify-between border-b border-surface-3 dark:border-white/5 pb-4">
+            <h2 className="text-xl font-display uppercase tracking-tight">Recent Activity</h2>
+            <button className="text-[10px] font-bold uppercase tracking-widest text-red hover:underline">View All Logs</button>
+          </div>
+          <div className="space-y-4">
+            {[
+              { action: 'Team Verified', user: 'Admin', time: '2m ago', detail: 'Rayon Sports FC' },
+              { action: 'Match Result', user: 'System', time: '15m ago', detail: 'APR FC vs AS Kigali (2-1)' },
+              { action: 'New Article', user: 'K. Jean', time: '1h ago', detail: 'National Team Selection Announced' },
+              { action: 'Player Registered', user: 'Manager', time: '2h ago', detail: 'M. Mugisha in Gorilla FC' },
+            ].map((log, i) => (
+              <div key={i} className="flex items-center justify-between p-4 bg-white dark:bg-surface-dark2 rounded-2xl border border-surface-3 dark:border-white/5">
+                <div className="flex items-center space-x-4">
+                  <div className="p-2 bg-surface-2 dark:bg-white/5 rounded-lg opacity-40">
+                    <Clock size={16} />
