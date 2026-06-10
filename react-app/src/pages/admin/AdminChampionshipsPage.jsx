@@ -120,3 +120,64 @@ const AdminChampionshipsPage = () => {
                     <Trophy size={16} />
                   </span>
                   <div>
+                    <span className="block font-bold text-sm uppercase tracking-tight">{c.name}</span>
+                    {c.edition && <span className="block text-[10px] opacity-40 uppercase tracking-widest">{c.edition}</span>}
+                  </div>
+                </div>
+              </td>
+              <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">
+                <span className="inline-flex items-center gap-1"><Layers size={12} className="text-rwanda-blue" />{c.level}</span>
+              </td>
+              <td className="px-6 py-5 text-[11px] opacity-50">
+                {c.startDate ? format(new Date(c.startDate), 'dd MMM yy') : '—'}
+                {c.endDate ? ` – ${format(new Date(c.endDate), 'dd MMM yy')}` : ''}
+              </td>
+              <td className="px-6 py-5 text-sm tabular-nums">{c._count?.fixtures ?? 0}</td>
+              <td className="px-6 py-5">
+                <span className={`text-[8px] font-bold px-2 py-1 rounded border uppercase ${statusStyle(c.status)}`}>{c.status}</span>
+              </td>
+              <td className="px-6 py-5">
+                <div className="flex items-center gap-2">
+                  <button onClick={() => openEdit(c)} className="p-2 hover:bg-rwanda-blue/10 text-rwanda-blue rounded-lg transition-colors cursor-pointer" title="Edit">
+                    <Edit2 size={16} />
+                  </button>
+                  <button
+                    onClick={() => { if (window.confirm(`Delete "${c.name}"? This cannot be undone.`)) deleteMutation.mutate(c.id); }}
+                    className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors cursor-pointer"
+                    title="Delete"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </AdminTable>
+      ) : (
+        <div className="py-24 text-center border-2 border-dashed border-surface-3 dark:border-white/5 rounded-3xl space-y-4">
+          <Trophy size={48} className="mx-auto text-rwanda-blue/40" />
+          <p className="font-display text-2xl uppercase tracking-widest opacity-40">No championships yet</p>
+          <button onClick={openCreate} className="text-[11px] font-bold uppercase tracking-widest text-rwanda-blue hover:underline cursor-pointer">
+            Create the first one
+          </button>
+        </div>
+      )}
+
+      {/* Create / Edit modal */}
+      <AdminModal
+        isOpen={isModalOpen}
+        onClose={() => { setIsModalOpen(false); setEditing(null); }}
+        title={editing ? 'Edit Championship' : 'New Championship'}
+      >
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2 md:col-span-2">
+              <label className={labelCls}>Championship Name *</label>
+              <input {...register('name', { required: true })} className={inputCls} placeholder="e.g. Kagame Cup 2026" />
+              {errors.name && <span className="text-[10px] text-red uppercase tracking-widest">Name is required</span>}
+            </div>
+
+            <div className="space-y-2">
+              <label className={labelCls}>Edition</label>
+              <input {...register('edition')} className={inputCls} placeholder="e.g. 12th Edition" />
+            </div>
