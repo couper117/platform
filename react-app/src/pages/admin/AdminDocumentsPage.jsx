@@ -90,4 +90,49 @@ const AdminDocumentsPage = () => {
           <div className="aspect-[4/3] bg-surface-2 dark:bg-white/5 rounded-3xl border border-surface-3 dark:border-white/10 flex items-center justify-center overflow-hidden">
             {selectedDoc?.filename?.endsWith('.pdf') ? (
               <div className="flex flex-col items-center space-y-4 opacity-40">
-                <FileText size={64} />
+                <FileText size={64} />
+                <span className="text-[10px] uppercase font-bold tracking-widest">PDF Document Preview Not Available</span>
+                <a href={selectedDoc.filename} target="_blank" className="text-red hover:underline text-xs uppercase font-bold tracking-widest">Download to View</a>
+              </div>
+            ) : (
+              <img src={selectedDoc?.filename} className="w-full h-full object-contain" />
+            )}
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40 ml-1">Review Note (Optional)</label>
+              <textarea 
+                className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl focus:border-red outline-none transition-all placeholder:opacity-20 min-h-[100px]"
+                placeholder="Reason for rejection or verification notes..."
+                value={reviewNote}
+                onChange={(e) => setReviewNote(e.target.value)}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <button 
+                onClick={() => reviewMutation.mutate({ id: selectedDoc.id, status: 'REJECTED', note: reviewNote })}
+                disabled={reviewMutation.isPending}
+                className="bg-white dark:bg-white/5 border border-red/20 text-red font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red/5 transition-all flex items-center justify-center space-x-2"
+              >
+                <XCircle size={20} />
+                <span>Reject</span>
+              </button>
+              <button 
+                onClick={() => reviewMutation.mutate({ id: selectedDoc.id, status: 'APPROVED', note: reviewNote })}
+                disabled={reviewMutation.isPending}
+                className="bg-green text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-green-600 transition-all flex items-center justify-center space-x-2 shadow-xl shadow-green/20"
+              >
+                <CheckCircle size={20} />
+                <span>Approve</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </AdminModal>
+    </div>
+  );
+};
+
+export default AdminDocumentsPage;
