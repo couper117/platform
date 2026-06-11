@@ -58,4 +58,64 @@ const AdminFixturesPage = () => {
       await apiClient.delete(`/fixtures/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-fixtures']);
+      queryClient.invalidateQueries(['admin-fixtures']);
+      alert('Fixture deleted successfully');
+    }
+  });
+
+  const onSubmit = (data) => {
+    createFixtureMutation.mutate(data);
+  };
+
+  return (
+    <div className="space-y-10 animate-in fade-in duration-500">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="space-y-2">
+          <h1 className="text-4xl font-display uppercase tracking-tighter">Schedule <span className="text-red">Management</span></h1>
+          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Manage fixtures and assign pitch-side reporters</p>
+        </div>
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="bg-red text-white px-8 py-3 rounded-xl font-display text-lg uppercase tracking-widest hover:bg-red-dark transition-all shadow-xl shadow-red/20 flex items-center space-x-2"
+        >
+          <Plus size={20} />
+          <span>New Fixture</span>
+        </button>
+      </div>
+
+      {fixturesLoading ? (
+        <Skeleton type="card" count={3} />
+      ) : (
+        <AdminTable headers={['Match', 'League', 'Date & Time', 'Venue', 'Status', 'Actions']}>
+          {fixtures?.map(f => (
+            <tr key={f.id} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors group">
+              <td className="px-6 py-5">
+                <div className="flex items-center space-x-4">
+                  <span className="font-bold text-sm uppercase tracking-tight">{f.homeTeam.name}</span>
+                  <span className="text-[10px] opacity-20">VS</span>
+                  <span className="font-bold text-sm uppercase tracking-tight">{f.awayTeam.name}</span>
+                </div>
+              </td>
+              <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{f.league.name}</td>
+              <td className="px-6 py-5">
+                <div className="flex flex-col">
+                  <span className="text-sm font-bold uppercase tracking-tight italic text-red">
+                    {f.matchDate ? new Date(f.matchDate).toLocaleDateString() : 'TBD'}
+                  </span>
+                  <span className="text-[8px] opacity-40 uppercase font-bold tracking-widest">
+                    {f.matchDate ? new Date(f.matchDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'TBD'}
+                  </span>
+                </div>
+              </td>
+              <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{f.venue || 'TBD'}</td>
+              <td className="px-6 py-5">
+                <span className={`text-[8px] font-bold px-2 py-1 rounded border uppercase ${f.status === 'LIVE' ? 'bg-red text-white border-red' : 'bg-surface-3 dark:bg-white/5 opacity-40'}`}>
+                  {f.status}
+                </span>
+              </td>
+              <td className="px-6 py-5">
+                <div className="flex items-center space-x-2">
+                  <button onClick={() => { if(window.confirm('Delete this fixture?')) deleteFixtureMutation.mutate(f.id) }} className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
