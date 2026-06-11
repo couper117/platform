@@ -17,3 +17,21 @@ const navItems = [
 
 export default function AdminLayout() {
   const { t } = useTranslation();
+
+  return (
+    <div className="admin-layout">
+      <aside className="admin-sidebar">
+        <h2>RNSP Admin</h2>
+        {navItems.map(item => (
+          <NavLink key={item.path} to={item.path} className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`} end={item.path === '/admin'}>
+            <span>{item.icon}</span>
+            <span>{t(item.label)}</span>
+          </NavLink>
+        ))}
+      </aside>
+      <div className="admin-main">
+        <Outlet />
+      </div>
+    </div>
+  );
+}
