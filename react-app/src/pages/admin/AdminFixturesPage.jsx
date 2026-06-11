@@ -118,4 +118,63 @@ const AdminFixturesPage = () => {
                   <button onClick={() => { if(window.confirm('Delete this fixture?')) deleteFixtureMutation.mutate(f.id) }} className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors">
                     <Trash2 size={16} />
                   </button>
-                </div>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </AdminTable>
+      )}
+
+      {/* New Fixture Modal */}
+      <AdminModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Schedule New Match">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2 col-span-2">
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Select League</label>
+              <select 
+                {...register('leagueId', { required: true })} 
+                className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none"
+                onChange={(e) => setSelectedLeagueId(e.target.value)}
+              >
+                <option value="">Choose a competition...</option>
+                {leagues?.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+              </select>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Home Team</label>
+              <select {...register('homeTeamId', { required: true })} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none">
+                <option value="">Select Home...</option>
+                {teams?.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Away Team</label>
+              <select {...register('awayTeamId', { required: true })} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none">
+                <option value="">Select Away...</option>
+                {teams?.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Match Date & Time</label>
+              <input {...register('matchDate', { required: true })} type="datetime-local" className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none" />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Venue</label>
+              <input {...register('venue')} type="text" className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none" placeholder="Stadium name" />
+            </div>
+          </div>
+
+          <button type="submit" disabled={createFixtureMutation.isPending} className="w-full bg-red text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all disabled:opacity-50">
+            {createFixtureMutation.isPending ? <Loader2 className="animate-spin mx-auto" /> : <span>Create Fixture</span>}
+          </button>
+        </form>
+      </AdminModal>
+    </div>
+  );
+};
+
+export default AdminFixturesPage;
