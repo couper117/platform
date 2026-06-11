@@ -65,4 +65,72 @@ const AdminLeaguesPage = () => {
     },
     onSuccess: () => {
       setIsModalReporterOpen(false);
-      setReporterEmail('');
+      setReporterEmail('');
+      alert('Reporter authorized successfully!');
+    }
+  });
+
+  const assignAdminMutation = useMutation({
+    mutationFn: async ({ leagueId, email }) => {
+      await apiClient.post(`/admin/assign-league-admin`, { leagueId, email });
+    },
+    onSuccess: () => {
+      setIsModalAdminOpen(false);
+      setAdminEmail('');
+      alert('League Admin assigned successfully!');
+    }
+  });
+
+  const onSubmit = (data) => {
+    createLeagueMutation.mutate(data);
+  };
+
+  return (
+    <div className="space-y-10 animate-in fade-in duration-500">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="space-y-2">
+          <h1 className="text-4xl font-display uppercase tracking-tighter">Manage <span className="text-red">Leagues</span></h1>
+          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Create and delegate sports competitions</p>
+        </div>
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="bg-red text-white px-8 py-3 rounded-xl font-display text-lg uppercase tracking-widest hover:bg-red-dark transition-all shadow-xl shadow-red/20 flex items-center space-x-2"
+        >
+          <Plus size={20} />
+          <span>Create League</span>
+        </button>
+      </div>
+
+      {isLoading ? (
+        <Skeleton type="card" count={3} />
+      ) : (
+        <AdminTable headers={['League Name', 'Sport', 'Season', 'Status', 'Actions']}>
+          {leagues?.map(league => (
+            <tr key={league.id} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors">
+              <td className="px-6 py-5">
+                <span className="font-bold text-sm uppercase tracking-tight">{league.name}</span>
+              </td>
+              <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{league.sport?.name}</td>
+              <td className="px-6 py-5 text-sm opacity-40">{league.season}</td>
+              <td className="px-6 py-5">
+                <span className={`text-[8px] font-bold px-2 py-1 rounded border uppercase ${league.status === 'ACTIVE' ? 'bg-green/5 text-green border-green/10' : 'bg-gold/5 text-gold border-gold/10'}`}>
+                  {league.status}
+                </span>
+              </td>
+              <td className="px-6 py-5">
+                <div className="flex items-center space-x-3">
+                  <button onClick={() => { setSelectedLeague(league); setIsModalAdminOpen(true); }} className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors" title="Assign League Admin">
+                    <ShieldCheck size={18} />
+                  </button>
+                  <button onClick={() => { setSelectedLeague(league); setIsModalReporterOpen(true); }} className="p-2 hover:bg-blue-500/10 text-blue-500 rounded-lg transition-colors" title="Authorize Reporter">
+                    <UserPlus size={18} />
+                  </button>
+                  <button onClick={() => { if(window.confirm('Delete this league?')) deleteLeagueMutation.mutate(league.id) }} className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </AdminTable>
+      )}
