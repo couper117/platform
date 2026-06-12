@@ -38,4 +38,44 @@ const AdminSettingsPage = () => {
     { id: 'contact', label: 'Contact & Support', icon: <Mail size={18} /> },
     { id: 'homepage', label: 'Homepage Config', icon: <RotateCcw size={18} /> },
   ];
-
+
+  if (isLoading) return <div className="p-8"><Skeleton type="stat" count={3} /></div>;
+
+  return (
+    <div className="space-y-10 animate-in fade-in duration-500">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="space-y-2">
+          <h1 className="text-4xl font-display uppercase tracking-tighter">System <span className="text-red">Configuration</span></h1>
+          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Manage global platform settings and branding</p>
+        </div>
+        <button 
+          onClick={() => updateMutation.mutate(settingsData)}
+          disabled={updateMutation.isPending}
+          className="bg-red text-white px-10 py-3 rounded-xl font-display text-lg uppercase tracking-widest hover:bg-red-dark transition-all shadow-xl shadow-red/20 flex items-center space-x-3 disabled:opacity-50"
+        >
+          {updateMutation.isPending ? <Loader2 className="animate-spin" /> : <Save size={20} />}
+          <span>Save All Changes</span>
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <div className="lg:col-span-2 space-y-12">
+          {/* Branding Section */}
+          <div className="space-y-6">
+            <h2 className="text-xl font-display uppercase tracking-tight border-b border-surface-3 dark:border-white/5 pb-2">Branding</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Platform Name</label>
+                <input 
+                  className="w-full bg-white dark:bg-surface-dark2 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none focus:border-red"
+                  value={settingsData.site_name || ''}
+                  onChange={(e) => handleChange('site_name', e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Tagline</label>
+                <input 
+                  className="w-full bg-white dark:bg-surface-dark2 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none focus:border-red"
+                  value={settingsData.hero_title || ''}
+                  onChange={(e) => handleChange('hero_title', e.target.value)}
+                />
