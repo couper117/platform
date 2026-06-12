@@ -46,4 +46,51 @@ const AdminPlayersPage = () => {
           />
         </div>
       </div>
-
+
+      {isLoading ? (
+        <Skeleton type="table-row" count={5} />
+      ) : (
+        <AdminTable headers={['Player', 'Team', 'Position', 'Skill', 'Status', 'Actions']}>
+          {players?.map(player => (
+            <tr key={player.id} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors">
+              <td className="px-6 py-5">
+                <div className="flex items-center space-x-4">
+                  <div className="w-10 h-10 rounded-full bg-surface-3 dark:bg-white/10 flex items-center justify-center overflow-hidden border border-surface-3">
+                    {player.photo ? <img src={player.photo} className="w-full h-full object-cover" /> : <User size={16} className="opacity-20" />}
+                  </div>
+                  <div>
+                    <p className="font-bold text-sm uppercase tracking-tight">{player.fullName}</p>
+                    <p className="text-[8px] opacity-40 uppercase tracking-widest">{player.nationality}</p>
+                  </div>
+                </div>
+              </td>
+              <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{player.team?.name}</td>
+              <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{player.position || 'N/A'}</td>
+              <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{player.skillLevel}</td>
+              <td className="px-6 py-5">
+                <span className={`text-[8px] font-bold px-2 py-1 rounded border uppercase ${player.status === 'VERIFIED' ? 'bg-green/5 text-green border-green/10' : 'bg-gold/5 text-gold border-gold/20'}`}>
+                  {player.status}
+                </span>
+              </td>
+              <td className="px-6 py-5">
+                <div className="flex items-center space-x-2">
+                  <button className="p-2 hover:bg-surface-3 dark:hover:bg-white/10 rounded-lg transition-colors">
+                    <Edit2 size={16} />
+                  </button>
+                  <button 
+                    onClick={() => deletePlayerMutation.mutate(player.id)}
+                    className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </AdminTable>
+      )}
+    </div>
+  );
+};
+
+export default AdminPlayersPage;
