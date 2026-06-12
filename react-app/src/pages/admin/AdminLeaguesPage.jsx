@@ -133,4 +133,71 @@ const AdminLeaguesPage = () => {
             </tr>
           ))}
         </AdminTable>
-      )}
+      )}
+
+      {/* Create League Modal */}
+      <AdminModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create New League">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2 col-span-2">
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">League Name</label>
+              <input {...register('name', { required: true })} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl focus:border-red outline-none" placeholder="e.g. Rwanda Premier League" />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Sport</label>
+              <select {...register('sportId', { required: true })} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none">
+                <option value="">Select Sport...</option>
+                {sports?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Season</label>
+              <input {...register('season', { required: true })} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none" placeholder="2025/2026" />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Gender</label>
+              <select {...register('gender')} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none">
+                <option value="MALE">Male</option>
+                <option value="FEMALE">Female</option>
+                <option value="MIXED">Mixed</option>
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Competition Level</label>
+              <select {...register('level')} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none">
+                <option value="NATIONAL">National</option>
+                <option value="REGIONAL">Regional</option>
+                <option value="SCHOOL">School</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" disabled={createLeagueMutation.isPending} className="w-full bg-red text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all flex items-center justify-center space-x-3">
+            {createLeagueMutation.isPending ? <Loader2 className="animate-spin" /> : <span>Create League</span>}
+          </button>
+        </form>
+      </AdminModal>
+
+      {/* Delegation Modals (Same as before but integrated) */}
+      <AdminModal isOpen={isReporterModalOpen} onClose={() => setIsModalReporterOpen(false)} title="Authorize Match Reporter">
+        <div className="space-y-6">
+          <input type="email" value={reporterEmail} onChange={e => setReporterEmail(e.target.value)} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl" placeholder="reporter@email.com" />
+          <button onClick={() => assignReporterMutation.mutate({ leagueId: selectedLeague.id, email: reporterEmail })} className="w-full bg-red text-white font-display text-xl uppercase py-4 rounded-xl">Authorize</button>
+        </div>
+      </AdminModal>
+
+      <AdminModal isOpen={isAdminModalOpen} onClose={() => setIsModalAdminOpen(false)} title="Assign League Admin">
+        <div className="space-y-6">
+          <input type="email" value={adminEmail} onChange={e => setAdminEmail(e.target.value)} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl" placeholder="admin@email.com" />
+          <button onClick={() => assignAdminMutation.mutate({ leagueId: selectedLeague.id, email: adminEmail })} className="w-full bg-red text-white font-display text-xl uppercase py-4 rounded-xl">Assign Admin</button>
+        </div>
+      </AdminModal>
+    </div>
+  );
+};
+
+export default AdminLeaguesPage;
