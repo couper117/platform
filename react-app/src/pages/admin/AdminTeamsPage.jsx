@@ -92,4 +92,50 @@ const AdminTeamsPage = () => {
                   <p className="text-sm font-medium">{team.city}</p>
                   <p className="text-[8px] opacity-40 uppercase font-bold tracking-widest">{team.province}</p>
                 </div>
-              </td>
+              </td>
+              <td className="px-6 py-5">
+                <div className="flex flex-col space-y-1">
+                  <span className="text-xs font-bold uppercase tracking-tight">{team.managerUser?.fullName || 'Unassigned'}</span>
+                  <span className="text-[8px] opacity-40 lowercase">{team.managerUser?.email || 'No email'}</span>
+                </div>
+              </td>
+              <td className="px-6 py-5">
+                <span className={`text-[8px] font-bold px-2 py-1 rounded border uppercase ${team.status === 'VERIFIED' ? 'bg-green/5 text-green border-green/10' : team.status === 'PENDING' ? 'bg-gold/5 text-gold border-gold/20' : 'bg-red/5 text-red border-red/10'}`}>
+                  {team.status}
+                </span>
+              </td>
+              <td className="px-6 py-5">
+                <div className="flex items-center space-x-2">
+                  {team.status !== 'VERIFIED' && (
+                    <button 
+                      onClick={() => updateStatusMutation.mutate({ id: team.id, status: 'VERIFIED' })}
+                      className="p-2 hover:bg-green/10 text-green rounded-lg transition-colors" title="Verify Team"
+                    >
+                      <ShieldCheck size={18} />
+                    </button>
+                  )}
+                  {team.status !== 'SUSPENDED' && (
+                    <button 
+                      onClick={() => updateStatusMutation.mutate({ id: team.id, status: 'SUSPENDED' })}
+                      className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors" title="Suspend Team"
+                    >
+                      <XCircle size={18} />
+                    </button>
+                  )}
+                  <button 
+                    onClick={() => handleDeleteTeam(team.id)}
+                    className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors" title="Delete Team"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </AdminTable>
+      )}
+    </div>
+  );
+};
+
+export default AdminTeamsPage;
