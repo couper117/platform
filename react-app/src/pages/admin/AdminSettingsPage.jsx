@@ -78,4 +78,43 @@ const AdminSettingsPage = () => {
                   className="w-full bg-white dark:bg-surface-dark2 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none focus:border-red"
                   value={settingsData.hero_title || ''}
                   onChange={(e) => handleChange('hero_title', e.target.value)}
-                />
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Contact Section */}
+          <div className="space-y-6">
+            <h2 className="text-xl font-display uppercase tracking-tight border-b border-surface-3 dark:border-white/5 pb-2">Contact Info</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Official Email</label>
+                <input 
+                  className="w-full bg-white dark:bg-surface-dark2 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none focus:border-red"
+                  value={settingsData.contact_email || ''}
+                  onChange={(e) => handleChange('contact_email', e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Info Sidebar */}
+        <div className="space-y-6">
+          <div className="bg-surface-dark p-8 rounded-3xl text-white space-y-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-red opacity-20 -mr-8 -mt-8 rounded-full blur-3xl" />
+            <div className="flex items-center space-x-3 text-red">
+              <Shield size={20} />
+              <h3 className="font-display text-xl uppercase tracking-tight">Admin Note</h3>
+            </div>
+            <p className="text-xs opacity-60 leading-relaxed uppercase font-bold tracking-widest">
+              Changes made here affect the public-facing site instantly. Please verify all information before saving, especially contact emails and platform branding.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AdminSettingsPage;
