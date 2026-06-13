@@ -48,4 +48,53 @@ const AdminVisitorsPage = () => {
                 {log.user ? (
                   <div className="flex items-center space-x-2">
                     <div className="w-6 h-6 rounded-full bg-red/10 flex items-center justify-center text-red font-bold">
-                      {log.user.fullName[0]}
+                      {log.user.fullName[0]}
+                    </div>
+                    <span className="font-bold">{log.user.fullName}</span>
+                  </div>
+                ) : (
+                  <span className="opacity-30 italic">Guest</span>
+                )}
+              </td>
+              <td className="px-6 py-4">
+                <span className={`px-2 py-0.5 rounded border ${
+                  log.action === 'PAGE_VIEW' ? 'bg-blue-500/5 text-blue-500 border-blue-500/10' : 'bg-red/5 text-red border-red/10'
+                } font-bold uppercase`}>
+                  {log.action}
+                </span>
+              </td>
+              <td className="px-6 py-4">
+                <div className="flex flex-col">
+                  <span className="font-bold opacity-60">{log.ip}</span>
+                  <span className="text-[9px] opacity-30 truncate max-w-[150px]">{log.userAgent}</span>
+                </div>
+              </td>
+              <td className="px-6 py-4 font-mono text-red opacity-60">{log.pagePath}</td>
+            </tr>
+          ))}
+        </AdminTable>
+      )}
+
+      {/* Pagination */}
+      <div className="flex justify-center space-x-4">
+        <button 
+          onClick={() => setPage(p => Math.max(1, p - 1))} 
+          disabled={page === 1}
+          className="px-6 py-2 bg-surface-2 dark:bg-white/5 rounded-xl font-bold uppercase tracking-widest text-[10px] disabled:opacity-20"
+        >
+          Previous
+        </button>
+        <span className="flex items-center font-display text-xl">{page}</span>
+        <button 
+          onClick={() => setPage(p => p + 1)} 
+          disabled={data?.pages <= page}
+          className="px-6 py-2 bg-surface-2 dark:bg-white/5 rounded-xl font-bold uppercase tracking-widest text-[10px] disabled:opacity-20"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default AdminVisitorsPage;
