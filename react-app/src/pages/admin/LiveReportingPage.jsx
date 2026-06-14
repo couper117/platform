@@ -40,4 +40,47 @@ const LiveReportingPage = () => {
           <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Select an assigned match to begin live updates</p>
         </div>
 
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 gap-4">
+          {assignments?.map(f => (
+            <button 
+              key={f.id}
+              onClick={() => setSelectedFixture(f)}
+              className="bg-white dark:bg-surface-dark2 p-6 rounded-3xl border border-surface-3 dark:border-white/5 flex items-center justify-between group hover:border-red/20 transition-all"
+            >
+              <div className="flex items-center space-x-6">
+                <div className="p-3 bg-red/5 rounded-2xl text-red">
+                  <Activity size={24} />
+                </div>
+                <div className="text-left">
+                  <p className="text-xl font-display uppercase tracking-tight">
+                    {f.homeTeam.name} <span className="opacity-20 mx-2 text-sm">VS</span> {f.awayTeam.name}
+                  </p>
+                  <p className="text-[10px] uppercase font-bold tracking-widest opacity-40">{f.league.name} • {new Date(f.matchDate).toLocaleString()}</p>
+                </div>
+              </div>
+              <ChevronRight size={20} className="opacity-20 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 sm:p-8 space-y-8 animate-in slide-in-from-bottom-4 duration-500">
+      {/* Active Match Header */}
+      <div className="bg-surface-dark text-white p-6 rounded-3xl space-y-6 shadow-2xl">
+        <div className="flex justify-between items-center">
+          <button onClick={() => setSelectedFixture(null)} className="text-[10px] font-bold uppercase tracking-widest opacity-40 hover:text-red">Exit Reporter</button>
+          <div className="flex items-center space-x-2 bg-red px-3 py-1 rounded-full animate-pulse">
+            <span className="text-[10px] font-bold uppercase tracking-tighter italic">Live Reporting</span>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between text-center">
+          <div className="flex-1 space-y-2">
+            <p className="text-sm font-bold uppercase tracking-tight">{selectedFixture.homeTeam.name}</p>
+            <span className="text-5xl font-display">{selectedFixture.homeScore || 0}</span>
+          </div>
+          <div className="px-8 text-white/20 font-display text-2xl">:</div>
+          <div className="flex-1 space-y-2">
