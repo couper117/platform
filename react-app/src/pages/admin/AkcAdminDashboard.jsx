@@ -121,4 +121,64 @@ const AkcAdminDashboard = () => {
               <label htmlFor="csv-upload" className="block cursor-pointer">
                 <div className="space-y-4">
                   <div className="inline-block p-4 bg-surface-2 dark:bg-white/5 rounded-2xl opacity-40">
-                    <FileText size={48} className="mx-auto" />
+                    <FileText size={48} className="mx-auto" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="font-bold uppercase text-[10px] tracking-[0.3em]">Drop your CSV here or click to browse</p>
+                    <p className="text-[10px] opacity-40 uppercase tracking-widest italic">Supports up to 5,000 rows per upload</p>
+                  </div>
+                </div>
+              </label>
+            </div>
+
+            {importResults && (
+              <div className="bg-white dark:bg-surface-dark2 p-8 rounded-3xl border border-surface-3 dark:border-white/5 space-y-6 animate-in zoom-in-95">
+                <div className="flex items-center space-x-3 text-green">
+                  <CheckCircle2 size={24} />
+                  <h3 className="text-xl font-display uppercase tracking-tight">Import Complete</h3>
+                </div>
+                <div className="grid grid-cols-3 gap-6">
+                  <div className="p-4 bg-surface-2 dark:bg-white/5 rounded-2xl text-center">
+                    <span className="block text-2xl font-display text-green">{importResults.created}</span>
+                    <span className="text-[8px] font-bold uppercase tracking-widest opacity-40">Created</span>
+                  </div>
+                  <div className="p-4 bg-surface-2 dark:bg-white/5 rounded-2xl text-center">
+                    <span className="block text-2xl font-display text-rwanda-yellow">{importResults.skipped}</span>
+                    <span className="text-[8px] font-bold uppercase tracking-widest opacity-40">Skipped</span>
+                  </div>
+                  <div className="p-4 bg-surface-2 dark:bg-white/5 rounded-2xl text-center">
+                    <span className="block text-2xl font-display text-red">{importResults.errors?.length || 0}</span>
+                    <span className="text-[8px] font-bold uppercase tracking-widest opacity-40">Errors</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'competitions' && (
+          <div className="max-w-3xl mx-auto py-10 space-y-8 text-center">
+            <div className="w-20 h-20 bg-rwanda-blue/5 rounded-full flex items-center justify-center text-rwanda-blue mx-auto">
+              <Trophy size={40} />
+            </div>
+            <div className="space-y-3">
+              <h2 className="text-3xl font-display uppercase tracking-tight">Manage Championships</h2>
+              <p className="text-sm opacity-60 max-w-lg mx-auto">
+                Create and manage every inter-school championship — including the Kagame Cup — set their level, status and dates, and track fixtures.
+              </p>
+            </div>
+            <Link
+              to="/admin/championships"
+              className="inline-flex items-center gap-2 bg-rwanda-blue text-white px-8 py-3 rounded-xl font-display text-lg uppercase tracking-widest hover:brightness-110 transition-all shadow-lg shadow-rwanda-blue/20"
+            >
+              <span>Open Championship Manager</span>
+              <ArrowRight size={18} />
+            </Link>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default AkcAdminDashboard;
