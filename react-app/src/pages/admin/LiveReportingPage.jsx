@@ -83,4 +83,46 @@ const LiveReportingPage = () => {
             <span className="text-5xl font-display">{selectedFixture.homeScore || 0}</span>
           </div>
           <div className="px-8 text-white/20 font-display text-2xl">:</div>
-          <div className="flex-1 space-y-2">
+          <div className="flex-1 space-y-2">
+            <p className="text-sm font-bold uppercase tracking-tight">{selectedFixture.awayTeam.name}</p>
+            <span className="text-5xl font-display">{selectedFixture.awayScore || 0}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Action Logging Buttons */}
+      <div className="grid grid-cols-2 gap-4">
+        {[
+          { label: 'Goal Home', type: 'GOAL', teamId: selectedFixture.homeTeamId, color: 'bg-green text-white' },
+          { label: 'Goal Away', type: 'GOAL', teamId: selectedFixture.awayTeamId, color: 'bg-green text-white' },
+          { label: 'Yellow Card', type: 'YELLOW_CARD', color: 'bg-gold text-white' },
+          { label: 'Red Card', type: 'RED_CARD', color: 'bg-red text-white' },
+        ].map((btn, i) => (
+          <button
+            key={i}
+            onClick={() => addEventMutation.mutate({ eventType: btn.type, teamId: btn.teamId, minute: 45 })} // Minute should be dynamic in real use
+            className={`p-6 rounded-3xl font-display text-xl uppercase tracking-widest shadow-xl transition-all active:scale-95 ${btn.color}`}
+          >
+            {btn.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="bg-white dark:bg-surface-dark2 p-6 rounded-3xl border border-surface-3 dark:border-white/5">
+        <h3 className="text-sm font-bold uppercase tracking-widest opacity-40 mb-4 border-b border-surface-3 dark:border-white/5 pb-2 text-center">Match Control</h3>
+        <div className="grid grid-cols-1 gap-3">
+          <button className="flex items-center justify-center space-x-3 py-4 bg-surface-2 dark:bg-white/5 rounded-2xl font-display text-lg uppercase tracking-widest hover:bg-white/10 transition-all">
+            <StopCircle size={20} />
+            <span>End First Half</span>
+          </button>
+          <button className="flex items-center justify-center space-x-3 py-4 bg-surface-dark text-white rounded-2xl font-display text-lg uppercase tracking-widest hover:bg-surface-dark2 transition-all">
+            <Play size={20} fill="currentColor" />
+            <span>Finish Match</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default LiveReportingPage;
