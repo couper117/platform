@@ -39,4 +39,44 @@ const AkcFixturesPage = () => {
         accent={t('amashuri.schedule.accent')}
         subtitle={t('amashuri.schedule.subtitle')}
         compact
-      />
+      />
+
+      {/* Status tabs */}
+      <div className="sticky top-[68px] z-40 bg-white/80 dark:bg-surface-dark2/80 backdrop-blur-xl border-b border-surface-3 dark:border-white/5 shadow-sm">
+        <ResponsiveWrapper>
+          <div className="flex overflow-x-auto scrollbar-hide py-4 gap-8 items-center">
+            {TABS.map((tab) => (
+              <button
+                key={tab.status}
+                onClick={() => setStatus(tab.status)}
+                className={`text-[11px] font-bold uppercase tracking-widest transition-all whitespace-nowrap cursor-pointer ${
+                  status === tab.status
+                    ? 'text-rwanda-blue underline underline-offset-8 decoration-2'
+                    : 'opacity-40 hover:opacity-100'
+                }`}
+              >
+                {t(tab.labelKey)}
+              </button>
+            ))}
+          </div>
+        </ResponsiveWrapper>
+      </div>
+
+      <ResponsiveWrapper className="mt-12">
+        {isLoading ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8"><Skeleton type="card" count={4} /></div>
+        ) : list.length > 0 ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {list.map((fixture) => (
+              <AmashuriFixtureCard key={fixture.id} fixture={fixture} />
+            ))}
+          </div>
+        ) : (
+          <EmptyState icon={Activity} title={t('amashuri.schedule.empty')} hint={t('amashuri.schedule.empty_hint')} />
+        )}
+      </ResponsiveWrapper>
+    </div>
+  );
+};
+
+export default AkcFixturesPage;
