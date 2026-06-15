@@ -38,4 +38,44 @@ const AkcStandingsPage = () => {
 
       <AmashuriHero
         title={t('amashuri.standings.title')}
-        accent={t('amashuri.standings.accent')}
+        accent={t('amashuri.standings.accent')}
+        subtitle={t('amashuri.standings.subtitle')}
+        compact
+      />
+
+      <ResponsiveWrapper className="mt-12">
+        <Card className="p-6 sm:p-8 space-y-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <h2 className="text-2xl font-display uppercase tracking-tight">{t('amashuri.standings.leaderboards')}</h2>
+              <p className="text-[10px] uppercase font-bold tracking-widest opacity-40">{t('amashuri.standings.select_hint')}</p>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <label htmlFor="comp-select" className="sr-only">{t('amashuri.championships')}</label>
+              <select
+                id="comp-select"
+                value={competitionId}
+                onChange={(e) => setCompetitionId(e.target.value)}
+                className="bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 text-[11px] font-bold uppercase tracking-widest rounded-xl px-4 py-3 focus:ring-2 focus:ring-rwanda-blue focus:outline-none cursor-pointer"
+              >
+                {competitions.length === 0 && <option value="">{t('amashuri.standings.no_championships')}</option>}
+                {competitions.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {isLoading ? (
+            <Skeleton type="card" count={1} />
+          ) : (
+            <AmashuriStandingsTable standings={standings?.data || []} />
+          )}
+        </Card>
+      </ResponsiveWrapper>
+    </div>
+  );
+};
+
+export default AkcStandingsPage;
