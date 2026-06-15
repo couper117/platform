@@ -90,4 +90,49 @@ const AkcHome = () => {
                     <div className="flex items-start justify-between mb-4">
                       <span className="w-12 h-12 bg-surface-2 dark:bg-white/5 rounded-xl flex items-center justify-center text-rwanda-blue">
                         <School size={24} />
-                      </span>
+                      </span>
+                      <Badge tone="blue">{school.category}</Badge>
+                    </div>
+                    <h3 className="font-display text-xl uppercase tracking-tight mb-2">{school.name}</h3>
+                    <div className="flex items-center gap-2 text-[10px] uppercase font-bold tracking-widest opacity-40">
+                      <MapPin size={12} />
+                      <span>{school.sector || 'National'}{school.code ? ` · ${school.code}` : ''}</span>
+                    </div>
+                  </Card>
+                ))
+              ) : (
+                <div className="sm:col-span-2">
+                  <EmptyState icon={School} title={t('amashuri.no_schools')} hint={t('amashuri.no_schools_hint')} />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Side stats */}
+          <div className="space-y-8">
+            <div className="bg-surface-dark p-8 rounded-3xl text-white space-y-6 relative overflow-hidden shadow-2xl shadow-rwanda-blue/20">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-rwanda-blue opacity-30 -mr-8 -mt-8 rounded-full blur-3xl" />
+              <h3 className="font-display text-2xl uppercase tracking-tight relative z-10">{t('amashuri.live_data')}</h3>
+              <div className="space-y-5 relative z-10">
+                {stats.map((stat) => (
+                  <div key={stat.label} className="flex items-center justify-between border-b border-white/5 pb-4">
+                    <div className="flex items-center gap-3 opacity-60">
+                      {stat.icon}
+                      <span className="text-[10px] font-bold uppercase tracking-widest">{stat.label}</span>
+                    </div>
+                    <span className="text-2xl font-display tabular-nums">{stat.value}</span>
+                  </div>
+                ))}
+              </div>
+              <Button to="/amashuri/championships" variant="blue" size="md" className="w-full relative z-10" icon={Trophy}>
+                {t('amashuri.explore_championships')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </ResponsiveWrapper>
+    </div>
+  );
+};
+
+export default AkcHome;
