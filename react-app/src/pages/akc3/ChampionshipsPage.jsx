@@ -50,4 +50,55 @@ const ChampionshipCard = ({ c, t }) => (
     </div>
   </Card>
 );
-
+
+const ChampionshipsPage = () => {
+  const { t } = useTranslation();
+  const { data: comps, isLoading } = useQuery({
+    queryKey: ['amashuri-championships'],
+    queryFn: () => getChampionships(),
+    retry: false,
+  });
+  const { data: schools } = useQuery({
+    queryKey: ['amashuri-schools-all'],
+    queryFn: () => getSchools(),
+    retry: false,
+  });
+
+  const championships = comps?.data || [];
+
+  return (
+    <div className="bg-surface-2 dark:bg-surface-dark min-h-screen pb-24">
+      <Seo title="School Championships — Amashuri Games" description="Every Rwandan inter-school championship in one place, including the Kagame Cup." />
+
+      <AmashuriHero
+        title={t('amashuri.championships_page.title')}
+        accent={t('amashuri.championships_page.accent')}
+        subtitle={t('amashuri.championships_page.subtitle')}
+      />
+
+      <ResponsiveWrapper className="mt-16 space-y-20">
+        {/* Championships list */}
+        <section>
+          <SectionHeading eyebrow={t('amashuri.championships_page.umbrella')} title={t('amashuri.championships_page.all')} accent={t('amashuri.championships_page.all_accent')} />
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"><Skeleton type="card" count={3} /></div>
+          ) : championships.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {championships.map((c) => <ChampionshipCard key={c.id} c={c} t={t} />)}
+            </div>
+          ) : (
+            <EmptyState icon={Medal} title={t('amashuri.championships_page.none')} hint={t('amashuri.championships_page.none_hint')} />
+          )}
+        </section>
+
+        {/* Stats */}
+        <section>
+          <SectionHeading eyebrow={t('amashuri.championships_page.insights')} title={t('amashuri.championships_page.numbers')} accent={t('amashuri.championships_page.numbers_accent')} />
+          <AmashuriStats schools={schools?.data || []} championships={championships} />
+        </section>
+      </ResponsiveWrapper>
+    </div>
+  );
+};
+
+export default ChampionshipsPage;
