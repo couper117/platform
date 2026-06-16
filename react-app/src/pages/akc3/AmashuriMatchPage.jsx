@@ -123,4 +123,65 @@ const AmashuriMatchPage = () => {
               </div>
               <SchoolBadge team={m.awayTeam} />
             </div>
-
+
+            <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-[10px] font-bold uppercase tracking-widest text-white/60 border-t border-white/10 pt-8 w-full">
+              <span className="flex items-center gap-2"><Calendar size={14} className="text-rwanda-yellow" />{m.matchDate ? format(new Date(m.matchDate), 'dd MMM yyyy') : 'TBD'}</span>
+              <span className="flex items-center gap-2"><Clock size={14} className="text-rwanda-yellow" />{m.matchDate ? format(new Date(m.matchDate), 'HH:mm') : 'TBD'} CAT</span>
+              <span className="flex items-center gap-2"><MapPin size={14} className="text-rwanda-yellow" />{m.venue || 'TBD'}</span>
+              {m.round && <span className="flex items-center gap-2"><Flag size={14} className="text-rwanda-yellow" />{m.round}</span>}
+            </div>
+          </div>
+        </ResponsiveWrapper>
+      </section>
+
+      {/* Detail */}
+      <ResponsiveWrapper className="mt-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Card className="p-6 lg:col-span-2 space-y-4">
+            <h3 className="font-display text-xl uppercase tracking-tight border-b border-surface-3 dark:border-white/5 pb-3">
+              {t('match.summary')} <span className="text-rwanda-blue">{t('match.summary_accent')}</span>
+            </h3>
+            {isCompleted ? (
+              <div className="flex items-center gap-4 p-4 rounded-2xl bg-rwanda-blue/5 border border-rwanda-blue/10">
+                <Trophy size={28} className="text-rwanda-blue shrink-0" />
+                <div>
+                  <p className="font-display text-lg uppercase tracking-tight">
+                    {m.isDraw ? t('match.match_drawn') : `${m.winnerTeamId === m.homeTeamId ? homeName : awayName} ${t('match.won')}`}
+                  </p>
+                  <p className="text-[11px] uppercase tracking-widest opacity-50">{homeName} {m.homeScore} — {m.awayScore} {awayName}</p>
+                </div>
+              </div>
+            ) : (
+              <EmptyState icon={Clock} title={isLive ? t('match.in_progress') : t('match.not_started')} hint={m.notes || t('match.result_hint')} className="py-10" />
+            )}
+            {m.notes && <p className="text-sm opacity-60 leading-relaxed">{m.notes}</p>}
+          </Card>
+
+          <Card className="p-6 space-y-4">
+            <h3 className="font-display text-xl uppercase tracking-tight border-b border-surface-3 dark:border-white/5 pb-3">
+              {t('match.fixture_info')} <span className="text-rwanda-blue">{t('match.fixture_info_accent')}</span>
+            </h3>
+            <dl className="space-y-3 text-sm">
+              {[
+                [t('match.stage'), m.stage?.replace(/_/g, ' ')],
+                [t('match.round'), m.round],
+                [t('match.competition'), m.competition?.name],
+                [t('match.status'), (m.status || '').replace(/_/g, ' ')],
+              ].filter(([, v]) => v).map(([k, v]) => (
+                <div key={k} className="flex items-center justify-between gap-4">
+                  <dt className="text-[10px] uppercase tracking-widest opacity-40">{k}</dt>
+                  <dd className="font-bold uppercase tracking-tight text-right">{v}</dd>
+                </div>
+              ))}
+            </dl>
+            <Link to={`/amashuri/schools/${m.homeTeam?.schoolId}`} className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-rwanda-blue hover:underline pt-2">
+              <School size={14} /> {t('match.view')} {homeName}
+            </Link>
+          </Card>
+        </div>
+      </ResponsiveWrapper>
+    </div>
+  );
+};
+
+export default AmashuriMatchPage;
