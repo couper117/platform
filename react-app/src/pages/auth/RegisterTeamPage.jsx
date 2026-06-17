@@ -64,4 +64,70 @@ const RegisterTeamPage = () => {
         <div className="w-24 h-24 bg-green rounded-full flex items-center justify-center animate-bounce shadow-2xl shadow-green/20">
           <Trophy size={48} className="text-white" />
         </div>
-        <div className="space-y-4">
+        <div className="space-y-4">
+          <h1 className="text-5xl font-display text-white uppercase tracking-tighter">Application <span className="text-green">Submitted</span></h1>
+          <p className="text-white/60 max-w-md mx-auto leading-relaxed">
+            Your team registration has been received! Our administrators will review your application and documents. You will receive an email once approved.
+          </p>
+        </div>
+        <Link to="/auth/login" className="bg-white/10 text-white font-display text-xl uppercase tracking-widest px-10 py-4 rounded-xl hover:bg-white/20 transition-all">
+          Back to Login
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-surface-dark py-20 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red via-rwanda-yellow to-rwanda-green" />
+      
+      <Link to="/auth/login" className="absolute top-8 left-8 flex items-center space-x-2 text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-red transition-colors z-50">
+        <ChevronLeft size={14} />
+        <span>{t('common.back')}</span>
+      </Link>
+
+      <div className="w-full max-w-xl space-y-12 relative z-10">
+        <div className="text-center space-y-4">
+          <div className="inline-flex p-4 bg-red/10 rounded-3xl border border-red/20 text-red mb-2">
+            <UserPlus size={32} />
+          </div>
+          <h1 className="text-4xl sm:text-6xl font-display text-white uppercase tracking-tighter leading-none">
+            Manager <span className="text-red">Registration</span>
+          </h1>
+          <p className="text-white/40 text-[10px] font-bold uppercase tracking-[0.3em]">Join the RwaSport Community</p>
+        </div>
+
+        {/* Step Indicator */}
+        <div className="flex items-center justify-center space-x-4">
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-display text-lg border-2 transition-all ${step === 1 ? 'bg-red border-red text-white shadow-lg shadow-red/20' : 'border-white/20 text-white/40'}`}>1</div>
+          <div className="w-8 h-0.5 bg-white/10" />
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-display text-lg border-2 transition-all ${step === 2 ? 'bg-red border-red text-white shadow-lg shadow-red/20' : 'border-white/20 text-white/40'}`}>2</div>
+        </div>
+
+        <div className="bg-white/5 backdrop-blur-2xl p-8 sm:p-10 rounded-3xl border border-white/10 shadow-2xl">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+            {error && (
+              <div className="bg-red/10 border border-red/20 p-4 rounded-xl flex items-center space-x-3 text-red">
+                <AlertCircle size={18} />
+                <span className="text-xs font-bold uppercase tracking-wider">{error}</span>
+              </div>
+            )}
+
+            {step === 1 ? (
+              <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+                <div className="flex items-center space-x-3 text-white/30 mb-2">
+                  <User size={18} />
+                  <h2 className="text-[10px] uppercase font-bold tracking-[0.3em]">Manager Information</h2>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">Full Name</label>
+                    <input {...register('fullName')} className="w-full bg-white/5 border border-white/10 text-white p-4 rounded-xl focus:border-red outline-none transition-all" placeholder="Enter full name" />
+                    {errors.fullName && <p className="text-[10px] font-bold text-red uppercase tracking-widest ml-1">{errors.fullName.message}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">Username</label>
+                    <input {...register('username')} className="w-full bg-white/5 border border-white/10 text-white p-4 rounded-xl focus:border-red outline-none transition-all" placeholder="Choose username" />
+                    {errors.username && <p className="text-[10px] font-bold text-red uppercase tracking-widest ml-1">{errors.username.message}</p>}
+                  </div>
+                </div>
