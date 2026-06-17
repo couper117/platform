@@ -83,4 +83,46 @@ const LoginPage = () => {
                   className={`w-full bg-white/5 border ${errors.username ? 'border-red/50' : 'border-white/10'} text-white p-4 rounded-xl focus:border-red focus:bg-white/10 outline-none transition-all placeholder:text-white/10`}
                   placeholder="Enter your username"
                 />
-                {errors.username && <p className="text-[10px] font-bold text-red uppercase tracking-widest ml-1">{errors.username.message}</p>}
+                {errors.username && <p className="text-[10px] font-bold text-red uppercase tracking-widest ml-1">{errors.username.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">{t('auth.password')}</label>
+                <input
+                  {...register('password')}
+                  type="password"
+                  className={`w-full bg-white/5 border ${errors.password ? 'border-red/50' : 'border-white/10'} text-white p-4 rounded-xl focus:border-red focus:bg-white/10 outline-none transition-all placeholder:text-white/10`}
+                  placeholder="••••••••"
+                />
+                {errors.password && <p className="text-[10px] font-bold text-red uppercase tracking-widest ml-1">{errors.password.message}</p>}
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-red text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-red/20 flex items-center justify-center space-x-3 disabled:opacity-50 disabled:hover:scale-100"
+            >
+              {isLoading ? <Loader2 className="animate-spin" size={24} /> : <span>{t('auth.enter_portal')}</span>}
+            </button>
+          </form>
+        </div>
+
+        <div className="text-center space-y-4">
+          <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest">
+            {t('auth.no_account')}
+          </p>
+          <Link to="/auth/team/register" className="inline-block text-white font-display text-lg uppercase tracking-widest border border-white/20 px-8 py-2 rounded-lg hover:bg-white/5 transition-all">
+            {t('auth.register_now')}
+          </Link>
+        </div>
+      </div>
+
+      <div className="mt-20 text-white/20 text-[8px] uppercase font-bold tracking-[0.4em]">
+        Secured by RwaSport Identity Service
+      </div>
+    </div>
+  );
+};
+
+export default LoginPage;
