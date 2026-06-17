@@ -85,4 +85,46 @@ const SchoolProfilePage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {/* Teams */}
           <div className="lg:col-span-2 space-y-8">
-            <h2 className="text-3xl font-display uppercase tracking-tight border-b border-surface-3 dark:border-white/5 pb-4">{t('amashuri.school_profile.teams_title')} <span className="text-rwanda-blue">{t('amashuri.school_profile.teams_accent')}</span></h2>
+            <h2 className="text-3xl font-display uppercase tracking-tight border-b border-surface-3 dark:border-white/5 pb-4">{t('amashuri.school_profile.teams_title')} <span className="text-rwanda-blue">{t('amashuri.school_profile.teams_accent')}</span></h2>
+            {teams.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {teams.map((team) => (
+                  <Card key={team.id} className="p-6 space-y-6">
+                    <div className="flex justify-between items-start">
+                      <span className="p-3 bg-rwanda-blue/5 rounded-2xl text-rwanda-blue"><Trophy size={20} /></span>
+                      <Badge tone="blue">{team.ageCategory}</Badge>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-display uppercase tracking-tight">{team.gender} {t('amashuri.school_profile.team')}</h3>
+                      <p className="text-[10px] uppercase font-bold tracking-widest opacity-40">{t('amashuri.school_profile.coach')}: {team.coachName || 'TBD'}</p>
+                    </div>
+                    <div className="flex items-center gap-2 pt-4 border-t border-surface-3 dark:border-white/5">
+                      <Users size={14} className="opacity-40" />
+                      <span className="text-xs font-bold opacity-60">{team.players?.length || 0} {t('amashuri.school_profile.players')}</span>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <EmptyState icon={Users} title={t('amashuri.school_profile.no_teams')} hint={t('amashuri.school_profile.no_teams_hint')} />
+            )}
+          </div>
+
+          {/* Matches */}
+          <div className="space-y-8">
+            <h2 className="text-3xl font-display uppercase tracking-tight border-b border-surface-3 dark:border-white/5 pb-4">{t('amashuri.school_profile.match_center')} <span className="text-rwanda-blue">{t('amashuri.school_profile.match_center_accent')}</span></h2>
+            {matches.length > 0 ? (
+              <div className="space-y-6">
+                {matches.slice(0, 4).map((f) => <AmashuriFixtureCard key={f.id} fixture={f} />)}
+              </div>
+            ) : (
+              <EmptyState title={t('amashuri.school_profile.no_matches')} hint={t('amashuri.school_profile.no_matches_hint')} className="py-16" />
+            )}
+          </div>
+        </div>
+      </ResponsiveWrapper>
+    </div>
+  );
+};
+
+export default SchoolProfilePage;
