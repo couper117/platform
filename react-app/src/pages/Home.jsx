@@ -47,3 +47,50 @@ export default function Home() {
       </section>
 
       <section className="section">
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">{t('all_sports')}</h2>
+            <Link to="/sports" className="btn btn-outline">{t('view_all')}</Link>
+          </div>
+          <div className="grid-4">
+            {sports.map(s => (
+              <Link key={s.id} to={`/sports/${s.slug}`} className="sport-card">
+                <div className="sport-icon">{s.icon || '⚽'}</div>
+                <div>
+                  <div className="sport-name">{s.name}</div>
+                  <div className="sport-count">{s.league_count || 0} leagues</div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section" style={{ background: 'var(--surface2)' }}>
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">{t('live_fixtures_h')}</h2>
+            <Link to="/fixtures" className="btn btn-outline">{t('view_all')}</Link>
+          </div>
+          <div className="grid-2">
+            {fixtures.map(f => (
+              <Link key={f.id} to={`/fixtures/${f.id}`} className="fixture-card">
+                <div className="fixture-teams">
+                  <img src={f.home_logo ? `/uploads/logos/${f.home_logo}` : ''} className="fixture-logo" alt="" />
+                  <div>
+                    <div className="fixture-team">{f.home_team}</div>
+                    <div className="fixture-vs">vs</div>
+                    <div className="fixture-team">{f.away_team}</div>
+                  </div>
+                  <img src={f.away_logo ? `/uploads/logos/${f.away_logo}` : ''} className="fixture-logo" alt="" />
+                </div>
+                <div className="fixture-meta">
+                  <span className="badge badge-blue">{f.status}</span>
+                  <span className="fixture-date">{new Date(f.match_date).toLocaleDateString()}</span>
+                  <span>{f.league_name}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
