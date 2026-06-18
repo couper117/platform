@@ -130,4 +130,69 @@ const RegisterTeamPage = () => {
                     <input {...register('username')} className="w-full bg-white/5 border border-white/10 text-white p-4 rounded-xl focus:border-red outline-none transition-all" placeholder="Choose username" />
                     {errors.username && <p className="text-[10px] font-bold text-red uppercase tracking-widest ml-1">{errors.username.message}</p>}
                   </div>
-                </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">Email Address</label>
+                  <input {...register('email')} className="w-full bg-white/5 border border-white/10 text-white p-4 rounded-xl focus:border-red outline-none transition-all" placeholder="email@example.com" />
+                  {errors.email && <p className="text-[10px] font-bold text-red uppercase tracking-widest ml-1">{errors.email.message}</p>}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">Password</label>
+                    <input {...register('password')} type="password" className="w-full bg-white/5 border border-white/10 text-white p-4 rounded-xl focus:border-red outline-none transition-all" placeholder="••••••••" />
+                    {errors.password && <p className="text-[10px] font-bold text-red uppercase tracking-widest ml-1">{errors.password.message}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">Phone Number</label>
+                    <input {...register('phone')} className="w-full bg-white/5 border border-white/10 text-white p-4 rounded-xl focus:border-red outline-none transition-all" placeholder="+250..." />
+                  </div>
+                </div>
+                <button type="button" onClick={nextStep} className="w-full bg-red text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all">Next: Team Details</button>
+              </div>
+            ) : (
+              <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+                <div className="flex items-center space-x-3 text-white/30 mb-2">
+                  <Building2 size={18} />
+                  <h2 className="text-[10px] uppercase font-bold tracking-[0.3em]">Team Information</h2>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">Official Team Name</label>
+                  <input {...register('teamName')} className="w-full bg-white/5 border border-white/10 text-white p-4 rounded-xl focus:border-red outline-none transition-all" placeholder="e.g. Kigali Tigers FC" />
+                  {errors.teamName && <p className="text-[10px] font-bold text-red uppercase tracking-widest ml-1">{errors.teamName.message}</p>}
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">Primary Sport</label>
+                  <select {...register('sportId')} className="w-full bg-surface-dark border border-white/10 text-white p-4 rounded-xl focus:border-red outline-none transition-all appearance-none cursor-pointer">
+                    <option value="">Select a sport</option>
+                    {sports?.data?.map(s => <option key={s.id} value={s.id}>{s.icon} {s.name}</option>)}
+                  </select>
+                  {errors.sportId && <p className="text-[10px] font-bold text-red uppercase tracking-widest ml-1">{errors.sportId.message}</p>}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">City / District</label>
+                    <input {...register('city')} className="w-full bg-white/5 border border-white/10 text-white p-4 rounded-xl focus:border-red outline-none transition-all" placeholder="e.g. Nyarugenge" />
+                    {errors.city && <p className="text-[10px] font-bold text-red uppercase tracking-widest ml-1">{errors.city.message}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">Province</label>
+                    <input {...register('province')} className="w-full bg-white/5 border border-white/10 text-white p-4 rounded-xl focus:border-red outline-none transition-all" placeholder="e.g. Kigali City" />
+                    {errors.province && <p className="text-[10px] font-bold text-red uppercase tracking-widest ml-1">{errors.province.message}</p>}
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <button type="button" onClick={() => setStep(1)} className="flex-1 border border-white/20 text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-white/5 transition-all">Back</button>
+                  <button type="submit" disabled={isLoading} className="flex-[2] bg-red text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all flex items-center justify-center space-x-3 disabled:opacity-50">
+                    {isLoading ? <Loader2 className="animate-spin" size={24} /> : <span>Submit Application</span>}
+                  </button>
+                </div>
+              </div>
+            )}
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default RegisterTeamPage;
