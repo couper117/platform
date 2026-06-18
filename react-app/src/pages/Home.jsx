@@ -94,3 +94,52 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <section className="section">
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">{t('all_leagues')}</h2>
+            <Link to="/leagues" className="btn btn-outline">{t('view_all')}</Link>
+          </div>
+          <div className="grid-3">
+            {leagues.map(l => (
+              <Link key={l.id} to={`/leagues/${l.slug}`} className="league-card">
+                <div className="league-cover" />
+                <div className="league-body">
+                  <div className="league-name">{l.name}</div>
+                  <div className="league-meta">
+                    <span className="league-tag">{l.sport_name}</span>
+                    <span className="league-tag">{l.season}</span>
+                    <span className={`badge badge-${l.status === 'active' ? 'green' : 'gray'}`}>{l.status}</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section" style={{ background: 'var(--surface2)' }}>
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">{t('latest_news')}</h2>
+            <Link to="/news" className="btn btn-outline">{t('view_all')}</Link>
+          </div>
+          <div className="grid-3">
+            {news.map(n => (
+              <Link key={n.id} to={`/news/${n.slug}`} className="news-card">
+                <div className="news-img" style={{ background: '#ddd' }} />
+                <div className="news-body">
+                  <div className="news-cat">{n.category || 'News'}</div>
+                  <div className="news-title">{n.title}</div>
+                  <div className="news-excerpt">{n.excerpt?.slice(0, 100)}...</div>
+                  <div className="news-date">{new Date(n.created_at).toLocaleDateString()}</div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}
