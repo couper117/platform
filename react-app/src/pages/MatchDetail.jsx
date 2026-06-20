@@ -78,3 +78,42 @@ export default function MatchDetail() {
                       {ev.description && <div style={{ fontSize: '.8rem', color: 'var(--text2)' }}>{ev.description}</div>}
                     </div>
                   </div>
+                )) : <p style={{ color: 'var(--text2)' }}>{t('waiting_for_events')}</p>}
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="card-header">{t('lineups')}</div>
+              <div className="card-body">
+                {match.lineups?.length > 0 ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div>
+                      <h4 style={{ marginBottom: '.75rem' }}>{match.home_team}</h4>
+                      {match.lineups.filter(l => l.team_id == match.home_team_id).map(l => (
+                        <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: '.5rem', padding: '.4rem 0', borderBottom: '1px solid var(--border)' }}>
+                          <span style={{ fontWeight: 700, minWidth: 24 }}>{l.jersey_no}</span>
+                          <span>{l.player_name}</span>
+                          {l.is_captain && <span style={{ fontSize: '.7rem' }}>C</span>}
+                        </div>
+                      ))}
+                    </div>
+                    <div>
+                      <h4 style={{ marginBottom: '.75rem' }}>{match.away_team}</h4>
+                      {match.lineups.filter(l => l.team_id == match.away_team_id).map(l => (
+                        <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: '.5rem', padding: '.4rem 0', borderBottom: '1px solid var(--border)' }}>
+                          <span style={{ fontWeight: 700, minWidth: 24 }}>{l.jersey_no}</span>
+                          <span>{l.player_name}</span>
+                          {l.is_captain && <span style={{ fontSize: '.7rem' }}>C</span>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : <p style={{ color: 'var(--text2)' }}>No lineups available</p>}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}
