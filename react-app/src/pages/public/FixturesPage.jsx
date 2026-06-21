@@ -94,4 +94,51 @@ const FixturesPage = () => {
             </div>
 
             <div className="h-4 w-px bg-surface-3 dark:bg-white/10" />
-
+
+            {/* Date Filter (Simplified) */}
+            <div className="flex items-center space-x-3 flex-shrink-0 text-[11px] font-bold uppercase tracking-widest opacity-60">
+              <Calendar size={14} className="text-red" />
+              <span>All Dates</span>
+            </div>
+          </div>
+        </ResponsiveWrapper>
+      </div>
+
+      {/* Main Content */}
+      <ResponsiveWrapper className="mt-12">
+        {isLoading ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <Skeleton type="card" count={6} />
+          </div>
+        ) : fixtures?.data?.length > 0 ? (
+          <div className="space-y-12">
+            {/* We could group by date here if needed */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+              {fixtures.data.map(fixture => (
+                <FixtureCard key={fixture.id} fixture={fixture} />
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="py-40 text-center space-y-6">
+            <div className="w-20 h-20 bg-surface-3 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto opacity-20">
+              <Search size={32} />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-3xl font-display uppercase tracking-tight opacity-40">No Matches Found</h3>
+              <p className="text-sm opacity-30 uppercase tracking-widest">There are no matches matching your current criteria.</p>
+            </div>
+            <button 
+              onClick={() => setFilters({ status: isResultsPage ? 'COMPLETED' : 'SCHEDULED', leagueId: '', from: '', to: '' })}
+              className="text-[10px] font-bold uppercase tracking-widest text-red hover:underline"
+            >
+              Reset Filters
+            </button>
+          </div>
+        )}
+      </ResponsiveWrapper>
+    </div>
+  );
+};
+
+export default FixturesPage;
