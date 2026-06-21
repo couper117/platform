@@ -95,4 +95,52 @@ const HomePage = () => {
                   ))
                 ) : (
                   <div className="py-12 bg-white/5 rounded-3xl border border-white/10 flex flex-col items-center justify-center text-center space-y-3 opacity-30">
-                    <Activity size={32} />
+                    <Activity size={32} />
+                    <span className="font-display text-xl uppercase tracking-widest">No Active Matches</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </ResponsiveWrapper>
+      </section>
+
+      {/* 3. SECONDARY AD SPOTLIGHT */}
+      <section className="py-12 bg-surface-2 dark:bg-surface-dark">
+        <ResponsiveWrapper>
+            <AdBanner position="SPOTLIGHT_BANNER" />
+        </ResponsiveWrapper>
+      </section>
+
+      {/* 4. LATEST NEWS */}
+      <section className="py-20 sm:py-32 bg-white dark:bg-surface-dark">
+        <ResponsiveWrapper>
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 space-y-4 md:space-y-0">
+            <div className="space-y-2">
+              <h2 className="text-[10px] uppercase font-bold tracking-[0.4em] text-red">Bulletin</h2>
+              <h3 className="text-4xl sm:text-5xl font-display uppercase tracking-tight">{t('home.latest_headlines')}</h3>
+            </div>
+            <Link to="/news" className="group flex items-center space-x-2 text-[10px] font-bold uppercase tracking-widest text-surface-dark/40 dark:text-white/40 hover:text-red transition-colors">
+              <span>{t('common.view_all')}</span>
+              <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {newsLoading ? (
+              <Skeleton type="card" count={3} />
+            ) : news?.data?.length > 0 ? (
+              news.data.map(article => <NewsCard key={article.id} article={article} />)
+            ) : (
+              <div className="col-span-3 py-20 text-center opacity-30 font-display text-2xl uppercase tracking-widest">
+                {t('common.no_data')}
+              </div>
+            )}
+          </div>
+        </ResponsiveWrapper>
+      </section>
+    </div>
+  );
+};
+
+export default HomePage;
