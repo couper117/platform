@@ -64,4 +64,71 @@ const TeamBadge = ({ team, size = 'lg' }) => {
 
 const MatchDetailsPage = () => {
   const { t } = useTranslation();
-  const { id } = useParams();
+  const { id } = useParams();
+  const [tab, setTab] = useState('timeline');
+
+  const { data: fixture, isLoading } = useQuery({
+    queryKey: ['match-details', id],
+    queryFn: () => getFixture(id),
+  });
+
+  const m = fixture?.data;
+  const { live, connected } = useLiveMatch(id, m);
+  const isLive = live.status === 'LIVE';
+  const isCompleted = live.status === 'COMPLETED';
+
+  // Derive simple team stats from events (goals / cards) for the stats tab.
+  const stats = useMemo(() => {
+    const init = { goals: [0, 0], yellow: [0, 0], red: [0, 0] };
+    if (!m) return init;
+    for (const e of live.events || []) {
+      const side = e.teamId === m.homeTeamId ? 0 : 1;
+      if (e.eventType === 'GOAL' || e.eventType === 'PENALTY') init.goals[side] += 1;
+      if (e.eventType === 'YELLOW_CARD') init.yellow[side] += 1;
+      if (e.eventType === 'RED_CARD') init.red[side] += 1;
+    }
+    return init;
+  }, [live.events, m]);
+
+  const lineups = m?.lineups || [];
+  const homeLineup = lineups.filter((l) => l.teamId === m?.homeTeamId);
+  const awayLineup = lineups.filter((l) => l.teamId === m?.awayTeamId);
+
+  if (isLoading) {
+    return <div className="py-20"><ResponsiveWrapper><Skeleton type="card" /></ResponsiveWrapper></div>;
+  }
+
+  if (!m) {
+    return (
+      <div className="py-32">
+        <ResponsiveWrapper>
+          <EmptyState title={t('match.not_found')} hint={t('match.not_found_hint')} />
+        </ResponsiveWrapper>
+      </div>
+    );
+  }
+
+  const tabs = [
+    { key: 'timeline', label: t('match.timeline') },
+    { key: 'lineups', label: t('match.lineups') },
+    { key: 'stats', label: t('match.stats') },
+  ];
+
+  return (
+    <div className="bg-surface-2 dark:bg-surface-dark min-h-screen pb-24">
+      <Seo title={`${m.homeTeam?.name} vs ${m.awayTeam?.name}`} description={`Live coverage of ${m.homeTeam?.name} vs ${m.awayTeam?.name}.`} />
+
+      {/* Breadcrumb */}
+      <div className="bg-surface-dark border-b border-white/5 py-4">
+        <ResponsiveWrapper>
+          <Link to="/fixtures" className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-red transition-colors">
+            <ChevronLeft size={14} />
+            <span>{t('match.back_to_schedule')}</span>
+          </Link>
+        </ResponsiveWrapper>
+      </div>
+
+      {/* Scoreboard */}
+      <section className="bg-surface-dark py-12 sm:py-20 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-red/10 via-transparent to-rwanda-blue/5 opacity-50" />
+
