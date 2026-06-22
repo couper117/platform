@@ -131,4 +131,71 @@ const MatchDetailsPage = () => {
       {/* Scoreboard */}
       <section className="bg-surface-dark py-12 sm:py-20 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-red/10 via-transparent to-rwanda-blue/5 opacity-50" />
-
+
+        <ResponsiveWrapper className="relative z-10">
+          <div className="flex flex-col items-center gap-10 sm:gap-12">
+            {/* Status */}
+            <div className="flex flex-col items-center gap-3">
+              <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/30">{m.league?.name}</span>
+              {isLive ? (
+                <div className="flex items-center gap-3">
+                  <LiveBadge minute={live.minute} />
+                  {connected && (
+                    <span className="flex items-center gap-1 text-[9px] uppercase tracking-widest text-green/80">
+                      <Wifi size={11} /> Real-time
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <span className="text-xs font-bold uppercase tracking-widest opacity-40">
+                  {isCompleted ? 'Full Time' : live.status}
+                </span>
+              )}
+            </div>
+
+            {/* Score */}
+            <div className="w-full flex items-center justify-between max-w-4xl">
+              <div className="flex-1 flex flex-col items-center text-center gap-4">
+                <TeamBadge team={m.homeTeam} />
+                <h2 className="text-xl sm:text-3xl font-display uppercase tracking-tight">{m.homeTeam?.name}</h2>
+              </div>
+
+              <div className="flex items-center gap-6 sm:gap-12 px-6 sm:px-16">
+                <ScoreDigit value={live.homeScore} />
+                <span className="text-3xl sm:text-5xl font-display opacity-20">:</span>
+                <ScoreDigit value={live.awayScore} />
+              </div>
+
+              <div className="flex-1 flex flex-col items-center text-center gap-4">
+                <TeamBadge team={m.awayTeam} />
+                <h2 className="text-xl sm:text-3xl font-display uppercase tracking-tight">{m.awayTeam?.name}</h2>
+              </div>
+            </div>
+
+            {/* Info bar */}
+            <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-[10px] font-bold uppercase tracking-widest text-white/50 border-t border-white/5 pt-8 w-full">
+              <span className="flex items-center gap-2"><Calendar size={14} className="text-red" />{m.matchDate ? format(new Date(m.matchDate), 'dd MMM yyyy') : 'TBD'}</span>
+              <span className="flex items-center gap-2"><Clock size={14} className="text-red" />{m.matchDate ? format(new Date(m.matchDate), 'HH:mm') : 'TBD'} CAT</span>
+              <span className="flex items-center gap-2"><MapPin size={14} className="text-red" />{m.venue || 'TBD'}</span>
+              {m.referee && <span className="flex items-center gap-2"><Award size={14} className="text-red" />REF: {m.referee}</span>}
+            </div>
+
+            {m.streamActive && m.streamUrl && (
+              <Button href={m.streamUrl} target="_blank" rel="noreferrer" icon={Play} size="md">
+                Watch Live Stream
+              </Button>
+            )}
+          </div>
+        </ResponsiveWrapper>
+      </section>
+
+      {/* Tabbed content */}
+      <ResponsiveWrapper className="mt-10">
+        {/* Tabs */}
+        <div className="flex items-center gap-1 p-1 bg-white dark:bg-surface-dark2 rounded-xl border border-surface-3 dark:border-white/5 w-full sm:w-auto sm:inline-flex mb-8">
+          {tabs.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`flex-1 sm:flex-none px-6 py-2.5 rounded-lg font-display text-sm uppercase tracking-widest transition-colors cursor-pointer ${
+                tab === t.key ? 'bg-red text-white shadow-lg shadow-red/20' : 'text-surface-dark/50 dark:text-white/50 hover:text-red'
