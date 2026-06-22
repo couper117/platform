@@ -101,4 +101,54 @@ const LeaguesPage = () => {
               <option value="MALE">Male</option>
               <option value="FEMALE">Female</option>
               <option value="MIXED">Mixed</option>
-            </select>
+            </select>
+
+            <select 
+              className="bg-transparent border-none text-[11px] font-bold uppercase tracking-widest focus:ring-0 cursor-pointer"
+              value={filters.level}
+              onChange={(e) => setFilters(prev => ({ ...prev, level: e.target.value }))}
+            >
+              <option value="">All Levels</option>
+              <option value="NATIONAL">National</option>
+              <option value="REGIONAL">Regional</option>
+              <option value="SCHOOL">School</option>
+            </select>
+          </div>
+        </ResponsiveWrapper>
+      </div>
+
+      {/* Main Content */}
+      <ResponsiveWrapper className="mt-12">
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <Skeleton type="card" count={6} />
+          </div>
+        ) : leagues?.data?.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {leagues.data.map(league => (
+              <LeagueCard key={league.id} league={league} />
+            ))}
+          </div>
+        ) : (
+          <div className="py-40 text-center space-y-6">
+            <div className="w-20 h-20 bg-surface-3 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto opacity-20">
+              <Search size={32} />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-3xl font-display uppercase tracking-tight opacity-40">No Leagues Found</h3>
+              <p className="text-sm opacity-30 uppercase tracking-widest">Try adjusting your filters to find what you're looking for.</p>
+            </div>
+            <button 
+              onClick={() => setFilters({ sportId: '', gender: '', level: '' })}
+              className="text-[10px] font-bold uppercase tracking-widest text-red hover:underline"
+            >
+              Clear All Filters
+            </button>
+          </div>
+        )}
+      </ResponsiveWrapper>
+    </div>
+  );
+};
+
+export default LeaguesPage;
