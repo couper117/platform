@@ -127,4 +127,68 @@ const LeagueDetailsPage = () => {
                 <h2 className="text-2xl font-display uppercase tracking-tight">Current Standings</h2>
                 <span className="text-[10px] font-bold uppercase tracking-widest opacity-40 italic">Last updated: Today</span>
               </div>
-              <StandingsTable standings={leagueData?.standings || []} />
+              <StandingsTable standings={leagueData?.standings || []} />
+            </div>
+          )}
+
+          {activeTab === 'stats' && (
+            <div className="space-y-8">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-display uppercase tracking-tight">Season Statistics</h2>
+                <span className="text-[10px] font-bold uppercase tracking-widest opacity-40 italic">Visual insights</span>
+              </div>
+              <LeagueStats standings={leagueData?.standings || []} topScorers={leagueData?.topScorers || []} />
+            </div>
+          )}
+
+          {activeTab === 'fixtures' && (
+            <div className="space-y-8">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-display uppercase tracking-tight">Fixtures & Results</h2>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {fixturesLoading ? (
+                  <Skeleton type="card" count={4} />
+                ) : fixtures?.data?.length > 0 ? (
+                  fixtures.data.map(f => <FixtureCard key={f.id} fixture={f} showLeague={false} />)
+                ) : (
+                  <div className="col-span-2 py-20 text-center opacity-30 font-display text-2xl uppercase tracking-widest">
+                    No fixtures scheduled
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'teams' && (
+            <div className="space-y-8">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-display uppercase tracking-tight">Participating Teams</h2>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
+                {leagueData?.teams?.map(({ team }) => (
+                  <Link 
+                    key={team.id} 
+                    to={`/teams/${team.id}`}
+                    className="bg-white dark:bg-surface-dark2 rounded-2xl border border-surface-3 dark:border-white/5 p-6 flex flex-col items-center text-center space-y-4 hover:shadow-xl transition-all hover:-translate-y-1 group"
+                  >
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-surface-2 dark:bg-white/5 flex items-center justify-center overflow-hidden border-2 border-transparent group-hover:border-red/20 transition-all">
+                      {team.logo ? (
+                        <img src={team.logo} alt={team.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="font-display text-2xl opacity-20">{team.name.charAt(0)}</span>
+                      )}
+                    </div>
+                    <span className="text-[11px] font-bold uppercase tracking-tight leading-tight line-clamp-2">{team.name}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </ResponsiveWrapper>
+    </div>
+  );
+};
+
+export default LeagueDetailsPage;
