@@ -198,4 +198,70 @@ const MatchDetailsPage = () => {
               key={t.key}
               onClick={() => setTab(t.key)}
               className={`flex-1 sm:flex-none px-6 py-2.5 rounded-lg font-display text-sm uppercase tracking-widest transition-colors cursor-pointer ${
-                tab === t.key ? 'bg-red text-white shadow-lg shadow-red/20' : 'text-surface-dark/50 dark:text-white/50 hover:text-red'
+                tab === t.key ? 'bg-red text-white shadow-lg shadow-red/20' : 'text-surface-dark/50 dark:text-white/50 hover:text-red'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Timeline */}
+        {tab === 'timeline' && (
+          <div className="max-w-3xl mx-auto">
+            <MatchEventTimeline events={live.events} homeTeamId={m.homeTeamId} />
+          </div>
+        )}
+
+        {/* Lineups */}
+        {tab === 'lineups' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[{ team: m.homeTeam, list: homeLineup }, { team: m.awayTeam, list: awayLineup }].map((side, i) => (
+              <Card key={i} className="p-6">
+                <div className="flex items-center gap-3 mb-4 pb-4 border-b border-surface-3 dark:border-white/5">
+                  <TeamBadge team={side.team} size="sm" />
+                  <h3 className="font-display text-xl uppercase tracking-tight">{side.team?.name}</h3>
+                </div>
+                {side.list.length ? (
+                  <ul className="space-y-1">
+                    {side.list.map((p) => (
+                      <li key={p.id} className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-surface-2 dark:hover:bg-white/5 transition-colors">
+                        <span className="w-7 h-7 rounded-md bg-surface-2 dark:bg-white/5 flex items-center justify-center text-[11px] font-display tabular-nums">{p.jerseyNo ?? '—'}</span>
+                        <span className="flex-1 text-sm font-medium">{p.player?.fullName || 'Player'}</span>
+                        {p.isCaptain && <span className="text-[9px] font-bold uppercase tracking-widest text-gold">C</span>}
+                        <span className="text-[10px] uppercase tracking-widest opacity-40">{p.position || ''}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <EmptyState icon={Users} title="No lineup yet" hint="Team sheet not published." className="py-10" />
+                )}
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {/* Stats */}
+        {tab === 'stats' && (
+          <Card className="p-6 sm:p-8 max-w-2xl mx-auto">
+            <div className="flex items-center justify-between mb-6 text-[10px] uppercase tracking-widest font-bold">
+              <span className="text-red truncate max-w-[40%]">{m.homeTeam?.name}</span>
+              <span className="opacity-40">Match Stats</span>
+              <span className="text-rwanda-blue truncate max-w-[40%] text-right">{m.awayTeam?.name}</span>
+            </div>
+            <div className="space-y-5">
+              <StatBar label="Goals" home={stats.goals[0]} away={stats.goals[1]} />
+              <StatBar label="Yellow Cards" home={stats.yellow[0]} away={stats.yellow[1]} />
+              <StatBar label="Red Cards" home={stats.red[0]} away={stats.red[1]} />
+            </div>
+            <p className="mt-6 text-[10px] uppercase tracking-widest opacity-30 text-center">
+              Derived live from match events
+            </p>
+          </Card>
+        )}
+      </ResponsiveWrapper>
+    </div>
+  );
+};
+
+export default MatchDetailsPage;
