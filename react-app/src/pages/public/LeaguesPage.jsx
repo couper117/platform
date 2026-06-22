@@ -49,4 +49,56 @@ const LeagueCard = ({ league }) => (
     </div>
   </Link>
 );
-
+
+const LeaguesPage = () => {
+  const [filters, setFilters] = useState({ sportId: '', gender: '', level: '' });
+  
+  const { data: sports } = useQuery({
+    queryKey: ['sports-list'],
+    queryFn: getSports,
+  });
+
+  const { data: leagues, isLoading } = useQuery({
+    queryKey: ['leagues-list', filters],
+    queryFn: () => getLeagues(filters),
+  });
+
+  return (
+    <div className="bg-surface-2 dark:bg-surface-dark min-h-screen pb-24">
+      {/* Header */}
+      <section className="bg-surface-dark py-20 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/asfalt-dark.png')] opacity-20" />
+        <ResponsiveWrapper className="relative z-10 text-center space-y-4">
+          <h1 className="text-5xl sm:text-7xl font-display text-white uppercase tracking-tighter">National <span className="text-red">Leagues</span></h1>
+          <p className="text-white/40 max-w-xl mx-auto uppercase tracking-[0.3em] text-[10px] font-bold">Discover & Track Every Competition</p>
+        </ResponsiveWrapper>
+      </section>
+
+      {/* Filters Bar */}
+      <div className="sticky top-[68px] z-40 bg-white/80 dark:bg-surface-dark2/80 backdrop-blur-xl border-b border-surface-3 dark:border-white/5 shadow-sm">
+        <ResponsiveWrapper>
+          <div className="flex overflow-x-auto scrollbar-hide py-4 space-x-4 items-center no-wrap">
+            <div className="flex-shrink-0 flex items-center space-x-2 px-4 py-2 border-r border-surface-3 dark:border-white/10 mr-2">
+              <Filter size={14} className="text-red" />
+              <span className="text-[10px] font-bold uppercase tracking-widest opacity-40">Filter</span>
+            </div>
+            
+            <select 
+              className="bg-transparent border-none text-[11px] font-bold uppercase tracking-widest focus:ring-0 cursor-pointer"
+              value={filters.sportId}
+              onChange={(e) => setFilters(prev => ({ ...prev, sportId: e.target.value }))}
+            >
+              <option value="">All Sports</option>
+              {sports?.data?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+
+            <select 
+              className="bg-transparent border-none text-[11px] font-bold uppercase tracking-widest focus:ring-0 cursor-pointer"
+              value={filters.gender}
+              onChange={(e) => setFilters(prev => ({ ...prev, gender: e.target.value }))}
+            >
+              <option value="">All Genders</option>
+              <option value="MALE">Male</option>
+              <option value="FEMALE">Female</option>
+              <option value="MIXED">Mixed</option>
+            </select>
