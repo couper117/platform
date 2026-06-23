@@ -50,4 +50,57 @@ const TeamDashboard = () => {
               <Trophy size={40} className="text-red opacity-20" />
             )}
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1">
+            <div className="flex items-center space-x-2">
+              <span className={`text-[8px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest ${team?.status === 'VERIFIED' ? 'bg-green/10 text-green border border-green/20' : 'bg-gold/10 text-gold border border-gold/20'}`}>
+                {team?.status}
+              </span>
+            </div>
+            <h1 className="text-4xl font-display uppercase tracking-tighter leading-none">{team?.name}</h1>
+            <p className="text-[10px] uppercase font-bold tracking-widest opacity-40 italic">Club Management Portal</p>
+          </div>
+        </div>
+        
+        <Link to="/team/players/new" className="bg-red text-white px-8 py-3 rounded-xl font-display text-lg uppercase tracking-widest hover:bg-red-dark transition-all shadow-xl shadow-red/20 flex items-center space-x-2">
+          <Plus size={20} />
+          <span>Register Athlete</span>
+        </Link>
+      </div>
+
+      {/* Stats Summary */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="bg-white dark:bg-surface-dark2 p-6 rounded-3xl border border-surface-3 dark:border-white/5 space-y-2">
+          <div className="flex items-center space-x-3 text-red">
+            <Users size={20} />
+            <span className="text-[10px] font-bold uppercase tracking-widest">Roster Size</span>
+          </div>
+          <p className="text-4xl font-display">{team?.players?.length || 0}</p>
+        </div>
+
+        <div className="bg-white dark:bg-surface-dark2 p-6 rounded-3xl border border-surface-3 dark:border-white/5 space-y-2">
+          <div className="flex items-center space-x-3 text-red">
+            <FileText size={20} />
+            <span className="text-[10px] font-bold uppercase tracking-widest">Missing Docs</span>
+          </div>
+          <p className="text-4xl font-display text-gold">{missingDocsCount}</p>
+        </div>
+
+        <div className="bg-white dark:bg-surface-dark2 p-6 rounded-3xl border border-surface-3 dark:border-white/5 space-y-2">
+          <div className="flex items-center space-x-3 text-red">
+            <Activity size={20} />
+            <span className="text-[10px] font-bold uppercase tracking-widest">Next Match</span>
+          </div>
+          <p className="text-4xl font-display">{daysUntilMatch}{typeof daysUntilMatch === 'number' ? 'd' : ''}</p>
+        </div>
+      </div>
+
+      {/* Alerts / Tasks */}
+      {team?.status !== 'VERIFIED' && (
+        <div className="bg-gold/10 border border-gold/20 p-6 rounded-3xl flex items-center space-x-6 text-gold animate-pulse">
+          <AlertCircle size={32} />
+          <div className="space-y-1">
+            <h3 className="font-display text-xl uppercase leading-none">Account Pending Approval</h3>
+            <p className="text-xs font-bold uppercase tracking-widest opacity-60">Upload your club certification documents to unlock all features.</p>
+          </div>
+        </div>
+      )}
