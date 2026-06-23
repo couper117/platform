@@ -30,3 +30,35 @@ export default function Register() {
   return (
     <div className="login-page">
       <div className="login-box" style={{ maxWidth: 450 }}>
+        <h1>{t('register')}</h1>
+        <p>Create your team manager account</p>
+        {error && <div className="login-error">{error}</div>}
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label className="form-label">Username</label>
+            <input type="text" className="form-input" value={form.username} onChange={e => update('username', e.target.value)} required />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Full Name</label>
+            <input type="text" className="form-input" value={form.full_name} onChange={e => update('full_name', e.target.value)} />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Email</label>
+            <input type="email" className="form-input" value={form.email} onChange={e => update('email', e.target.value)} required />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Phone</label>
+            <input type="text" className="form-input" value={form.phone} onChange={e => update('phone', e.target.value)} />
+          </div>
+          <div className="form-group">
+            <label className="form-label">{t('password')}</label>
+            <input type="password" className="form-input" value={form.password} onChange={e => update('password', e.target.value)} required minLength={8} />
+          </div>
+          <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
+            {loading ? 'Registering...' : t('register')}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
