@@ -16,3 +16,20 @@ export default function Sports() {
 
   return (
     <section className="section">
+      <div className="container">
+        <h2 className="section-title" style={{ marginBottom: '1.5rem' }}>{t('all_sports')}</h2>
+        <div className="grid-3">
+          {sports.map(s => (
+            <Link key={s.id} to={`/sports/${s.slug}`} className="sport-card">
+              <div className="sport-icon">{s.icon || '⚽'}</div>
+              <div>
+                <div className="sport-name">{s.name}</div>
+                <div className="sport-count">{s.league_count || 0} leagues · {s.team_count || 0} teams</div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
