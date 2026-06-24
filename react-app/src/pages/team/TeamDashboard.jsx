@@ -103,4 +103,55 @@ const TeamDashboard = () => {
             <p className="text-xs font-bold uppercase tracking-widest opacity-60">Upload your club certification documents to unlock all features.</p>
           </div>
         </div>
-      )}
+      )}
+
+      {/* Main Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+        {/* Roster Preview */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between border-b border-surface-3 dark:border-white/5 pb-4">
+            <h2 className="text-2xl font-display uppercase tracking-tight">Recent Athletes</h2>
+            <Link to="/team/players" className="text-[10px] font-bold uppercase tracking-widest text-red hover:underline">View Full Roster</Link>
+          </div>
+          <div className="space-y-3">
+            {team?.players?.slice(0, 5).map(player => (
+              <div key={player.id} className="bg-white dark:bg-surface-dark2 p-4 rounded-2xl border border-surface-3 dark:border-white/5 flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="w-10 h-10 rounded-full bg-surface-2 dark:bg-white/5 flex items-center justify-center overflow-hidden">
+                    {player.photo ? <img src={player.photo} className="w-full h-full object-cover" /> : <Users size={16} className="opacity-20" />}
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold uppercase tracking-tight">{player.fullName}</p>
+                    <p className="text-[10px] opacity-40 uppercase tracking-widest">{player.position} • No. {player.jerseyNumber}</p>
+                  </div>
+                </div>
+                <div className={`text-[8px] font-bold px-2 py-1 rounded-full uppercase ${player.status === 'VERIFIED' ? 'text-green' : 'text-gold'}`}>
+                  {player.status}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Schedule Preview */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between border-b border-surface-3 dark:border-white/5 pb-4">
+            <h2 className="text-2xl font-display uppercase tracking-tight">Upcoming Schedule</h2>
+            <Link to="/team/fixtures" className="text-[10px] font-bold uppercase tracking-widest text-red hover:underline">View Calendar</Link>
+          </div>
+          <div className="space-y-4">
+            {fixtures?.length > 0 ? fixtures.map(f => (
+              <FixtureCard key={f.id} fixture={f} showLeague={true} />
+            )) : (
+              <div className="py-20 text-center opacity-20 border-2 border-dashed border-surface-3 dark:border-white/5 rounded-3xl">
+                <p className="font-display text-xl uppercase tracking-widest">No Matches Scheduled</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default TeamDashboard;
