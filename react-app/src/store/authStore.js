@@ -18,4 +18,23 @@ const useAuthStore = create((set, get) => ({
 
   logout: () => {
     localStorage.removeItem('rnsp-user');
-    localStorage.removeItem('rnsp-token');
+    localStorage.removeItem('rnsp-token');
+    localStorage.removeItem('rnsp-role');
+    set({ user: null, token: null, role: 'PUBLIC', isAuthenticated: false });
+  },
+
+  refresh: async () => {
+    try {
+      const response = await axios.post(`${API_URL}/auth/refresh`, {}, { withCredentials: true });
+      const { accessToken } = response.data;
+      localStorage.setItem('rnsp-token', accessToken);
+      set({ token: accessToken, isAuthenticated: true });
+      return accessToken;
+    } catch (error) {
+      get().logout();
+      throw error;
+    }
+  },
+}));
+
+export default useAuthStore;
