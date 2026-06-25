@@ -1,0 +1,10 @@
+{
+  "name": "rwasport-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Self-contained static showcase of the RwaSport / Amashuri Games platform (no backend or database required).",
+  "scripts": {
+    "start": "node serve.js",
+    "serve": "node serve.js"
+  }
+}
