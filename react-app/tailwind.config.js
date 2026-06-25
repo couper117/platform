@@ -21,4 +21,27 @@ export default {
           2: '#F7F7F8',
           3: '#EDEDEF',
           dark: '#111120',
-          dark2: '#16162A',
+          dark2: '#16162A',
+        },
+        rwanda: {
+          blue: '#00A1DE',
+          yellow: '#FAD201',
+          green: '#20603D',
+        }
+      },
+      animation: {
+        'live-pulse': 'pulse 1.2s ease-in-out infinite',
+        'ticker': 'ticker 60s linear infinite',
+        'score-pop': 'scorePop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+      },
+      keyframes: {
+        scorePop: {
+          '0%': { transform: 'scale(1)' },
+          '50%': { transform: 'scale(1.35)', color: '#E8002D' },
+          '100%': { transform: 'scale(1)' },
+        }
+      }
+    },
+  },
+  plugins: [require("tailwindcss-animate")],
+}
