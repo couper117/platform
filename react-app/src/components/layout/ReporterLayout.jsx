@@ -13,7 +13,7 @@ const ReporterLayout = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      <main className="flex-grow bg-surface-2 overflow-x-hidden">
+      <main className="flex-grow bg-surface-2 dark:bg-surface-dark overflow-x-hidden">
         <Outlet />
       </main>
     </div>

@@ -46,12 +46,28 @@ const getLeague = async (req, res, next) => {
         teams: {
           include: { team: true },
         },
+        standings: {
+          include: { team: true },
+        },
+        topScorers: {
+          include: { player: true, team: true },
+          orderBy: [{ goals: 'desc' }, { assists: 'desc' }],
+        },
       },
     });
 
     if (!league || !league.active) {
       return res.status(404).json({ success: false, message: 'League not found' });
     }
+
+    // Sort the standings table: points, then goal difference, then goals for.
+    league.standings.sort(
+      (a, b) =>
+        b.points - a.points ||
+        (b.goalsFor - b.goalsAgainst) - (a.goalsFor - a.goalsAgainst) ||
+        b.goalsFor - a.goalsFor
+    );
+    league.standings = league.standings.map((s, i) => ({ ...s, rank: i + 1 }));
 
     res.status(200).json({ success: true, data: league });
   } catch (error) {

@@ -32,69 +32,70 @@ const HomePage = () => {
   return (
     <div className="space-y-0">
       <Seo title="Home" description="Experience the heartbeat of Rwandan sports." />
-      {/* 1. AD SPACE BELOW NAV */}
-      <AdBanner position="HOME_BANNER" />
-
-      {/* 2. HERO SECTION */}
-      <section className="relative bg-surface-dark overflow-hidden py-16 sm:py-24 lg:py-32">
+      {/* HERO — full-bleed image with dark overlay (isengesho-style) */}
+      <section className="relative min-h-[78vh] flex items-center overflow-hidden bg-surface-dark">
+        {/* Background image + overlays */}
         <div className="absolute inset-0 z-0">
-          {/* Branded gradient wash */}
-          <div className="absolute inset-0 bg-gradient-to-br from-surface-dark via-surface-dark to-surface-dark2" />
-          {/* Red glow + Rwanda-blue accent orbs */}
-          <div className="absolute -top-40 -right-32 w-[36rem] h-[36rem] rounded-full bg-red/20 blur-[120px]" />
-          <div className="absolute -bottom-40 -left-24 w-[32rem] h-[32rem] rounded-full bg-rwanda-blue/10 blur-[120px]" />
-          {/* Subtle grid pattern */}
-          <div
-            className="absolute inset-0 opacity-[0.06]"
-            style={{
-              backgroundImage:
-                'linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)',
-              backgroundSize: '56px 56px',
-              maskImage: 'radial-gradient(ellipse at center, black 30%, transparent 75%)',
-              WebkitMaskImage: 'radial-gradient(ellipse at center, black 30%, transparent 75%)',
-            }}
+          <img
+            src="https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=1920&q=80"
+            alt=""
+            className="w-full h-full object-cover object-center"
           />
+          {/* Dark wash for legibility */}
+          <div className="absolute inset-0 bg-gradient-to-t from-surface-dark via-surface-dark/85 to-surface-dark/40" />
+          <div className="absolute inset-0 bg-gradient-to-r from-surface-dark/95 via-surface-dark/55 to-transparent" />
+          {/* Red glow accent */}
+          <div className="absolute -top-32 -right-24 w-[36rem] h-[36rem] rounded-full bg-red/20 blur-[130px]" />
         </div>
 
-        <ResponsiveWrapper className="relative z-20">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-center">
+        <ResponsiveWrapper className="relative z-20 py-16 sm:py-20 lg:py-24">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-end">
             {/* Left: Content */}
-            <div className="lg:col-span-7 space-y-8 animate-in fade-in slide-in-from-left-4 duration-1000">
-              <div className="inline-flex items-center space-x-2 bg-red/10 border border-red/20 px-4 py-1.5 rounded-full">
+            <div className="lg:col-span-7 space-y-6 animate-in fade-in slide-in-from-left-4 duration-1000">
+              <div className="inline-flex items-center gap-2 bg-red/15 border border-red/30 px-4 py-1.5 rounded-full backdrop-blur-sm">
                 <span className="w-2 h-2 bg-red rounded-full animate-pulse" />
-                <span className="text-[10px] font-bold text-red uppercase tracking-widest italic">RwaSport Official</span>
+                <span className="text-[10px] font-bold text-red uppercase tracking-[0.3em] italic">RwaSport Official</span>
               </div>
-              
-              <h1 className="text-6xl sm:text-8xl md:text-9xl font-display text-white leading-[0.85] tracking-tighter uppercase whitespace-pre-line">
+
+              <h1 className="text-5xl sm:text-6xl md:text-7xl xl:text-8xl font-display text-white leading-[0.85] tracking-tighter uppercase whitespace-pre-line drop-shadow-2xl">
                 {t('home.hero_title')}
               </h1>
 
-              <p className="text-lg sm:text-xl text-white/50 max-w-xl font-light leading-relaxed">
+              <p className="text-lg sm:text-xl text-white/70 max-w-xl font-light leading-relaxed">
                 {t('home.hero_subtitle')}
               </p>
 
-              <div className="flex flex-col sm:flex-row items-center gap-4 pt-4">
-                <Link to="/leagues" className="w-full sm:w-auto bg-red text-white font-display text-xl uppercase tracking-widest px-12 py-4 rounded-xl hover:bg-red-dark transition-all hover:scale-105 active:scale-95 shadow-2xl shadow-red/40 flex items-center justify-center">
-                  {t('home.explore_leagues')}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
+                <Link to="/leagues" className="bg-red text-white font-display text-xl uppercase tracking-widest px-10 py-4 rounded-xl hover:bg-red-dark transition-all hover:scale-105 active:scale-95 shadow-2xl shadow-red/40 flex items-center justify-center gap-2">
+                  <Trophy size={20} /> {t('home.explore_leagues')}
+                </Link>
+                <Link to="/fixtures" className="border border-white/30 text-white font-display text-xl uppercase tracking-widest px-10 py-4 rounded-xl hover:bg-white/10 hover:border-white/50 transition-all flex items-center justify-center gap-2 backdrop-blur-sm">
+                  <Play size={18} /> {t('nav.fixtures')}
                 </Link>
               </div>
             </div>
 
-            {/* Right: Integrated Matches */}
-            <div className="lg:col-span-5 space-y-6 animate-in fade-in slide-in-from-right-4 duration-1000 delay-300">
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/40 border-b border-white/10 pb-3">Match Spotlight</h3>
-
-              <div className="space-y-4">
+            {/* Right: Match spotlight card overlay */}
+            <div className="lg:col-span-5 animate-in fade-in slide-in-from-right-4 duration-1000 delay-300">
+              <div className="bg-surface-dark2/80 backdrop-blur-xl border border-white/10 rounded-3xl p-5 shadow-2xl">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-[10px] font-bold uppercase tracking-[0.35em] text-white/50">Match Spotlight</h3>
+                  {liveMatches.length > 0 && (
+                    <span className="flex items-center gap-1.5 text-[9px] font-bold text-red uppercase tracking-widest">
+                      <span className="w-1.5 h-1.5 bg-red rounded-full animate-pulse" /> Live
+                    </span>
+                  )}
+                </div>
                 {fixturesLoading ? (
                   <Skeleton type="card" count={1} className="!bg-white/5" />
                 ) : heroMatches.length > 0 ? (
                   heroMatches.map(fixture => (
-                    <div key={fixture.id} className="transform transition-all hover:scale-[1.02] active:scale-[0.98]">
+                    <div key={fixture.id} className="transform transition-all hover:scale-[1.02]">
                       <FixtureCard fixture={fixture} showLeague={true} />
                     </div>
                   ))
                 ) : (
-                  <div className="py-12 bg-white/5 rounded-3xl border border-white/10 flex flex-col items-center justify-center text-center space-y-3 opacity-30">
+                  <div className="py-12 flex flex-col items-center justify-center text-center gap-3 text-white/30">
                     <Activity size={32} />
                     <span className="font-display text-xl uppercase tracking-widest">No Active Matches</span>
                   </div>
@@ -104,6 +105,9 @@ const HomePage = () => {
           </div>
         </ResponsiveWrapper>
       </section>
+
+      {/* Ad space below hero */}
+      <AdBanner position="HOME_BANNER" />
 
       {/* 3. SECONDARY AD SPOTLIGHT */}
       <section className="py-12 bg-surface-2 dark:bg-surface-dark">

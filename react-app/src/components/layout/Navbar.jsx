@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { Menu, X, User, LogOut, ChevronRight, Languages, Home, Search } from 'lucide-react';
+import { Menu, X, LogOut, ChevronRight, ChevronDown, Languages, Home, Search, UserPlus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import useAuthStore from '../../store/authStore';
 import ThemeToggle from '../ui/ThemeToggle';
 import { useCommandPalette } from '../../context/CommandPaletteContext';
+import { roleHome } from '../../utils/roleHome';
+import LiveScoreTicker from '../home/LiveScoreTicker';
 
 const Navbar = () => {
   const { t, i18n } = useTranslation();
   const { isAuthenticated, user, logout, role } = useAuthStore();
+  const displayName = user?.fullName || user?.username || 'User';
+  const dashboardPath = roleHome(role);
   const { openPalette } = useCommandPalette();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
@@ -37,25 +41,18 @@ const Navbar = () => {
 
   return (
     <nav className="bg-surface-dark text-white sticky top-0 z-[100] shadow-xl border-b border-white/5">
-      <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        {/* Logo */}
-        <Link to="/" className="flex items-center space-x-2 group">
-          <div className="bg-red p-1.5 rounded-lg transform group-hover:rotate-12 transition-transform">
-            <span className="text-xl font-display leading-none text-white uppercase tracking-tighter">RwaSport</span>
-          </div>
-          <span className="hidden sm:inline text-[10px] border-l border-white/20 pl-2 opacity-50 uppercase tracking-[0.2em] font-medium">
-            Rwanda National <br/> Sports Platform
-          </span>
-        </Link>
+      {/* Top ribbon — live scores (isengesho-style scrolling strip) */}
+      <LiveScoreTicker />
 
-        {/* Desktop Navigation */}
-        <div className="hidden lg:flex space-x-8 items-center font-display text-[13px] uppercase tracking-widest">
+      <div className="relative container mx-auto px-4 py-3 flex items-center justify-between gap-4 lg:grid lg:grid-cols-[1fr_auto_1fr]">
+        {/* LEFT: Desktop Navigation */}
+        <div className="hidden lg:flex items-center gap-4 xl:gap-6 font-display text-[13px] uppercase tracking-widest lg:justify-self-start">
           {navLinks.map(link => (
-            <NavLink 
-              key={link.to} 
-              to={link.to} 
-              className={({isActive}) => 
-                `transition-all hover:text-red flex items-center space-x-1 ${isActive ? 'text-red' : link.highlight ? 'text-rwanda-yellow' : 'text-white/70'}`
+            <NavLink
+              key={link.to}
+              to={link.to}
+              className={({isActive}) =>
+                `relative whitespace-nowrap transition-all hover:text-red ${isActive ? 'text-red' : link.highlight ? 'text-rwanda-yellow' : 'text-white/70'}`
               }
             >
               {link.label}
@@ -63,23 +60,19 @@ const Navbar = () => {
           ))}
         </div>
 
-        {/* Auth & Language & Mobile Toggle */}
-        <div className="flex items-center space-x-2 sm:space-x-3">
-          {/* Search trigger — desktop pill */}
-          <button
-            onClick={openPalette}
-            className="hidden md:flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-full bg-white/5 border border-white/10 text-white/40 hover:text-white hover:border-white/20 transition-colors cursor-pointer"
-            aria-label="Search"
-          >
-            <Search size={14} />
-            <span className="text-[10px] uppercase tracking-widest">Search</span>
-            <kbd className="text-[9px] font-bold bg-white/10 rounded px-1.5 py-0.5 leading-none">⌘K</kbd>
-          </button>
+        {/* CENTER: Logo (compact centered mark on desktop like isengesho) */}
+        <Link to="/" className="flex items-center gap-2 group lg:justify-self-center">
+          <div className="bg-red p-1.5 rounded-lg transform group-hover:rotate-6 transition-transform shadow-lg shadow-red/30">
+            <span className="text-xl font-display leading-none text-white uppercase tracking-tighter">RwaSport</span>
+          </div>
+        </Link>
 
-          {/* Search trigger — mobile icon */}
+        {/* RIGHT: Actions */}
+        <div className="flex items-center gap-1.5 sm:gap-2 lg:justify-self-end">
+          {/* Search trigger */}
           <button
             onClick={openPalette}
-            className="md:hidden p-2 rounded-full text-white/60 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+            className="p-2 rounded-full text-white/50 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
             aria-label="Search"
           >
             <Search size={18} />
@@ -88,17 +81,18 @@ const Navbar = () => {
           {/* Theme Toggle */}
           <ThemeToggle />
 
-          {/* Language Switcher Desktop */}
+          {/* Language Switcher (isengesho-style pill) */}
           <div className="relative hidden sm:block">
-            <button 
+            <button
               onClick={() => setIsLangOpen(!isLangOpen)}
-              className="p-2 hover:bg-white/5 rounded-full text-white/60 hover:text-white transition-all flex items-center space-x-1"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-white/15 text-white/70 hover:text-white hover:border-white/30 transition-all"
             >
-              <Languages size={18} />
-              <span className="text-[10px] font-bold uppercase">{i18n.language}</span>
+              <Languages size={15} />
+              <span className="text-[10px] font-bold uppercase tracking-wider">{i18n.language}</span>
+              <ChevronDown size={12} className="opacity-60" />
             </button>
             {isLangOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-surface-dark border border-white/10 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+              <div className="absolute right-0 mt-2 w-48 bg-surface-dark border border-white/10 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 z-50">
                 {languages.map(lang => (
                   <button
                     key={lang.code}
@@ -112,19 +106,20 @@ const Navbar = () => {
             )}
           </div>
 
-          <div className="hidden md:flex items-center space-x-3">
+          {/* Auth + primary CTA */}
+          <div className="hidden md:flex items-center gap-2">
             {isAuthenticated ? (
-              <div className="flex items-center space-x-3 bg-white/5 pl-1 pr-1 py-1 rounded-full border border-white/10">
-                <Link 
-                  to={role === 'SUPERADMIN' || role === 'LEAGUE_ADMIN' ? '/admin/dashboard' : '/team/dashboard'}
-                  className="flex items-center space-x-2 px-3 py-1 hover:bg-white/10 rounded-full transition-colors"
+              <div className="flex items-center gap-2 bg-white/5 pl-1 pr-1 py-1 rounded-full border border-white/10">
+                <Link
+                  to={dashboardPath}
+                  className="flex items-center gap-2 px-3 py-1 hover:bg-white/10 rounded-full transition-colors"
                 >
                   <div className="w-6 h-6 bg-red rounded-full flex items-center justify-center text-[10px] font-bold uppercase">
-                    {user.fullName.charAt(0)}
+                    {displayName.charAt(0)}
                   </div>
-                  <span className="text-[10px] uppercase font-bold tracking-tighter">{user.fullName.split(' ')[0]}</span>
+                  <span className="text-[10px] uppercase font-bold tracking-tighter">{displayName.split(' ')[0]}</span>
                 </Link>
-                <button 
+                <button
                   onClick={logout}
                   className="p-1.5 text-white/40 hover:text-red transition-colors"
                   title={t('nav.logout')}
@@ -133,14 +128,23 @@ const Navbar = () => {
                 </button>
               </div>
             ) : (
-              <Link to="/auth/login" className="bg-red text-white font-display text-sm uppercase tracking-widest px-6 py-2 rounded-lg hover:bg-red-dark transition-all hover:scale-105 active:scale-95 shadow-lg shadow-red/20">
-                {t('nav.login')}
-              </Link>
+              <>
+                <Link to="/auth/login" className="text-[11px] font-bold uppercase tracking-widest text-white/70 hover:text-white transition-colors px-2">
+                  {t('nav.login')}
+                </Link>
+                <Link
+                  to="/auth/team/register"
+                  className="flex items-center gap-2 bg-red text-white font-display text-sm uppercase tracking-widest px-5 py-2 rounded-lg hover:bg-red-dark transition-all hover:scale-105 active:scale-95 shadow-lg shadow-red/20"
+                >
+                  <UserPlus size={16} />
+                  <span>Register Team</span>
+                </Link>
+              </>
             )}
           </div>
 
           {/* Mobile Menu Button */}
-          <button 
+          <button
             className="lg:hidden p-2 text-white/80 hover:text-white transition-colors"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
@@ -197,15 +201,15 @@ const Navbar = () => {
                 <div className="space-y-4">
                   <div className="flex items-center space-x-4 p-4 bg-white/5 rounded-xl border border-white/10">
                     <div className="w-12 h-12 bg-red rounded-full flex items-center justify-center text-xl font-bold uppercase">
-                      {user.fullName.charAt(0)}
+                      {displayName.charAt(0)}
                     </div>
                     <div>
-                      <p className="font-display text-xl leading-none">{user.fullName}</p>
-                      <p className="text-[10px] uppercase tracking-widest text-white/40">{role.replace('_', ' ')}</p>
+                      <p className="font-display text-xl leading-none">{displayName}</p>
+                      <p className="text-[10px] uppercase tracking-widest text-white/40">{(role || '').replace('_', ' ')}</p>
                     </div>
                   </div>
-                  <Link 
-                    to={role === 'SUPERADMIN' || role === 'LEAGUE_ADMIN' ? '/admin/dashboard' : '/team/dashboard'}
+                  <Link
+                    to={dashboardPath}
                     onClick={() => setIsMenuOpen(false)}
                     className="flex items-center justify-center w-full bg-white/5 py-4 rounded-xl font-display text-lg uppercase tracking-widest border border-white/10"
                   >

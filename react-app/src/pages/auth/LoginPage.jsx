@@ -7,6 +7,7 @@ import { LogIn, Loader2, AlertCircle, ChevronLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import useAuthStore from '../../store/authStore';
 import apiClient from '../../api/client';
+import { roleHome } from '../../utils/roleHome';
 
 const loginSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),
@@ -31,12 +32,8 @@ const LoginPage = () => {
       const response = await apiClient.post('/auth/login', data);
       const { user, accessToken } = response.data;
       setAuth(user, accessToken);
-      
-      if (user.role === 'SUPERADMIN' || user.role === 'LEAGUE_ADMIN') {
-        navigate('/admin/dashboard');
-      } else {
-        navigate('/team/dashboard');
-      }
+
+      navigate(roleHome(user.role));
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid username or password');
     } finally {
