@@ -23,16 +23,35 @@ const envSchema = z.object({
   FRONTEND_URL: z.string().url().default('http://localhost:5173'),
 });
 
-const env = envSchema.safeParse(process.env);
+const CRITICAL_FIELDS = ['DATABASE_URL', 'JWT_SECRET'];
 
-if (!env.success) {
-  console.error('❌ Invalid environment variables:', JSON.stringify(env.error.format(), null, 2));
-  if (process.env.NODE_ENV === 'production') {
-    // Only exit if critical vars like DATABASE_URL or JWT_SECRET are missing
-    const criticalFields = ['DATABASE_URL', 'JWT_SECRET'];
-    const hasMissingCritical = criticalFields.some(field => !process.env[field]);
-    if (hasMissingCritical) process.exit(1);
+const parsed = envSchema.safeParse(process.env);
+
+const resolve = () => {
+  if (parsed.success) return parsed.data;
+
+  console.error('❌ Invalid environment variables:', JSON.stringify(parsed.error.format(), null, 2));
+
+  const brokenCritical = parsed.error.issues
+    .map((issue) => issue.path[0])
+    .filter((field) => CRITICAL_FIELDS.includes(field));
+
+  if (brokenCritical.length > 0) {
+    console.error(
+      `❌ Cannot start: ${[...new Set(brokenCritical)].join(', ')} is missing or invalid. ` +
+        'Copy .env.example to .env and set a DATABASE_URL and a JWT_SECRET of at least 32 characters.'
+    );
+    process.exit(1);
   }
-}
 
-module.exports = env.success ? env.data : process.env;
+  const cleaned = { ...process.env };
+  parsed.error.issues.forEach((issue) => delete cleaned[issue.path[0]]);
+
+  const reparsed = envSchema.safeParse(cleaned);
+  if (!reparsed.success) process.exit(1);
+
+  console.warn('⚠️  Falling back to schema defaults for the invalid optional variables above.');
+  return reparsed.data;
+};
+
+module.exports = resolve();
