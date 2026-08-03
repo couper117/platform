@@ -84,16 +84,16 @@ export default function useLiveMatch(fixtureId, initial) {
       if (String(u.fixtureId) === String(fixtureId)) mergeScore(u);
     });
 
-    // Dedicated per-match channel
-    const matchChan = pusher.subscribe(`match-${fixtureId}`);
-    matchChan.bind('scoreUpdate', mergeScore);
-    matchChan.bind('statusUpdate', mergeScore);
-    matchChan.bind('event', addEvent);
+    // Dedicated per-match channel — names must match the backend emitter
+    // (realtime.service.js emits on `fixture-${id}` with matchUpdate/matchEvent).
+    const matchChan = pusher.subscribe(`fixture-${fixtureId}`);
+    matchChan.bind('matchUpdate', mergeScore);
+    matchChan.bind('matchEvent', addEvent);
 
     return () => {
       try {
         pusher.unsubscribe('live-scores');
-        pusher.unsubscribe(`match-${fixtureId}`);
+        pusher.unsubscribe(`fixture-${fixtureId}`);
         pusher.disconnect();
       } catch {
         /* noop */

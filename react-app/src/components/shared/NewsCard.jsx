@@ -5,8 +5,8 @@ import { format } from 'date-fns';
 
 const NewsCard = ({ article }) => {
   return (
-    <Link 
-      to={`/news/${article.slug}`}
+    <Link
+      to={`/news/${article.slug || article.id}`}
       className="group flex flex-col bg-white dark:bg-surface-dark2 rounded-2xl border border-surface-3 dark:border-white/5 overflow-hidden transition-all hover:shadow-2xl hover:-translate-y-1"
     >
       <div className="relative aspect-[16/9] overflow-hidden">
@@ -33,7 +33,7 @@ const NewsCard = ({ article }) => {
         <div className="flex items-center space-x-3 text-[10px] uppercase font-bold tracking-widest opacity-40 mb-3">
           <div className="flex items-center space-x-1">
             <Calendar size={12} />
-            <span>{format(new Date(article.createdAt), 'dd MMM yyyy')}</span>
+            <span>{article.createdAt ? format(new Date(article.createdAt), 'dd MMM yyyy') : ''}</span>
           </div>
           <span>•</span>
           <div className="flex items-center space-x-1">

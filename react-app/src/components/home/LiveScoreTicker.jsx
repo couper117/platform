@@ -64,13 +64,13 @@ const LiveScoreTicker = () => {
             className="inline-flex items-center align-middle space-x-4 px-8 border-r border-white/10 group transition-all text-white"
           >
             <div className="flex items-center space-x-3">
-              <span className="font-display text-sm uppercase tracking-tight text-white/70 group-hover:text-white transition-colors">{score.homeTeam.shortName || score.homeTeam.name}</span>
+              <span className="font-display text-sm uppercase tracking-tight text-white/70 group-hover:text-white transition-colors">{score.homeTeam?.shortName || score.homeTeam?.name || 'TBD'}</span>
               <div className="bg-red px-2.5 py-0.5 rounded flex items-center space-x-1.5">
                 <span className="font-display text-sm text-white animate-score-pop">{score.homeScore}</span>
                 <span className="text-[10px] text-white/50">:</span>
                 <span className="font-display text-sm text-white animate-score-pop">{score.awayScore}</span>
               </div>
-              <span className="font-display text-sm uppercase tracking-tight text-white/70 group-hover:text-white transition-colors">{score.awayTeam.shortName || score.awayTeam.name}</span>
+              <span className="font-display text-sm uppercase tracking-tight text-white/70 group-hover:text-white transition-colors">{score.awayTeam?.shortName || score.awayTeam?.name || 'TBD'}</span>
             </div>
 
             <span className="text-[10px] font-bold text-white/40 uppercase tracking-tighter">

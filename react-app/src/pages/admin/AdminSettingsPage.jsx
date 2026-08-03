@@ -24,7 +24,7 @@ const AdminSettingsPage = () => {
       await apiClient.put('/settings', payload);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-settings']);
+      queryClient.invalidateQueries({ queryKey: ['admin-settings'] });
       alert('System settings updated successfully!');
     }
   });

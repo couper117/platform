@@ -25,7 +25,7 @@ const LiveReportingPage = () => {
       await apiClient.post(`/fixtures/${selectedFixture.id}/events`, eventData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['match-details', selectedFixture.id]);
+      queryClient.invalidateQueries({ queryKey: ['match-details', selectedFixture.id] });
       alert('Event logged successfully!');
     }
   });

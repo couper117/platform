@@ -191,31 +191,37 @@ const refresh = async (req, res, next) => {
 // @route   POST /api/v1/auth/logout
 // @access  Public
 const logout = async (req, res, next) => {
-  const token = req.cookies.refreshToken;
-
-  if (token) {
-    await prisma.refreshToken.deleteMany({ where: { token } });
+  try {
+    const token = req.cookies.refreshToken;
+    if (token) {
+      await prisma.refreshToken.deleteMany({ where: { token } });
+    }
+    res.clearCookie('refreshToken');
+    res.status(200).json({ success: true, message: 'Logged out successfully' });
+  } catch (error) {
+    next(error);
   }
-
-  res.clearCookie('refreshToken');
-  res.status(200).json({ success: true, message: 'Logged out successfully' });
 };
 
 // @desc    Get current user profile
 // @route   GET /api/v1/auth/me
 // @access  Private
 const getMe = async (req, res, next) => {
-  const user = await prisma.user.findUnique({
-    where: { id: req.user.id },
-    include: { managedTeam: true },
-  });
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      include: { managedTeam: true },
+    });
 
-  user.password = undefined;
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
 
-  res.status(200).json({
-    success: true,
-    user,
-  });
+    user.password = undefined;
+    res.status(200).json({ success: true, user });
+  } catch (error) {
+    next(error);
+  }
 };
 
 module.exports = {

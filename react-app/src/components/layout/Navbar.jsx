@@ -85,6 +85,9 @@ const Navbar = () => {
           <div className="relative hidden sm:block">
             <button
               onClick={() => setIsLangOpen(!isLangOpen)}
+              aria-label={t('nav.language', 'Language')}
+              aria-haspopup="menu"
+              aria-expanded={isLangOpen}
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-white/15 text-white/70 hover:text-white hover:border-white/30 transition-all"
             >
               <Languages size={15} />
@@ -97,6 +100,7 @@ const Navbar = () => {
                   <button
                     key={lang.code}
                     onClick={() => changeLanguage(lang.code)}
+                    aria-current={i18n.language === lang.code ? 'true' : undefined}
                     className={`w-full text-left px-4 py-3 text-xs font-bold uppercase tracking-widest hover:bg-white/5 transition-colors ${i18n.language === lang.code ? 'text-red' : 'text-white/60'}`}
                   >
                     {lang.label}
@@ -147,6 +151,8 @@ const Navbar = () => {
           <button
             className="lg:hidden p-2 text-white/80 hover:text-white transition-colors"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={isMenuOpen}
           >
             {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
           </button>

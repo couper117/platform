@@ -7,7 +7,9 @@ const FixtureCard = ({ fixture, showLeague = true }) => {
   const isLive = fixture.status === 'LIVE';
   const isCompleted = fixture.status === 'COMPLETED';
   
-  const getInitials = (name) => name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  const getInitials = (name = '') => (name || '?').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  const homeTeam = fixture.homeTeam || {};
+  const awayTeam = fixture.awayTeam || {};
 
   return (
     <Link 
@@ -35,13 +37,13 @@ const FixtureCard = ({ fixture, showLeague = true }) => {
           {/* Home Team */}
           <div className="flex-1 flex flex-col items-center text-center space-y-2">
             <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-surface-3 dark:bg-white/10 flex items-center justify-center overflow-hidden border-2 border-transparent group-hover:border-red/20 transition-all">
-              {fixture.homeTeam.logo ? (
-                <img src={fixture.homeTeam.logo} alt={fixture.homeTeam.name} className="w-full h-full object-cover" />
+              {homeTeam.logo ? (
+                <img src={homeTeam.logo} alt={homeTeam.name} className="w-full h-full object-cover" />
               ) : (
-                <span className="font-display text-xl sm:text-2xl opacity-40">{getInitials(fixture.homeTeam.name)}</span>
+                <span className="font-display text-xl sm:text-2xl opacity-40">{getInitials(homeTeam.name)}</span>
               )}
             </div>
-            <h3 className="font-display text-xs sm:text-sm uppercase tracking-tight line-clamp-1">{fixture.homeTeam.name}</h3>
+            <h3 className="font-display text-xs sm:text-sm uppercase tracking-tight line-clamp-1">{homeTeam.name}</h3>
           </div>
 
           {/* Score / Time */}
@@ -73,13 +75,13 @@ const FixtureCard = ({ fixture, showLeague = true }) => {
           {/* Away Team */}
           <div className="flex-1 flex flex-col items-center text-center space-y-2">
             <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-surface-3 dark:bg-white/10 flex items-center justify-center overflow-hidden border-2 border-transparent group-hover:border-red/20 transition-all">
-              {fixture.awayTeam.logo ? (
-                <img src={fixture.awayTeam.logo} alt={fixture.awayTeam.name} className="w-full h-full object-cover" />
+              {awayTeam.logo ? (
+                <img src={awayTeam.logo} alt={awayTeam.name} className="w-full h-full object-cover" />
               ) : (
-                <span className="font-display text-xl sm:text-2xl opacity-40">{getInitials(fixture.awayTeam.name)}</span>
+                <span className="font-display text-xl sm:text-2xl opacity-40">{getInitials(awayTeam.name)}</span>
               )}
             </div>
-            <h3 className="font-display text-xs sm:text-sm uppercase tracking-tight line-clamp-1">{fixture.awayTeam.name}</h3>
+            <h3 className="font-display text-xs sm:text-sm uppercase tracking-tight line-clamp-1">{awayTeam.name}</h3>
           </div>
         </div>
 

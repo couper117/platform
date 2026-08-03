@@ -22,7 +22,7 @@ const AdminPlayersPage = () => {
       await apiClient.delete(`/players/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-players']);
+      queryClient.invalidateQueries({ queryKey: ['admin-players'] });
       alert('Player removed successfully');
     }
   });

@@ -24,7 +24,7 @@ const AdminAdsPage = () => {
       await apiClient.post('/ads', data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-ads']);
+      queryClient.invalidateQueries({ queryKey: ['admin-ads'] });
       setIsModalOpen(false);
       alert('Ad banner created successfully!');
     }
@@ -35,7 +35,7 @@ const AdminAdsPage = () => {
       await apiClient.delete(`/ads/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-ads']);
+      queryClient.invalidateQueries({ queryKey: ['admin-ads'] });
       alert('Ad banner deleted!');
     }
   });

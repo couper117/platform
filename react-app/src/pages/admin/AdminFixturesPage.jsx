@@ -46,7 +46,7 @@ const AdminFixturesPage = () => {
       await apiClient.post('/fixtures', data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-fixtures']);
+      queryClient.invalidateQueries({ queryKey: ['admin-fixtures'] });
       setIsModalOpen(false);
       reset();
       alert('Match scheduled successfully!');
@@ -58,7 +58,7 @@ const AdminFixturesPage = () => {
       await apiClient.delete(`/fixtures/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-fixtures']);
+      queryClient.invalidateQueries({ queryKey: ['admin-fixtures'] });
       alert('Fixture deleted successfully');
     }
   });

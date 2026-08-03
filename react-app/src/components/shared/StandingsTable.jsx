@@ -3,7 +3,7 @@ import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 const StandingsTable = ({ standings = [] }) => {
-  const getInitials = (name) => name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  const getInitials = (name = '') => (name || '?').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 
   const FormPill = ({ result }) => {
     const colors = {
@@ -39,7 +39,7 @@ const StandingsTable = ({ standings = [] }) => {
           </thead>
           <tbody className="divide-y divide-surface-3 dark:divide-white/5">
             {standings.length > 0 ? standings.map((s, index) => (
-              <tr key={s.id} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors group">
+              <tr key={s.id ?? index} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors group">
                 <td className="px-4 py-4 text-center">
                   <span className={clsx(
                     "font-display text-lg",
@@ -51,13 +51,13 @@ const StandingsTable = ({ standings = [] }) => {
                 <td className="px-4 py-4 sticky left-0 bg-white dark:bg-surface-dark2 z-10 group-hover:bg-surface-2 dark:group-hover:bg-[#1A1A2E] transition-colors">
                   <div className="flex items-center space-x-3">
                     <div className="w-8 h-8 rounded-full bg-surface-3 dark:bg-white/10 flex items-center justify-center overflow-hidden flex-shrink-0">
-                      {s.team.logo ? (
-                        <img src={s.team.logo} alt={s.team.name} className="w-full h-full object-cover" />
+                      {s.team?.logo ? (
+                        <img src={s.team.logo} alt={s.team?.name} className="w-full h-full object-cover" />
                       ) : (
-                        <span className="text-[10px] font-bold opacity-30">{getInitials(s.team.name)}</span>
+                        <span className="text-[10px] font-bold opacity-30">{getInitials(s.team?.name)}</span>
                       )}
                     </div>
-                    <span className="font-display uppercase tracking-tight text-sm whitespace-nowrap">{s.team.name}</span>
+                    <span className="font-display uppercase tracking-tight text-sm whitespace-nowrap">{s.team?.name || 'Unknown'}</span>
                   </div>
                 </td>
                 <td className="px-4 py-4 text-center font-medium opacity-60">{s.played}</td>
@@ -70,7 +70,7 @@ const StandingsTable = ({ standings = [] }) => {
                 <td className="px-4 py-4 text-center font-display text-lg text-red">{s.points}</td>
                 <td className="px-4 py-4">
                   <div className="flex space-x-1">
-                    {s.form.split('').map((r, i) => <FormPill key={i} result={r} />)}
+                    {(s.form || '').split('').map((r, i) => <FormPill key={i} result={r} />)}
                   </div>
                 </td>
               </tr>

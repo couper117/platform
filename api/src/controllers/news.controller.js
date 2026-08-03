@@ -35,8 +35,12 @@ const getNews = async (req, res, next) => {
 // @access  Public
 const getArticle = async (req, res, next) => {
   try {
-    const news = await prisma.news.findUnique({
-      where: { slug: req.params.slug },
+    // News.slug is not @unique, so findUnique is invalid — use findFirst and
+    // also accept a numeric id fallback (NewsCard links to slug || id).
+    const key = req.params.slug;
+    const idNum = parseInt(key, 10);
+    const news = await prisma.news.findFirst({
+      where: { OR: [{ slug: key }, ...(Number.isInteger(idNum) ? [{ id: idNum }] : [])] },
       include: {
         author: { select: { fullName: true } },
         league: true,

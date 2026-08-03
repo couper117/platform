@@ -10,7 +10,12 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "seed": "node prisma/seed.js",
-    "vercel-build": "npx prisma generate"
+    "seed:extra": "node prisma/seed-extra.js",
+    "seed:all": "node prisma/seed.js && node prisma/seed-extra.js",
+    "vercel-build": "npx prisma generate && npx prisma migrate deploy"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js && node prisma/seed-extra.js"
   },
   "dependencies": {
     "@prisma/client": "5.22.0",

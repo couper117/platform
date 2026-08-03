@@ -26,7 +26,7 @@ const AkcAdminDashboard = () => {
     },
     onSuccess: (data) => {
       setImportResults(data.data);
-      queryClient.invalidateQueries(['admin-akc-schools']);
+      queryClient.invalidateQueries({ queryKey: ['admin-akc-schools'] });
     }
   });
 

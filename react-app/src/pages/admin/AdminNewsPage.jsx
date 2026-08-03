@@ -24,7 +24,7 @@ const AdminNewsPage = () => {
       await apiClient.delete(`/news/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-news']);
+      queryClient.invalidateQueries({ queryKey: ['admin-news'] });
       alert('Article deleted');
     }
   });

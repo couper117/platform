@@ -22,7 +22,7 @@ const AdminTeamsPage = () => {
       await apiClient.put(`/teams/${id}/status`, { status });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-teams']);
+      queryClient.invalidateQueries({ queryKey: ['admin-teams'] });
     },
     onError: (err) => {
       alert(err.response?.data?.message || 'Failed to update team status');
@@ -34,7 +34,7 @@ const AdminTeamsPage = () => {
       await apiClient.delete(`/teams/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-teams']);
+      queryClient.invalidateQueries({ queryKey: ['admin-teams'] });
       alert('Team deleted successfully');
     },
     onError: (err) => {

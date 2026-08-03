@@ -20,6 +20,10 @@ const LeaguesPage = lazy(() => import('./pages/public/LeaguesPage'));
 const LeagueDetailsPage = lazy(() => import('./pages/public/LeagueDetailsPage'));
 const FixturesPage = lazy(() => import('./pages/public/FixturesPage'));
 const MatchDetailsPage = lazy(() => import('./pages/public/MatchDetailsPage'));
+const NewsListPage = lazy(() => import('./pages/public/NewsListPage'));
+const NewsArticlePage = lazy(() => import('./pages/public/NewsArticlePage'));
+const ContactPage = lazy(() => import('./pages/public/ContactPage'));
+const LegalPage = lazy(() => import('./pages/public/LegalPage'));
 
 // Auth Pages
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
@@ -120,8 +124,8 @@ function App() {
               <Route path="/leagues/:id" element={<LeagueDetailsPage />} />
               <Route path="/fixtures" element={<FixturesPage />} />
               <Route path="/results" element={<FixturesPage />} />
-              <Route path="/news" element={<div className="p-20 font-display text-3xl text-center opacity-20 py-40 italic">RwaSport News Center</div>} />
-              <Route path="/news/:slug" element={<div className="p-20 font-display text-3xl">Article Page</div>} />
+              <Route path="/news" element={<NewsListPage />} />
+              <Route path="/news/:slug" element={<NewsArticlePage />} />
               <Route path="/matches/:id" element={<MatchDetailsPage />} />
               
               {/* Amashuri Games — Rwanda Inter-School Sports (umbrella incl. Kagame Cup) */}
@@ -142,7 +146,9 @@ function App() {
               <Route path="/akc3/results" element={<Navigate to="/amashuri/results" replace />} />
               <Route path="/akc3/standings" element={<Navigate to="/amashuri/standings" replace />} />
               
-              <Route path="/contact" element={<div className="p-20 font-display text-3xl text-center opacity-20 py-40 italic">Support Center</div>} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/privacy" element={<LegalPage type="privacy" />} />
+              <Route path="/terms" element={<LegalPage type="terms" />} />
             </Route>
 
             {/* Auth Routes */}

@@ -39,7 +39,7 @@ const AdminLeaguesPage = () => {
       await apiClient.post('/leagues', data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-leagues']);
+      queryClient.invalidateQueries({ queryKey: ['admin-leagues'] });
       setIsModalOpen(false);
       reset();
       alert('League created successfully!');
@@ -54,7 +54,7 @@ const AdminLeaguesPage = () => {
       await apiClient.delete(`/leagues/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-leagues']);
+      queryClient.invalidateQueries({ queryKey: ['admin-leagues'] });
       alert('League deleted successfully');
     }
   });

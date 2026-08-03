@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Activity } from 'lucide-react';
@@ -19,7 +20,9 @@ const TABS = [
 
 const AkcFixturesPage = () => {
   const { t } = useTranslation();
-  const [status, setStatus] = useState('SCHEDULED');
+  const location = useLocation();
+  // /amashuri/results opens on the Results tab; /amashuri/fixtures on Upcoming.
+  const [status, setStatus] = useState(location.pathname.endsWith('/results') ? 'COMPLETED' : 'SCHEDULED');
 
   const { data: fixtures, isLoading } = useQuery({
     queryKey: ['amashuri-fixtures', status],
