@@ -35,7 +35,7 @@ const getNews = async (req, res, next) => {
 // @access  Public
 const getArticle = async (req, res, next) => {
   try {
-    const news = await prisma.news.findUnique({
+    const news = await prisma.news.findFirst({
       where: { slug: req.params.slug },
       include: {
         author: { select: { fullName: true } },
