@@ -4,9 +4,9 @@ import Pusher from 'pusher-js';
 /**
  * Subscribes to real-time updates for a single fixture.
  *
- * Listens on two channels for resilience against the backend's exact emit shape:
- *   - global `live-scores`  → `liveUpdate` { fixtureId, homeScore, awayScore, minute, status }
- *   - per-match `match-{id}` → `scoreUpdate` | `event` | `statusUpdate`
+ * Listens on the two channels the backend emits on (api/src/services/realtime.service.js):
+ *   - global `live-scores`     → `liveUpdate` { fixtureId, homeScore, awayScore, minute, status }
+ *   - per-match `fixture-{id}` → `matchUpdate` | `matchEvent`
  *
  * Any field present in a payload is merged into live state; `event` payloads are
  * prepended to the events list. Returns null-safe defaults when Pusher is not configured.
@@ -85,15 +85,14 @@ export default function useLiveMatch(fixtureId, initial) {
     });
 
     // Dedicated per-match channel
-    const matchChan = pusher.subscribe(`match-${fixtureId}`);
-    matchChan.bind('scoreUpdate', mergeScore);
-    matchChan.bind('statusUpdate', mergeScore);
-    matchChan.bind('event', addEvent);
+    const matchChan = pusher.subscribe(`fixture-${fixtureId}`);
+    matchChan.bind('matchUpdate', mergeScore);
+    matchChan.bind('matchEvent', addEvent);
 
     return () => {
       try {
         pusher.unsubscribe('live-scores');
-        pusher.unsubscribe(`match-${fixtureId}`);
+        pusher.unsubscribe(`fixture-${fixtureId}`);
         pusher.disconnect();
       } catch {
         /* noop */
