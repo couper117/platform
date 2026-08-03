@@ -21,6 +21,12 @@ dist/
 build/
 .vercel
 
+# ...except the self-contained showcase build, which is committed on purpose so
+# a fresh clone can run `node demo/serve.js` with no toolchain.
+# Regenerate with: cd react-app && npm run build:demo
+!demo/dist/
+!demo/dist/**
+
 # Editor/OS
 .vscode/
 .idea/

@@ -57,15 +57,18 @@ All data is fictional sample data served entirely in-browser.
 
 ## Rebuilding the demo
 
-From the project's `react-app/` folder:
+`demo/dist` is committed to the repository on purpose, so a fresh clone can run
+the demo straight away with no build step. To regenerate it after changing the
+app, from the project's `react-app/` folder:
 
 ```bash
-# Windows PowerShell
-$env:VITE_DEMO='true'; npx vite build --outDir ../demo/dist --emptyOutDir --target esnext
-
-# macOS / Linux
-VITE_DEMO=true npx vite build --outDir ../demo/dist --emptyOutDir --target esnext
+npm install
+npm run build:demo
 ```
 
-The `VITE_DEMO` flag is inert in normal builds, so it does not affect the real
-production app.
+That runs `vite build --mode demo`, which loads `react-app/.env.demo`
+(`VITE_DEMO=true`) and writes to `../demo/dist`. It is the same command on
+Windows, macOS and Linux — no shell-specific env var syntax needed.
+
+The `demo` mode is inert in normal builds, so it does not affect the real
+production app: `npm run build` produces a bundle with no mock adapter in it.
