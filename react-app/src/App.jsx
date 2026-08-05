@@ -40,6 +40,7 @@ const AdminPlayersPage = lazy(() => import('./pages/admin/AdminPlayersPage'));
 const AdminDocumentsPage = lazy(() => import('./pages/admin/AdminDocumentsPage'));
 const AdminNewsPage = lazy(() => import('./pages/admin/AdminNewsPage'));
 const AdminSettingsPage = lazy(() => import('./pages/admin/AdminSettingsPage'));
+const AdminSportAdminsPage = lazy(() => import('./pages/admin/AdminSportAdminsPage'));
 const AdminAdsPage = lazy(() => import('./pages/admin/AdminAdsPage'));
 const AdminVisitorsPage = lazy(() => import('./pages/admin/AdminVisitorsPage'));
 const AdminChampionshipsPage = lazy(() => import('./pages/admin/AdminChampionshipsPage'));
@@ -171,6 +172,7 @@ function App() {
               <Route path="visitors" element={<AdminVisitorsPage />} />
               <Route path="akc3" element={<AkcAdminDashboard />} />
               <Route path="championships" element={<AdminChampionshipsPage />} />
+              <Route path="sport-admins" element={<AdminSportAdminsPage />} />
               <Route path="settings" element={<AdminSettingsPage />} />
             </Route>
 

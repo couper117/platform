@@ -9,7 +9,8 @@ const AdminLayout = () => {
   const { isAuthenticated, role } = useAuthStore();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  if (!isAuthenticated || (role !== 'SUPERADMIN' && role !== 'LEAGUE_ADMIN' && role !== 'FEDERATION_ADMIN')) {
+  const ADMIN_ROLES = ['SUPERADMIN', 'LEAGUE_ADMIN', 'FEDERATION_ADMIN', 'AMASHURI_ADMIN'];
+  if (!isAuthenticated || !ADMIN_ROLES.includes(role)) {
     return <Navigate to="/auth/login" />;
   }
 

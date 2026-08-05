@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { 
-  LayoutDashboard, Trophy, Users, UserSquare2, FileText, 
-  Newspaper, Settings, Activity, School, X, Megaphone, Eye
+import {
+  LayoutDashboard, Trophy, Users, UserSquare2, FileText,
+  Newspaper, Settings, Activity, School, X, Megaphone, Eye, ShieldCheck
 } from 'lucide-react';
+import useAuthStore from '../../store/authStore';
 
 const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
+  const { role } = useAuthStore();
   const adminLinks = [
     { to: '/admin/dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
+    { to: '/admin/sport-admins', icon: <ShieldCheck size={18} />, label: 'Sport Admins', superOnly: true },
     { to: '/admin/leagues', icon: <Trophy size={18} />, label: 'Leagues' },
     { to: '/admin/fixtures', icon: <Activity size={18} />, label: 'Fixtures' },
     { to: '/admin/teams', icon: <Users size={18} />, label: 'Teams' },
@@ -29,7 +32,7 @@ const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
     { to: '/team/profile', icon: <Users size={18} />, label: 'Team Profile' },
   ];
 
-  const links = type === 'admin' ? adminLinks : teamLinks;
+  const links = (type === 'admin' ? adminLinks : teamLinks).filter((l) => !l.superOnly || role === 'SUPERADMIN');
 
   const sidebarContent = (
     <>

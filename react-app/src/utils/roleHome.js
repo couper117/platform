@@ -6,6 +6,8 @@ export const roleHome = (role) => {
     case 'LEAGUE_ADMIN':
     case 'FEDERATION_ADMIN':
       return '/admin/dashboard';
+    case 'AMASHURI_ADMIN':
+      return '/admin/akc3';
     case 'MATCH_REPORTER':
       return '/reporter/dashboard';
     case 'TEAM_MANAGER':
