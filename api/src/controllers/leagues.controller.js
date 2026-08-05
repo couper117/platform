@@ -1,6 +1,6 @@
 const prisma = require('../config/db');
-const slugify = require('slugify');
 const logActivity = require('../utils/activityLogger');
+const { uniqueSlug } = require('../utils/slug');
 
 // @desc    Get all active leagues
 // @route   GET /api/v1/leagues
@@ -89,7 +89,7 @@ const createLeague = async (req, res, next) => {
     const league = await prisma.league.create({
       data: {
         name,
-        slug: slugify(name, { lower: true }),
+        slug: await uniqueSlug('league', name),
         sportId: parseInt(sportId),
         federationId: federationId ? parseInt(federationId) : null,
         season,
@@ -134,7 +134,7 @@ const updateLeague = async (req, res, next) => {
       where: { id: parseInt(req.params.id) },
       data: {
         name,
-        slug: name ? slugify(name, { lower: true }) : undefined,
+        slug: name ? await uniqueSlug('league', name, parseInt(req.params.id)) : undefined,
         sportId: sportId ? parseInt(sportId) : undefined,
         federationId: federationId ? parseInt(federationId) : undefined,
         season,
@@ -197,6 +197,14 @@ const addTeamToLeague = async (req, res, next) => {
     const leagueId = parseInt(req.params.id);
     const teamId = parseInt(req.params.teamId);
 
+    // Enforce the league's team cap.
+    const league = await prisma.league.findUnique({ where: { id: leagueId } });
+    if (!league) return res.status(404).json({ success: false, message: 'League not found' });
+    const currentCount = await prisma.leagueTeam.count({ where: { leagueId } });
+    if (currentCount >= league.maxTeams) {
+      return res.status(400).json({ success: false, message: `League is full (max ${league.maxTeams} teams)` });
+    }
+
     const leagueTeam = await prisma.leagueTeam.create({
       data: {
         leagueId,
@@ -258,6 +266,45 @@ const removeTeamFromLeague = async (req, res, next) => {
   }
 };
 
+// @desc    Standings table for a league (sorted + ranked)
+// @route   GET /api/v1/leagues/:id/standings
+// @access  Public
+const getLeagueStandings = async (req, res, next) => {
+  try {
+    const leagueId = parseInt(req.params.id);
+    const standings = await prisma.standing.findMany({
+      where: { leagueId },
+      include: { team: true },
+    });
+    standings.sort(
+      (a, b) =>
+        b.points - a.points ||
+        (b.goalsFor - b.goalsAgainst) - (a.goalsFor - a.goalsAgainst) ||
+        b.goalsFor - a.goalsFor
+    );
+    res.status(200).json({ success: true, data: standings.map((s, i) => ({ ...s, rank: i + 1 })) });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Top scorers for a league
+// @route   GET /api/v1/leagues/:id/scorers
+// @access  Public
+const getLeagueScorers = async (req, res, next) => {
+  try {
+    const leagueId = parseInt(req.params.id);
+    const scorers = await prisma.topScorer.findMany({
+      where: { leagueId },
+      include: { player: true, team: true },
+      orderBy: [{ goals: 'desc' }, { assists: 'desc' }],
+    });
+    res.status(200).json({ success: true, data: scorers });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getLeagues,
   getLeague,
@@ -266,4 +313,6 @@ module.exports = {
   deleteLeague,
   addTeamToLeague,
   removeTeamFromLeague,
+  getLeagueStandings,
+  getLeagueScorers,
 };

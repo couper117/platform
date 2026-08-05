@@ -2,19 +2,27 @@ const prisma = require('../config/db');
 
 const recalcStandings = async (leagueId) => {
   try {
-    // Get all completed fixtures for this league
+    // Include every registered team so winless / unplayed teams still appear.
+    const leagueTeams = await prisma.leagueTeam.findMany({
+      where: { leagueId },
+      select: { teamId: true },
+    });
     const fixtures = await prisma.fixture.findMany({
       where: { leagueId, status: 'COMPLETED' },
     });
 
     const stats = new Map();
+    const ensure = (tid) => {
+      if (!stats.has(tid)) {
+        stats.set(tid, { played: 0, won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, points: 0, results: [] });
+      }
+    };
+
+    for (const { teamId } of leagueTeams) ensure(teamId);
 
     for (const f of fixtures) {
-      for (const tid of [f.homeTeamId, f.awayTeamId]) {
-        if (!stats.has(tid)) {
-          stats.set(tid, { played: 0, won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, points: 0, results: [] });
-        }
-      }
+      ensure(f.homeTeamId);
+      ensure(f.awayTeamId);
 
       const h = stats.get(f.homeTeamId);
       const a = stats.get(f.awayTeamId);

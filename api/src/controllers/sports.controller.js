@@ -1,5 +1,5 @@
 const prisma = require('../config/db');
-const slugify = require('slugify');
+const { uniqueSlug } = require('../utils/slug');
 const { uploadImage, deleteImage } = require('../services/storage.service');
 const logActivity = require('../utils/activityLogger');
 
@@ -63,7 +63,7 @@ const createSport = async (req, res, next) => {
     const sport = await prisma.sport.create({
       data: {
         name,
-        slug: slugify(name, { lower: true }),
+        slug: await uniqueSlug('sport', name),
         icon,
         description,
         category,
@@ -108,7 +108,7 @@ const updateSport = async (req, res, next) => {
       where: { id: parseInt(req.params.id) },
       data: {
         name,
-        slug: name ? slugify(name, { lower: true }) : undefined,
+        slug: name ? await uniqueSlug('sport', name, parseInt(req.params.id)) : undefined,
         icon,
         description,
         category,

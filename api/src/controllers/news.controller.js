@@ -1,5 +1,6 @@
 const prisma = require('../config/db');
-const slugify = require('slugify');
+const { uniqueSlug } = require('../utils/slug');
+const { getPagination } = require('../utils/paginate');
 const { uploadImage, deleteImage } = require('../services/storage.service');
 const logActivity = require('../utils/activityLogger');
 
@@ -15,16 +16,19 @@ const getNews = async (req, res, next) => {
     if (category) where.category = category;
     if (featured) where.featured = featured === 'true';
 
-    const news = await prisma.news.findMany({
-      where,
-      include: {
-        author: { select: { fullName: true } },
-        league: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const { skip, take } = getPagination(req.query);
+    const [news, total] = await Promise.all([
+      prisma.news.findMany({
+        where,
+        include: { author: { select: { fullName: true } }, league: true },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+      }),
+      prisma.news.count({ where }),
+    ]);
 
-    res.status(200).json({ success: true, count: news.length, data: news });
+    res.status(200).json({ success: true, count: news.length, total, data: news });
   } catch (error) {
     next(error);
   }
@@ -78,7 +82,7 @@ const createArticle = async (req, res, next) => {
     const news = await prisma.news.create({
       data: {
         title,
-        slug: slugify(title, { lower: true }),
+        slug: await uniqueSlug('news', title),
         excerpt,
         body,
         category,
@@ -129,7 +133,7 @@ const updateArticle = async (req, res, next) => {
       where: { id: newsId },
       data: {
         title,
-        slug: title ? slugify(title, { lower: true }) : undefined,
+        slug: title ? await uniqueSlug('news', title, parseInt(req.params.id)) : undefined,
         excerpt,
         body,
         category,

@@ -6,7 +6,8 @@ const logActivity = require('../utils/activityLogger');
 // @access  Public
 const getSettings = async (req, res, next) => {
   try {
-    const settings = await prisma.setting.findMany();
+    // Only expose settings flagged public on this unauthenticated endpoint.
+    const settings = await prisma.setting.findMany({ where: { isPublic: true } });
     const settingsMap = {};
     settings.forEach(s => {
       settingsMap[s.skey] = s.sval;

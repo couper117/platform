@@ -1,6 +1,8 @@
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const prisma = require('../config/db');
-const { generateAccessToken, generateRefreshToken, verifyToken } = require('../utils/jwt');
+const { generateAccessToken, generateRefreshToken, verifyToken, hashToken } = require('../utils/jwt');
+const { sendMail } = require('../utils/sendMail');
 const logActivity = require('../utils/activityLogger');
 const env = require('../config/env');
 
@@ -87,10 +89,10 @@ const login = async (req, res, next) => {
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
-    // Save refresh token to DB
+    // Save hashed refresh token to DB (never store the raw token)
     await prisma.refreshToken.create({
       data: {
-        token: refreshToken,
+        token: hashToken(refreshToken),
         userId: user.id,
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
       },
@@ -142,7 +144,7 @@ const refresh = async (req, res, next) => {
 
   try {
     const savedToken = await prisma.refreshToken.findUnique({
-      where: { token },
+      where: { token: hashToken(token) },
       include: { user: { include: { managedTeam: true } } },
     });
 
@@ -164,7 +166,7 @@ const refresh = async (req, res, next) => {
       prisma.refreshToken.delete({ where: { id: savedToken.id } }),
       prisma.refreshToken.create({
         data: {
-          token: newRefreshToken,
+          token: hashToken(newRefreshToken),
           userId: savedToken.userId,
           expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         },
@@ -194,7 +196,7 @@ const logout = async (req, res, next) => {
   try {
     const token = req.cookies.refreshToken;
     if (token) {
-      await prisma.refreshToken.deleteMany({ where: { token } });
+      await prisma.refreshToken.deleteMany({ where: { token: hashToken(token) } });
     }
     res.clearCookie('refreshToken');
     res.status(200).json({ success: true, message: 'Logged out successfully' });
@@ -224,10 +226,73 @@ const getMe = async (req, res, next) => {
   }
 };
 
+// @desc    Request a password reset link
+// @route   POST /api/v1/auth/forgot-password
+// @access  Public
+const forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const user = email ? await prisma.user.findUnique({ where: { email } }) : null;
+
+    // Only send when the user exists, but always return the same response to
+    // avoid leaking which emails are registered.
+    if (user) {
+      const rawToken = crypto.randomBytes(32).toString('hex');
+      const resetTokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { resetTokenHash, resetTokenExpiry: new Date(Date.now() + 60 * 60 * 1000) },
+      });
+      const link = `${env.FRONTEND_URL}/auth/reset-password?token=${rawToken}&uid=${user.id}`;
+      await sendMail({
+        to: email,
+        subject: 'Reset your RwaSport password',
+        text: `Reset your password: ${link} (valid for 1 hour). If you didn't request this, ignore this email.`,
+        html: `<p>Reset your RwaSport password:</p><p><a href="${link}">${link}</a></p><p>This link is valid for 1 hour.</p>`,
+      });
+    }
+    res.status(200).json({ success: true, message: 'If that email is registered, a reset link has been sent.' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Reset a password using a token
+// @route   POST /api/v1/auth/reset-password
+// @access  Public
+const resetPassword = async (req, res, next) => {
+  try {
+    const { token, uid, newPassword } = req.body;
+    if (!token || !uid || !newPassword || String(newPassword).length < 6) {
+      return res.status(400).json({ success: false, message: 'Invalid request or password too short' });
+    }
+    const resetTokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const user = await prisma.user.findFirst({
+      where: { id: parseInt(uid, 10), resetTokenHash, resetTokenExpiry: { gt: new Date() } },
+    });
+    if (!user) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired reset token' });
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashedPassword, resetTokenHash: null, resetTokenExpiry: null },
+    });
+    // Invalidate all existing sessions on password change.
+    await prisma.refreshToken.deleteMany({ where: { userId: user.id } });
+
+    res.status(200).json({ success: true, message: 'Password reset successful. Please log in.' });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   registerTeam,
   login,
   refresh,
   logout,
   getMe,
+  forgotPassword,
+  resetPassword,
 };

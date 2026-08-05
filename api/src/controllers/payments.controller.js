@@ -31,28 +31,36 @@ const initiateSubscription = async (req, res, next) => {
   }
 };
 
-// @desc    Verify a payment (Webhook or Manual)
+// @desc    Verify a payment (admin-confirmed; a real gateway webhook would
+//          verify a signature here instead of trusting the caller).
 // @route   POST /api/v1/payments/verify/:reference
-// @access  Private (Admin or Webhook)
+// @access  Private (SUPERADMIN)
 const verifyPayment = async (req, res, next) => {
   try {
     const { reference } = req.params;
     const transaction = await prisma.transaction.findUnique({ where: { reference } });
 
     if (!transaction) return res.status(404).json({ success: false, message: 'Transaction not found' });
+    if (transaction.status === 'SUCCESS') {
+      return res.status(200).json({ success: true, data: transaction, message: 'Already verified' });
+    }
 
     const updatedTransaction = await prisma.transaction.update({
       where: { reference },
       data: { status: 'SUCCESS' },
     });
 
-    // If it's a subscription, update the team status
+    // A successful subscription activates the team's subscription — it does NOT
+    // grant document verification (VERIFIED), which stays an admin decision.
     if (updatedTransaction.type === 'SUBSCRIPTION') {
       const team = await prisma.team.findFirst({ where: { managerUserId: updatedTransaction.userId } });
       if (team) {
         await prisma.team.update({
           where: { id: team.id },
-          data: { status: 'VERIFIED', verifiedAt: new Date() },
+          data: {
+            subscriptionActive: true,
+            subscriptionUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+          },
         });
       }
     }

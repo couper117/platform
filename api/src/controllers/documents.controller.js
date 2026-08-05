@@ -101,8 +101,11 @@ const reviewDocument = async (req, res, next) => {
       });
 
       const types = allDocs.map(d => d.docType);
-      const required = ['BIRTH_CERTIFICATE', 'PASSPORT', 'NATIONAL_ID'];
-      const hasAllRequired = required.every(r => types.includes(r));
+      // A player is verified with a birth certificate PLUS one photo ID
+      // (passport OR national ID) — not both, which was previously unreachable.
+      const hasBirthCert = types.includes('BIRTH_CERTIFICATE');
+      const hasPhotoId = types.includes('PASSPORT') || types.includes('NATIONAL_ID');
+      const hasAllRequired = hasBirthCert && hasPhotoId;
 
       if (hasAllRequired) {
         await prisma.player.update({

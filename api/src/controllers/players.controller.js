@@ -1,4 +1,5 @@
 const prisma = require('../config/db');
+const { getPagination } = require('../utils/paginate');
 const { uploadImage, deleteImage } = require('../services/storage.service');
 const logActivity = require('../utils/activityLogger');
 
@@ -12,16 +13,19 @@ const getPlayers = async (req, res, next) => {
     if (teamId) where.teamId = parseInt(teamId);
     if (status) where.status = status;
 
-    const players = await prisma.player.findMany({
-      where,
-      include: {
-        team: true,
-        documents: true,
-      },
-      orderBy: { fullName: 'asc' },
-    });
+    const { skip, take } = getPagination(req.query);
+    const [players, total] = await Promise.all([
+      prisma.player.findMany({
+        where,
+        include: { team: true, documents: true },
+        orderBy: { fullName: 'asc' },
+        skip,
+        take,
+      }),
+      prisma.player.count({ where }),
+    ]);
 
-    res.status(200).json({ success: true, count: players.length, data: players });
+    res.status(200).json({ success: true, count: players.length, total, data: players });
   } catch (error) {
     next(error);
   }

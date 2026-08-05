@@ -1,5 +1,9 @@
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const env = require('../config/env');
+
+// Refresh tokens are stored hashed so a DB leak can't be replayed.
+const hashToken = (token) => crypto.createHash('sha256').update(token).digest('hex');
 
 const generateAccessToken = (user) => {
   return jwt.sign(
@@ -29,4 +33,5 @@ module.exports = {
   generateAccessToken,
   generateRefreshToken,
   verifyToken,
+  hashToken,
 };

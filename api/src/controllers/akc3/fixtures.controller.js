@@ -30,9 +30,30 @@ const getFixtures = async (req, res, next) => {
   }
 };
 
+// Whitelist the fields we accept — never spread req.body straight into Prisma.
+const buildFixtureData = (b = {}) => ({
+  competitionId: b.competitionId ? parseInt(b.competitionId) : null,
+  homeTeamId: parseInt(b.homeTeamId),
+  awayTeamId: parseInt(b.awayTeamId),
+  matchDate: b.matchDate ? new Date(b.matchDate) : null,
+  venue: b.venue || null,
+  round: b.round || null,
+  stage: b.stage || undefined,
+  status: b.status || undefined,
+  notes: b.notes || null,
+});
+
 const createFixture = async (req, res, next) => {
   try {
-    const fixture = await prisma.akcFixture.create({ data: req.body });
+    const data = buildFixtureData(req.body);
+    if (Number.isNaN(data.homeTeamId) || Number.isNaN(data.awayTeamId)) {
+      return res.status(400).json({ success: false, message: 'homeTeamId and awayTeamId are required' });
+    }
+    if (data.homeTeamId === data.awayTeamId) {
+      return res.status(400).json({ success: false, message: 'A team cannot play against itself' });
+    }
+
+    const fixture = await prisma.akcFixture.create({ data });
     await logActivity({
       userId: req.user.id,
       action: 'Create AKC Fixture',
@@ -48,18 +69,23 @@ const createFixture = async (req, res, next) => {
 
 const enterResult = async (req, res, next) => {
   try {
-    const { homeScore, awayScore } = req.body;
-    const fixtureId = parseInt(req.params.fixtureId);
+    const homeScore = parseInt(req.body.homeScore, 10);
+    const awayScore = parseInt(req.body.awayScore, 10);
+    const fixtureId = parseInt(req.params.fixtureId, 10);
+
+    if (Number.isNaN(homeScore) || Number.isNaN(awayScore)) {
+      return res.status(400).json({ success: false, message: 'Valid homeScore and awayScore are required' });
+    }
+
+    const existing = await prisma.akcFixture.findUnique({ where: { id: fixtureId } });
+    if (!existing) return res.status(404).json({ success: false, message: 'Fixture not found' });
+
+    const isDraw = homeScore === awayScore;
+    const winnerTeamId = isDraw ? null : (homeScore > awayScore ? existing.homeTeamId : existing.awayTeamId);
 
     const result = await prisma.akcFixture.update({
       where: { id: fixtureId },
-      data: {
-        homeScore: parseInt(homeScore),
-        awayScore: parseInt(awayScore),
-        status: 'COMPLETED',
-        winnerTeamId: homeScore > awayScore ? undefined : (awayScore > homeScore ? undefined : undefined), // Simplified
-        isDraw: homeScore === awayScore,
-      },
+      data: { homeScore, awayScore, status: 'COMPLETED', winnerTeamId, isDraw },
     });
 
     if (result.competitionId) {
@@ -69,7 +95,7 @@ const enterResult = async (req, res, next) => {
     await logActivity({
       userId: req.user.id,
       action: 'Enter AKC Result',
-      detail: `Entered result for AKC fixture ${fixtureId}`,
+      detail: `Entered result for AKC fixture ${fixtureId}: ${homeScore}-${awayScore}`,
       module: 'akc3',
       ip: req.ip,
     });
