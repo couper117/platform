@@ -34,7 +34,7 @@ const AkcAdminDashboard = () => {
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-4xl font-display uppercase tracking-tighter">Amashuri <span className="text-rwanda-blue">Command Center</span></h1>
+          <h1 className="text-4xl font-display uppercase tracking-tighter">Amashuri <span className="text-red">Command Center</span></h1>
           <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Manage the inter-school sports ecosystem and bulk imports</p>
         </div>
       </div>
@@ -50,7 +50,7 @@ const AkcAdminDashboard = () => {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center space-x-2 py-4 text-[11px] font-bold uppercase tracking-widest border-b-2 transition-all ${
-              activeTab === tab.id ? 'border-rwanda-blue text-rwanda-blue' : 'border-transparent opacity-40 hover:opacity-100'
+              activeTab === tab.id ? 'border-red text-red' : 'border-transparent opacity-40 hover:opacity-100'
             }`}
           >
             {tab.icon}
@@ -65,7 +65,7 @@ const AkcAdminDashboard = () => {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-display uppercase tracking-tight">Registered Institutions</h2>
-              <button className="flex items-center space-x-2 bg-rwanda-blue text-white px-6 py-2.5 rounded-xl font-display text-sm uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg shadow-rwanda-blue/20">
+              <button className="flex items-center space-x-2 bg-red text-white px-6 py-2.5 rounded-xl font-display text-sm uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg shadow-red/20">
                 <Plus size={16} />
                 <span>Add School</span>
               </button>
@@ -96,7 +96,7 @@ const AkcAdminDashboard = () => {
                         <span className="bg-green/5 text-green text-[8px] font-bold px-2 py-1 rounded border border-green/10 uppercase">Active</span>
                       </td>
                       <td className="p-5">
-                        <button className="text-[10px] font-bold text-rwanda-blue hover:underline uppercase">Manage</button>
+                        <button className="text-[10px] font-bold text-red hover:underline uppercase">Manage</button>
                       </td>
                     </tr>
                   ))}
@@ -109,7 +109,7 @@ const AkcAdminDashboard = () => {
         {activeTab === 'import' && (
           <div className="max-w-4xl mx-auto space-y-10 py-10">
             <div className="text-center space-y-4">
-              <div className="w-20 h-20 bg-rwanda-blue/5 rounded-full flex items-center justify-center text-rwanda-blue mx-auto">
+              <div className="w-20 h-20 bg-red/5 rounded-full flex items-center justify-center text-red mx-auto">
                 <Upload size={40} />
               </div>
               <h2 className="text-3xl font-display uppercase tracking-tight">Bulk Player Import</h2>
@@ -158,7 +158,7 @@ const AkcAdminDashboard = () => {
 
         {activeTab === 'competitions' && (
           <div className="max-w-3xl mx-auto py-10 space-y-8 text-center">
-            <div className="w-20 h-20 bg-rwanda-blue/5 rounded-full flex items-center justify-center text-rwanda-blue mx-auto">
+            <div className="w-20 h-20 bg-red/5 rounded-full flex items-center justify-center text-red mx-auto">
               <Trophy size={40} />
             </div>
             <div className="space-y-3">
@@ -169,7 +169,7 @@ const AkcAdminDashboard = () => {
             </div>
             <Link
               to="/admin/championships"
-              className="inline-flex items-center gap-2 bg-rwanda-blue text-white px-8 py-3 rounded-xl font-display text-lg uppercase tracking-widest hover:brightness-110 transition-all shadow-lg shadow-rwanda-blue/20"
+              className="inline-flex items-center gap-2 bg-red text-white px-8 py-3 rounded-xl font-display text-lg uppercase tracking-widest hover:brightness-110 transition-all shadow-lg shadow-red/20"
             >
               <span>Open Championship Manager</span>
               <ArrowRight size={18} />

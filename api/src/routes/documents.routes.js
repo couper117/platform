@@ -7,8 +7,8 @@ const schemas = require('../validators/schemas');
 
 const router = express.Router();
 
-router.get('/', protect, authorize('SUPERADMIN', 'LEAGUE_ADMIN'), getDocuments);
+router.get('/', protect, authorize('SUPERADMIN', 'FEDERATION_ADMIN', 'LEAGUE_ADMIN'), getDocuments);
 router.post('/upload', protect, upload.single('file'), uploadDocument);
-router.put('/:id/review', protect, authorize('SUPERADMIN', 'LEAGUE_ADMIN'), validate(schemas.reviewDocument), reviewDocument);
+router.put('/:id/review', protect, authorize('SUPERADMIN', 'FEDERATION_ADMIN', 'LEAGUE_ADMIN'), validate(schemas.reviewDocument), reviewDocument);
 
 module.exports = router;

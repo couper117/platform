@@ -8,14 +8,14 @@ import { useTheme } from '../../context/ThemeContext';
 import Card from '../ui/Card';
 import EmptyState from '../ui/EmptyState';
 
-const BLUE = '#00A1DE';
+const BLUE = '#E8002D'; // recolored to system red
 const YELLOW = '#FAD201';
 const GREEN = '#20603D';
 
 const ChartCard = ({ icon: Icon, title, subtitle, children }) => (
   <Card className="p-5 sm:p-6">
     <div className="flex items-center gap-3 mb-5">
-      <span className="w-9 h-9 rounded-xl bg-rwanda-blue/10 text-rwanda-blue flex items-center justify-center">
+      <span className="w-9 h-9 rounded-xl bg-red/10 text-red flex items-center justify-center">
         <Icon size={18} />
       </span>
       <div>

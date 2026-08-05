@@ -34,6 +34,16 @@ const protect = async (req, res, next) => {
       return res.status(401).json({ success: false, message: 'User account is deactivated' });
     }
 
+    // A federation admin is scoped to a single sport (via their federation).
+    // Attach it so controllers can enforce "own sport only".
+    if (req.user.role === 'FEDERATION_ADMIN') {
+      const fa = await prisma.federationAdminAssignment.findFirst({
+        where: { userId: req.user.id },
+        include: { federation: { select: { sportId: true } } },
+      });
+      req.user.sportId = fa?.federation?.sportId ?? null;
+    }
+
     next();
   } catch (error) {
     return res.status(401).json({ success: false, message: 'Not authorized to access this route' });

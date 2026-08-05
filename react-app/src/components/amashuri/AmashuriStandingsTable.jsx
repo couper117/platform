@@ -31,7 +31,7 @@ const AmashuriStandingsTable = ({ standings = [] }) => {
               <th className="px-4 py-4 text-center hidden sm:table-cell">GF</th>
               <th className="px-4 py-4 text-center hidden sm:table-cell">GA</th>
               <th className="px-4 py-4 text-center">GD</th>
-              <th className="px-4 py-4 text-center font-display text-sm text-rwanda-blue">Pts</th>
+              <th className="px-4 py-4 text-center font-display text-sm text-red">Pts</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-surface-3 dark:divide-white/5">
@@ -64,7 +64,7 @@ const AmashuriStandingsTable = ({ standings = [] }) => {
                   <td className="px-4 py-4 text-center hidden sm:table-cell opacity-40">{s.gf}</td>
                   <td className="px-4 py-4 text-center hidden sm:table-cell opacity-40">{s.ga}</td>
                   <td className="px-4 py-4 text-center font-medium opacity-60">{(s.gf ?? 0) - (s.ga ?? 0)}</td>
-                  <td className="px-4 py-4 text-center font-display text-lg text-rwanda-blue">{s.points}</td>
+                  <td className="px-4 py-4 text-center font-display text-lg text-red">{s.points}</td>
                 </tr>
               );
             })}

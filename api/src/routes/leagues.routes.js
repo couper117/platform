@@ -16,12 +16,12 @@ router.get('/:id/standings', getLeagueStandings);
 router.get('/:id/scorers', getLeagueScorers);
 router.get('/:id', getLeague);
 
-router.post('/', protect, authorize('SUPERADMIN', 'LEAGUE_ADMIN'), validate(schemas.createLeague), createLeague);
-router.put('/:id', protect, authorize('SUPERADMIN', 'LEAGUE_ADMIN'), updateLeague);
-router.delete('/:id', protect, authorize('SUPERADMIN'), deleteLeague);
+router.post('/', protect, authorize('SUPERADMIN', 'FEDERATION_ADMIN', 'LEAGUE_ADMIN'), validate(schemas.createLeague), createLeague);
+router.put('/:id', protect, authorize('SUPERADMIN', 'FEDERATION_ADMIN', 'LEAGUE_ADMIN'), updateLeague);
+router.delete('/:id', protect, authorize('SUPERADMIN', 'FEDERATION_ADMIN'), deleteLeague);
 
-router.post('/:id/teams/:teamId', protect, authorize('SUPERADMIN', 'LEAGUE_ADMIN'), addTeamToLeague);
-router.delete('/:id/teams/:teamId', protect, authorize('SUPERADMIN', 'LEAGUE_ADMIN'), removeTeamFromLeague);
+router.post('/:id/teams/:teamId', protect, authorize('SUPERADMIN', 'FEDERATION_ADMIN', 'LEAGUE_ADMIN'), addTeamToLeague);
+router.delete('/:id/teams/:teamId', protect, authorize('SUPERADMIN', 'FEDERATION_ADMIN', 'LEAGUE_ADMIN'), removeTeamFromLeague);
 
 router.post('/:leagueId/assign-reporter', protect, authorize('SUPERADMIN', 'LEAGUE_ADMIN'), assignReporter);
 

@@ -47,7 +47,7 @@ const SchoolDirectory = () => {
         <ResponsiveWrapper>
           <div className="flex overflow-x-auto scrollbar-hide py-4 gap-6 items-center">
             <div className="flex items-center gap-3 flex-shrink-0">
-              <Filter size={14} className="text-rwanda-blue" />
+              <Filter size={14} className="text-red" />
               <label htmlFor="cat-filter" className="sr-only">{t('amashuri.categories')}</label>
               <select
                 id="cat-filter"
@@ -72,10 +72,10 @@ const SchoolDirectory = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {list.map((school) => (
               <Card key={school.id} hover to={`/amashuri/schools/${school.id}`} className="p-8 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-rwanda-blue/5 -mr-16 -mt-16 rounded-full" />
+                <div className="absolute top-0 right-0 w-32 h-32 bg-red/5 -mr-16 -mt-16 rounded-full" />
                 <div className="relative z-10 space-y-6">
                   <div className="flex items-start justify-between">
-                    <span className="p-4 bg-surface-2 dark:bg-white/5 rounded-2xl text-rwanda-blue shadow-sm">
+                    <span className="p-4 bg-surface-2 dark:bg-white/5 rounded-2xl text-red shadow-sm">
                       <School size={32} />
                     </span>
                     <Badge tone="blue">{school.category}</Badge>
@@ -87,7 +87,7 @@ const SchoolDirectory = () => {
                       <span>{school.sector || 'National'}</span>
                     </div>
                   </div>
-                  <div className="pt-6 border-t border-surface-3 dark:border-white/5 flex items-center justify-between text-rwanda-blue">
+                  <div className="pt-6 border-t border-surface-3 dark:border-white/5 flex items-center justify-between text-red">
                     <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em]">
                       <GraduationCap size={16} /> {t('amashuri.directory.view_teams')}
                     </span>

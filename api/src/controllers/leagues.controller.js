@@ -1,6 +1,7 @@
 const prisma = require('../config/db');
 const logActivity = require('../utils/activityLogger');
 const { uniqueSlug } = require('../utils/slug');
+const { enforceSportScope } = require('../utils/scope');
 
 // @desc    Get all active leagues
 // @route   GET /api/v1/leagues
@@ -83,14 +84,20 @@ const createLeague = async (req, res, next) => {
     const { 
       name, sportId, federationId, season, gender, 
       ageCategory, level, format, status, maxTeams, 
-      description, startDate, endDate 
+      description, startDate, endDate
     } = req.body;
+
+    // Federation admins can only create leagues in their own sport (default to
+    // it when unspecified, reject a mismatched one).
+    const bodySid = sportId ? parseInt(sportId) : null;
+    const sid = req.user.role === 'FEDERATION_ADMIN' ? (bodySid ?? req.user.sportId) : bodySid;
+    if (!enforceSportScope(req, res, sid)) return;
 
     const league = await prisma.league.create({
       data: {
         name,
         slug: await uniqueSlug('league', name),
-        sportId: parseInt(sportId),
+        sportId: sid,
         federationId: federationId ? parseInt(federationId) : null,
         season,
         gender,
@@ -127,8 +134,15 @@ const updateLeague = async (req, res, next) => {
     const { 
       name, sportId, federationId, season, gender, 
       ageCategory, level, format, status, maxTeams, 
-      description, startDate, endDate, active 
+      description, startDate, endDate, active
     } = req.body;
+
+    // Scope: a federation admin may only edit a league in their sport, and
+    // cannot move it into a sport they don't own.
+    const existing = await prisma.league.findUnique({ where: { id: parseInt(req.params.id) } });
+    if (!existing) return res.status(404).json({ success: false, message: 'League not found' });
+    if (!enforceSportScope(req, res, existing.sportId)) return;
+    if (sportId && !enforceSportScope(req, res, parseInt(sportId))) return;
 
     const league = await prisma.league.update({
       where: { id: parseInt(req.params.id) },
@@ -170,6 +184,10 @@ const updateLeague = async (req, res, next) => {
 // @access  Private/Admin
 const deleteLeague = async (req, res, next) => {
   try {
+    const existing = await prisma.league.findUnique({ where: { id: parseInt(req.params.id) } });
+    if (!existing) return res.status(404).json({ success: false, message: 'League not found' });
+    if (!enforceSportScope(req, res, existing.sportId)) return;
+
     const league = await prisma.league.update({
       where: { id: parseInt(req.params.id) },
       data: { active: false },
@@ -197,9 +215,10 @@ const addTeamToLeague = async (req, res, next) => {
     const leagueId = parseInt(req.params.id);
     const teamId = parseInt(req.params.teamId);
 
-    // Enforce the league's team cap.
+    // Enforce the league's team cap + sport scope.
     const league = await prisma.league.findUnique({ where: { id: leagueId } });
     if (!league) return res.status(404).json({ success: false, message: 'League not found' });
+    if (!enforceSportScope(req, res, league.sportId)) return;
     const currentCount = await prisma.leagueTeam.count({ where: { leagueId } });
     if (currentCount >= league.maxTeams) {
       return res.status(400).json({ success: false, message: `League is full (max ${league.maxTeams} teams)` });

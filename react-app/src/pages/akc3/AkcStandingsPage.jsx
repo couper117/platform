@@ -57,7 +57,7 @@ const AkcStandingsPage = () => {
                 id="comp-select"
                 value={competitionId}
                 onChange={(e) => setCompetitionId(e.target.value)}
-                className="bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 text-[11px] font-bold uppercase tracking-widest rounded-xl px-4 py-3 focus:ring-2 focus:ring-rwanda-blue focus:outline-none cursor-pointer"
+                className="bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 text-[11px] font-bold uppercase tracking-widest rounded-xl px-4 py-3 focus:ring-2 focus:ring-red focus:outline-none cursor-pointer"
               >
                 {competitions.length === 0 && <option value="">{t('amashuri.standings.no_championships')}</option>}
                 {competitions.map((c) => (

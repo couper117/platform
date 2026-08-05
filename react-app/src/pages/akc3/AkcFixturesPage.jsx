@@ -54,7 +54,7 @@ const AkcFixturesPage = () => {
                 onClick={() => setStatus(tab.status)}
                 className={`text-[11px] font-bold uppercase tracking-widest transition-all whitespace-nowrap cursor-pointer ${
                   status === tab.status
-                    ? 'text-rwanda-blue underline underline-offset-8 decoration-2'
+                    ? 'text-red underline underline-offset-8 decoration-2'
                     : 'opacity-40 hover:opacity-100'
                 }`}
               >

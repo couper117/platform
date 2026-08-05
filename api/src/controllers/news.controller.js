@@ -1,6 +1,7 @@
 const prisma = require('../config/db');
 const { uniqueSlug } = require('../utils/slug');
 const { getPagination } = require('../utils/paginate');
+const { enforceSportScope } = require('../utils/scope');
 const { uploadImage, deleteImage } = require('../services/storage.service');
 const logActivity = require('../utils/activityLogger');
 
@@ -79,6 +80,12 @@ const createArticle = async (req, res, next) => {
       coverImage = await uploadImage(req.file, 'news', 800, 450);
     }
 
+    // Federation admins publish news only for their own sport (default to it
+    // when unspecified, reject a mismatched one).
+    const bodySid = sportId ? parseInt(sportId) : null;
+    const sid = req.user.role === 'FEDERATION_ADMIN' ? (bodySid ?? req.user.sportId) : bodySid;
+    if (!enforceSportScope(req, res, sid)) return;
+
     const news = await prisma.news.create({
       data: {
         title,
@@ -86,7 +93,7 @@ const createArticle = async (req, res, next) => {
         excerpt,
         body,
         category,
-        sportId: sportId ? parseInt(sportId) : null,
+        sportId: sid,
         leagueId: leagueId ? parseInt(leagueId) : null,
         featured: featured === 'true' || featured === true,
         published: published === 'true' || published === true,
@@ -120,6 +127,7 @@ const updateArticle = async (req, res, next) => {
     if (!news) {
       return res.status(404).json({ success: false, message: 'Article not found' });
     }
+    if (!enforceSportScope(req, res, news.sportId)) return;
 
     const { title, excerpt, body, category, sportId, leagueId, featured, published } = req.body;
 
@@ -164,8 +172,12 @@ const updateArticle = async (req, res, next) => {
 // @access  Private/Admin
 const deleteArticle = async (req, res, next) => {
   try {
+    const target = await prisma.news.findUnique({ where: { id: parseInt(req.params.id) } });
+    if (!target) return res.status(404).json({ success: false, message: 'Article not found' });
+    if (!enforceSportScope(req, res, target.sportId)) return;
+
     const news = await prisma.news.delete({
-      where: { id: parseInt(req.params.id) },
+      where: { id: target.id },
     });
 
     if (news.coverImage) await deleteImage(news.coverImage);

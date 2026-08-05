@@ -2,6 +2,7 @@ const prisma = require('../config/db');
 const { recalcStandings } = require('../services/standings.service');
 const { emitMatchUpdate, emitMatchEvent } = require('../services/realtime.service');
 const { getPagination } = require('../utils/paginate');
+const { enforceSportScope, leagueSportId } = require('../utils/scope');
 const logActivity = require('../utils/activityLogger');
 
 const getFixtures = async (req, res, next) => {
@@ -96,6 +97,7 @@ const createFixture = async (req, res, next) => {
     }
     const league = await prisma.league.findUnique({ where: { id: lid } });
     if (!league) return res.status(404).json({ success: false, message: 'League not found' });
+    if (!enforceSportScope(req, res, league.sportId)) return;
     const memberships = await prisma.leagueTeam.findMany({
       where: { leagueId: lid, teamId: { in: [hid, aid] } },
     });
@@ -157,6 +159,8 @@ const saveResult = async (req, res, next) => {
         where: { leagueId_userId: { leagueId: fixture.leagueId, userId: req.user.id } }
       });
       if (!isAssigned) return res.status(403).json({ success: false, message: 'Not assigned to this league' });
+    } else if (req.user.role === 'FEDERATION_ADMIN') {
+      if (!enforceSportScope(req, res, await leagueSportId(fixture.leagueId))) return;
     }
 
     const result = await prisma.fixture.update({
@@ -236,6 +240,8 @@ const addMatchEvent = async (req, res, next) => {
         where: { leagueId_userId: { leagueId: fixture.leagueId, userId: req.user.id } }
       });
       if (!isAssigned) return res.status(403).json({ success: false, message: 'Not assigned to this league' });
+    } else if (req.user.role === 'FEDERATION_ADMIN') {
+      if (!enforceSportScope(req, res, await leagueSportId(fixture.leagueId))) return;
     }
 
     const event = await prisma.matchEvent.create({
