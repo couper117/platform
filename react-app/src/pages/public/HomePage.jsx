@@ -5,6 +5,9 @@ import { ArrowRight, Play, Trophy, Users, Star, Activity, ChevronRight } from 'l
 import { useTranslation } from 'react-i18next';
 import { getFixtures } from '../../api/endpoints/fixtures';
 import { getNews } from '../../api/endpoints/news';
+import { getSports } from '../../api/endpoints/sports';
+import { sportTheme, HERO_BG } from '../../config/sportThemes';
+import SportIcon from '../../components/shared/SportIcon';
 import ResponsiveWrapper from '../../components/shared/ResponsiveWrapper';
 import FixtureCard from '../../components/shared/FixtureCard';
 import NewsCard from '../../components/shared/NewsCard';
@@ -25,6 +28,9 @@ const HomePage = () => {
     queryFn: () => getNews({ limit: 3, featured: true }),
   });
 
+  const { data: sportsRes } = useQuery({ queryKey: ['home-sports'], queryFn: getSports });
+  const sports = sportsRes?.data || [];
+
   const liveMatches = fixtures?.data?.filter(f => f.status === 'LIVE') || [];
   const upcomingMatches = fixtures?.data?.filter(f => f.status === 'SCHEDULED') || [];
   const heroMatches = [...liveMatches, ...upcomingMatches].slice(0, 1);
@@ -33,11 +39,11 @@ const HomePage = () => {
     <div className="space-y-0">
       <Seo title="Home" description="Experience the heartbeat of Rwandan sports." />
       {/* HERO — full-bleed image with dark overlay (isengesho-style) */}
-      <section className="relative min-h-[78vh] flex items-center overflow-hidden bg-surface-dark">
+      <section className="relative min-h-[60vh] sm:min-h-[78vh] flex items-center overflow-hidden bg-surface-dark">
         {/* Background image + overlays */}
         <div className="absolute inset-0 z-0">
           <img
-            src="https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=1920&q=80"
+            src={HERO_BG}
             alt=""
             className="w-full h-full object-cover object-center"
           />
@@ -108,6 +114,44 @@ const HomePage = () => {
 
       {/* Ad space below hero */}
       <AdBanner position="HOME_BANNER" />
+
+      {/* PICK YOUR SPORT — tap a game to open its own hub (great on mobile) */}
+      <section className="py-14 sm:py-20 bg-white dark:bg-surface-dark">
+        <ResponsiveWrapper>
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-3">
+            <div className="space-y-2">
+              <h2 className="text-[10px] uppercase font-bold tracking-[0.4em] text-red">Choose your game</h2>
+              <h3 className="text-4xl sm:text-5xl font-display uppercase tracking-tight">Explore by sport</h3>
+            </div>
+            <p className="text-sm opacity-50 max-w-xs">Pick a sport to dive into its leagues, fixtures, standings and news.</p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {sports.map((s) => {
+              const theme = sportTheme(s.slug);
+              return (
+                <Link
+                  key={s.id}
+                  to={`/sports/${s.slug}`}
+                  className="group relative overflow-hidden rounded-3xl border border-surface-3 dark:border-white/10 bg-surface-2 dark:bg-surface-dark2 p-6 min-h-[140px] flex flex-col justify-between hover:-translate-y-1 hover:shadow-2xl transition-all"
+                >
+                  <div
+                    className="absolute -top-8 -right-8 w-32 h-32 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity"
+                    style={{ background: theme.accent }}
+                  />
+                  <SportIcon slug={s.slug} className="relative z-10 text-4xl sm:text-5xl" style={{ color: theme.accent }} />
+                  <div className="relative z-10">
+                    <h4 className="font-display text-lg sm:text-xl uppercase tracking-tight leading-none group-hover:text-red transition-colors">{s.name}</h4>
+                    <p className="text-[9px] uppercase font-bold tracking-widest opacity-40 mt-1.5">
+                      {(s._count?.leagues ?? 0)} leagues · {(s._count?.teams ?? 0)} teams
+                    </p>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </ResponsiveWrapper>
+      </section>
 
       {/* 3. SECONDARY AD SPOTLIGHT */}
       <section className="py-12 bg-surface-2 dark:bg-surface-dark">

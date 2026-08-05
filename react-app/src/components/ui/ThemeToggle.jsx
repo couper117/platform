@@ -19,7 +19,9 @@ const ThemeToggle = ({ className }) => {
       title={dark ? 'Light mode' : 'Dark mode'}
       className={cn(
         'relative p-2 rounded-full cursor-pointer transition-colors',
-        'text-white/60 hover:text-white hover:bg-white/5',
+        // Theme-aware so it stays visible on both the light and dark navbar.
+        'text-surface-dark/60 dark:text-white/70 hover:text-red dark:hover:text-white',
+        'hover:bg-surface-2 dark:hover:bg-white/10 border border-surface-3 dark:border-white/15',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red',
         className
       )}

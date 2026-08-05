@@ -30,23 +30,23 @@ const contact = [
 ];
 
 const ColHeading = ({ children }) => (
-  <h4 className="flex items-center gap-2 font-display text-sm mb-5 text-rwanda-yellow uppercase tracking-widest">
-    <span className="w-1.5 h-1.5 rounded-full bg-rwanda-yellow" />
+  <h4 className="flex items-center gap-2 font-display text-sm mb-5 text-red dark:text-rwanda-yellow uppercase tracking-widest">
+    <span className="w-1.5 h-1.5 rounded-full bg-red dark:bg-rwanda-yellow" />
     {children}
   </h4>
 );
 
 const Footer = () => {
   return (
-    <footer className="relative bg-surface-dark text-white overflow-hidden">
+    <footer className="relative bg-white text-surface-dark dark:bg-surface-dark dark:text-white overflow-hidden border-t border-surface-3 dark:border-transparent">
       {/* Rwanda tri-colour top accent */}
       <div className="h-1 w-full bg-gradient-to-r from-rwanda-green via-rwanda-yellow to-rwanda-blue" />
 
-      {/* Subtle dot texture */}
+      {/* Subtle dot texture (neutral so it reads on light & dark) */}
       <div
         className="absolute inset-0 opacity-[0.05] pointer-events-none"
         style={{
-          backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)',
+          backgroundImage: 'radial-gradient(#9ca3af 1px, transparent 1px)',
           backgroundSize: '26px 26px',
           maskImage: 'radial-gradient(ellipse at top, black 20%, transparent 80%)',
           WebkitMaskImage: 'radial-gradient(ellipse at top, black 20%, transparent 80%)',
@@ -62,7 +62,7 @@ const Footer = () => {
                 <span className="text-xl font-display leading-none text-white uppercase tracking-tighter">RwaSport</span>
               </div>
             </Link>
-            <p className="text-sm text-white/50 leading-relaxed max-w-xs">
+            <p className="text-sm text-surface-dark/50 dark:text-white/50 leading-relaxed max-w-xs">
               The heartbeat of Rwandan sport — managing leagues, teams, and athletes across the nation.
             </p>
             <div className="flex gap-3">
@@ -71,7 +71,7 @@ const Footer = () => {
                   key={label}
                   href={href}
                   aria-label={label}
-                  className="w-9 h-9 rounded-full border border-white/15 flex items-center justify-center text-white/60 hover:bg-red hover:border-red hover:text-white transition-all"
+                  className="w-9 h-9 rounded-full border border-surface-3 dark:border-white/15 flex items-center justify-center text-surface-dark/60 dark:text-white/60 hover:bg-red hover:border-red hover:text-white transition-all"
                 >
                   <Icon size={15} />
                 </a>
@@ -85,9 +85,7 @@ const Footer = () => {
             <ul className="space-y-3 text-sm">
               {quickLinks.map((l) => (
                 <li key={l.to}>
-                  <Link to={l.to} className="text-white/60 hover:text-red hover:translate-x-1 inline-block transition-all">
-                    {l.label}
-                  </Link>
+                  <Link to={l.to} className="text-surface-dark/60 dark:text-white/60 hover:text-red hover:translate-x-1 inline-block transition-all">{l.label}</Link>
                 </li>
               ))}
             </ul>
@@ -99,9 +97,7 @@ const Footer = () => {
             <ul className="space-y-3 text-sm">
               {competitions.map((l) => (
                 <li key={l.to}>
-                  <Link to={l.to} className="text-white/60 hover:text-red hover:translate-x-1 inline-block transition-all">
-                    {l.label}
-                  </Link>
+                  <Link to={l.to} className="text-surface-dark/60 dark:text-white/60 hover:text-red hover:translate-x-1 inline-block transition-all">{l.label}</Link>
                 </li>
               ))}
             </ul>
@@ -113,10 +109,10 @@ const Footer = () => {
             <ul className="space-y-4 text-sm">
               {contact.map(({ icon: Icon, text }) => (
                 <li key={text} className="flex items-center gap-3">
-                  <span className="w-8 h-8 rounded-full border border-white/15 flex items-center justify-center text-red shrink-0">
+                  <span className="w-8 h-8 rounded-full border border-surface-3 dark:border-white/15 flex items-center justify-center text-red shrink-0">
                     <Icon size={14} />
                   </span>
-                  <span className="text-white/60">{text}</span>
+                  <span className="text-surface-dark/60 dark:text-white/60">{text}</span>
                 </li>
               ))}
               <li className="pt-1">
@@ -132,20 +128,20 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Decorative divider (isengesho-style) */}
+        {/* Decorative divider */}
         <div className="flex items-center justify-center gap-5 my-12">
-          <div className="h-px flex-1 bg-gradient-to-r from-transparent to-white/15" />
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent to-surface-3 dark:to-white/15" />
           <div className="flex items-center gap-2 shrink-0">
             <span className="w-1.5 h-1.5 rounded-full bg-rwanda-green" />
             <span className="w-1.5 h-1.5 rounded-full bg-rwanda-yellow" />
             <span className="w-1.5 h-1.5 rounded-full bg-rwanda-blue" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.35em] text-white/40 ml-1">Umurage w'Imikino</span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.35em] text-surface-dark/40 dark:text-white/40 ml-1">Umurage w'Imikino</span>
           </div>
-          <div className="h-px flex-1 bg-gradient-to-l from-transparent to-white/15" />
+          <div className="h-px flex-1 bg-gradient-to-l from-transparent to-surface-3 dark:to-white/15" />
         </div>
 
         {/* Bottom bar */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] uppercase tracking-widest text-white/40">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] uppercase tracking-widest text-surface-dark/40 dark:text-white/40">
           <p>&copy; 2026 RwaSport Platform. All rights reserved.</p>
           <div className="flex gap-6">
             <Link to="/privacy" className="hover:text-red transition-colors">Privacy Policy</Link>

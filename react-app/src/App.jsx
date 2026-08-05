@@ -24,6 +24,7 @@ const NewsListPage = lazy(() => import('./pages/public/NewsListPage'));
 const NewsArticlePage = lazy(() => import('./pages/public/NewsArticlePage'));
 const ContactPage = lazy(() => import('./pages/public/ContactPage'));
 const LegalPage = lazy(() => import('./pages/public/LegalPage'));
+const SportHubPage = lazy(() => import('./pages/public/SportHubPage'));
 
 // Auth Pages
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
@@ -120,6 +121,7 @@ function App() {
             {/* Public Routes */}
             <Route element={<PublicLayout />}>
               <Route path="/" element={<HomePage />} />
+              <Route path="/sports/:slug" element={<SportHubPage />} />
               <Route path="/leagues" element={<LeaguesPage />} />
               <Route path="/leagues/:id" element={<LeagueDetailsPage />} />
               <Route path="/fixtures" element={<FixturesPage />} />
