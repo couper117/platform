@@ -6,14 +6,17 @@ import apiClient from '../../api/client';
 import AdminTable from '../../components/admin/AdminTable';
 import AdminModal from '../../components/admin/AdminModal';
 import Skeleton from '../../components/shared/Skeleton';
+import EmptyState from '../../components/ui/EmptyState';
+import useUiStore from '../../store/uiStore';
 
 const AdminFixturesPage = () => {
   const queryClient = useQueryClient();
+  const pushToast = useUiStore((s) => s.pushToast);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+
   const { register, handleSubmit, reset } = useForm();
 
-  const { data: fixtures, isLoading: fixturesLoading } = useQuery({
+  const { data: fixtures, isLoading: fixturesLoading, isError: fixturesError } = useQuery({
     queryKey: ['admin-fixtures'],
     queryFn: async () => {
       const { data } = await apiClient.get('/fixtures');
@@ -46,11 +49,12 @@ const AdminFixturesPage = () => {
       await apiClient.post('/fixtures', data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-fixtures']);
+      queryClient.invalidateQueries({ queryKey: ['admin-fixtures'] });
       setIsModalOpen(false);
       reset();
-      alert('Match scheduled successfully!');
-    }
+      pushToast('Match scheduled successfully!', 'success');
+    },
+    onError: (err) => pushToast(err.response?.data?.message || 'Failed to schedule match'),
   });
 
   const deleteFixtureMutation = useMutation({
@@ -58,9 +62,10 @@ const AdminFixturesPage = () => {
       await apiClient.delete(`/fixtures/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-fixtures']);
-      alert('Fixture deleted successfully');
-    }
+      queryClient.invalidateQueries({ queryKey: ['admin-fixtures'] });
+      pushToast('Fixture deleted successfully', 'success');
+    },
+    onError: (err) => pushToast(err.response?.data?.message || 'Failed to delete fixture'),
   });
 
   const onSubmit = (data) => {
@@ -85,9 +90,13 @@ const AdminFixturesPage = () => {
 
       {fixturesLoading ? (
         <Skeleton type="card" count={3} />
+      ) : fixturesError ? (
+        <EmptyState icon={Activity} title="Couldn't load fixtures" hint="Something went wrong fetching the schedule. Try refreshing the page." />
+      ) : !fixtures?.length ? (
+        <EmptyState icon={Activity} title="No fixtures scheduled" hint="Create a fixture to get the schedule started." />
       ) : (
         <AdminTable headers={['Match', 'League', 'Date & Time', 'Venue', 'Status', 'Actions']}>
-          {fixtures?.map(f => (
+          {fixtures.map(f => (
             <tr key={f.id} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors group">
               <td className="px-6 py-5">
                 <div className="flex items-center space-x-4">

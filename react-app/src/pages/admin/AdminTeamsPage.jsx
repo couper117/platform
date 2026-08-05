@@ -4,12 +4,15 @@ import { Users, ShieldCheck, XCircle, Mail, Trash2, Loader2 } from 'lucide-react
 import apiClient from '../../api/client';
 import AdminTable from '../../components/admin/AdminTable';
 import Skeleton from '../../components/shared/Skeleton';
+import EmptyState from '../../components/ui/EmptyState';
+import useUiStore from '../../store/uiStore';
 
 const AdminTeamsPage = () => {
   const queryClient = useQueryClient();
+  const pushToast = useUiStore((s) => s.pushToast);
   const [filter, setFilter] = useState('PENDING');
 
-  const { data: teams, isLoading } = useQuery({
+  const { data: teams, isLoading, isError } = useQuery({
     queryKey: ['admin-teams', filter],
     queryFn: async () => {
       const { data } = await apiClient.get('/teams', { params: { status: filter } });
@@ -22,10 +25,10 @@ const AdminTeamsPage = () => {
       await apiClient.put(`/teams/${id}/status`, { status });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-teams']);
+      queryClient.invalidateQueries({ queryKey: ['admin-teams'] });
     },
     onError: (err) => {
-      alert(err.response?.data?.message || 'Failed to update team status');
+      pushToast(err.response?.data?.message || 'Failed to update team status');
     }
   });
 
@@ -34,11 +37,11 @@ const AdminTeamsPage = () => {
       await apiClient.delete(`/teams/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-teams']);
-      alert('Team deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ['admin-teams'] });
+      pushToast('Team deleted successfully', 'success');
     },
     onError: (err) => {
-      alert(err.response?.data?.message || 'Failed to delete team');
+      pushToast(err.response?.data?.message || 'Failed to delete team');
     }
   });
 
@@ -71,9 +74,13 @@ const AdminTeamsPage = () => {
 
       {isLoading ? (
         <Skeleton type="card" count={3} />
+      ) : isError ? (
+        <EmptyState icon={Users} title="Couldn't load teams" hint="Something went wrong fetching teams. Try refreshing the page." />
+      ) : !teams?.length ? (
+        <EmptyState icon={Users} title={`No ${filter.toLowerCase()} teams`} hint="Teams will appear here as clubs register and apply for verification." />
       ) : (
         <AdminTable headers={['Team Info', 'Sport', 'Location', 'Manager', 'Status', 'Actions']}>
-          {teams?.map(team => (
+          {teams.map(team => (
             <tr key={team.id} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors">
               <td className="px-6 py-5">
                 <div className="flex items-center space-x-4">

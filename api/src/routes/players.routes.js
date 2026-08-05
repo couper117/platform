@@ -1,5 +1,5 @@
 const express = require('express');
-const { getPlayers, getPlayer, createPlayer, updatePlayer } = require('../controllers/players.controller');
+const { getPlayers, getPlayer, createPlayer, updatePlayer, deletePlayer } = require('../controllers/players.controller');
 const { protect, authorize } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 
@@ -10,5 +10,6 @@ router.get('/:id', getPlayer);
 
 router.post('/', protect, authorize('SUPERADMIN', 'FEDERATION_ADMIN', 'LEAGUE_ADMIN', 'TEAM_MANAGER'), upload.single('photo'), createPlayer);
 router.put('/:id', protect, authorize('SUPERADMIN', 'FEDERATION_ADMIN', 'LEAGUE_ADMIN', 'TEAM_MANAGER'), upload.single('photo'), updatePlayer);
+router.delete('/:id', protect, authorize('SUPERADMIN', 'FEDERATION_ADMIN', 'LEAGUE_ADMIN', 'TEAM_MANAGER'), deletePlayer);
 
 module.exports = router;

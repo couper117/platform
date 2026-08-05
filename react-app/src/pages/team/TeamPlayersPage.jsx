@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { UserSquare2, Search, Trash2, Edit2, ShieldCheck, Filter, User, Loader2 } from 'lucide-react';
+import { UserSquare2, Plus, Edit2, Trash2, User, Loader2 } from 'lucide-react';
 import apiClient from '../../api/client';
 import AdminTable from '../../components/admin/AdminTable';
 import AdminModal from '../../components/admin/AdminModal';
@@ -11,105 +11,121 @@ import useUiStore from '../../store/uiStore';
 const SKILL_LEVELS = ['AMATEUR', 'SEMI_PROFESSIONAL', 'PROFESSIONAL', 'ELITE'];
 const GENDERS = ['MALE', 'FEMALE'];
 
-const useDebounced = (value, delay = 350) => {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const t = setTimeout(() => setDebounced(value), delay);
-    return () => clearTimeout(t);
-  }, [value, delay]);
-  return debounced;
-};
+const emptyForm = { fullName: '', nationality: 'Rwandan', position: '', jerseyNumber: '', skillLevel: 'AMATEUR', gender: 'MALE' };
 
-const emptyForm = { fullName: '', nationality: '', position: '', jerseyNumber: '', skillLevel: 'AMATEUR', gender: 'MALE' };
-
-const AdminPlayersPage = () => {
+const TeamPlayersPage = () => {
   const queryClient = useQueryClient();
   const pushToast = useUiStore((s) => s.pushToast);
-  const [searchTerm, setSearcherTerm] = useState('');
-  const debouncedSearch = useDebounced(searchTerm.trim());
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState(null);
   const [formData, setFormData] = useState(emptyForm);
 
-  const { data: players, isLoading, isFetching, isError } = useQuery({
-    queryKey: ['admin-players', debouncedSearch],
+  const { data: team, isLoading, isError } = useQuery({
+    queryKey: ['team-dashboard-data'],
     queryFn: async () => {
-      const { data } = await apiClient.get('/players', { params: { search: debouncedSearch || undefined } });
+      const { data } = await apiClient.get('/teams/my');
       return data.data;
     },
   });
 
-  const deletePlayerMutation = useMutation({
-    mutationFn: async (id) => {
-      await apiClient.delete(`/players/${id}`);
+  const players = team?.players || [];
+
+  const invalidateTeam = () => queryClient.invalidateQueries({ queryKey: ['team-dashboard-data'] });
+
+  const createMutation = useMutation({
+    mutationFn: async (data) => {
+      await apiClient.post('/players', { ...data, teamId: team.id });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-players'] });
-      pushToast('Player removed successfully', 'success');
+      invalidateTeam();
+      closeModal();
+      pushToast('Player registered!', 'success');
     },
-    onError: (err) => pushToast(err.response?.data?.message || 'Failed to remove player'),
+    onError: (err) => pushToast(err.response?.data?.message || 'Failed to register player'),
   });
 
-  const updatePlayerMutation = useMutation({
+  const updateMutation = useMutation({
     mutationFn: async ({ id, data }) => {
       await apiClient.put(`/players/${id}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-players'] });
-      setEditingPlayer(null);
-      pushToast('Player updated successfully', 'success');
+      invalidateTeam();
+      closeModal();
+      pushToast('Player updated!', 'success');
     },
     onError: (err) => pushToast(err.response?.data?.message || 'Failed to update player'),
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => {
+      await apiClient.delete(`/players/${id}`);
+    },
+    onSuccess: () => {
+      invalidateTeam();
+      pushToast('Player removed', 'success');
+    },
+    onError: (err) => pushToast(err.response?.data?.message || 'Failed to remove player'),
+  });
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingPlayer(null);
+    setFormData(emptyForm);
+  };
+
+  const openCreate = () => {
+    setEditingPlayer(null);
+    setFormData(emptyForm);
+    setIsModalOpen(true);
+  };
 
   const openEdit = (player) => {
     setEditingPlayer(player);
     setFormData({
       fullName: player.fullName || '',
-      nationality: player.nationality || '',
+      nationality: player.nationality || 'Rwandan',
       position: player.position || '',
       jerseyNumber: player.jerseyNumber ?? '',
       skillLevel: player.skillLevel || 'AMATEUR',
       gender: player.gender || 'MALE',
     });
+    setIsModalOpen(true);
   };
 
-  const handleDelete = (player) => {
-    if (window.confirm(`Remove ${player.fullName} from ${player.team?.name || 'their team'}? This can't be undone.`)) {
-      deletePlayerMutation.mutate(player.id);
+  const handleSubmit = () => {
+    if (editingPlayer) {
+      updateMutation.mutate({ id: editingPlayer.id, data: formData });
+    } else {
+      createMutation.mutate(formData);
     }
   };
 
-  const submitEdit = () => {
-    updatePlayerMutation.mutate({ id: editingPlayer.id, data: formData });
-  };
+  const isSaving = createMutation.isPending || updateMutation.isPending;
+
+  if (isLoading) return <Skeleton type="table-row" count={5} />;
 
   return (
     <div className="space-y-10 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-4xl font-display uppercase tracking-tighter">Athlete <span className="text-red">Registry</span></h1>
-          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Manage all registered sports players</p>
+          <h1 className="text-4xl font-display uppercase tracking-tighter">My <span className="text-red">Roster</span></h1>
+          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Register and manage your club's athletes</p>
         </div>
-
-        <div className="flex bg-white dark:bg-white/5 rounded-2xl border border-surface-3 dark:border-white/10 p-2 w-full max-w-md">
-          <Search className="text-white/20 ml-2 mt-1.5" size={18} />
-          <input
-            type="text"
-            placeholder="Search name or ID..."
-            className="bg-transparent border-none focus:ring-0 text-sm font-bold uppercase tracking-widest p-2 w-full"
-            value={searchTerm}
-            onChange={(e) => setSearcherTerm(e.target.value)}
-          />
-          {isFetching && !isLoading && <Loader2 className="animate-spin opacity-30 mt-2 mr-2" size={14} />}
-        </div>
+        <button
+          onClick={openCreate}
+          className="bg-red text-white px-8 py-3 rounded-xl font-display text-lg uppercase tracking-widest hover:bg-red-dark transition-all shadow-xl shadow-red/20 flex items-center space-x-2"
+        >
+          <Plus size={20} />
+          <span>Register Athlete</span>
+        </button>
       </div>
 
-      {isLoading ? (
-        <Skeleton type="table-row" count={5} />
-      ) : isError ? (
-        <EmptyState icon={UserSquare2} title="Couldn't load players" hint="Something went wrong fetching the athlete registry. Try refreshing the page." />
-      ) : players?.length ? (
-        <AdminTable headers={['Player', 'Team', 'Position', 'Skill', 'Status', 'Actions']}>
+      {isError ? (
+        <EmptyState icon={UserSquare2} title="Couldn't load your roster" hint="Something went wrong. Try refreshing the page." />
+      ) : !players.length ? (
+        <EmptyState icon={UserSquare2} title="No players yet" hint="Register your first athlete to start building your roster." />
+      ) : (
+        <AdminTable headers={['Player', 'Position', 'Skill', 'Status', 'Actions']}>
           {players.map(player => (
             <tr key={player.id} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors">
               <td className="px-6 py-5">
@@ -119,11 +135,10 @@ const AdminPlayersPage = () => {
                   </div>
                   <div>
                     <p className="font-bold text-sm uppercase tracking-tight">{player.fullName}</p>
-                    <p className="text-[8px] opacity-40 uppercase tracking-widest">{player.nationality}</p>
+                    <p className="text-[8px] opacity-40 uppercase tracking-widest">No. {player.jerseyNumber ?? '—'}</p>
                   </div>
                 </div>
               </td>
-              <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{player.team?.name}</td>
               <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{player.position || 'N/A'}</td>
               <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{player.skillLevel}</td>
               <td className="px-6 py-5">
@@ -137,8 +152,8 @@ const AdminPlayersPage = () => {
                     <Edit2 size={16} />
                   </button>
                   <button
-                    onClick={() => handleDelete(player)}
-                    disabled={deletePlayerMutation.isPending}
+                    onClick={() => { if (window.confirm(`Remove ${player.fullName} from the roster?`)) deleteMutation.mutate(player.id); }}
+                    disabled={deleteMutation.isPending}
                     className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors disabled:opacity-50"
                   >
                     <Trash2 size={16} />
@@ -148,16 +163,9 @@ const AdminPlayersPage = () => {
             </tr>
           ))}
         </AdminTable>
-      ) : (
-        <EmptyState
-          icon={UserSquare2}
-          title={debouncedSearch ? 'No players match your search' : 'No players registered yet'}
-          hint={debouncedSearch ? 'Try a different name or clear the search.' : 'Players will appear here once teams register their rosters.'}
-        />
       )}
 
-      {/* Edit Player Modal */}
-      <AdminModal isOpen={!!editingPlayer} onClose={() => setEditingPlayer(null)} title="Edit Player">
+      <AdminModal isOpen={isModalOpen} onClose={closeModal} title={editingPlayer ? 'Edit Player' : 'Register Athlete'}>
         <div className="space-y-6">
           <div className="space-y-2">
             <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Full Name</label>
@@ -190,11 +198,11 @@ const AdminPlayersPage = () => {
             </div>
           </div>
           <button
-            onClick={submitEdit}
-            disabled={!formData.fullName.trim() || updatePlayerMutation.isPending}
+            onClick={handleSubmit}
+            disabled={!formData.fullName.trim() || isSaving}
             className="w-full bg-red text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all disabled:opacity-50"
           >
-            {updatePlayerMutation.isPending ? <Loader2 className="animate-spin mx-auto" /> : <span>Save Changes</span>}
+            {isSaving ? <Loader2 className="animate-spin mx-auto" /> : <span>{editingPlayer ? 'Save Changes' : 'Register Athlete'}</span>}
           </button>
         </div>
       </AdminModal>
@@ -202,4 +210,4 @@ const AdminPlayersPage = () => {
   );
 };
 
-export default AdminPlayersPage;
+export default TeamPlayersPage;

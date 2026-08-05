@@ -1,6 +1,14 @@
 const prisma = require('../config/db');
 const { uploadImage } = require('../services/storage.service');
 const logActivity = require('../utils/activityLogger');
+const { REQUIRED_DOC_TYPES } = require('../constants/documentRequirements');
+
+// @desc    Get which document types are required for player verification
+// @route   GET /api/v1/documents/requirements
+// @access  Public
+const getRequirements = async (req, res) => {
+  res.status(200).json({ success: true, data: { requiredDocTypes: REQUIRED_DOC_TYPES } });
+};
 
 // @desc    Get all documents
 // @route   GET /api/v1/documents
@@ -101,8 +109,7 @@ const reviewDocument = async (req, res, next) => {
       });
 
       const types = allDocs.map(d => d.docType);
-      const required = ['BIRTH_CERTIFICATE', 'PASSPORT', 'NATIONAL_ID'];
-      const hasAllRequired = required.every(r => types.includes(r));
+      const hasAllRequired = REQUIRED_DOC_TYPES.every(r => types.includes(r));
 
       if (hasAllRequired) {
         await prisma.player.update({
@@ -134,4 +141,5 @@ module.exports = {
   getDocuments,
   uploadDocument,
   reviewDocument,
+  getRequirements,
 };

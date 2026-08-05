@@ -6,9 +6,12 @@ import apiClient from '../../api/client';
 import AdminTable from '../../components/admin/AdminTable';
 import AdminModal from '../../components/admin/AdminModal';
 import Skeleton from '../../components/shared/Skeleton';
+import EmptyState from '../../components/ui/EmptyState';
+import useUiStore from '../../store/uiStore';
 
 const AdminLeaguesPage = () => {
   const queryClient = useQueryClient();
+  const pushToast = useUiStore((s) => s.pushToast);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isReporterModalOpen, setIsModalReporterOpen] = useState(false);
   const [isAdminModalOpen, setIsModalAdminOpen] = useState(false);
@@ -18,7 +21,7 @@ const AdminLeaguesPage = () => {
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
 
-  const { data: leagues, isLoading } = useQuery({
+  const { data: leagues, isLoading, isError } = useQuery({
     queryKey: ['admin-leagues'],
     queryFn: async () => {
       const { data } = await apiClient.get('/leagues');
@@ -39,13 +42,13 @@ const AdminLeaguesPage = () => {
       await apiClient.post('/leagues', data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-leagues']);
+      queryClient.invalidateQueries({ queryKey: ['admin-leagues'] });
       setIsModalOpen(false);
       reset();
-      alert('League created successfully!');
+      pushToast('League created successfully!', 'success');
     },
     onError: (err) => {
-      alert(err.response?.data?.message || 'Failed to create league');
+      pushToast(err.response?.data?.message || 'Failed to create league');
     }
   });
 
@@ -54,9 +57,10 @@ const AdminLeaguesPage = () => {
       await apiClient.delete(`/leagues/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-leagues']);
-      alert('League deleted successfully');
-    }
+      queryClient.invalidateQueries({ queryKey: ['admin-leagues'] });
+      pushToast('League deleted successfully', 'success');
+    },
+    onError: (err) => pushToast(err.response?.data?.message || 'Failed to delete league'),
   });
 
   const assignReporterMutation = useMutation({
@@ -64,10 +68,12 @@ const AdminLeaguesPage = () => {
       await apiClient.post(`/leagues/${leagueId}/assign-reporter`, { email });
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-leagues'] });
       setIsModalReporterOpen(false);
       setReporterEmail('');
-      alert('Reporter authorized successfully!');
-    }
+      pushToast('Reporter authorized successfully!', 'success');
+    },
+    onError: (err) => pushToast(err.response?.data?.message || 'Failed to authorize reporter'),
   });
 
   const assignAdminMutation = useMutation({
@@ -75,10 +81,12 @@ const AdminLeaguesPage = () => {
       await apiClient.post(`/admin/assign-league-admin`, { leagueId, email });
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-leagues'] });
       setIsModalAdminOpen(false);
       setAdminEmail('');
-      alert('League Admin assigned successfully!');
-    }
+      pushToast('League Admin assigned successfully!', 'success');
+    },
+    onError: (err) => pushToast(err.response?.data?.message || 'Failed to assign league admin'),
   });
 
   const onSubmit = (data) => {
@@ -103,9 +111,13 @@ const AdminLeaguesPage = () => {
 
       {isLoading ? (
         <Skeleton type="card" count={3} />
+      ) : isError ? (
+        <EmptyState icon={Trophy} title="Couldn't load leagues" hint="Something went wrong fetching leagues. Try refreshing the page." />
+      ) : !leagues?.length ? (
+        <EmptyState icon={Trophy} title="No leagues yet" hint="Create your first league to start scheduling competitions." />
       ) : (
         <AdminTable headers={['League Name', 'Sport', 'Season', 'Status', 'Actions']}>
-          {leagues?.map(league => (
+          {leagues.map(league => (
             <tr key={league.id} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors">
               <td className="px-6 py-5">
                 <span className="font-bold text-sm uppercase tracking-tight">{league.name}</span>
@@ -185,15 +197,33 @@ const AdminLeaguesPage = () => {
       {/* Delegation Modals (Same as before but integrated) */}
       <AdminModal isOpen={isReporterModalOpen} onClose={() => setIsModalReporterOpen(false)} title="Authorize Match Reporter">
         <div className="space-y-6">
+          {selectedLeague && (
+            <p className="text-[10px] uppercase font-bold tracking-widest opacity-40">For {selectedLeague.name}</p>
+          )}
           <input type="email" value={reporterEmail} onChange={e => setReporterEmail(e.target.value)} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl" placeholder="reporter@email.com" />
-          <button onClick={() => assignReporterMutation.mutate({ leagueId: selectedLeague.id, email: reporterEmail })} className="w-full bg-red text-white font-display text-xl uppercase py-4 rounded-xl">Authorize</button>
+          <button
+            onClick={() => selectedLeague && assignReporterMutation.mutate({ leagueId: selectedLeague.id, email: reporterEmail })}
+            disabled={!selectedLeague || !reporterEmail.trim() || assignReporterMutation.isPending}
+            className="w-full bg-red text-white font-display text-xl uppercase py-4 rounded-xl disabled:opacity-50"
+          >
+            {assignReporterMutation.isPending ? <Loader2 className="animate-spin mx-auto" /> : 'Authorize'}
+          </button>
         </div>
       </AdminModal>
 
       <AdminModal isOpen={isAdminModalOpen} onClose={() => setIsModalAdminOpen(false)} title="Assign League Admin">
         <div className="space-y-6">
+          {selectedLeague && (
+            <p className="text-[10px] uppercase font-bold tracking-widest opacity-40">For {selectedLeague.name}</p>
+          )}
           <input type="email" value={adminEmail} onChange={e => setAdminEmail(e.target.value)} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl" placeholder="admin@email.com" />
-          <button onClick={() => assignAdminMutation.mutate({ leagueId: selectedLeague.id, email: adminEmail })} className="w-full bg-red text-white font-display text-xl uppercase py-4 rounded-xl">Assign Admin</button>
+          <button
+            onClick={() => selectedLeague && assignAdminMutation.mutate({ leagueId: selectedLeague.id, email: adminEmail })}
+            disabled={!selectedLeague || !adminEmail.trim() || assignAdminMutation.isPending}
+            className="w-full bg-red text-white font-display text-xl uppercase py-4 rounded-xl disabled:opacity-50"
+          >
+            {assignAdminMutation.isPending ? <Loader2 className="animate-spin mx-auto" /> : 'Assign Admin'}
+          </button>
         </div>
       </AdminModal>
     </div>

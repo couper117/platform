@@ -27,9 +27,20 @@ const TeamDashboard = () => {
     enabled: !!teamId,
   });
 
-  const missingDocsCount = team?.players?.reduce((acc, player) => {
-    const docCount = player.documents?.filter(d => d.status === 'APPROVED').length || 0;
-    return acc + (3 - Math.min(3, docCount)); // Assuming 3 docs required per player
+  const { data: requirements } = useQuery({
+    queryKey: ['document-requirements'],
+    queryFn: async () => {
+      const { data } = await apiClient.get('/documents/requirements');
+      return data.data;
+    },
+    staleTime: Infinity,
+  });
+
+  const requiredDocsCount = requirements?.requiredDocTypes?.length ?? 0;
+  const missingDocsCount = requiredDocsCount === 0 ? 0 : team?.players?.reduce((acc, player) => {
+    const approvedTypes = new Set((player.documents || []).filter(d => d.status === 'APPROVED').map(d => d.docType));
+    const missing = requirements.requiredDocTypes.filter(t => !approvedTypes.has(t)).length;
+    return acc + missing;
   }, 0) || 0;
 
   const nextMatch = fixtures?.[0];
@@ -61,7 +72,7 @@ const TeamDashboard = () => {
           </div>
         </div>
         
-        <Link to="/team/players/new" className="bg-red text-white px-8 py-3 rounded-xl font-display text-lg uppercase tracking-widest hover:bg-red-dark transition-all shadow-xl shadow-red/20 flex items-center space-x-2">
+        <Link to="/team/players" className="bg-red text-white px-8 py-3 rounded-xl font-display text-lg uppercase tracking-widest hover:bg-red-dark transition-all shadow-xl shadow-red/20 flex items-center space-x-2">
           <Plus size={20} />
           <span>Register Athlete</span>
         </Link>

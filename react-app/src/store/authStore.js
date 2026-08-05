@@ -29,6 +29,15 @@ const useAuthStore = create((set, get) => ({
       const { accessToken } = response.data;
       localStorage.setItem('rnsp-token', accessToken);
       set({ token: accessToken, isAuthenticated: true });
+
+      const meResponse = await axios.get(`${API_URL}/auth/me`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const { user } = meResponse.data;
+      localStorage.setItem('rnsp-user', JSON.stringify(user));
+      localStorage.setItem('rnsp-role', user.role);
+      set({ user, role: user.role });
+
       return accessToken;
     } catch (error) {
       get().logout();

@@ -4,11 +4,12 @@ import { Users, Eye, Globe, Clock, Filter, Search, User } from 'lucide-react';
 import apiClient from '../../api/client';
 import AdminTable from '../../components/admin/AdminTable';
 import Skeleton from '../../components/shared/Skeleton';
+import EmptyState from '../../components/ui/EmptyState';
 import { format } from 'date-fns';
 
 const AdminVisitorsPage = () => {
   const [page, setPage] = useState(1);
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['admin-activity-logs', page],
     queryFn: async () => {
       const { data } = await apiClient.get('/activity', { params: { page, limit: 20 } });
@@ -35,9 +36,13 @@ const AdminVisitorsPage = () => {
 
       {isLoading ? (
         <Skeleton type="card" count={3} />
+      ) : isError ? (
+        <EmptyState icon={Eye} title="Couldn't load activity" hint="Something went wrong fetching visitor analytics. Try refreshing the page." />
+      ) : !data?.data?.length ? (
+        <EmptyState icon={Eye} title="No activity yet" hint="Visitor and admin actions will show up here as they happen." />
       ) : (
         <AdminTable headers={['Time', 'User', 'Action', 'IP / Device', 'Path']}>
-          {data?.data?.map(log => (
+          {data.data.map(log => (
             <tr key={log.id} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors text-[11px]">
               <td className="px-6 py-4 font-mono opacity-60">
                 {format(new Date(log.createdAt), 'HH:mm:ss')}

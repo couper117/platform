@@ -5,14 +5,17 @@ import apiClient from '../../api/client';
 import AdminTable from '../../components/admin/AdminTable';
 import AdminModal from '../../components/admin/AdminModal';
 import Skeleton from '../../components/shared/Skeleton';
+import EmptyState from '../../components/ui/EmptyState';
+import useUiStore from '../../store/uiStore';
 
 const AdminDocumentsPage = () => {
   const queryClient = useQueryClient();
+  const pushToast = useUiStore((s) => s.pushToast);
   const [filter, setFilter] = useState('PENDING');
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [reviewNote, setReviewNote] = useState('');
 
-  const { data: docs, isLoading } = useQuery({
+  const { data: docs, isLoading, isError } = useQuery({
     queryKey: ['admin-documents', filter],
     queryFn: async () => {
       const { data } = await apiClient.get('/documents', { params: { status: filter } });
@@ -25,11 +28,12 @@ const AdminDocumentsPage = () => {
       await apiClient.put(`/documents/${id}/review`, { status, reviewNote: note });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-documents']);
+      queryClient.invalidateQueries({ queryKey: ['admin-documents'] });
       setSelectedDoc(null);
       setReviewNote('');
-      alert('Document reviewed successfully!');
-    }
+      pushToast('Document reviewed successfully!', 'success');
+    },
+    onError: (err) => pushToast(err.response?.data?.message || 'Failed to review document'),
   });
 
   return (
@@ -55,9 +59,13 @@ const AdminDocumentsPage = () => {
 
       {isLoading ? (
         <Skeleton type="table-row" count={5} />
+      ) : isError ? (
+        <EmptyState icon={FileText} title="Couldn't load documents" hint="Something went wrong fetching documents. Try refreshing the page." />
+      ) : !docs?.length ? (
+        <EmptyState icon={FileText} title={`No ${filter.toLowerCase()} documents`} hint="Documents will show up here as teams upload verification files." />
       ) : (
         <AdminTable headers={['Player', 'Doc Type', 'Filename', 'Uploaded At', 'Actions']}>
-          {docs?.map(doc => (
+          {docs.map(doc => (
             <tr key={doc.id} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors">
               <td className="px-6 py-5">
                 <div className="flex flex-col">

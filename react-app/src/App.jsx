@@ -6,6 +6,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { ThemeProvider } from './context/ThemeContext';
 import { CommandPaletteProvider } from './context/CommandPaletteContext';
 import CommandPalette from './components/shared/CommandPalette';
+import Toaster from './components/shared/Toaster';
 
 // Layouts are small and shared on every route — keep them eager.
 import PublicLayout from './components/layout/PublicLayout';
@@ -42,6 +43,10 @@ const LiveReportingPage = lazy(() => import('./pages/admin/LiveReportingPage'));
 
 // Team Pages
 const TeamDashboard = lazy(() => import('./pages/team/TeamDashboard'));
+const TeamPlayersPage = lazy(() => import('./pages/team/TeamPlayersPage'));
+const TeamDocumentsPage = lazy(() => import('./pages/team/TeamDocumentsPage'));
+const TeamFixturesPage = lazy(() => import('./pages/team/TeamFixturesPage'));
+const TeamProfilePage = lazy(() => import('./pages/team/TeamProfilePage'));
 
 // Amashuri Games (Rwanda Inter-School Sports) Pages
 const AkcHome = lazy(() => import('./pages/akc3/AkcHome'));
@@ -170,10 +175,10 @@ function App() {
             <Route path="/team" element={<TeamLayout />}>
               <Route index element={<Navigate to="/team/dashboard" replace />} />
               <Route path="dashboard" element={<TeamDashboard />} />
-              <Route path="players" element={<div className="font-display text-3xl uppercase opacity-20 py-20 uppercase">Roster Management</div>} />
-              <Route path="documents" element={<div className="font-display text-3xl uppercase opacity-20 py-20 uppercase">Document Uploads</div>} />
-              <Route path="fixtures" element={<div className="font-display text-3xl uppercase opacity-20 py-20 uppercase">Team Schedule</div>} />
-              <Route path="profile" element={<div className="font-display text-3xl uppercase opacity-20 py-20 uppercase">Club Profile</div>} />
+              <Route path="players" element={<TeamPlayersPage />} />
+              <Route path="documents" element={<TeamDocumentsPage />} />
+              <Route path="fixtures" element={<TeamFixturesPage />} />
+              <Route path="profile" element={<TeamProfilePage />} />
             </Route>
 
             {/* Match Reporter Portal */}
@@ -187,6 +192,7 @@ function App() {
         </RouteWatcher>
         </CommandPaletteProvider>
       </BrowserRouter>
+      <Toaster />
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
     </ThemeProvider>

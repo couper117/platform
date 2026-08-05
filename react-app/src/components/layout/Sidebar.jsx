@@ -1,25 +1,33 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { 
-  LayoutDashboard, Trophy, Users, UserSquare2, FileText, 
-  Newspaper, Settings, Activity, School, X, Megaphone, Eye
+import {
+  LayoutDashboard, Trophy, Users, UserSquare2, FileText,
+  Newspaper, Settings, Activity, School, X, Megaphone, Eye, Radio
 } from 'lucide-react';
+import useAuthStore from '../../store/authStore';
+import { ADMIN_PAGES } from '../../lib/adminAccess';
+
+const ADMIN_ICONS = {
+  '/admin/dashboard': <LayoutDashboard size={18} />,
+  '/admin/leagues': <Trophy size={18} />,
+  '/admin/fixtures': <Activity size={18} />,
+  '/admin/teams': <Users size={18} />,
+  '/admin/players': <UserSquare2 size={18} />,
+  '/admin/documents': <FileText size={18} />,
+  '/admin/news': <Newspaper size={18} />,
+  '/admin/ads': <Megaphone size={18} />,
+  '/admin/visitors': <Eye size={18} />,
+  '/admin/akc3': <School size={18} />,
+  '/admin/championships': <Trophy size={18} />,
+  '/admin/settings': <Settings size={18} />,
+};
 
 const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
-  const adminLinks = [
-    { to: '/admin/dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
-    { to: '/admin/leagues', icon: <Trophy size={18} />, label: 'Leagues' },
-    { to: '/admin/fixtures', icon: <Activity size={18} />, label: 'Fixtures' },
-    { to: '/admin/teams', icon: <Users size={18} />, label: 'Teams' },
-    { to: '/admin/players', icon: <UserSquare2 size={18} />, label: 'Players' },
-    { to: '/admin/documents', icon: <FileText size={18} />, label: 'Documents' },
-    { to: '/admin/news', icon: <Newspaper size={18} />, label: 'News' },
-    { to: '/admin/ads', icon: <Megaphone size={18} />, label: 'Ads' },
-    { to: '/admin/visitors', icon: <Eye size={18} />, label: 'Visitors' },
-    { to: '/admin/akc3', icon: <School size={18} />, label: 'Amashuri Games' },
-    { to: '/admin/championships', icon: <Trophy size={18} />, label: 'Championships' },
-    { to: '/admin/settings', icon: <Settings size={18} />, label: 'Settings' },
-  ];
+  const { role } = useAuthStore();
+
+  const adminLinks = ADMIN_PAGES
+    .filter((page) => page.roles.includes(role))
+    .map((page) => ({ to: page.path, icon: ADMIN_ICONS[page.path], label: page.label }));
 
   const teamLinks = [
     { to: '/team/dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
@@ -29,13 +37,18 @@ const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
     { to: '/team/profile', icon: <Users size={18} />, label: 'Team Profile' },
   ];
 
-  const links = type === 'admin' ? adminLinks : teamLinks;
+  const reporterLinks = [
+    { to: '/reporter/dashboard', icon: <Radio size={18} />, label: 'Live Reporting' },
+  ];
+
+  const links = type === 'admin' ? adminLinks : type === 'reporter' ? reporterLinks : teamLinks;
+  const portalLabel = type === 'admin' ? 'Admin Portal' : type === 'reporter' ? 'Reporter Portal' : 'Team Portal';
 
   const sidebarContent = (
     <>
       <div className="p-6 border-b border-surface-dark2 flex justify-between items-center">
         <h2 className="font-display text-xl text-red tracking-tighter uppercase">
-          {type === 'admin' ? 'Admin Portal' : 'Team Portal'}
+          {portalLabel}
         </h2>
         <button onClick={onClose} className="lg:hidden p-1 text-white/40 hover:text-white">
           <X size={20} />

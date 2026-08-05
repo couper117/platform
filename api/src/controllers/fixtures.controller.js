@@ -5,22 +5,31 @@ const logActivity = require('../utils/activityLogger');
 
 const getFixtures = async (req, res, next) => {
   try {
-    const { leagueId, sportId, status, from, to, teamId } = req.query;
+    const { leagueId, sportId, status, from, to, teamId, reporterId } = req.query;
     const where = {};
+    const andClauses = [];
     if (leagueId) where.leagueId = parseInt(leagueId);
     if (sportId) where.league = { sportId: parseInt(sportId) };
     if (status) where.status = status;
     if (teamId) {
-      where.OR = [
-        { homeTeamId: parseInt(teamId) },
-        { awayTeamId: parseInt(teamId) }
-      ];
+      andClauses.push({ OR: [{ homeTeamId: parseInt(teamId) }, { awayTeamId: parseInt(teamId) }] });
     }
     if (from || to) {
       where.matchDate = {};
       if (from) where.matchDate.gte = new Date(from);
       if (to) where.matchDate.lte = new Date(to);
     }
+    if (reporterId) {
+      // A reporter can be assigned to a specific fixture, or to an entire league.
+      const assignments = await prisma.reporterAssignment.findMany({ where: { userId: parseInt(reporterId) } });
+      const fixtureIds = assignments.filter((a) => a.fixtureId).map((a) => a.fixtureId);
+      const leagueIds = assignments.filter((a) => a.leagueId && !a.fixtureId).map((a) => a.leagueId);
+      const reporterOr = [];
+      if (fixtureIds.length) reporterOr.push({ id: { in: fixtureIds } });
+      if (leagueIds.length) reporterOr.push({ leagueId: { in: leagueIds } });
+      andClauses.push(reporterOr.length ? { OR: reporterOr } : { id: -1 });
+    }
+    if (andClauses.length) where.AND = andClauses;
 
     const fixtures = await prisma.fixture.findMany({
       where,
@@ -125,7 +134,12 @@ const saveResult = async (req, res, next) => {
     // Authorization check
     if (req.user.role === 'MATCH_REPORTER') {
       const isAssigned = await prisma.reporterAssignment.findFirst({
-        where: { fixtureId, userId: req.user.id }
+        where: {
+          OR: [
+            { fixtureId, userId: req.user.id },
+            { leagueId: fixture.leagueId, userId: req.user.id }
+          ]
+        }
       });
       if (!isAssigned) return res.status(403).json({ success: false, message: 'Not assigned to this match' });
     } else if (req.user.role === 'LEAGUE_ADMIN') {

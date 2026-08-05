@@ -1,21 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Settings, Save, RotateCcw, AlertCircle, Loader2, Globe, Shield, Mail } from 'lucide-react';
 import apiClient from '../../api/client';
 import Skeleton from '../../components/shared/Skeleton';
+import EmptyState from '../../components/ui/EmptyState';
+import useUiStore from '../../store/uiStore';
 
 const AdminSettingsPage = () => {
   const queryClient = useQueryClient();
+  const pushToast = useUiStore((s) => s.pushToast);
   const [settingsData, setSettingsData] = useState({});
+  const hasInitialized = useRef(false);
 
-  const { data: settings, isLoading } = useQuery({
+  const { data: settings, isLoading, isError } = useQuery({
     queryKey: ['admin-settings'],
     queryFn: async () => {
       const { data } = await apiClient.get('/settings');
-      setSettingsData(data.data);
       return data.data;
     },
   });
+
+  // Seed local state from the fetched settings once — background refetches
+  // (window focus, etc.) must not clobber in-progress unsaved edits.
+  useEffect(() => {
+    if (settings && !hasInitialized.current) {
+      setSettingsData(settings);
+      hasInitialized.current = true;
+    }
+  }, [settings]);
 
   const updateMutation = useMutation({
     mutationFn: async (updates) => {
@@ -24,9 +36,10 @@ const AdminSettingsPage = () => {
       await apiClient.put('/settings', payload);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-settings']);
-      alert('System settings updated successfully!');
-    }
+      queryClient.invalidateQueries({ queryKey: ['admin-settings'] });
+      pushToast('System settings updated successfully!', 'success');
+    },
+    onError: (err) => pushToast(err.response?.data?.message || 'Failed to update settings'),
   });
 
   const handleChange = (key, val) => {
@@ -40,6 +53,14 @@ const AdminSettingsPage = () => {
   ];
 
   if (isLoading) return <div className="p-8"><Skeleton type="stat" count={3} /></div>;
+
+  if (isError) {
+    return (
+      <div className="p-8">
+        <EmptyState icon={AlertCircle} title="Couldn't load settings" hint="Something went wrong fetching system configuration. Try refreshing the page." />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-10 animate-in fade-in duration-500">
