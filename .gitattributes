@@ -1,0 +1,4 @@
+# The committed showcase build is a build artifact: keep it byte-for-byte as
+# emitted so checkouts on different platforms don't rewrite line endings and
+# produce spurious diffs.
+demo/dist/** -text

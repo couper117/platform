@@ -3,12 +3,17 @@ const bcrypt = require('bcryptjs');
 
 const prisma = new PrismaClient();
 
+// Find-or-create on a natural key. Several seeded models (League, Fixture,
+// AkcSchool, AkcTeam, AkcPlayer, Ad) have no unique constraint to upsert
+// against, so re-running the seed would otherwise duplicate rows.
+const ensure = async (model, where, data) => {
+  const existing = await prisma[model].findFirst({ where });
+  if (existing) return existing;
+  return prisma[model].create({ data: { ...where, ...data } });
+};
+
 async function main() {
   console.log('🌱 Starting Comprehensive Seeding...');
-
-  // 1. CLEAR EXISTING DATA (Optional, but good for clean test)
-  // console.log('Cleaning existing data...');
-  // await prisma.$transaction([ ...delete operations... ]);
 
   const hashedPassword = await bcrypt.hash('Manager@123', 12);
 
@@ -48,128 +53,149 @@ async function main() {
 
   // 4. LEAGUES
   console.log('Creating Leagues...');
-  const rpl = await prisma.league.create({
-    data: { name: 'Rwanda Premier League', slug: 'rpl', sportId: football.id, season: '2025/2026', gender: 'MALE', status: 'ACTIVE', level: 'NATIONAL' }
-  });
+  const rpl = await ensure(
+    'league',
+    { slug: 'rpl' },
+    { name: 'Rwanda Premier League', sportId: football.id, season: '2025/2026', gender: 'MALE', status: 'ACTIVE', level: 'NATIONAL' }
+  );
 
-  const akcCup = await prisma.league.create({
-    data: { name: 'Kagame Cup Schools', slug: 'akc-cup', sportId: football.id, season: '2025/2026', gender: 'MIXED', status: 'UPCOMING', level: 'SCHOOL' }
-  });
+  const akcCup = await ensure(
+    'league',
+    { slug: 'akc-cup' },
+    { name: 'Kagame Cup Schools', sportId: football.id, season: '2025/2026', gender: 'MIXED', status: 'UPCOMING', level: 'SCHOOL' }
+  );
 
   // 5. TEAMS
   console.log('Creating Teams...');
   const apr = await prisma.team.upsert({
     where: { slug: 'apr-fc' },
     update: {},
-    create: { 
-      name: 'APR FC', 
-      shortName: 'APR', 
-      sportId: football.id, 
-      slug: 'apr-fc', 
-      city: 'Kigali', 
-      status: 'VERIFIED', 
-      managerUserId: teamManagerUser.id 
+    create: {
+      name: 'APR FC',
+      shortName: 'APR',
+      sportId: football.id,
+      slug: 'apr-fc',
+      city: 'Kigali',
+      status: 'VERIFIED',
+      managerUserId: teamManagerUser.id
     }
   });
 
   const rayon = await prisma.team.upsert({
     where: { slug: 'rayon-sports' },
     update: {},
-    create: { 
-      name: 'Rayon Sports', 
-      shortName: 'RS', 
-      sportId: football.id, 
-      slug: 'rayon-sports', 
-      city: 'Nyanza', 
-      status: 'VERIFIED' 
+    create: {
+      name: 'Rayon Sports',
+      shortName: 'RS',
+      sportId: football.id,
+      slug: 'rayon-sports',
+      city: 'Nyanza',
+      status: 'VERIFIED'
     }
   });
 
   // Assign teams to RPL
-  await prisma.leagueTeam.createMany({
-    data: [
-      { leagueId: rpl.id, teamId: apr.id },
-      { leagueId: rpl.id, teamId: rayon.id }
-    ]
+  await prisma.leagueTeam.upsert({
+    where: { leagueId_teamId: { leagueId: rpl.id, teamId: apr.id } },
+    update: {},
+    create: { leagueId: rpl.id, teamId: apr.id }
+  });
+
+  await prisma.leagueTeam.upsert({
+    where: { leagueId_teamId: { leagueId: rpl.id, teamId: rayon.id } },
+    update: {},
+    create: { leagueId: rpl.id, teamId: rayon.id }
   });
 
   // 6. FIXTURES
   console.log('Creating Fixtures...');
   // A Completed Match
-  await prisma.fixture.create({
-    data: {
-      leagueId: rpl.id, homeTeamId: apr.id, awayTeamId: rayon.id, status: 'COMPLETED',
-      homeScore: 2, awayScore: 1, venue: 'Amahoro Stadium', matchDate: new Date('2026-05-20T15:00:00Z')
-    }
-  });
+  await ensure(
+    'fixture',
+    { leagueId: rpl.id, homeTeamId: apr.id, awayTeamId: rayon.id, venue: 'Amahoro Stadium' },
+    { status: 'COMPLETED', homeScore: 2, awayScore: 1, matchDate: new Date('2026-05-20T15:00:00Z') }
+  );
 
   // A Live Match
-  const liveMatch = await prisma.fixture.create({
-    data: {
-      leagueId: rpl.id, homeTeamId: rayon.id, awayTeamId: apr.id, status: 'LIVE',
-      homeScore: 0, awayScore: 0, venue: 'Kigali Arena Pitch', matchDate: new Date()
-    }
-  });
+  const liveMatch = await ensure(
+    'fixture',
+    { leagueId: rpl.id, homeTeamId: rayon.id, awayTeamId: apr.id, venue: 'Kigali Arena Pitch' },
+    { status: 'LIVE', homeScore: 0, awayScore: 0, matchDate: new Date() }
+  );
 
   // An Upcoming Match
-  await prisma.fixture.create({
-    data: {
-      leagueId: rpl.id, homeTeamId: apr.id, awayTeamId: rayon.id, status: 'SCHEDULED',
-      venue: 'Huye Stadium', matchDate: new Date('2026-06-01T18:00:00Z')
-    }
-  });
+  await ensure(
+    'fixture',
+    { leagueId: rpl.id, homeTeamId: apr.id, awayTeamId: rayon.id, venue: 'Huye Stadium' },
+    { status: 'SCHEDULED', matchDate: new Date('2026-06-01T18:00:00Z') }
+  );
 
   // 7. ASSIGNMENTS
   console.log('Assigning Admin Roles...');
   // Assign League Admin to RPL
-  await prisma.leagueAdminAssignment.create({
-    data: { leagueId: rpl.id, userId: leagueAdminUser.id, assignedBy: superadmin.id }
+  await prisma.leagueAdminAssignment.upsert({
+    where: { leagueId_userId: { leagueId: rpl.id, userId: leagueAdminUser.id } },
+    update: {},
+    create: { leagueId: rpl.id, userId: leagueAdminUser.id, assignedBy: superadmin.id }
   });
 
   // Assign Reporter to the Live Match
-  await prisma.reporterAssignment.create({
-    data: { leagueId: rpl.id, fixtureId: liveMatch.id, userId: reporterUser.id, assignedBy: leagueAdminUser.id }
-  });
+  await ensure(
+    'reporterAssignment',
+    { leagueId: rpl.id, fixtureId: liveMatch.id, userId: reporterUser.id },
+    { assignedBy: leagueAdminUser.id }
+  );
 
   // 8. AKC3 DATA
   console.log('Creating AKC3 Specific Data...');
-  const school1 = await prisma.akcSchool.create({
-    data: { name: 'Kigali International School', code: 'KIS-001', category: 'SECONDARY', sector: 'Gasabo', active: true }
-  });
+  const school1 = await ensure(
+    'akcSchool',
+    { code: 'KIS-001' },
+    { name: 'Kigali International School', category: 'SECONDARY', sector: 'Gasabo', active: true }
+  );
 
-  const akcTeam = await prisma.akcTeam.create({
-    data: { schoolId: school1.id, sportId: football.id, gender: 'MALE', ageCategory: 'U17', coachName: 'Jean Damascene' }
-  });
+  const akcTeam = await ensure(
+    'akcTeam',
+    { schoolId: school1.id, sportId: football.id, gender: 'MALE', ageCategory: 'U17' },
+    { coachName: 'Jean Damascene' }
+  );
 
-  await prisma.akcPlayer.create({
-    data: { teamId: akcTeam.id, fullName: 'Mugisha Emmanuel', ageCategory: 'U17', position: 'Striker', jersey: 10, docVerified: true }
-  });
+  await ensure(
+    'akcPlayer',
+    { teamId: akcTeam.id, fullName: 'Mugisha Emmanuel' },
+    { ageCategory: 'U17', position: 'Striker', jersey: 10, docVerified: true }
+  );
 
   // 9. STANDINGS (Recalc for RPL)
   // Normally the service does this, but for seed we initialize
-  await prisma.standing.createMany({
-    data: [
-      { leagueId: rpl.id, teamId: apr.id, played: 1, won: 1, drawn: 0, lost: 0, goalsFor: 2, goalsAgainst: 1, points: 3, form: 'W' },
-      { leagueId: rpl.id, teamId: rayon.id, played: 1, won: 0, drawn: 0, lost: 1, goalsFor: 1, goalsAgainst: 2, points: 0, form: 'L' }
-    ]
+  await prisma.standing.upsert({
+    where: { leagueId_teamId: { leagueId: rpl.id, teamId: apr.id } },
+    update: {},
+    create: { leagueId: rpl.id, teamId: apr.id, played: 1, won: 1, drawn: 0, lost: 0, goalsFor: 2, goalsAgainst: 1, points: 3, form: 'W' }
+  });
+
+  await prisma.standing.upsert({
+    where: { leagueId_teamId: { leagueId: rpl.id, teamId: rayon.id } },
+    update: {},
+    create: { leagueId: rpl.id, teamId: rayon.id, played: 1, won: 0, drawn: 0, lost: 1, goalsFor: 1, goalsAgainst: 2, points: 0, form: 'L' }
   });
 
   // 10. ADVERTISING
+  // No explicit id: forcing id:1 leaves the SERIAL sequence at 0, so the next
+  // auto-id insert collides on the primary key.
   console.log('Creating Sample Ads...');
-  await prisma.ad.upsert({
-    where: { id: 1 },
-    update: {},
-    create: {
-      id: 1,
-      title: 'Inyange Summer Campaign',
+  await ensure(
+    'ad',
+    { title: 'Inyange Summer Campaign' },
+    {
       imageUrl: 'https://images.unsplash.com/photo-1550537687-c9107db4d4a5?auto=format&fit=crop&w=1200&q=80',
       targetUrl: 'https://inyangeindustries.rw',
       position: 'HOME_BANNER',
       active: true
     }
-  });
+  );
 
-  console.log('✅ Comprehensive Seeding Complete!');
+  console.log(`✅ Comprehensive Seeding Complete! (leagues: ${rpl.slug}, ${akcCup.slug})`);
 }
 
 main()

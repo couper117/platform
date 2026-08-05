@@ -23,28 +23,35 @@ const envSchema = z.object({
   FRONTEND_URL: z.string().url().default('http://localhost:5173'),
 });
 
-const env = envSchema.safeParse(process.env);
+const CRITICAL_FIELDS = ['DATABASE_URL', 'JWT_SECRET'];
 
-if (!env.success) {
-  console.error('❌ Invalid environment variables:', JSON.stringify(env.error.format(), null, 2));
-  // Critical vars must be valid in every environment — fail fast rather than
-  // silently running with a broken/insecure config.
-  const criticalMissing = ['DATABASE_URL', 'JWT_SECRET'].some((f) => !process.env[f]);
-  if (criticalMissing || process.env.NODE_ENV === 'production') {
+const parsed = envSchema.safeParse(process.env);
+
+const resolve = () => {
+  if (parsed.success) return parsed.data;
+
+  console.error('❌ Invalid environment variables:', JSON.stringify(parsed.error.format(), null, 2));
+
+  const brokenCritical = parsed.error.issues
+    .map((issue) => issue.path[0])
+    .filter((field) => CRITICAL_FIELDS.includes(field));
+
+  if (brokenCritical.length > 0) {
+    console.error(
+      `❌ Cannot start: ${[...new Set(brokenCritical)].join(', ')} is missing or invalid. ` +
+        'Copy .env.example to .env and set a DATABASE_URL and a JWT_SECRET of at least 32 characters.'
+    );
     process.exit(1);
   }
-  console.warn('⚠️  Continuing in development with defaults applied for non-critical vars.');
-}
 
-// On success use the validated/defaulted data; otherwise (dev, non-critical
-// issue only) apply sane defaults over the raw env rather than exporting it bare.
-module.exports = env.success
-  ? env.data
-  : {
-      NODE_ENV: process.env.NODE_ENV || 'development',
-      PORT: process.env.PORT || '5000',
-      JWT_ACCESS_EXPIRY: process.env.JWT_ACCESS_EXPIRY || '15m',
-      JWT_REFRESH_EXPIRY: process.env.JWT_REFRESH_EXPIRY || '7d',
-      FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173',
-      ...process.env,
-    };
+  const cleaned = { ...process.env };
+  parsed.error.issues.forEach((issue) => delete cleaned[issue.path[0]]);
+
+  const reparsed = envSchema.safeParse(cleaned);
+  if (!reparsed.success) process.exit(1);
+
+  console.warn('⚠️  Falling back to schema defaults for the invalid optional variables above.');
+  return reparsed.data;
+};
+
+module.exports = resolve();
