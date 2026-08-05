@@ -8,20 +8,21 @@ import useAuthStore from '../../store/authStore';
 
 const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
   const { role } = useAuthStore();
+  const S = 'SUPERADMIN', F = 'FEDERATION_ADMIN', L = 'LEAGUE_ADMIN', A = 'AMASHURI_ADMIN';
   const adminLinks = [
-    { to: '/admin/dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
-    { to: '/admin/sport-admins', icon: <ShieldCheck size={18} />, label: 'Sport Admins', superOnly: true },
-    { to: '/admin/leagues', icon: <Trophy size={18} />, label: 'Leagues' },
-    { to: '/admin/fixtures', icon: <Activity size={18} />, label: 'Fixtures' },
-    { to: '/admin/teams', icon: <Users size={18} />, label: 'Teams' },
-    { to: '/admin/players', icon: <UserSquare2 size={18} />, label: 'Players' },
-    { to: '/admin/documents', icon: <FileText size={18} />, label: 'Documents' },
-    { to: '/admin/news', icon: <Newspaper size={18} />, label: 'News' },
-    { to: '/admin/ads', icon: <Megaphone size={18} />, label: 'Ads' },
-    { to: '/admin/visitors', icon: <Eye size={18} />, label: 'Visitors' },
-    { to: '/admin/akc3', icon: <School size={18} />, label: 'Amashuri Games' },
-    { to: '/admin/championships', icon: <Trophy size={18} />, label: 'Championships' },
-    { to: '/admin/settings', icon: <Settings size={18} />, label: 'Settings' },
+    { to: '/admin/dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard', roles: [S, F, L, A] },
+    { to: '/admin/sport-admins', icon: <ShieldCheck size={18} />, label: 'Sport Admins', roles: [S] },
+    { to: '/admin/leagues', icon: <Trophy size={18} />, label: 'Leagues', roles: [S, F, L] },
+    { to: '/admin/fixtures', icon: <Activity size={18} />, label: 'Fixtures', roles: [S, F, L] },
+    { to: '/admin/teams', icon: <Users size={18} />, label: 'Teams', roles: [S, F] },
+    { to: '/admin/players', icon: <UserSquare2 size={18} />, label: 'Players', roles: [S, F] },
+    { to: '/admin/documents', icon: <FileText size={18} />, label: 'Documents', roles: [S, F, L] },
+    { to: '/admin/news', icon: <Newspaper size={18} />, label: 'News', roles: [S, F, L] },
+    { to: '/admin/ads', icon: <Megaphone size={18} />, label: 'Ads', roles: [S] },
+    { to: '/admin/visitors', icon: <Eye size={18} />, label: 'Visitors', roles: [S] },
+    { to: '/admin/akc3', icon: <School size={18} />, label: 'Amashuri Games', roles: [S, A] },
+    { to: '/admin/championships', icon: <Trophy size={18} />, label: 'Championships', roles: [S, A] },
+    { to: '/admin/settings', icon: <Settings size={18} />, label: 'Settings', roles: [S] },
   ];
 
   const teamLinks = [
@@ -32,7 +33,9 @@ const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
     { to: '/team/profile', icon: <Users size={18} />, label: 'Team Profile' },
   ];
 
-  const links = (type === 'admin' ? adminLinks : teamLinks).filter((l) => !l.superOnly || role === 'SUPERADMIN');
+  const links = type === 'admin'
+    ? adminLinks.filter((l) => l.roles.includes(role))
+    : teamLinks;
 
   const sidebarContent = (
     <>

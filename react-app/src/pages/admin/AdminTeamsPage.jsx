@@ -4,15 +4,17 @@ import { Users, ShieldCheck, XCircle, Mail, Trash2, Loader2 } from 'lucide-react
 import apiClient from '../../api/client';
 import AdminTable from '../../components/admin/AdminTable';
 import Skeleton from '../../components/shared/Skeleton';
+import useSportScope from '../../hooks/useSportScope';
 
 const AdminTeamsPage = () => {
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState('PENDING');
+  const scope = useSportScope();
 
   const { data: teams, isLoading } = useQuery({
-    queryKey: ['admin-teams', filter],
+    queryKey: ['admin-teams', filter, scope.key],
     queryFn: async () => {
-      const { data } = await apiClient.get('/teams', { params: { status: filter } });
+      const { data } = await apiClient.get('/teams', { params: { status: filter, ...scope.params } });
       return data.data;
     },
   });

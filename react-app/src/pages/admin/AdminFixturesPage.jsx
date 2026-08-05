@@ -6,25 +6,27 @@ import apiClient from '../../api/client';
 import AdminTable from '../../components/admin/AdminTable';
 import AdminModal from '../../components/admin/AdminModal';
 import Skeleton from '../../components/shared/Skeleton';
+import useSportScope from '../../hooks/useSportScope';
 
 const AdminFixturesPage = () => {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+  const scope = useSportScope();
+
   const { register, handleSubmit, reset } = useForm();
 
   const { data: fixtures, isLoading: fixturesLoading } = useQuery({
-    queryKey: ['admin-fixtures'],
+    queryKey: ['admin-fixtures', scope.key],
     queryFn: async () => {
-      const { data } = await apiClient.get('/fixtures');
+      const { data } = await apiClient.get('/fixtures', { params: scope.params });
       return data.data;
     },
   });
 
   const { data: leagues } = useQuery({
-    queryKey: ['admin-leagues-list'],
+    queryKey: ['admin-leagues-list', scope.key],
     queryFn: async () => {
-      const { data } = await apiClient.get('/leagues');
+      const { data } = await apiClient.get('/leagues', { params: scope.params });
       return data.data;
     },
   });

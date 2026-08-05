@@ -6,6 +6,20 @@ const { sendMail } = require('../utils/sendMail');
 const logActivity = require('../utils/activityLogger');
 const env = require('../config/env');
 
+// Attach the sport a federation admin is scoped to, so the frontend can filter
+// its admin views to that sport.
+const withAdminSport = async (user) => {
+  if (user?.role === 'FEDERATION_ADMIN') {
+    const fa = await prisma.federationAdminAssignment.findFirst({
+      where: { userId: user.id },
+      include: { federation: { include: { sport: { select: { id: true, name: true, slug: true } } } } },
+    });
+    user.sportId = fa?.federation?.sportId ?? null;
+    user.sport = fa?.federation?.sport ?? null;
+  }
+  return user;
+};
+
 // @desc    Register a team and its manager
 // @route   POST /api/v1/auth/team/register
 // @access  Public
@@ -121,6 +135,7 @@ const login = async (req, res, next) => {
 
     // Remove password from response
     user.password = undefined;
+    await withAdminSport(user);
 
     res.status(200).json({
       success: true,
@@ -220,6 +235,7 @@ const getMe = async (req, res, next) => {
     }
 
     user.password = undefined;
+    await withAdminSport(user);
     res.status(200).json({ success: true, user });
   } catch (error) {
     next(error);

@@ -4,15 +4,17 @@ import { UserSquare2, Search, Trash2, Edit2, ShieldCheck, Filter, User } from 'l
 import apiClient from '../../api/client';
 import AdminTable from '../../components/admin/AdminTable';
 import Skeleton from '../../components/shared/Skeleton';
+import useSportScope from '../../hooks/useSportScope';
 
 const AdminPlayersPage = () => {
   const queryClient = useQueryClient();
   const [searchTerm, setSearcherTerm] = useState('');
+  const scope = useSportScope();
 
   const { data: players, isLoading } = useQuery({
-    queryKey: ['admin-players', searchTerm],
+    queryKey: ['admin-players', searchTerm, scope.key],
     queryFn: async () => {
-      const { data } = await apiClient.get('/players', { params: { search: searchTerm } });
+      const { data } = await apiClient.get('/players', { params: { search: searchTerm, ...scope.params } });
       return data.data;
     },
   });

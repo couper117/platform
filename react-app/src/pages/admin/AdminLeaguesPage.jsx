@@ -6,9 +6,11 @@ import apiClient from '../../api/client';
 import AdminTable from '../../components/admin/AdminTable';
 import AdminModal from '../../components/admin/AdminModal';
 import Skeleton from '../../components/shared/Skeleton';
+import useSportScope from '../../hooks/useSportScope';
 
 const AdminLeaguesPage = () => {
   const queryClient = useQueryClient();
+  const scope = useSportScope();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isReporterModalOpen, setIsModalReporterOpen] = useState(false);
   const [isAdminModalOpen, setIsModalAdminOpen] = useState(false);
@@ -19,9 +21,9 @@ const AdminLeaguesPage = () => {
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
 
   const { data: leagues, isLoading } = useQuery({
-    queryKey: ['admin-leagues'],
+    queryKey: ['admin-leagues', scope.key],
     queryFn: async () => {
-      const { data } = await apiClient.get('/leagues');
+      const { data } = await apiClient.get('/leagues', { params: scope.params });
       return data.data;
     },
   });
@@ -146,10 +148,16 @@ const AdminLeaguesPage = () => {
             
             <div className="space-y-2">
               <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Sport</label>
-              <select {...register('sportId', { required: true })} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none">
-                <option value="">Select Sport...</option>
-                {sports?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-              </select>
+              {scope.isScoped ? (
+                <div className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl opacity-70 text-sm font-bold uppercase tracking-tight">
+                  {scope.sport?.name || 'Your Sport'}
+                </div>
+              ) : (
+                <select {...register('sportId', { required: true })} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none">
+                  <option value="">Select Sport...</option>
+                  {sports?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+              )}
             </div>
 
             <div className="space-y-2">

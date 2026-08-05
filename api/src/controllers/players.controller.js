@@ -8,10 +8,12 @@ const logActivity = require('../utils/activityLogger');
 // @access  Private (Admin)
 const getPlayers = async (req, res, next) => {
   try {
-    const { teamId, status } = req.query;
+    const { teamId, status, sportId, search } = req.query;
     const where = { active: true };
     if (teamId) where.teamId = parseInt(teamId);
     if (status) where.status = status;
+    if (sportId) where.team = { sportId: parseInt(sportId) };
+    if (search) where.fullName = { contains: search, mode: 'insensitive' };
 
     const { skip, take } = getPagination(req.query);
     const [players, total] = await Promise.all([

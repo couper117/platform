@@ -5,16 +5,18 @@ import apiClient from '../../api/client';
 import AdminTable from '../../components/admin/AdminTable';
 import AdminModal from '../../components/admin/AdminModal';
 import Skeleton from '../../components/shared/Skeleton';
+import useSportScope from '../../hooks/useSportScope';
 
 const AdminNewsPage = () => {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({ title: '', category: 'NEWS', excerpt: '', body: '', published: true });
+  const scope = useSportScope();
 
   const { data: news, isLoading } = useQuery({
-    queryKey: ['admin-news'],
+    queryKey: ['admin-news', scope.key],
     queryFn: async () => {
-      const { data } = await apiClient.get('/news');
+      const { data } = await apiClient.get('/news', { params: scope.params });
       return data.data;
     },
   });
