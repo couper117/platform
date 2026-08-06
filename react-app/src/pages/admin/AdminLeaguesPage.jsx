@@ -20,6 +20,16 @@ const AdminLeaguesPage = () => {
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
 
+  const p = scope.profile;
+  const compOne = p?.competition || 'League';
+  const compMany = p?.competitionPlural || 'Leagues';
+  const formats = p?.formats || [
+    { value: 'LEAGUE', label: 'League (round-robin)' },
+    { value: 'KNOCKOUT', label: 'Knockout / Cup' },
+    { value: 'GROUP_KNOCKOUT', label: 'Groups + Knockout' },
+    { value: 'ROUND_ROBIN', label: 'Double round-robin' },
+  ];
+
   const { data: leagues, isLoading } = useQuery({
     queryKey: ['admin-leagues', scope.key],
     queryFn: async () => {
@@ -110,15 +120,15 @@ const AdminLeaguesPage = () => {
     <div className="space-y-10 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-4xl font-display uppercase tracking-tighter">Manage <span className="text-red">Leagues</span></h1>
-          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Create and delegate sports competitions</p>
+          <h1 className="text-4xl font-display uppercase tracking-tighter">Manage <span className="text-red">{compMany}</span></h1>
+          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Create and delegate {p ? `${p.label.toLowerCase()} competitions` : 'sports competitions'}</p>
         </div>
-        <button 
+        <button
           onClick={() => setIsModalOpen(true)}
           className="bg-red text-white px-8 py-3 rounded-xl font-display text-lg uppercase tracking-widest hover:bg-red-dark transition-all shadow-xl shadow-red/20 flex items-center space-x-2"
         >
           <Plus size={20} />
-          <span>Create League</span>
+          <span>Create {compOne}</span>
         </button>
       </div>
 
@@ -160,7 +170,7 @@ const AdminLeaguesPage = () => {
       )}
 
       {/* Create League Modal */}
-      <AdminModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create New League">
+      <AdminModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={`Create New ${compOne}`}>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2 col-span-2">
@@ -223,10 +233,7 @@ const AdminLeaguesPage = () => {
             <div className="space-y-2">
               <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Format</label>
               <select {...register('format')} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none">
-                <option value="LEAGUE">League (round-robin)</option>
-                <option value="KNOCKOUT">Knockout / Cup</option>
-                <option value="GROUP_KNOCKOUT">Groups + Knockout</option>
-                <option value="ROUND_ROBIN">Double round-robin</option>
+                {formats.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
               </select>
             </div>
 

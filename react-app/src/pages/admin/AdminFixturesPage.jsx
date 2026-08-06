@@ -14,6 +14,10 @@ const AdminFixturesPage = () => {
   const scope = useSportScope();
 
   const { register, handleSubmit, reset } = useForm();
+  const p = scope.profile;
+  const evOne = p?.event || 'Fixture';
+  const evMany = p?.eventPlural || 'Fixtures';
+  const compOne = p?.competition || 'League';
 
   const { data: fixtures, isLoading: fixturesLoading } = useQuery({
     queryKey: ['admin-fixtures', scope.key],
@@ -73,15 +77,15 @@ const AdminFixturesPage = () => {
     <div className="space-y-10 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-4xl font-display uppercase tracking-tighter">Schedule <span className="text-red">Management</span></h1>
-          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Manage fixtures and assign pitch-side reporters</p>
+          <h1 className="text-4xl font-display uppercase tracking-tighter">{evMany} <span className="text-red">Management</span></h1>
+          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Schedule {evMany.toLowerCase()} and assign reporters</p>
         </div>
-        <button 
+        <button
           onClick={() => setIsModalOpen(true)}
           className="bg-red text-white px-8 py-3 rounded-xl font-display text-lg uppercase tracking-widest hover:bg-red-dark transition-all shadow-xl shadow-red/20 flex items-center space-x-2"
         >
           <Plus size={20} />
-          <span>New Fixture</span>
+          <span>New {evOne}</span>
         </button>
       </div>
 
@@ -128,11 +132,11 @@ const AdminFixturesPage = () => {
       )}
 
       {/* New Fixture Modal */}
-      <AdminModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Schedule New Match">
+      <AdminModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={`Schedule New ${evOne}`}>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2 col-span-2">
-              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Select League</label>
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Select {compOne}</label>
               <select 
                 {...register('leagueId', { required: true })} 
                 className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none"

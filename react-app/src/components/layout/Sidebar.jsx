@@ -5,10 +5,24 @@ import {
   Newspaper, Settings, Activity, School, X, Megaphone, Eye, ShieldCheck
 } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
+import useSportScope from '../../hooks/useSportScope';
 
 const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
   const { role } = useAuthStore();
+  const { profile } = useSportScope();
   const S = 'SUPERADMIN', F = 'FEDERATION_ADMIN', L = 'LEAGUE_ADMIN', A = 'AMASHURI_ADMIN';
+
+  // For a sport-scoped federation admin, relabel nav to the sport's language
+  // (a cycling admin sees "Races & Tours", a judo admin sees "Bouts", etc.).
+  const labelFor = (link) => {
+    if (!profile) return link.label;
+    return ({
+      '/admin/leagues': profile.competitionPlural,
+      '/admin/fixtures': profile.eventPlural,
+      '/admin/teams': profile.competitorPlural,
+      '/admin/players': profile.rosterPlural,
+    })[link.to] || link.label;
+  };
   const adminLinks = [
     { to: '/admin/dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard', roles: [S, F, L, A] },
     { to: '/admin/sport-admins', icon: <ShieldCheck size={18} />, label: 'Sport Admins', roles: [S] },
@@ -60,7 +74,7 @@ const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
             }
           >
             {link.icon}
-            <span>{link.label}</span>
+            <span>{labelFor(link)}</span>
           </NavLink>
         ))}
       </nav>

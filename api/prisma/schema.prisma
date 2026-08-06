@@ -121,6 +121,7 @@ model Sport {
   description String?  @db.Text
   coverImage  String?  @db.VarChar(300)
   category    SportCategory @default(OTHER)
+  type        SportType     @default(TEAM)   // how the sport is competed/managed
   sortOrder   Int      @default(0)
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -138,6 +139,15 @@ enum SportCategory {
   COMBAT
   RACKET
   OTHER
+}
+
+// Governs how a sport is managed in the admin: team-vs-team matches, mass-start
+// races/individual events, weight-class combat bouts, or 1v1 racket/board ties.
+enum SportType {
+  TEAM
+  RACING
+  COMBAT
+  RACKET
 }
 
 model Federation {

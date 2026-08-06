@@ -23,6 +23,12 @@ const AdminPlayersPage = () => {
   const [photoFile, setPhotoFile] = useState(null);
   const [formError, setFormError] = useState('');
   const scope = useSportScope();
+  const p = scope.profile;
+  const rosterOne = p?.roster || 'Player';
+  const rosterMany = p?.rosterPlural || 'Players';
+  const registry = p?.rosterRegistry || 'Athlete Registry';
+  const posLabel = p?.rosterField || 'Position';
+  const teamLabel = p?.competitor || 'Team';
 
   const { data: players, isLoading } = useQuery({
     queryKey: ['admin-players', searchTerm, scope.key],
@@ -81,8 +87,8 @@ const AdminPlayersPage = () => {
     <div className="space-y-10 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-4xl font-display uppercase tracking-tighter">Athlete <span className="text-red">Registry</span></h1>
-          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Register and manage licensed players</p>
+          <h1 className="text-4xl font-display uppercase tracking-tighter">{registry.split(' ')[0]} <span className="text-red">{registry.split(' ').slice(1).join(' ') || 'Registry'}</span></h1>
+          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Register and manage licensed {rosterMany.toLowerCase()}</p>
         </div>
 
         <div className="flex items-center gap-3 w-full md:w-auto">
@@ -101,7 +107,7 @@ const AdminPlayersPage = () => {
             className="bg-red text-white px-6 py-3 rounded-xl font-display text-sm uppercase tracking-widest hover:bg-red-dark transition-all shadow-xl shadow-red/20 flex items-center space-x-2 whitespace-nowrap"
           >
             <Plus size={18} />
-            <span>Register</span>
+            <span>Register {rosterOne}</span>
           </button>
         </div>
       </div>
@@ -109,7 +115,7 @@ const AdminPlayersPage = () => {
       {isLoading ? (
         <Skeleton type="table-row" count={5} />
       ) : (
-        <AdminTable headers={['Player', 'Team', 'Position', 'Jersey', 'Status', 'Actions']}>
+        <AdminTable headers={[rosterOne, teamLabel, posLabel, 'Jersey', 'Status', 'Actions']}>
           {players?.map(player => (
             <tr key={player.id} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors">
               <td className="px-6 py-5">
@@ -149,7 +155,7 @@ const AdminPlayersPage = () => {
         </AdminTable>
       )}
 
-      <AdminModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Register Player">
+      <AdminModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={`Register ${rosterOne}`}>
         <form onSubmit={submit} className="space-y-5">
           {formError && (
             <div className="bg-red/10 border border-red/20 p-3 rounded-xl flex items-center space-x-2 text-red">
@@ -160,9 +166,9 @@ const AdminPlayersPage = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className={lblCls}>Team</label>
+              <label className={lblCls}>{teamLabel}</label>
               <select value={form.teamId} onChange={set('teamId')} className={inputCls}>
-                <option value="">Select team...</option>
+                <option value="">Select {teamLabel.toLowerCase()}...</option>
                 {teams?.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
             </div>
@@ -190,8 +196,8 @@ const AdminPlayersPage = () => {
               <input value={form.idNumber} onChange={set('idNumber')} className={inputCls} placeholder="ID number" />
             </div>
             <div className="space-y-1.5">
-              <label className={lblCls}>Position</label>
-              <input value={form.position} onChange={set('position')} className={inputCls} placeholder="e.g. Goalkeeper" />
+              <label className={lblCls}>{posLabel}</label>
+              <input value={form.position} onChange={set('position')} className={inputCls} placeholder={`e.g. ${posLabel === 'Weight Category' ? '-73kg' : posLabel === 'Specialty' ? 'Sprinter' : posLabel === 'Discipline' ? 'Singles' : 'Goalkeeper'}`} />
             </div>
             <div className="space-y-1.5">
               <label className={lblCls}>Jersey Number</label>

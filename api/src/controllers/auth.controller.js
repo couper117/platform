@@ -12,7 +12,7 @@ const withAdminSport = async (user) => {
   if (user?.role === 'FEDERATION_ADMIN') {
     const fa = await prisma.federationAdminAssignment.findFirst({
       where: { userId: user.id },
-      include: { federation: { include: { sport: { select: { id: true, name: true, slug: true } } } } },
+      include: { federation: { include: { sport: { select: { id: true, name: true, slug: true, type: true } } } } },
     });
     user.sportId = fa?.federation?.sportId ?? null;
     user.sport = fa?.federation?.sport ?? null;

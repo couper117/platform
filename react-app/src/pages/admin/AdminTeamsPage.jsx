@@ -10,6 +10,7 @@ const AdminTeamsPage = () => {
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState('PENDING');
   const scope = useSportScope();
+  const compOne = scope.profile?.competitor || 'Team';
 
   const { data: teams, isLoading } = useQuery({
     queryKey: ['admin-teams', filter, scope.key],
@@ -54,8 +55,8 @@ const AdminTeamsPage = () => {
     <div className="space-y-10 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-4xl font-display uppercase tracking-tighter">Team <span className="text-red">Verification</span></h1>
-          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Approve or audit club applications</p>
+          <h1 className="text-4xl font-display uppercase tracking-tighter">{compOne} <span className="text-red">Verification</span></h1>
+          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Approve or audit {compOne.toLowerCase()} applications</p>
         </div>
         
         <div className="flex bg-surface-dark p-1 rounded-2xl border border-white/10">
