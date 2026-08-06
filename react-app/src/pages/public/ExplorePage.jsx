@@ -6,6 +6,7 @@ import { getSports } from '../../api/endpoints/sports';
 import { sportTheme } from '../../config/sportThemes';
 import SportIcon from '../../components/shared/SportIcon';
 import ResponsiveWrapper from '../../components/shared/ResponsiveWrapper';
+import MatchDayBrowser from '../../components/public/MatchDayBrowser';
 import Skeleton from '../../components/shared/Skeleton';
 import Seo from '../../components/shared/Seo';
 
@@ -44,7 +45,20 @@ const ExplorePage = () => {
         </ResponsiveWrapper>
       </section>
 
+      {/* Match Centre — today's matches across all sports (before choosing a sport) */}
       <ResponsiveWrapper className="mt-12">
+        <div className="mb-5">
+          <h2 className="text-[10px] uppercase font-bold tracking-[0.4em] text-red">Match Centre</h2>
+          <h3 className="text-2xl sm:text-4xl font-display uppercase tracking-tight">Today across all sports</h3>
+        </div>
+        <MatchDayBrowser showSidebar={false} />
+      </ResponsiveWrapper>
+
+      <ResponsiveWrapper className="mt-14">
+        <div className="mb-5">
+          <h2 className="text-[10px] uppercase font-bold tracking-[0.4em] text-red">Browse</h2>
+          <h3 className="text-2xl sm:text-4xl font-display uppercase tracking-tight">Choose a sport</h3>
+        </div>
         {isLoading ? (
           <Skeleton type="card" count={6} />
         ) : sports.length === 0 ? (

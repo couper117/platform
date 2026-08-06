@@ -53,7 +53,7 @@ const TeamRow = ({ team, score, bold }) => (
   </div>
 );
 
-const MatchDayBrowser = ({ sportId, accent = '#E8002D', leagues = [] }) => {
+const MatchDayBrowser = ({ sportId, accent = '#E8002D', leagues = [], showSidebar = true }) => {
   const [leagueId, setLeagueId] = useState(null);
   const [search, setSearch] = useState('');
   const [offset, setOffset] = useState(0); // 0 = today
@@ -66,12 +66,11 @@ const MatchDayBrowser = ({ sportId, accent = '#E8002D', leagues = [] }) => {
   const filteredLeagues = leagues.filter((l) => l.name.toLowerCase().includes(search.toLowerCase()));
 
   const { data, isLoading } = useQuery({
-    queryKey: ['browser-fixtures', sportId, leagueId, from],
+    queryKey: ['browser-fixtures', sportId || 'all', leagueId, from],
     queryFn: async () => {
-      const res = await getFixtures({ sportId, ...(leagueId ? { leagueId } : {}), from, to, limit: 100 });
+      const res = await getFixtures({ ...(sportId ? { sportId } : {}), ...(leagueId ? { leagueId } : {}), from, to, limit: 100 });
       return res.data || [];
     },
-    enabled: !!sportId,
   });
 
   const matches = data || [];
@@ -87,8 +86,9 @@ const MatchDayBrowser = ({ sportId, accent = '#E8002D', leagues = [] }) => {
   }, [matches]);
 
   return (
-    <div className="grid lg:grid-cols-[260px_1fr] gap-6">
+    <div className={showSidebar ? 'grid lg:grid-cols-[260px_1fr] gap-6' : ''}>
       {/* Left: league sidebar */}
+      {showSidebar && (
       <aside className="lg:sticky lg:top-20 lg:self-start space-y-3">
         <div className="flex items-center bg-white dark:bg-white/5 rounded-xl border border-surface-3 dark:border-white/10 px-3">
           <Search size={15} className="opacity-30" />
@@ -122,6 +122,7 @@ const MatchDayBrowser = ({ sportId, accent = '#E8002D', leagues = [] }) => {
           ))}
         </div>
       </aside>
+      )}
 
       {/* Right: day selector + matches */}
       <div className="space-y-5 min-w-0">
