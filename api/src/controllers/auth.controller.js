@@ -116,11 +116,24 @@ const registerTeam = async (req, res, next) => {
 // @route   POST /api/v1/auth/login
 // @access  Public
 const login = async (req, res, next) => {
-  const { username, password } = req.body;
+  const { username, email, password } = req.body;
 
   try {
-    const user = await prisma.user.findUnique({
-      where: { username },
+    // Accept either a username or an email address as the identifier. Admins are
+    // invited by email, so they may sign in with it. Email match is
+    // case-insensitive; username match is exact.
+    const identifier = String(email || username || '').trim();
+    if (!identifier) {
+      return res.status(400).json({ success: false, message: 'Username or email is required' });
+    }
+
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { username: identifier },
+          { email: { equals: identifier, mode: 'insensitive' } },
+        ],
+      },
       include: { managedTeam: true },
     });
 
