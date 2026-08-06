@@ -106,7 +106,16 @@ const SportHubPage = () => {
         </ResponsiveWrapper>
       )}
 
-      {/* LEAGUES */}
+      {/* MATCH CENTRE — LiveScore-style browser (comes before competitions) */}
+      <ResponsiveWrapper className="mt-8 sm:mt-12" id="matches">
+        <div className="mb-6">
+          <h2 className="text-[10px] uppercase font-bold tracking-[0.4em]" style={{ color: theme.accent }}>Match Centre</h2>
+          <h3 className="text-3xl sm:text-4xl font-display uppercase tracking-tight">Fixtures &amp; Results</h3>
+        </div>
+        <MatchDayBrowser sportId={sportId} accent={theme.accent} leagues={leagues} />
+      </ResponsiveWrapper>
+
+      {/* LEAGUES / COMPETITIONS */}
       {leagues.length > 0 && (
         <ResponsiveWrapper className="mt-16">
           <div className="flex items-end justify-between mb-6">
@@ -132,15 +141,6 @@ const SportHubPage = () => {
           </div>
         </ResponsiveWrapper>
       )}
-
-      {/* MATCH CENTRE — LiveScore-style browser (leagues + day selector + matches) */}
-      <ResponsiveWrapper className="mt-16" id="matches">
-        <div className="mb-6">
-          <h2 className="text-[10px] uppercase font-bold tracking-[0.4em]" style={{ color: theme.accent }}>Match Centre</h2>
-          <h3 className="text-3xl sm:text-4xl font-display uppercase tracking-tight">Fixtures &amp; Results</h3>
-        </div>
-        <MatchDayBrowser sportId={sportId} accent={theme.accent} leagues={leagues} />
-      </ResponsiveWrapper>
 
       {/* NEWS */}
       {news.length > 0 && (
