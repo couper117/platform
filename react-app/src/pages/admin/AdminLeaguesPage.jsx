@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { Trophy, Plus, Edit2, Trash2, UserPlus, AlertCircle, Loader2, ShieldCheck, X } from 'lucide-react';
+import { Trophy, Plus, Edit2, Trash2, UserPlus, AlertCircle, Loader2, ShieldCheck, X, CalendarPlus } from 'lucide-react';
 import apiClient from '../../api/client';
 import AdminTable from '../../components/admin/AdminTable';
 import AdminModal from '../../components/admin/AdminModal';
@@ -60,6 +60,25 @@ const AdminLeaguesPage = () => {
       alert('League deleted successfully');
     }
   });
+
+  const generateFixturesMutation = useMutation({
+    mutationFn: async ({ id, doubleRound, force }) => {
+      const { data } = await apiClient.post(`/leagues/${id}/generate-fixtures`, { doubleRound, force });
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-fixtures'] });
+      alert(data?.message || 'Fixtures generated');
+    },
+    onError: (err) => {
+      alert(err.response?.data?.message || 'Failed to generate fixtures');
+    }
+  });
+
+  const handleGenerate = (league) => {
+    const doubleRound = window.confirm(`Generate a fixture schedule for "${league.name}"?\n\nOK = double round (home & away)\nCancel = single round`);
+    generateFixturesMutation.mutate({ id: league.id, doubleRound, force: true });
+  };
 
   const assignReporterMutation = useMutation({
     mutationFn: async ({ leagueId, email }) => {
@@ -124,6 +143,9 @@ const AdminLeaguesPage = () => {
                   <button onClick={() => { setSelectedLeague(league); setIsModalAdminOpen(true); }} className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors" title="Assign League Admin">
                     <ShieldCheck size={18} />
                   </button>
+                  <button onClick={() => handleGenerate(league)} className="p-2 hover:bg-green/10 text-green rounded-lg transition-colors" title="Generate Fixtures">
+                    <CalendarPlus size={18} />
+                  </button>
                   <button onClick={() => { setSelectedLeague(league); setIsModalReporterOpen(true); }} className="p-2 hover:bg-blue-500/10 text-blue-500 rounded-lg transition-colors" title="Authorize Reporter">
                     <UserPlus size={18} />
                   </button>
@@ -179,8 +201,48 @@ const AdminLeaguesPage = () => {
               <select {...register('level')} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none">
                 <option value="NATIONAL">National</option>
                 <option value="REGIONAL">Regional</option>
+                <option value="DISTRICT">District</option>
                 <option value="SCHOOL">School</option>
               </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Age Category</label>
+              <select {...register('ageCategory')} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none">
+                <option value="SENIOR">Senior</option>
+                <option value="U20">U20</option>
+                <option value="U17">U17</option>
+                <option value="U15">U15</option>
+                <option value="U13">U13</option>
+                <option value="JUNIOR">Junior</option>
+                <option value="VETERAN">Veteran</option>
+                <option value="ALL">All ages</option>
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Format</label>
+              <select {...register('format')} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none">
+                <option value="LEAGUE">League (round-robin)</option>
+                <option value="KNOCKOUT">Knockout / Cup</option>
+                <option value="GROUP_KNOCKOUT">Groups + Knockout</option>
+                <option value="ROUND_ROBIN">Double round-robin</option>
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Max Teams</label>
+              <input type="number" min="2" {...register('maxTeams')} defaultValue={16} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none" />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Start Date</label>
+              <input type="date" {...register('startDate')} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none" />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">End Date</label>
+              <input type="date" {...register('endDate')} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none" />
             </div>
           </div>
 
