@@ -69,7 +69,7 @@ const ExplorePage = () => {
                     <div>
                       <span className="text-[8px] font-bold uppercase tracking-[0.3em] text-white/60">{TYPE_LABEL[s.type] || 'Sport'}</span>
                       <h3 className="font-display text-xl sm:text-2xl uppercase tracking-tight leading-none mt-1">{s.name}</h3>
-                      <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest mt-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: theme.accent }}>
+                      <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest mt-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity" style={{ color: theme.accent }}>
                         Enter <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
                       </div>
                     </div>

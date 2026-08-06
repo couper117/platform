@@ -257,9 +257,9 @@ const AdminFixturesPage = () => {
             </div>
             <div className="max-h-80 overflow-y-auto space-y-2 pr-1">
               {STAT_FIELDS.map(([key, label]) => (
-                <div key={key} className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                <div key={key} className="grid grid-cols-[1fr_auto_1fr] items-center gap-1.5 sm:gap-2">
                   <input type="number" step={key === 'xg' ? '0.01' : '1'} value={homeStats[key] ?? ''} onChange={(e) => setHomeStats((s) => ({ ...s, [key]: e.target.value }))} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-2 rounded-lg text-center text-sm outline-none focus:border-red" />
-                  <span className="text-[9px] font-bold uppercase tracking-widest opacity-50 w-24 text-center">{label}</span>
+                  <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-tight sm:tracking-widest opacity-50 w-16 sm:w-24 text-center leading-tight">{label}</span>
                   <input type="number" step={key === 'xg' ? '0.01' : '1'} value={awayStats[key] ?? ''} onChange={(e) => setAwayStats((s) => ({ ...s, [key]: e.target.value }))} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-2 rounded-lg text-center text-sm outline-none focus:border-red" />
                 </div>
               ))}

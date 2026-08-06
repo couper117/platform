@@ -25,7 +25,7 @@ const ScoreDigit = ({ value }) => (
     initial={{ scale: 1.5, color: '#E8002D' }}
     animate={{ scale: 1, color: 'currentColor' }}
     transition={{ type: 'spring', stiffness: 400, damping: 18 }}
-    className="text-6xl sm:text-9xl font-display text-white tabular-nums"
+    className="text-5xl sm:text-9xl font-display text-white tabular-nums"
   >
     {value ?? 0}
   </motion.span>
@@ -50,7 +50,7 @@ const StatBar = ({ label, home, away }) => {
 };
 
 const TeamBadge = ({ team, size = 'lg' }) => {
-  const dim = size === 'lg' ? 'w-20 h-20 sm:w-32 sm:h-32' : 'w-12 h-12';
+  const dim = size === 'lg' ? 'w-16 h-16 sm:w-32 sm:h-32' : 'w-12 h-12';
   return (
     <div className={`${dim} rounded-full bg-white/5 border-2 border-white/10 flex items-center justify-center p-4 overflow-hidden`}>
       {team?.logo ? (
@@ -173,20 +173,20 @@ const MatchDetailsPage = () => {
 
             {/* Score */}
             <div className="w-full flex items-center justify-between max-w-4xl">
-              <div className="flex-1 flex flex-col items-center text-center gap-4">
+              <div className="flex-1 flex flex-col items-center text-center gap-3 sm:gap-4 min-w-0">
                 <TeamBadge team={m.homeTeam} />
-                <h2 className="text-xl sm:text-3xl font-display uppercase tracking-tight">{m.homeTeam?.name}</h2>
+                <h2 className="text-sm sm:text-3xl font-display uppercase tracking-tight leading-tight line-clamp-2">{m.homeTeam?.name}</h2>
               </div>
 
-              <div className="flex items-center gap-6 sm:gap-12 px-6 sm:px-16">
+              <div className="flex items-center gap-2 sm:gap-12 px-2 sm:px-16 shrink-0">
                 <ScoreDigit value={live.homeScore} />
-                <span className="text-3xl sm:text-5xl font-display opacity-20">:</span>
+                <span className="text-2xl sm:text-5xl font-display opacity-20">:</span>
                 <ScoreDigit value={live.awayScore} />
               </div>
 
-              <div className="flex-1 flex flex-col items-center text-center gap-4">
+              <div className="flex-1 flex flex-col items-center text-center gap-3 sm:gap-4 min-w-0">
                 <TeamBadge team={m.awayTeam} />
-                <h2 className="text-xl sm:text-3xl font-display uppercase tracking-tight">{m.awayTeam?.name}</h2>
+                <h2 className="text-sm sm:text-3xl font-display uppercase tracking-tight leading-tight line-clamp-2">{m.awayTeam?.name}</h2>
               </div>
             </div>
 
@@ -224,7 +224,7 @@ const MatchDetailsPage = () => {
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`flex-1 sm:flex-none px-6 py-2.5 rounded-lg font-display text-sm uppercase tracking-widest transition-colors cursor-pointer ${
+              className={`flex-1 sm:flex-none px-2 sm:px-6 py-2.5 rounded-lg font-display text-xs sm:text-sm uppercase tracking-wide sm:tracking-widest transition-colors cursor-pointer ${
                 tab === t.key ? 'bg-red text-white shadow-lg shadow-red/20' : 'text-surface-dark/50 dark:text-white/50 hover:text-red'
               }`}
             >

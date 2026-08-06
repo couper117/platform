@@ -111,12 +111,12 @@ const TeamLineupsPage = () => {
             const opp = opponentOf(f);
             const locked = LOCKED.includes(f.status);
             return (
-              <div key={f.id} className="flex items-center justify-between bg-white dark:bg-white/5 border border-surface-3 dark:border-white/10 rounded-2xl p-5">
-                <div className="flex items-center gap-4">
-                  <div className="text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded bg-surface-2 dark:bg-white/10">{homeAway(f)}</div>
-                  <div>
-                    <p className="font-bold text-sm uppercase tracking-tight">vs {opp?.name || 'TBD'}</p>
-                    <p className="text-[10px] opacity-40 uppercase tracking-widest">
+              <div key={f.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white dark:bg-white/5 border border-surface-3 dark:border-white/10 rounded-2xl p-4 sm:p-5">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded bg-surface-2 dark:bg-white/10 shrink-0">{homeAway(f)}</div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-sm uppercase tracking-tight truncate">vs {opp?.name || 'TBD'}</p>
+                    <p className="text-[10px] opacity-40 uppercase tracking-widest truncate">
                       {f.matchDate ? new Date(f.matchDate).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Date TBD'} · {f.status}
                     </p>
                   </div>
@@ -124,7 +124,7 @@ const TeamLineupsPage = () => {
                 <button
                   onClick={() => !locked && openEditor(f)}
                   disabled={locked}
-                  className={`px-5 py-2.5 rounded-xl font-display text-xs uppercase tracking-widest flex items-center gap-2 transition-all ${locked ? 'opacity-40 cursor-not-allowed bg-surface-2 dark:bg-white/5' : 'bg-red text-white hover:bg-red-dark'}`}
+                  className={`w-full sm:w-auto px-5 py-2.5 rounded-xl font-display text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all shrink-0 ${locked ? 'opacity-40 cursor-not-allowed bg-surface-2 dark:bg-white/5' : 'bg-red text-white hover:bg-red-dark'}`}
                 >
                   {locked ? <><Lock size={14} /> Locked</> : <><Users size={14} /> Manage Lineup</>}
                 </button>
@@ -162,10 +162,10 @@ const TeamLineupsPage = () => {
               const badge = role === 'STARTER' ? 'bg-green text-white' : role === 'BENCH' ? 'bg-gold/80 text-white' : 'bg-surface-3 dark:bg-white/10 opacity-60';
               return (
                 <div key={p.id} className="flex items-center justify-between bg-surface-2 dark:bg-white/5 rounded-xl px-3 py-2">
-                  <button onClick={() => cycleRole(p.id)} className="flex items-center gap-3 flex-1 text-left">
-                    <span className={`text-[8px] font-bold px-2 py-1 rounded uppercase w-14 text-center ${badge}`}>{role}</span>
-                    <span className="text-xs font-bold uppercase tracking-tight">{p.jerseyNumber ? `${p.jerseyNumber}. ` : ''}{p.fullName}</span>
-                    <span className="text-[9px] opacity-40 uppercase">{p.position || ''}</span>
+                  <button onClick={() => cycleRole(p.id)} className="flex items-center gap-2.5 flex-1 min-w-0 text-left">
+                    <span className={`text-[8px] font-bold px-2 py-1 rounded uppercase w-14 text-center shrink-0 ${badge}`}>{role}</span>
+                    <span className="text-xs font-bold uppercase tracking-tight truncate">{p.jerseyNumber ? `${p.jerseyNumber}. ` : ''}{p.fullName}</span>
+                    <span className="text-[9px] opacity-40 uppercase shrink-0 hidden sm:inline">{p.position || ''}</span>
                   </button>
                   <button
                     onClick={() => setCaptain(captain === p.id ? null : p.id)}
