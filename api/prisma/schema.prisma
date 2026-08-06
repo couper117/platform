@@ -243,7 +243,11 @@ model Team {
   foundedYear    Int?
   homeVenue      String?  @db.VarChar(300)
   city           String?  @db.VarChar(150)
+  district       String?  @db.VarChar(100)
   province       String?  @db.VarChar(100)
+  registrationNo String?  @db.VarChar(60)   // federation club registration number
+  primaryColor   String?  @db.VarChar(30)
+  secondaryColor String?  @db.VarChar(30)
   description    String?  @db.Text
   email          String?  @db.VarChar(200)
   phone          String?  @db.VarChar(50)
@@ -267,6 +271,7 @@ model Team {
   registrations  TeamRegistration[]
   transfersFrom  Transfer[]  @relation("TransferFrom")
   transfersTo    Transfer[]  @relation("TransferTo")
+  officials      TeamOfficial[]
 }
 
 enum TeamStatus {
@@ -274,6 +279,30 @@ enum TeamStatus {
   VERIFIED
   SUSPENDED
   REJECTED
+}
+
+model TeamOfficial {
+  id        Int      @id @default(autoincrement())
+  teamId    Int
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  role      OfficialRole @default(OTHER)
+  fullName  String   @db.VarChar(200)
+  phone     String?  @db.VarChar(50)
+  email     String?  @db.VarChar(200)
+  idNumber  String?  @db.VarChar(60)
+  createdAt DateTime @default(now())
+}
+
+enum OfficialRole {
+  PRESIDENT
+  VICE_PRESIDENT
+  SECRETARY
+  TREASURER
+  MANAGER
+  HEAD_COACH
+  ASSISTANT_COACH
+  TEAM_DOCTOR
+  OTHER
 }
 
 model LeagueTeam {
@@ -295,12 +324,14 @@ model Player {
   photo         String?  @db.VarChar(300)
   dateOfBirth   DateTime? @db.Date
   nationality   String   @default("Rwandan") @db.VarChar(100)
+  idNumber      String?  @db.VarChar(60)   // national ID / passport number
+  licenseNo     String?  @db.VarChar(60)   // federation player licence number
   position      String?  @db.VarChar(100)
   jerseyNumber  Int?     @db.SmallInt
   skillLevel    PlayerSkill @default(AMATEUR)
   gender        PlayerGender @default(MALE)
-  height        Int?     
-  weight        Int?     
+  height        Int?
+  weight        Int?
   bio           String?  @db.Text
   status        PlayerStatus @default(PENDING)
   verifiedAt    DateTime?
@@ -314,6 +345,27 @@ model Player {
   events        MatchEvent[]     @relation("PlayerEvent")
   subEvents     MatchEvent[]     @relation("SubEvent")
   transfersFrom Transfer[]
+  suspensions   Suspension[]
+}
+
+model Suspension {
+  id              Int      @id @default(autoincrement())
+  playerId        Int
+  player          Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  reason          SuspensionReason @default(RED_CARD)
+  matches         Int      @default(1)   // number of matches banned
+  matchesServed   Int      @default(0)
+  active          Boolean  @default(true)
+  originFixtureId Int?
+  note            String?  @db.Text
+  createdAt       DateTime @default(now())
+}
+
+enum SuspensionReason {
+  RED_CARD
+  YELLOW_ACCUMULATION
+  MISCONDUCT
+  OTHER
 }
 
 enum PlayerSkill {

@@ -1,6 +1,7 @@
 const prisma = require('../config/db');
 const { recalcStandings } = require('../services/standings.service');
 const { emitMatchUpdate, emitMatchEvent } = require('../services/realtime.service');
+const { handleCardEvent, serveSuspensions } = require('../services/discipline.service');
 const { getPagination } = require('../utils/paginate');
 const { enforceSportScope, leagueSportId } = require('../utils/scope');
 const logActivity = require('../utils/activityLogger');
@@ -177,6 +178,7 @@ const saveResult = async (req, res, next) => {
 
     if (result.status === 'COMPLETED') {
       await recalcStandings(result.leagueId);
+      await serveSuspensions(result); // advance/clear bans for both squads
     }
 
     // Keep live state in sync with the saved result.
@@ -305,9 +307,103 @@ const addMatchEvent = async (req, res, next) => {
       });
     }
 
+    // Disciplinary consequences (red card / yellow accumulation → suspension).
+    if (eventType === 'RED_CARD' || eventType === 'YELLOW_CARD') {
+      await handleCardEvent({
+        fixtureId,
+        leagueId: fixture.leagueId,
+        playerId: playerId ? parseInt(playerId) : null,
+        eventType,
+      });
+    }
+
     emitMatchEvent(fixtureId, event);
 
     res.status(201).json({ success: true, data: event });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Auto-generate a round-robin schedule for a league
+// @route   POST /api/v1/leagues/:id/generate-fixtures
+// @access  Private/Admin
+const generateFixtures = async (req, res, next) => {
+  try {
+    const leagueId = parseInt(req.params.id);
+    const { doubleRound = false, startDate, intervalDays = 7, force = false } = req.body;
+
+    const league = await prisma.league.findUnique({ where: { id: leagueId } });
+    if (!league) return res.status(404).json({ success: false, message: 'League not found' });
+    if (!enforceSportScope(req, res, league.sportId)) return;
+
+    if (req.user.role === 'LEAGUE_ADMIN') {
+      const isAssigned = await prisma.leagueAdminAssignment.findUnique({
+        where: { leagueId_userId: { leagueId, userId: req.user.id } },
+      });
+      if (!isAssigned) return res.status(403).json({ success: false, message: 'Not assigned to this league' });
+    }
+
+    const existing = await prisma.fixture.count({ where: { leagueId } });
+    if (existing > 0 && !force) {
+      return res.status(400).json({ success: false, message: 'Fixtures already exist. Pass force to regenerate.' });
+    }
+    if (existing > 0 && force) {
+      await prisma.fixture.deleteMany({ where: { leagueId } });
+    }
+
+    const members = await prisma.leagueTeam.findMany({ where: { leagueId }, select: { teamId: true } });
+    let ids = members.map((m) => m.teamId);
+    if (ids.length < 2) {
+      return res.status(400).json({ success: false, message: 'Need at least 2 registered teams to generate fixtures' });
+    }
+
+    // Circle method. Add a bye (null) for an odd number of teams.
+    if (ids.length % 2 === 1) ids.push(null);
+    const n = ids.length;
+    const rounds = n - 1;
+    const half = n / 2;
+    const base = new Date(startDate || league.startDate || Date.now());
+    const rows = [];
+
+    const arr = ids.slice();
+    for (let r = 0; r < rounds; r++) {
+      const md = new Date(base);
+      md.setDate(md.getDate() + r * parseInt(intervalDays));
+      for (let i = 0; i < half; i++) {
+        const home = arr[i];
+        const away = arr[n - 1 - i];
+        if (home == null || away == null) continue;
+        // Alternate home/away by round for fairness.
+        const [h, a] = r % 2 === 0 ? [home, away] : [away, home];
+        rows.push({ leagueId, homeTeamId: h, awayTeamId: a, matchday: r + 1, matchDate: md });
+      }
+      // Rotate all but the first element.
+      arr.splice(1, 0, arr.pop());
+    }
+
+    if (doubleRound) {
+      const firstLeg = rows.slice();
+      const secondBase = new Date(base);
+      secondBase.setDate(secondBase.getDate() + rounds * parseInt(intervalDays));
+      firstLeg.forEach((f, idx) => {
+        const md = new Date(secondBase);
+        md.setDate(md.getDate() + (f.matchday - 1) * parseInt(intervalDays));
+        rows.push({ leagueId, homeTeamId: f.awayTeamId, awayTeamId: f.homeTeamId, matchday: rounds + f.matchday, matchDate: md });
+      });
+    }
+
+    await prisma.fixture.createMany({ data: rows });
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Generate Fixtures',
+      detail: `Generated ${rows.length} fixtures for league ${leagueId}`,
+      module: 'fixtures',
+      ip: req.ip,
+    });
+
+    res.status(201).json({ success: true, count: rows.length, message: `Generated ${rows.length} fixtures` });
   } catch (error) {
     next(error);
   }
@@ -319,4 +415,5 @@ module.exports = {
   createFixture,
   saveResult,
   addMatchEvent,
+  generateFixtures,
 };
