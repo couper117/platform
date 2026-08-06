@@ -51,6 +51,12 @@ const Navbar = () => {
       <div className="relative container mx-auto px-4 py-3 flex items-center justify-between gap-4 lg:grid lg:grid-cols-[1fr_auto_1fr]">
         {/* LEFT: Sports nav */}
         <div className="hidden lg:flex items-center gap-3 xl:gap-5 font-display text-[12px] uppercase tracking-widest lg:justify-self-start">
+          <NavLink
+            to="/explore"
+            className={({ isActive }) => `relative whitespace-nowrap transition-all hover:text-red ${isActive ? 'text-red' : 'text-surface-dark/70 dark:text-white/70'}`}
+          >
+            Explore
+          </NavLink>
           {topSports.map((s, i) => (
             <NavLink
               key={s.id}

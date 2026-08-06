@@ -65,7 +65,7 @@ const TeamBadge = ({ team, size = 'lg' }) => {
 const MatchDetailsPage = () => {
   const { t } = useTranslation();
   const { id } = useParams();
-  const [tab, setTab] = useState('timeline');
+  const [tab, setTab] = useState('overview');
 
   const { data: fixture, isLoading } = useQuery({
     queryKey: ['match-details', id],
@@ -93,6 +93,23 @@ const MatchDetailsPage = () => {
   const lineups = m?.lineups || [];
   const homeLineup = lineups.filter((l) => l.teamId === m?.homeTeamId);
   const awayLineup = lineups.filter((l) => l.teamId === m?.awayTeamId);
+  const sheetFor = (teamId) => (m?.teamSheets || []).find((s) => s.teamId === teamId);
+
+  // Real per-team statistics (entered by the admin), with event-derived fallback.
+  const homeStat = (m?.stats || []).find((s) => s.teamId === m?.homeTeamId);
+  const awayStat = (m?.stats || []).find((s) => s.teamId === m?.awayTeamId);
+  const hasStats = !!(homeStat || awayStat);
+  const STAT_ROWS = [
+    ['possession', 'Possession %'], ['shots', 'Shots'], ['shotsOnTarget', 'Shots on Target'],
+    ['shotsInsideBox', 'Shots Inside Box'], ['shotsOutsideBox', 'Shots Outside Box'],
+    ['corners', 'Corners'], ['offsides', 'Offsides'], ['fouls', 'Fouls'],
+    ['yellowCards', 'Yellow Cards'], ['redCards', 'Red Cards'], ['gkSaves', 'GK Saves'],
+    ['passAccuracy', 'Pass Accuracy %'], ['xg', 'Expected Goals (xG)'],
+  ];
+  // Newest-first timeline while the match is live.
+  const orderedEvents = isLive
+    ? [...(live.events || [])].sort((a, b) => (b.minute || 0) - (a.minute || 0))
+    : (live.events || []);
 
   if (isLoading) {
     return <div className="py-20"><ResponsiveWrapper><Skeleton type="card" /></ResponsiveWrapper></div>;
@@ -109,9 +126,10 @@ const MatchDetailsPage = () => {
   }
 
   const tabs = [
-    { key: 'timeline', label: t('match.timeline') },
-    { key: 'lineups', label: t('match.lineups') },
-    { key: 'stats', label: t('match.stats') },
+    { key: 'overview', label: 'Overview' },
+    { key: 'stats', label: 'Stats' },
+    { key: 'lineups', label: 'Lineups' },
+    { key: 'summary', label: 'Summary' },
   ];
 
   return (
@@ -180,10 +198,19 @@ const MatchDetailsPage = () => {
               {m.referee && <span className="flex items-center gap-2"><Award size={14} className="text-red" />REF: {m.referee}</span>}
             </div>
 
-            {m.streamActive && m.streamUrl && (
-              <Button href={m.streamUrl} target="_blank" rel="noreferrer" icon={Play} size="md">
-                Watch Live Stream
-              </Button>
+            {m.streamUrl ? (
+              <a
+                href={m.streamUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2.5 bg-red text-white font-display text-lg uppercase tracking-widest px-8 py-3.5 rounded-xl hover:bg-red-dark transition-all shadow-xl shadow-red/30 hover:scale-[1.03]"
+              >
+                <Play size={20} fill="currentColor" /> Watch Live
+              </a>
+            ) : (
+              <span className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-white/30 border border-white/10 rounded-xl px-5 py-3">
+                <Play size={14} /> Live streaming is unavailable
+              </span>
             )}
           </div>
         </ResponsiveWrapper>
@@ -206,38 +233,38 @@ const MatchDetailsPage = () => {
           ))}
         </div>
 
-        {/* Timeline */}
-        {tab === 'timeline' && (
-          <div className="max-w-3xl mx-auto">
-            <MatchEventTimeline events={live.events} homeTeamId={m.homeTeamId} />
-          </div>
-        )}
-
-        {/* Lineups */}
-        {tab === 'lineups' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[{ team: m.homeTeam, list: homeLineup }, { team: m.awayTeam, list: awayLineup }].map((side, i) => (
-              <Card key={i} className="p-6">
-                <div className="flex items-center gap-3 mb-4 pb-4 border-b border-surface-3 dark:border-white/5">
-                  <TeamBadge team={side.team} size="sm" />
-                  <h3 className="font-display text-xl uppercase tracking-tight">{side.team?.name}</h3>
-                </div>
-                {side.list.length ? (
-                  <ul className="space-y-1">
-                    {side.list.map((p) => (
-                      <li key={p.id} className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-surface-2 dark:hover:bg-white/5 transition-colors">
-                        <span className="w-7 h-7 rounded-md bg-surface-2 dark:bg-white/5 flex items-center justify-center text-[11px] font-display tabular-nums">{p.jerseyNo ?? '—'}</span>
-                        <span className="flex-1 text-sm font-medium">{p.player?.fullName || 'Player'}</span>
-                        {p.isCaptain && <span className="text-[9px] font-bold uppercase tracking-widest text-gold">C</span>}
-                        <span className="text-[10px] uppercase tracking-widest opacity-40">{p.position || ''}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <EmptyState icon={Users} title="No lineup yet" hint="Team sheet not published." className="py-10" />
-                )}
-              </Card>
-            ))}
+        {/* Overview */}
+        {tab === 'overview' && (
+          <div className="grid gap-6 lg:grid-cols-3 max-w-5xl mx-auto">
+            <Card className="p-6 lg:col-span-2 space-y-4">
+              <h3 className="font-display text-lg uppercase tracking-tight">Match Info</h3>
+              <dl className="grid grid-cols-2 gap-y-4 gap-x-6 text-sm">
+                {[
+                  ['Competition', m.league?.name],
+                  ['Status', isCompleted ? 'Full Time' : live.status],
+                  ['Date', m.matchDate ? format(new Date(m.matchDate), 'EEEE, dd MMM yyyy') : 'TBD'],
+                  ['Kick-off', m.matchDate ? `${format(new Date(m.matchDate), 'HH:mm')} CAT` : 'TBD'],
+                  ['Venue', m.venue || 'TBD'],
+                  ['Referee', m.referee || '—'],
+                  ['Matchday', m.matchday ? `Round ${m.matchday}` : '—'],
+                  ['Attendance', m.attendance ? m.attendance.toLocaleString() : '—'],
+                ].map(([k, v]) => (
+                  <div key={k}>
+                    <dt className="text-[10px] uppercase font-bold tracking-widest opacity-40">{k}</dt>
+                    <dd className="mt-0.5 font-medium">{v}</dd>
+                  </div>
+                ))}
+              </dl>
+            </Card>
+            <Card className="p-6 flex flex-col items-center justify-center text-center gap-4">
+              <span className="text-[10px] uppercase font-bold tracking-widest opacity-40">Result</span>
+              <div className="flex items-center gap-4">
+                <TeamBadge team={m.homeTeam} size="sm" />
+                <span className="font-display text-4xl tabular-nums">{live.homeScore ?? 0}<span className="opacity-20 mx-1">:</span>{live.awayScore ?? 0}</span>
+                <TeamBadge team={m.awayTeam} size="sm" />
+              </div>
+              <p className="text-xs opacity-50">{m.homeTeam?.name} vs {m.awayTeam?.name}</p>
+            </Card>
           </div>
         )}
 
@@ -249,15 +276,80 @@ const MatchDetailsPage = () => {
               <span className="opacity-40">Match Stats</span>
               <span className="text-rwanda-blue truncate max-w-[40%] text-right">{m.awayTeam?.name}</span>
             </div>
-            <div className="space-y-5">
-              <StatBar label="Goals" home={stats.goals[0]} away={stats.goals[1]} />
-              <StatBar label="Yellow Cards" home={stats.yellow[0]} away={stats.yellow[1]} />
-              <StatBar label="Red Cards" home={stats.red[0]} away={stats.red[1]} />
-            </div>
-            <p className="mt-6 text-[10px] uppercase tracking-widest opacity-30 text-center">
-              Derived live from match events
-            </p>
+            {hasStats ? (
+              <div className="space-y-5">
+                {STAT_ROWS.map(([key, label]) => {
+                  const h = homeStat?.[key]; const a = awayStat?.[key];
+                  if ((h == null || h === '') && (a == null || a === '')) return null;
+                  return <StatBar key={key} label={label} home={Number(h) || 0} away={Number(a) || 0} />;
+                })}
+              </div>
+            ) : (
+              <div className="space-y-5">
+                <StatBar label="Goals" home={stats.goals[0]} away={stats.goals[1]} />
+                <StatBar label="Yellow Cards" home={stats.yellow[0]} away={stats.yellow[1]} />
+                <StatBar label="Red Cards" home={stats.red[0]} away={stats.red[1]} />
+                <p className="mt-6 text-[10px] uppercase tracking-widest opacity-30 text-center">
+                  Detailed statistics not published yet — derived live from match events
+                </p>
+              </div>
+            )}
           </Card>
+        )}
+
+        {/* Lineups */}
+        {tab === 'lineups' && (
+          (homeLineup.length || awayLineup.length) ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[{ team: m.homeTeam, list: homeLineup, sheet: sheetFor(m.homeTeamId) }, { team: m.awayTeam, list: awayLineup, sheet: sheetFor(m.awayTeamId) }].map((side, i) => {
+                const starters = side.list.filter((p) => p.isStarter);
+                const bench = side.list.filter((p) => !p.isStarter);
+                const Row = (p) => (
+                  <li key={p.id} className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-surface-2 dark:hover:bg-white/5 transition-colors">
+                    <span className="w-7 h-7 rounded-md bg-surface-2 dark:bg-white/5 flex items-center justify-center text-[11px] font-display tabular-nums">{p.jerseyNo ?? '—'}</span>
+                    <span className="flex-1 text-sm font-medium">{p.player?.fullName || 'Player'}</span>
+                    {p.isCaptain && <span className="text-[9px] font-bold uppercase tracking-widest text-gold">C</span>}
+                    <span className="text-[10px] uppercase tracking-widest opacity-40">{p.position || ''}</span>
+                  </li>
+                );
+                return (
+                  <Card key={i} className="p-6">
+                    <div className="flex items-center justify-between mb-4 pb-4 border-b border-surface-3 dark:border-white/5">
+                      <div className="flex items-center gap-3">
+                        <TeamBadge team={side.team} size="sm" />
+                        <div>
+                          <h3 className="font-display text-lg uppercase tracking-tight leading-none">{side.team?.name}</h3>
+                          {side.sheet?.coachName && <p className="text-[10px] uppercase tracking-widest opacity-40 mt-1">Coach: {side.sheet.coachName}</p>}
+                        </div>
+                      </div>
+                      {side.sheet?.formation && <span className="text-xs font-display px-3 py-1 rounded-lg bg-red/10 text-red">{side.sheet.formation}</span>}
+                    </div>
+                    {starters.length > 0 && <>
+                      <p className="text-[10px] uppercase font-bold tracking-widest opacity-40 mb-1">Starting XI</p>
+                      <ul className="space-y-1 mb-4">{starters.map(Row)}</ul>
+                    </>}
+                    {bench.length > 0 && <>
+                      <p className="text-[10px] uppercase font-bold tracking-widest opacity-40 mb-1">Substitutes</p>
+                      <ul className="space-y-1 opacity-80">{bench.map(Row)}</ul>
+                    </>}
+                  </Card>
+                );
+              })}
+            </div>
+          ) : (
+            <EmptyState icon={Users} title="Lineups not available yet" hint="Team sheets have not been published for this match." className="py-16" />
+          )
+        )}
+
+        {/* Summary — event timeline (newest first while live) */}
+        {tab === 'summary' && (
+          <div className="max-w-3xl mx-auto">
+            {orderedEvents.length ? (
+              <MatchEventTimeline events={orderedEvents} homeTeamId={m.homeTeamId} />
+            ) : (
+              <EmptyState icon={Clock} title="No events yet" hint="Match events will appear here as they happen." className="py-16" />
+            )}
+          </div>
         )}
       </ResponsiveWrapper>
     </div>
