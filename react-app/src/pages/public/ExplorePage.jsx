@@ -6,6 +6,7 @@ import { getSports } from '../../api/endpoints/sports';
 import { sportTheme } from '../../config/sportThemes';
 import SportIcon from '../../components/shared/SportIcon';
 import ResponsiveWrapper from '../../components/shared/ResponsiveWrapper';
+import LiveTodayStrip from '../../components/public/LiveTodayStrip';
 import Skeleton from '../../components/shared/Skeleton';
 import Seo from '../../components/shared/Seo';
 
@@ -43,6 +44,9 @@ const ExplorePage = () => {
           </div>
         </ResponsiveWrapper>
       </section>
+
+      {/* Slim live/today match strip — instant scores without leaving the chooser */}
+      <LiveTodayStrip />
 
       <ResponsiveWrapper className="mt-12">
         {isLoading ? (
