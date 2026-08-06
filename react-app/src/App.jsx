@@ -48,6 +48,7 @@ const LiveReportingPage = lazy(() => import('./pages/admin/LiveReportingPage'));
 
 // Team Pages
 const TeamDashboard = lazy(() => import('./pages/team/TeamDashboard'));
+const TeamLineupsPage = lazy(() => import('./pages/team/TeamLineupsPage'));
 
 // Amashuri Games (Rwanda Inter-School Sports) Pages
 const AkcHome = lazy(() => import('./pages/akc3/AkcHome'));
@@ -182,7 +183,7 @@ function App() {
               <Route path="dashboard" element={<TeamDashboard />} />
               <Route path="players" element={<div className="font-display text-3xl uppercase opacity-20 py-20 uppercase">Roster Management</div>} />
               <Route path="documents" element={<div className="font-display text-3xl uppercase opacity-20 py-20 uppercase">Document Uploads</div>} />
-              <Route path="fixtures" element={<div className="font-display text-3xl uppercase opacity-20 py-20 uppercase">Team Schedule</div>} />
+              <Route path="fixtures" element={<TeamLineupsPage />} />
               <Route path="profile" element={<div className="font-display text-3xl uppercase opacity-20 py-20 uppercase">Club Profile</div>} />
             </Route>
 
