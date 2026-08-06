@@ -147,7 +147,7 @@ const MatchDetailsPage = () => {
       </div>
 
       {/* Scoreboard */}
-      <section className="bg-surface-dark py-12 sm:py-20 text-white relative overflow-hidden">
+      <section className="bg-surface-dark py-10 sm:py-20 text-white relative overflow-hidden min-h-[50vh] sm:min-h-0 flex items-center">
         <div className="absolute inset-0 bg-gradient-to-br from-red/10 via-transparent to-rwanda-blue/5 opacity-50" />
 
         <ResponsiveWrapper className="relative z-10">
@@ -217,9 +217,10 @@ const MatchDetailsPage = () => {
       </section>
 
       {/* Tabbed content */}
-      <ResponsiveWrapper className="mt-10">
-        {/* Tabs */}
-        <div className="flex items-center gap-1 p-1 bg-white dark:bg-surface-dark2 rounded-xl border border-surface-3 dark:border-white/5 w-full sm:w-auto sm:inline-flex mb-8">
+      <ResponsiveWrapper className="mt-6 sm:mt-10">
+        {/* Tabs — sticky under the navbar so they stay reachable on mobile */}
+        <div className="sticky top-16 z-20 -mx-4 px-4 py-2 bg-surface-2/95 dark:bg-surface-dark/95 backdrop-blur mb-6 sm:mb-8 sm:static sm:mx-0 sm:px-0 sm:py-0 sm:bg-transparent">
+        <div className="flex items-center gap-1 p-1 bg-white dark:bg-surface-dark2 rounded-xl border border-surface-3 dark:border-white/5 w-full sm:w-auto sm:inline-flex">
           {tabs.map((t) => (
             <button
               key={t.key}
@@ -231,6 +232,7 @@ const MatchDetailsPage = () => {
               {t.label}
             </button>
           ))}
+        </div>
         </div>
 
         {/* Overview */}

@@ -52,7 +52,8 @@ const Navbar = () => {
         {/* LEFT: Sports nav */}
         <div className="hidden lg:flex items-center gap-3 xl:gap-5 font-display text-[12px] uppercase tracking-widest lg:justify-self-start">
           <NavLink
-            to="/explore"
+            to="/"
+            end
             className={({ isActive }) => `relative whitespace-nowrap transition-all hover:text-red ${isActive ? 'text-red' : 'text-surface-dark/70 dark:text-white/70'}`}
           >
             Explore

@@ -123,8 +123,10 @@ function App() {
           <Routes>
             {/* Public Routes */}
             <Route element={<PublicLayout />}>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/explore" element={<ExplorePage />} />
+              {/* Landing page = Choose Your Sport */}
+              <Route path="/" element={<ExplorePage />} />
+              <Route path="/explore" element={<Navigate to="/" replace />} />
+              <Route path="/home" element={<HomePage />} />
               <Route path="/sports/:slug" element={<SportHubPage />} />
               <Route path="/leagues" element={<LeaguesPage />} />
               <Route path="/leagues/:id" element={<LeagueDetailsPage />} />
