@@ -6,6 +6,42 @@ const { getPagination } = require('../utils/paginate');
 const { enforceSportScope, leagueSportId } = require('../utils/scope');
 const logActivity = require('../utils/activityLogger');
 
+// Can this user manage the fixture's competition-level data (result, stats,
+// streaming)? Super admins, the sport's federation admin, an assigned league
+// admin, or an assigned reporter.
+const canManageFixture = async (user, fixture) => {
+  if (user.role === 'SUPERADMIN') return true;
+  if (user.role === 'FEDERATION_ADMIN') {
+    return Number(user.sportId) === Number(await leagueSportId(fixture.leagueId));
+  }
+  if (user.role === 'LEAGUE_ADMIN') {
+    return !!(await prisma.leagueAdminAssignment.findUnique({
+      where: { leagueId_userId: { leagueId: fixture.leagueId, userId: user.id } },
+    }));
+  }
+  if (user.role === 'MATCH_REPORTER') {
+    return !!(await prisma.reporterAssignment.findFirst({
+      where: { OR: [{ fixtureId: fixture.id, userId: user.id }, { leagueId: fixture.leagueId, userId: user.id }] },
+    }));
+  }
+  return false;
+};
+
+// Team sheets can additionally be published by the manager of the team involved.
+const canManageTeamSheet = async (user, fixture, teamId) => {
+  if (await canManageFixture(user, fixture)) return true;
+  if (user.role === 'TEAM_MANAGER') {
+    const team = await prisma.team.findUnique({ where: { id: teamId } });
+    return team && team.managerUserId === user.id;
+  }
+  return false;
+};
+
+const isValidHttpUrl = (u) => {
+  try { const p = new URL(u); return p.protocol === 'http:' || p.protocol === 'https:'; }
+  catch { return false; }
+};
+
 const getFixtures = async (req, res, next) => {
   try {
     const { leagueId, sportId, status, from, to, teamId } = req.query;
@@ -62,6 +98,8 @@ const getFixture = async (req, res, next) => {
         lineups: {
           include: { player: true },
         },
+        teamSheets: true,
+        stats: true,
         liveState: true,
       },
     });
@@ -409,6 +447,133 @@ const generateFixtures = async (req, res, next) => {
   }
 };
 
+// @desc    Publish/update a team's lineup (starting XI, bench, formation, coach)
+// @route   PUT /api/v1/fixtures/:id/lineup
+// @access  Team manager (own team) or admin/reporter
+const saveLineup = async (req, res, next) => {
+  try {
+    const fixtureId = parseInt(req.params.id);
+    const { teamId, formation, coachName, published = true, players = [] } = req.body;
+    const tid = parseInt(teamId);
+    if (!tid) return res.status(400).json({ success: false, message: 'teamId is required' });
+
+    const fixture = await prisma.fixture.findUnique({ where: { id: fixtureId } });
+    if (!fixture) return res.status(404).json({ success: false, message: 'Fixture not found' });
+    if (tid !== fixture.homeTeamId && tid !== fixture.awayTeamId) {
+      return res.status(400).json({ success: false, message: 'That team is not in this fixture' });
+    }
+    if (!(await canManageTeamSheet(req.user, fixture, tid))) {
+      return res.status(403).json({ success: false, message: 'Not authorized to edit this lineup' });
+    }
+    // Lock edits once the match is under way (unless an admin overrides).
+    if (['LIVE', 'COMPLETED'].includes(fixture.status) && req.user.role === 'TEAM_MANAGER') {
+      return res.status(423).json({ success: false, message: 'Lineup is locked — the match has started' });
+    }
+
+    // Only players belonging to this team may be listed.
+    const teamPlayers = await prisma.player.findMany({ where: { teamId: tid }, select: { id: true } });
+    const allowed = new Set(teamPlayers.map((p) => p.id));
+    const rows = (players || [])
+      .filter((p) => allowed.has(parseInt(p.playerId)))
+      .map((p) => ({
+        fixtureId,
+        teamId: tid,
+        playerId: parseInt(p.playerId),
+        position: p.position || null,
+        jerseyNo: p.jerseyNo != null ? parseInt(p.jerseyNo) : null,
+        isStarter: p.isStarter !== false,
+        isCaptain: !!p.isCaptain,
+      }));
+
+    await prisma.$transaction([
+      prisma.matchTeamSheet.upsert({
+        where: { fixtureId_teamId: { fixtureId, teamId: tid } },
+        update: { formation: formation || null, coachName: coachName || null, published: !!published },
+        create: { fixtureId, teamId: tid, formation: formation || null, coachName: coachName || null, published: !!published },
+      }),
+      prisma.lineup.deleteMany({ where: { fixtureId, teamId: tid } }),
+      ...(rows.length ? [prisma.lineup.createMany({ data: rows })] : []),
+    ]);
+
+    await logActivity({ userId: req.user.id, action: 'Publish Lineup', detail: `Lineup for team ${tid} in fixture ${fixtureId}`, module: 'fixtures', ip: req.ip });
+    res.status(200).json({ success: true, message: 'Lineup saved', count: rows.length });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Set per-team match statistics
+// @route   PUT /api/v1/fixtures/:id/stats
+// @access  Admin / reporter
+const saveStats = async (req, res, next) => {
+  try {
+    const fixtureId = parseInt(req.params.id);
+    const { teamId } = req.body;
+    const tid = parseInt(teamId);
+    const fixture = await prisma.fixture.findUnique({ where: { id: fixtureId } });
+    if (!fixture) return res.status(404).json({ success: false, message: 'Fixture not found' });
+    if (tid !== fixture.homeTeamId && tid !== fixture.awayTeamId) {
+      return res.status(400).json({ success: false, message: 'That team is not in this fixture' });
+    }
+    if (!(await canManageFixture(req.user, fixture))) {
+      return res.status(403).json({ success: false, message: 'Not authorized to edit stats for this match' });
+    }
+
+    const num = (v) => (v === '' || v == null ? null : parseInt(v));
+    const dec = (v) => (v === '' || v == null ? null : parseFloat(v));
+    const data = {
+      possession: num(req.body.possession), shots: num(req.body.shots), shotsOnTarget: num(req.body.shotsOnTarget),
+      shotsInsideBox: num(req.body.shotsInsideBox), shotsOutsideBox: num(req.body.shotsOutsideBox),
+      corners: num(req.body.corners), offsides: num(req.body.offsides), fouls: num(req.body.fouls),
+      yellowCards: num(req.body.yellowCards), redCards: num(req.body.redCards), gkSaves: num(req.body.gkSaves),
+      passAccuracy: num(req.body.passAccuracy), xg: dec(req.body.xg),
+    };
+
+    const stat = await prisma.matchStat.upsert({
+      where: { fixtureId_teamId: { fixtureId, teamId: tid } },
+      update: data,
+      create: { fixtureId, teamId: tid, ...data },
+    });
+    res.status(200).json({ success: true, data: stat });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update fixture meta (venue, referee, date, status, streaming URL)
+// @route   PATCH /api/v1/fixtures/:id
+// @access  Admin (league/federation/super)
+const updateFixtureMeta = async (req, res, next) => {
+  try {
+    const fixtureId = parseInt(req.params.id);
+    const fixture = await prisma.fixture.findUnique({ where: { id: fixtureId } });
+    if (!fixture) return res.status(404).json({ success: false, message: 'Fixture not found' });
+    if (!(await canManageFixture(req.user, fixture))) {
+      return res.status(403).json({ success: false, message: 'Not authorized for this fixture' });
+    }
+
+    const { venue, referee, matchDate, status, streamUrl, streamActive } = req.body;
+    if (streamUrl !== undefined && streamUrl !== '' && streamUrl !== null && !isValidHttpUrl(streamUrl)) {
+      return res.status(400).json({ success: false, message: 'Streaming URL must be a valid http(s) link' });
+    }
+
+    const updated = await prisma.fixture.update({
+      where: { id: fixtureId },
+      data: {
+        venue: venue !== undefined ? venue : undefined,
+        referee: referee !== undefined ? referee : undefined,
+        matchDate: matchDate !== undefined ? (matchDate ? new Date(matchDate) : null) : undefined,
+        status: status !== undefined ? status : undefined,
+        streamUrl: streamUrl !== undefined ? (streamUrl || null) : undefined,
+        streamActive: streamActive !== undefined ? !!streamActive : undefined,
+      },
+    });
+    res.status(200).json({ success: true, data: updated });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getFixtures,
   getFixture,
@@ -416,4 +581,7 @@ module.exports = {
   saveResult,
   addMatchEvent,
   generateFixtures,
+  saveLineup,
+  saveStats,
+  updateFixtureMeta,
 };

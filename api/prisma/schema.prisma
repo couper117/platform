@@ -484,7 +484,9 @@ model Fixture {
   events        MatchEvent[]
   lineups       Lineup[]
   liveState     LiveMatchState?
-  
+  teamSheets    MatchTeamSheet[]
+  stats         MatchStat[]
+
   assignedReporters ReporterAssignment[]
 }
 
@@ -494,6 +496,45 @@ enum FixtureStatus {
   COMPLETED
   POSTPONED
   CANCELLED
+}
+
+// Per-team team sheet for a fixture: formation, coach and publish state. The
+// individual player rows live in Lineup (starters/bench, captain, jersey).
+model MatchTeamSheet {
+  id        Int      @id @default(autoincrement())
+  fixtureId Int
+  fixture   Fixture  @relation(fields: [fixtureId], references: [id], onDelete: Cascade)
+  teamId    Int
+  formation String?  @db.VarChar(20)   // e.g. 4-3-3, 4-4-2
+  coachName String?  @db.VarChar(200)
+  published Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+
+  @@unique([fixtureId, teamId])
+}
+
+// Per-team match statistics, entered by the league admin / reporter.
+model MatchStat {
+  id              Int      @id @default(autoincrement())
+  fixtureId       Int
+  fixture         Fixture  @relation(fields: [fixtureId], references: [id], onDelete: Cascade)
+  teamId          Int
+  possession      Int?     // %
+  shots           Int?
+  shotsOnTarget   Int?
+  shotsInsideBox  Int?
+  shotsOutsideBox Int?
+  corners         Int?
+  offsides        Int?
+  fouls           Int?
+  yellowCards     Int?
+  redCards        Int?
+  gkSaves         Int?
+  passAccuracy    Int?     // %
+  xg              Decimal? @db.Decimal(4, 2)
+  updatedAt       DateTime @updatedAt
+
+  @@unique([fixtureId, teamId])
 }
 
 model MatchEvent {
