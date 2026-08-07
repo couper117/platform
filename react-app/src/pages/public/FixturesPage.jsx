@@ -1,18 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Calendar, Search, Filter, ChevronLeft, ChevronRight, Activity } from 'lucide-react';
+import { CalendarDays } from 'lucide-react';
 import { getFixtures } from '../../api/endpoints/fixtures';
 import { getLeagues } from '../../api/endpoints/leagues';
-import ResponsiveWrapper from '../../components/shared/ResponsiveWrapper';
-import FixtureCard from '../../components/shared/FixtureCard';
-import Skeleton from '../../components/shared/Skeleton';
-import { format, addDays, subDays } from 'date-fns';
+import MatchRow from '../../components/match/MatchRow';
+import FixtureFilters from '../../components/match/FixtureFilters';
+import { MatchdayDivider, CompetitionHeader, groupFixtures } from '../../components/match/MatchGroup';
+import AdSlot from '../../components/shared/AdSlot';
+import Seo from '../../components/shared/Seo';
+import { Button, EmptyState, ErrorState, SkeletonList } from '../../components/ui';
 
+/**
+ * Matches — a list screen, built as a list.
+ *
+ * The screen this replaces spent roughly 660px of a 360x800 viewport on a sticky
+ * navbar, a centred hero ("UPCOMING FIXTURES" at 72px plus a tagline), and a
+ * filter bar, then rendered ~360px vertical cards two-up on desktop and one-up on
+ * mobile. Exactly one fixture was visible, and it was cut off.
+ *
+ * Now: 44px header, 72px of filters, then 68px rows. Ten fixtures fit in the space
+ * the old screen used for its title.
+ *
+ * There is no hero. A list screen reached from a tab bar does not need to announce
+ * itself — the tab is lit and the header says "Matches". Every pixel above the
+ * first row is a pixel not showing a match.
+ */
 const FixturesPage = () => {
   const location = useLocation();
   const isResultsPage = location.pathname === '/results';
-  
+
   const [filters, setFilters] = useState({
     status: isResultsPage ? 'COMPLETED' : 'SCHEDULED',
     leagueId: '',
@@ -25,7 +42,7 @@ const FixturesPage = () => {
     queryFn: () => getLeagues(),
   });
 
-  const { data: fixtures, isLoading } = useQuery({
+  const { data: fixtures, isLoading, isError, refetch } = useQuery({
     queryKey: ['fixtures-list', filters],
     queryFn: () => getFixtures(filters),
   });
@@ -34,110 +51,106 @@ const FixturesPage = () => {
     setFilters(prev => ({ ...prev, status: isResultsPage ? 'COMPLETED' : 'SCHEDULED' }));
   }, [isResultsPage]);
 
+  const list = fixtures?.data ?? [];
+  const groups = groupFixtures(list);
+
+  // Put the single ad slot after the first group that completes six fixtures, not
+  // after the first group. Days often hold one match, so "after group one" would
+  // drop a 64px banner under the very first row and cost the screen its density —
+  // the whole point of the rebuild. Six is the first-screen budget; the ad lands
+  // just past it, or at the end of a shorter list.
+  const adAfterGroup = (() => {
+    let seen = 0;
+    for (let i = 0; i < groups.length; i += 1) {
+      seen += groups[i].competitions.reduce((n, c) => n + c.fixtures.length, 0);
+      if (seen >= 6) return i;
+    }
+    return groups.length - 1;
+  })();
+
+  const emptyCopy = {
+    SCHEDULED: ['No matches scheduled', 'Fixtures appear here once a league publishes its schedule.'],
+    LIVE: ['Nothing live right now', 'Kick-offs show up here the moment a match starts.'],
+    COMPLETED: ['No results yet', 'Final scores appear here as matches finish.'],
+  }[filters.status] ?? ['No matches found', 'Try a different competition.'];
+
   return (
-    <div className="bg-surface-2 dark:bg-surface-dark min-h-screen pb-24">
-      {/* Header */}
-      <section className="bg-surface-dark py-16 relative overflow-hidden text-center">
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
-        <ResponsiveWrapper className="relative z-10 space-y-4">
-          <div className="inline-flex items-center space-x-2 bg-red/10 border border-red/20 px-4 py-1 rounded-full mb-2">
-            <Activity size={12} className="text-red animate-pulse" />
-            <span className="text-[10px] font-bold text-red uppercase tracking-widest">Live Match Center</span>
-          </div>
-          <h1 className="text-5xl sm:text-7xl font-display text-white uppercase tracking-tighter">
-            {isResultsPage ? 'Match' : 'Upcoming'} <span className="text-red">{isResultsPage ? 'Results' : 'Fixtures'}</span>
-          </h1>
-          <p className="text-white/40 uppercase tracking-[0.3em] text-[10px] font-bold">Every match, every goal, every moment</p>
-        </ResponsiveWrapper>
-      </section>
+    <>
+      <Seo
+        title={isResultsPage ? 'Results' : 'Matches'}
+        description="Fixtures, live scores and results across Rwandan sport."
+      />
 
-      {/* Control Bar */}
-      <div className="sticky top-[68px] z-40 bg-white/80 dark:bg-surface-dark2/80 backdrop-blur-xl border-b border-surface-3 dark:border-white/5 shadow-sm">
-        <ResponsiveWrapper>
-          <div className="flex overflow-x-auto scrollbar-hide py-4 space-x-6 items-center no-wrap">
-            {/* League Filter */}
-            <div className="flex items-center space-x-3 flex-shrink-0">
-              <Filter size={14} className="text-red" />
-              <select 
-                className="bg-transparent border-none text-[11px] font-bold uppercase tracking-widest focus:ring-0 cursor-pointer p-0"
-                value={filters.leagueId}
-                onChange={(e) => setFilters(prev => ({ ...prev, leagueId: e.target.value }))}
+      <FixtureFilters
+        status={filters.status}
+        leagueId={filters.leagueId}
+        leagues={leagues?.data ?? []}
+        onStatus={(status) => setFilters((prev) => ({ ...prev, status }))}
+        onLeague={(leagueId) => setFilters((prev) => ({ ...prev, leagueId }))}
+      />
+
+      {isLoading ? (
+        // Rows, at the real row height — so nothing moves when the data lands.
+        <SkeletonList count={8}>
+          <MatchRow.Skeleton />
+        </SkeletonList>
+      ) : isError ? (
+        <ErrorState
+          title="Could not load matches"
+          hint="Check your connection and try again."
+          onRetry={refetch}
+        />
+      ) : list.length === 0 ? (
+        <EmptyState
+          icon={CalendarDays}
+          title={emptyCopy[0]}
+          hint={emptyCopy[1]}
+          action={
+            filters.leagueId ? (
+              <Button
+                variant="secondary"
+                onClick={() => setFilters((prev) => ({ ...prev, leagueId: '' }))}
               >
-                <option value="">All Leagues</option>
-                {leagues?.data?.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-              </select>
-            </div>
-
-            <div className="h-4 w-px bg-surface-3 dark:bg-white/10" />
-
-            {/* Status Quick Toggle */}
-            <div className="flex items-center space-x-4 flex-shrink-0">
-              <button 
-                onClick={() => setFilters(prev => ({ ...prev, status: 'SCHEDULED' }))}
-                className={`text-[11px] font-bold uppercase tracking-widest transition-colors ${filters.status === 'SCHEDULED' ? 'text-red underline underline-offset-8 decoration-2' : 'opacity-40 hover:opacity-100'}`}
-              >
-                Upcoming
-              </button>
-              <button 
-                onClick={() => setFilters(prev => ({ ...prev, status: 'LIVE' }))}
-                className={`text-[11px] font-bold uppercase tracking-widest transition-colors flex items-center space-x-1 ${filters.status === 'LIVE' ? 'text-red underline underline-offset-8 decoration-2' : 'opacity-40 hover:opacity-100'}`}
-              >
-                {filters.status === 'LIVE' && <span className="w-1 h-1 bg-red rounded-full animate-pulse" />}
-                <span>Live</span>
-              </button>
-              <button 
-                onClick={() => setFilters(prev => ({ ...prev, status: 'COMPLETED' }))}
-                className={`text-[11px] font-bold uppercase tracking-widest transition-colors ${filters.status === 'COMPLETED' ? 'text-red underline underline-offset-8 decoration-2' : 'opacity-40 hover:opacity-100'}`}
-              >
-                Results
-              </button>
-            </div>
-
-            <div className="h-4 w-px bg-surface-3 dark:bg-white/10" />
-
-            {/* Date Filter (Simplified) */}
-            <div className="flex items-center space-x-3 flex-shrink-0 text-[11px] font-bold uppercase tracking-widest opacity-60">
-              <Calendar size={14} className="text-red" />
-              <span>All Dates</span>
-            </div>
-          </div>
-        </ResponsiveWrapper>
-      </div>
-
-      {/* Main Content */}
-      <ResponsiveWrapper className="mt-12">
-        {isLoading ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <Skeleton type="card" count={6} />
-          </div>
-        ) : fixtures?.data?.length > 0 ? (
-          <div className="space-y-12">
-            {/* We could group by date here if needed */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-              {fixtures.data.map(fixture => (
-                <FixtureCard key={fixture.id} fixture={fixture} />
+                Show all leagues
+              </Button>
+            ) : null
+          }
+        />
+      ) : (
+        <div className="mx-auto max-w-3xl">
+          {groups.map((group, gi) => {
+            // One competition that day → its name rides in the divider and saves
+            // a 24px row. Most days in real data have a single match per league,
+            // so this is the common case, not the edge case.
+            const solo = group.competitions.length === 1;
+            return (
+            <section key={group.date ?? `tbd-${gi}`}>
+              <MatchdayDivider
+                date={group.date}
+                competition={solo ? group.competitions[0].name : undefined}
+              />
+              {group.competitions.map((comp) => (
+                <div key={comp.name}>
+                  {!solo && (
+                    <CompetitionHeader
+                      name={comp.name}
+                      meta={comp.fixtures.length > 1 ? `${comp.fixtures.length}` : undefined}
+                    />
+                  )}
+                  {comp.fixtures.map((fixture) => (
+                    <MatchRow key={fixture.id} fixture={fixture} />
+                  ))}
+                </div>
               ))}
-            </div>
-          </div>
-        ) : (
-          <div className="py-40 text-center space-y-6">
-            <div className="w-20 h-20 bg-surface-3 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto opacity-20">
-              <Search size={32} />
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-3xl font-display uppercase tracking-tight opacity-40">No Matches Found</h3>
-              <p className="text-sm opacity-30 uppercase tracking-widest">There are no matches matching your current criteria.</p>
-            </div>
-            <button 
-              onClick={() => setFilters({ status: isResultsPage ? 'COMPLETED' : 'SCHEDULED', leagueId: '', from: '', to: '' })}
-              className="text-[10px] font-bold uppercase tracking-widest text-red hover:underline"
-            >
-              Reset Filters
-            </button>
-          </div>
-        )}
-      </ResponsiveWrapper>
-    </div>
+              {/* One slot, placed past the first-screen budget. Reserves its height
+                  while the request is in flight so a late ad never shifts the list. */}
+              {gi === adAfterGroup && <AdSlot position="fixtures" />}
+            </section>
+            );
+          })}
+        </div>
+      )}
+    </>
   );
 };
 

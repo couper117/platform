@@ -16,6 +16,7 @@ import {
   SkeletonText,
   StatusPill,
 } from '../../components/ui';
+import MatchRow from '../../components/match/MatchRow';
 
 /**
  * Living styleguide at /design-system.
@@ -130,6 +131,61 @@ const TYPE_SCALE = [
 
 const SPACING = [
   ['1', 4], ['2', 8], ['3', 12], ['4', 16], ['6', 24], ['8', 32],
+];
+
+/**
+ * Fixtures shaped for the styleguide only. Real data will not contain a halftime
+ * or abandoned match on demand, and every state has to be reviewable on one page.
+ */
+const T = (name) => ({ name });
+const MATCH_STATES = [
+  {
+    id: 'ds-1',
+    status: 'SCHEDULED',
+    homeTeam: T('APR FC'),
+    awayTeam: T('Rayon Sports'),
+    matchDate: '2026-08-10T17:00:00.000Z',
+  },
+  {
+    id: 'ds-2',
+    status: 'LIVE',
+    homeTeam: T('Rayon Sports'),
+    awayTeam: T('Police FC'),
+    homeScore: 2,
+    awayScore: 1,
+    liveState: { minute: 67, status: 'live' },
+  },
+  {
+    id: 'ds-3',
+    status: 'LIVE',
+    homeTeam: T('Kiyovu Sports'),
+    awayTeam: T('Musanze FC'),
+    homeScore: 0,
+    awayScore: 0,
+    liveState: { minute: 45, status: 'halftime' },
+  },
+  {
+    id: 'ds-4',
+    status: 'COMPLETED',
+    homeTeam: T('Patriots BBC'),
+    awayTeam: T('REG BBC'),
+    homeScore: 88,
+    awayScore: 102,
+  },
+  {
+    id: 'ds-5',
+    status: 'POSTPONED',
+    homeTeam: T('Gasogi United'),
+    awayTeam: T('Etincelles FC'),
+    matchDate: '2026-08-12T15:30:00.000Z',
+  },
+  {
+    id: 'ds-6',
+    status: 'CANCELLED',
+    homeTeam: T('Mukura Victory Sports'),
+    awayTeam: T('AS Kigali'),
+    matchDate: '2026-08-14T13:00:00.000Z',
+  },
 ];
 
 const RADII = [
@@ -628,6 +684,33 @@ const DesignSystemPage = () => {
               </Row>
             </Section>
           </>
+        )}
+
+        {ready && (
+          <Section
+            title="MatchRow — six states"
+            note="The atom. Uniform 68px in every state, scores in a fixed right-aligned tabular
+                  column, status in a fixed 56px rail. The 3px club bar marks live rows only, and
+                  non-live rows keep a transparent 3px border so nothing shifts between states."
+          >
+            <div className="overflow-hidden rounded-card border border-hairline">
+              {MATCH_STATES.map((f) => (
+                <MatchRow key={f.id} fixture={f} />
+              ))}
+            </div>
+            <p className="mt-3 text-sm text-secondary">
+              A live row shows its minute only when the payload carries one. The fixtures LIST
+              endpoint does not include <code>liveState</code>, so on a list screen live rows read
+              “LIVE” with no clock — an honest gap rather than a fabricated minute.
+            </p>
+            <div className="mt-4">
+              <p className="mb-2 text-sm text-secondary">Skeleton — same metrics, so nothing moves:</p>
+              <div className="overflow-hidden rounded-card border border-hairline">
+                <MatchRow.Skeleton />
+                <MatchRow.Skeleton />
+              </div>
+            </div>
+          </Section>
         )}
 
         <footer className="border-t border-hairline pt-6 text-sm text-tertiary">

@@ -1,0 +1,219 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { format } from 'date-fns';
+import ClubCrest from '../ui/ClubCrest';
+import Skeleton from '../ui/Skeleton';
+import clubColor from '../../config/clubColors';
+import cn from '../ui/cn';
+
+/**
+ * MatchRow — the atom of this product. Everything else is arranged around it.
+ *
+ * ANATOMY, and why it is a row and not a card
+ *   [3px] [ crests + names          ] [ scores ] [ rail 56px ]
+ *
+ *   The old FixtureCard was a centred vertical card ~360px tall: two stacked
+ *   crest-over-name columns flanking a 48px score, plus a bordered meta footer.
+ *   One fixture filled a phone screen. This is 68px, so ten fit in the same space.
+ *
+ * THE THREE RULES THAT MAKE A LIST SCANNABLE
+ *   1. Height is uniform at 68px. A LIVE row is NOT taller — if live rows grew,
+ *      the list would reflow every time a match kicked off.
+ *   2. Scores sit in a fixed-width, right-aligned, tabular column, so every digit
+ *      down the list lands on the same vertical line. w-10 fits three digits,
+ *      because basketball scores reach 100+.
+ *   3. Status lives in a fixed 56px rail. Nothing else may occupy it, so the eye
+ *      learns one place to look for "when / is it on / is it over".
+ *
+ * The 3px club bar appears on live rows ONLY — it is what makes a live match
+ * findable in a long list without making it bigger. Non-live rows keep a 3px
+ * transparent border so nothing shifts horizontally between states. The bar uses
+ * the HOME club's colour: a row is anchored to the home side, and picking one
+ * consistently beats splitting the bar between two teams.
+ */
+
+/* ─── state ─────────────────────────────────────────────────────────── */
+
+/**
+ * Collapse the backend's FixtureStatus (plus an optional live period) into the
+ * six states this row actually renders.
+ *
+ * NOTE: the fixtures LIST endpoint does not include `liveState`, so on a list
+ * screen `minute` and `period` are absent and a live row shows "LIVE" with no
+ * clock. That is deliberate — better an honest "LIVE" than a fabricated minute.
+ */
+export const matchState = (fixture = {}) => {
+  const status = String(fixture.status || 'SCHEDULED').toUpperCase();
+  const period = String(fixture.liveState?.status || fixture.period || '').toLowerCase();
+
+  if (status === 'LIVE') return period === 'halftime' ? 'halftime' : 'live';
+  if (status === 'COMPLETED') return 'fulltime';
+  if (status === 'POSTPONED') return 'postponed';
+  if (status === 'CANCELLED' || status === 'ABANDONED') return 'abandoned';
+  return 'upcoming';
+};
+
+const SHOWS_SCORE = new Set(['live', 'halftime', 'fulltime']);
+const IS_LIVE = new Set(['live', 'halftime']);
+
+/* ─── rail ──────────────────────────────────────────────────────────── */
+
+const Rail = ({ state, fixture, showDate }) => {
+  const minute = fixture.liveState?.minute ?? fixture.minute;
+
+  if (state === 'live') {
+    return (
+      <span className="flex flex-col items-center gap-0.5 text-live">
+        <span className="h-1.5 w-1.5 animate-live-pulse rounded-pill bg-live" />
+        <span className="text-xs font-semibold tabular-nums leading-none">
+          {typeof minute === 'number' ? `${minute}’` : 'LIVE'}
+        </span>
+      </span>
+    );
+  }
+
+  if (state === 'halftime') {
+    return <span className="text-xs font-semibold leading-none text-live">HT</span>;
+  }
+
+  if (state === 'fulltime') {
+    return <span className="text-xs font-semibold leading-none text-tertiary">FT</span>;
+  }
+
+  if (state === 'postponed' || state === 'abandoned') {
+    return (
+      <span className="text-center text-xs font-medium leading-tight text-danger-text">
+        {state === 'postponed' ? 'Post.' : 'Aband.'}
+      </span>
+    );
+  }
+
+  // Upcoming: the kickoff time. The date is omitted by default because the common
+  // case is a date-grouped list, where a divider already states the day and
+  // repeating it in every row is pure noise.
+  const d = fixture.matchDate ? new Date(fixture.matchDate) : null;
+  return (
+    <span className="flex flex-col items-center leading-tight">
+      <time
+        dateTime={d ? d.toISOString() : undefined}
+        className="text-sm font-semibold text-primary"
+      >
+        {d ? format(d, 'HH:mm') : 'TBD'}
+      </time>
+      {showDate && d && <span className="text-xs text-tertiary">{format(d, 'd MMM')}</span>}
+    </span>
+  );
+};
+
+/* ─── one side of the tie ───────────────────────────────────────────── */
+
+const Side = ({ team, score, showScore, dim, winner }) => (
+  <div className="flex min-w-0 items-center gap-2">
+    <ClubCrest team={team} size="sm" />
+    <span
+      className={cn(
+        'min-w-0 flex-1 truncate text-base',
+        dim ? 'text-secondary' : 'text-primary',
+        winner && 'font-semibold'
+      )}
+    >
+      {team?.name || 'TBD'}
+    </span>
+    {/* Fixed, right-aligned, tabular — the column every score lines up in. */}
+    <span
+      data-numeric
+      className={cn(
+        'w-10 shrink-0 text-right text-base tabular-nums',
+        winner ? 'font-semibold text-primary' : dim ? 'text-secondary' : 'text-primary'
+      )}
+    >
+      {showScore ? (score ?? 0) : ''}
+    </span>
+  </div>
+);
+
+/* ─── row ───────────────────────────────────────────────────────────── */
+
+const MatchRow = ({ fixture, showDate = false, className }) => {
+  const state = matchState(fixture);
+  const live = IS_LIVE.has(state);
+  const showScore = SHOWS_SCORE.has(state);
+  const off = state === 'postponed' || state === 'abandoned';
+
+  const home = fixture.homeTeam;
+  const away = fixture.awayTeam;
+  const hs = fixture.homeScore;
+  const as = fixture.awayScore;
+
+  // Only a finished match has a winner to emphasise. Emphasising the leader of a
+  // live match would flicker on every goal.
+  const homeWon = state === 'fulltime' && hs > as;
+  const awayWon = state === 'fulltime' && as > hs;
+
+  const bar = live ? clubColor(home) : null;
+
+  const label = [
+    home?.name,
+    showScore ? `${hs ?? 0}–${as ?? 0}` : 'versus',
+    away?.name,
+    state === 'live' ? 'live now' : state,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  return (
+    <Link
+      to={`/matches/${fixture.id}`}
+      aria-label={label}
+      style={bar ? { '--club': bar } : undefined}
+      className={cn(
+        // h-row is 68px. Uniform across all six states.
+        'flex h-row items-center gap-3 border-b border-hairline px-3',
+        'border-l-[3px] transition-colors duration-150 ease-standard',
+        // Transparent when not live, so the row never shifts horizontally.
+        live ? 'border-l-[var(--club)]' : 'border-l-transparent',
+        'hover:bg-surface-2 active:bg-surface-2',
+        off && 'opacity-60',
+        className
+      )}
+    >
+      <div className="flex min-w-0 flex-1 flex-col justify-center gap-1">
+        <Side team={home} score={hs} showScore={showScore} dim={off || awayWon} winner={homeWon} />
+        <Side team={away} score={as} showScore={showScore} dim={off || homeWon} winner={awayWon} />
+      </div>
+
+      {/* The rail. Fixed 56px, hairline-separated so it reads as its own column. */}
+      <div className="flex h-full w-rail shrink-0 items-center justify-center border-l border-hairline">
+        <Rail state={state} fixture={fixture} showDate={showDate} />
+      </div>
+    </Link>
+  );
+};
+
+/**
+ * Skeleton lives here, next to the component, and reuses its exact metrics
+ * (h-row, w-rail, w-10 score column). A skeleton in a separate file drifts the
+ * first time either side changes.
+ */
+MatchRow.Skeleton = function MatchRowSkeleton() {
+  return (
+    <div className="flex h-row items-center gap-3 border-b border-hairline border-l-[3px] border-l-transparent px-3">
+      <div className="flex min-w-0 flex-1 flex-col justify-center gap-1">
+        {[0, 1].map((i) => (
+          <div key={i} className="flex items-center gap-2">
+            <Skeleton className="h-6 w-6" />
+            <Skeleton className={cn('h-3', i ? 'w-20' : 'w-28')} />
+            <span className="ml-auto">
+              <Skeleton className="h-3 w-4" />
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className="flex h-full w-rail shrink-0 items-center justify-center border-l border-hairline">
+        <Skeleton className="h-3 w-8" />
+      </div>
+    </div>
+  );
+};
+
+export default MatchRow;
