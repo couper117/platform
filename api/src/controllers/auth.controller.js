@@ -1,14 +1,35 @@
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const prisma = require('../config/db');
-const { generateAccessToken, generateRefreshToken, verifyToken } = require('../utils/jwt');
+const { generateAccessToken, generateRefreshToken, verifyToken, hashToken } = require('../utils/jwt');
+const { sendMail } = require('../utils/sendMail');
 const logActivity = require('../utils/activityLogger');
 const env = require('../config/env');
+
+// Attach the sport a federation admin is scoped to, so the frontend can filter
+// its admin views to that sport.
+const withAdminSport = async (user) => {
+  if (user?.role === 'FEDERATION_ADMIN') {
+    const fa = await prisma.federationAdminAssignment.findFirst({
+      where: { userId: user.id },
+      include: { federation: { include: { sport: { select: { id: true, name: true, slug: true, type: true } } } } },
+    });
+    user.sportId = fa?.federation?.sportId ?? null;
+    user.sport = fa?.federation?.sport ?? null;
+  }
+  return user;
+};
 
 // @desc    Register a team and its manager
 // @route   POST /api/v1/auth/team/register
 // @access  Public
 const registerTeam = async (req, res, next) => {
-  const { username, password, fullName, email, phone, teamName, sportId, city, province } = req.body;
+  const {
+    username, password, fullName, email, phone,
+    teamName, shortName, sportId, city, district, province,
+    homeVenue, foundedYear, registrationNo, primaryColor, secondaryColor, description,
+    officials,
+  } = req.body;
 
   try {
     const userExists = await prisma.user.findFirst({
@@ -18,6 +39,12 @@ const registerTeam = async (req, res, next) => {
     if (userExists) {
       return res.status(400).json({ success: false, message: 'User with this username or email already exists' });
     }
+
+    // Officials arrive as an array of { role, fullName, phone, email }. Keep only
+    // the ones with a name so empty rows from the form are ignored.
+    const officialRows = Array.isArray(officials)
+      ? officials.filter((o) => o && o.fullName && String(o.fullName).trim())
+      : [];
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
@@ -36,11 +63,32 @@ const registerTeam = async (req, res, next) => {
       const team = await tx.team.create({
         data: {
           name: teamName,
+          shortName: shortName || null,
           sportId: parseInt(sportId),
           city,
+          district: district || null,
           province,
+          homeVenue: homeVenue || null,
+          foundedYear: foundedYear ? parseInt(foundedYear) : null,
+          registrationNo: registrationNo || null,
+          primaryColor: primaryColor || null,
+          secondaryColor: secondaryColor || null,
+          description: description || null,
+          email: email || null,
+          phone: phone || null,
           managerUserId: user.id,
           status: 'PENDING',
+          officials: officialRows.length
+            ? {
+                create: officialRows.map((o) => ({
+                  role: o.role || 'OTHER',
+                  fullName: String(o.fullName).trim(),
+                  phone: o.phone || null,
+                  email: o.email || null,
+                  idNumber: o.idNumber || null,
+                })),
+              }
+            : undefined,
         },
       });
 
@@ -68,11 +116,24 @@ const registerTeam = async (req, res, next) => {
 // @route   POST /api/v1/auth/login
 // @access  Public
 const login = async (req, res, next) => {
-  const { username, password } = req.body;
+  const { username, email, password } = req.body;
 
   try {
-    const user = await prisma.user.findUnique({
-      where: { username },
+    // Accept either a username or an email address as the identifier. Admins are
+    // invited by email, so they may sign in with it. Email match is
+    // case-insensitive; username match is exact.
+    const identifier = String(email || username || '').trim();
+    if (!identifier) {
+      return res.status(400).json({ success: false, message: 'Username or email is required' });
+    }
+
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { username: identifier },
+          { email: { equals: identifier, mode: 'insensitive' } },
+        ],
+      },
       include: { managedTeam: true },
     });
 
@@ -87,10 +148,10 @@ const login = async (req, res, next) => {
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
-    // Save refresh token to DB
+    // Save hashed refresh token to DB (never store the raw token)
     await prisma.refreshToken.create({
       data: {
-        token: refreshToken,
+        token: hashToken(refreshToken),
         userId: user.id,
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
       },
@@ -119,6 +180,7 @@ const login = async (req, res, next) => {
 
     // Remove password from response
     user.password = undefined;
+    await withAdminSport(user);
 
     res.status(200).json({
       success: true,
@@ -142,7 +204,7 @@ const refresh = async (req, res, next) => {
 
   try {
     const savedToken = await prisma.refreshToken.findUnique({
-      where: { token },
+      where: { token: hashToken(token) },
       include: { user: { include: { managedTeam: true } } },
     });
 
@@ -164,7 +226,7 @@ const refresh = async (req, res, next) => {
       prisma.refreshToken.delete({ where: { id: savedToken.id } }),
       prisma.refreshToken.create({
         data: {
-          token: newRefreshToken,
+          token: hashToken(newRefreshToken),
           userId: savedToken.userId,
           expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         },
@@ -191,31 +253,99 @@ const refresh = async (req, res, next) => {
 // @route   POST /api/v1/auth/logout
 // @access  Public
 const logout = async (req, res, next) => {
-  const token = req.cookies.refreshToken;
-
-  if (token) {
-    await prisma.refreshToken.deleteMany({ where: { token } });
+  try {
+    const token = req.cookies.refreshToken;
+    if (token) {
+      await prisma.refreshToken.deleteMany({ where: { token: hashToken(token) } });
+    }
+    res.clearCookie('refreshToken');
+    res.status(200).json({ success: true, message: 'Logged out successfully' });
+  } catch (error) {
+    next(error);
   }
-
-  res.clearCookie('refreshToken');
-  res.status(200).json({ success: true, message: 'Logged out successfully' });
 };
 
 // @desc    Get current user profile
 // @route   GET /api/v1/auth/me
 // @access  Private
 const getMe = async (req, res, next) => {
-  const user = await prisma.user.findUnique({
-    where: { id: req.user.id },
-    include: { managedTeam: true },
-  });
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      include: { managedTeam: true },
+    });
 
-  user.password = undefined;
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
 
-  res.status(200).json({
-    success: true,
-    user,
-  });
+    user.password = undefined;
+    await withAdminSport(user);
+    res.status(200).json({ success: true, user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Request a password reset link
+// @route   POST /api/v1/auth/forgot-password
+// @access  Public
+const forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const user = email ? await prisma.user.findUnique({ where: { email } }) : null;
+
+    // Only send when the user exists, but always return the same response to
+    // avoid leaking which emails are registered.
+    if (user) {
+      const rawToken = crypto.randomBytes(32).toString('hex');
+      const resetTokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { resetTokenHash, resetTokenExpiry: new Date(Date.now() + 60 * 60 * 1000) },
+      });
+      const link = `${env.FRONTEND_URL}/auth/reset-password?token=${rawToken}&uid=${user.id}`;
+      await sendMail({
+        to: email,
+        subject: 'Reset your RwaSport password',
+        text: `Reset your password: ${link} (valid for 1 hour). If you didn't request this, ignore this email.`,
+        html: `<p>Reset your RwaSport password:</p><p><a href="${link}">${link}</a></p><p>This link is valid for 1 hour.</p>`,
+      });
+    }
+    res.status(200).json({ success: true, message: 'If that email is registered, a reset link has been sent.' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Reset a password using a token
+// @route   POST /api/v1/auth/reset-password
+// @access  Public
+const resetPassword = async (req, res, next) => {
+  try {
+    const { token, uid, newPassword } = req.body;
+    if (!token || !uid || !newPassword || String(newPassword).length < 6) {
+      return res.status(400).json({ success: false, message: 'Invalid request or password too short' });
+    }
+    const resetTokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const user = await prisma.user.findFirst({
+      where: { id: parseInt(uid, 10), resetTokenHash, resetTokenExpiry: { gt: new Date() } },
+    });
+    if (!user) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired reset token' });
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashedPassword, resetTokenHash: null, resetTokenExpiry: null },
+    });
+    // Invalidate all existing sessions on password change.
+    await prisma.refreshToken.deleteMany({ where: { userId: user.id } });
+
+    res.status(200).json({ success: true, message: 'Password reset successful. Please log in.' });
+  } catch (error) {
+    next(error);
+  }
 };
 
 module.exports = {
@@ -224,4 +354,6 @@ module.exports = {
   refresh,
   logout,
   getMe,
+  forgotPassword,
+  resetPassword,
 };

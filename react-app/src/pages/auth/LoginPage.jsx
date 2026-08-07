@@ -7,9 +7,10 @@ import { LogIn, Loader2, AlertCircle, ChevronLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import useAuthStore from '../../store/authStore';
 import apiClient from '../../api/client';
+import { roleHome } from '../../utils/roleHome';
 
 const loginSchema = z.object({
-  username: z.string().min(3, 'Username must be at least 3 characters'),
+  username: z.string().min(3, 'Enter your email or username'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
@@ -31,14 +32,10 @@ const LoginPage = () => {
       const response = await apiClient.post('/auth/login', data);
       const { user, accessToken } = response.data;
       setAuth(user, accessToken);
-      
-      if (user.role === 'SUPERADMIN' || user.role === 'LEAGUE_ADMIN') {
-        navigate('/admin/dashboard');
-      } else {
-        navigate('/team/dashboard');
-      }
+
+      navigate(roleHome(user.role));
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid username or password');
+      setError(err.response?.data?.message || 'Invalid credentials');
     } finally {
       setIsLoading(false);
     }
@@ -61,7 +58,7 @@ const LoginPage = () => {
             <LogIn size={32} />
           </div>
           <h1 className="text-4xl sm:text-5xl font-display text-white uppercase tracking-tighter">
-            {t('auth.access')} <span className="text-red">{t('auth.portal')}</span>
+            Access <span className="text-red">Portal</span>
           </h1>
           <p className="text-white/40 text-[10px] font-bold uppercase tracking-[0.3em]">{t('auth.login_subtitle')}</p>
         </div>
@@ -77,11 +74,11 @@ const LoginPage = () => {
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">{t('auth.username')}</label>
+                <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">Email or Username</label>
                 <input
                   {...register('username')}
                   className={`w-full bg-white/5 border ${errors.username ? 'border-red/50' : 'border-white/10'} text-white p-4 rounded-xl focus:border-red focus:bg-white/10 outline-none transition-all placeholder:text-white/10`}
-                  placeholder={t('auth.username_login_placeholder')}
+                  placeholder="you@email.rw or username"
                 />
                 {errors.username && <p className="text-[10px] font-bold text-red uppercase tracking-widest ml-1">{errors.username.message}</p>}
               </div>

@@ -1,6 +1,8 @@
 const prisma = require('../config/db');
-const slugify = require('slugify');
 const logActivity = require('../utils/activityLogger');
+const { uniqueSlug } = require('../utils/slug');
+const { enforceSportScope } = require('../utils/scope');
+const { getRules, validateTeamForLeague } = require('../services/eligibility.service');
 
 // @desc    Get all active leagues
 // @route   GET /api/v1/leagues
@@ -46,12 +48,28 @@ const getLeague = async (req, res, next) => {
         teams: {
           include: { team: true },
         },
+        standings: {
+          include: { team: true },
+        },
+        topScorers: {
+          include: { player: true, team: true },
+          orderBy: [{ goals: 'desc' }, { assists: 'desc' }],
+        },
       },
     });
 
     if (!league || !league.active) {
       return res.status(404).json({ success: false, message: 'League not found' });
     }
+
+    // Sort the standings table: points, then goal difference, then goals for.
+    league.standings.sort(
+      (a, b) =>
+        b.points - a.points ||
+        (b.goalsFor - b.goalsAgainst) - (a.goalsFor - a.goalsAgainst) ||
+        b.goalsFor - a.goalsFor
+    );
+    league.standings = league.standings.map((s, i) => ({ ...s, rank: i + 1 }));
 
     res.status(200).json({ success: true, data: league });
   } catch (error) {
@@ -67,14 +85,20 @@ const createLeague = async (req, res, next) => {
     const { 
       name, sportId, federationId, season, gender, 
       ageCategory, level, format, status, maxTeams, 
-      description, startDate, endDate 
+      description, startDate, endDate
     } = req.body;
+
+    // Federation admins can only create leagues in their own sport (default to
+    // it when unspecified, reject a mismatched one).
+    const bodySid = sportId ? parseInt(sportId) : null;
+    const sid = req.user.role === 'FEDERATION_ADMIN' ? (bodySid ?? req.user.sportId) : bodySid;
+    if (!enforceSportScope(req, res, sid)) return;
 
     const league = await prisma.league.create({
       data: {
         name,
-        slug: slugify(name, { lower: true }),
-        sportId: parseInt(sportId),
+        slug: await uniqueSlug('league', name),
+        sportId: sid,
         federationId: federationId ? parseInt(federationId) : null,
         season,
         gender,
@@ -111,14 +135,21 @@ const updateLeague = async (req, res, next) => {
     const { 
       name, sportId, federationId, season, gender, 
       ageCategory, level, format, status, maxTeams, 
-      description, startDate, endDate, active 
+      description, startDate, endDate, active
     } = req.body;
+
+    // Scope: a federation admin may only edit a league in their sport, and
+    // cannot move it into a sport they don't own.
+    const existing = await prisma.league.findUnique({ where: { id: parseInt(req.params.id) } });
+    if (!existing) return res.status(404).json({ success: false, message: 'League not found' });
+    if (!enforceSportScope(req, res, existing.sportId)) return;
+    if (sportId && !enforceSportScope(req, res, parseInt(sportId))) return;
 
     const league = await prisma.league.update({
       where: { id: parseInt(req.params.id) },
       data: {
         name,
-        slug: name ? slugify(name, { lower: true }) : undefined,
+        slug: name ? await uniqueSlug('league', name, parseInt(req.params.id)) : undefined,
         sportId: sportId ? parseInt(sportId) : undefined,
         federationId: federationId ? parseInt(federationId) : undefined,
         season,
@@ -154,6 +185,10 @@ const updateLeague = async (req, res, next) => {
 // @access  Private/Admin
 const deleteLeague = async (req, res, next) => {
   try {
+    const existing = await prisma.league.findUnique({ where: { id: parseInt(req.params.id) } });
+    if (!existing) return res.status(404).json({ success: false, message: 'League not found' });
+    if (!enforceSportScope(req, res, existing.sportId)) return;
+
     const league = await prisma.league.update({
       where: { id: parseInt(req.params.id) },
       data: { active: false },
@@ -180,6 +215,32 @@ const addTeamToLeague = async (req, res, next) => {
   try {
     const leagueId = parseInt(req.params.id);
     const teamId = parseInt(req.params.teamId);
+
+    // Enforce the league's team cap + sport scope.
+    const league = await prisma.league.findUnique({ where: { id: leagueId } });
+    if (!league) return res.status(404).json({ success: false, message: 'League not found' });
+    if (!enforceSportScope(req, res, league.sportId)) return;
+
+    const team = await prisma.team.findUnique({ where: { id: teamId } });
+    if (!team) return res.status(404).json({ success: false, message: 'Team not found' });
+    if (team.sportId && team.sportId !== league.sportId) {
+      return res.status(400).json({ success: false, message: 'Team plays a different sport than this league' });
+    }
+
+    const currentCount = await prisma.leagueTeam.count({ where: { leagueId } });
+    if (currentCount >= league.maxTeams) {
+      return res.status(400).json({ success: false, message: `League is full (max ${league.maxTeams} teams)` });
+    }
+
+    // Eligibility gate: verified team, minimum squad, foreign quota, per-player
+    // age/gender for the competition. A super/federation admin may override with
+    // ?force=true after reviewing the violations.
+    const rules = await getRules();
+    const issues = await validateTeamForLeague(team, league, rules);
+    const force = req.query.force === 'true' || req.body?.force === true;
+    if (issues.length && !force) {
+      return res.status(422).json({ success: false, message: 'Team is not eligible for this competition', issues });
+    }
 
     const leagueTeam = await prisma.leagueTeam.create({
       data: {
@@ -242,6 +303,45 @@ const removeTeamFromLeague = async (req, res, next) => {
   }
 };
 
+// @desc    Standings table for a league (sorted + ranked)
+// @route   GET /api/v1/leagues/:id/standings
+// @access  Public
+const getLeagueStandings = async (req, res, next) => {
+  try {
+    const leagueId = parseInt(req.params.id);
+    const standings = await prisma.standing.findMany({
+      where: { leagueId },
+      include: { team: true },
+    });
+    standings.sort(
+      (a, b) =>
+        b.points - a.points ||
+        (b.goalsFor - b.goalsAgainst) - (a.goalsFor - a.goalsAgainst) ||
+        b.goalsFor - a.goalsFor
+    );
+    res.status(200).json({ success: true, data: standings.map((s, i) => ({ ...s, rank: i + 1 })) });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Top scorers for a league
+// @route   GET /api/v1/leagues/:id/scorers
+// @access  Public
+const getLeagueScorers = async (req, res, next) => {
+  try {
+    const leagueId = parseInt(req.params.id);
+    const scorers = await prisma.topScorer.findMany({
+      where: { leagueId },
+      include: { player: true, team: true },
+      orderBy: [{ goals: 'desc' }, { assists: 'desc' }],
+    });
+    res.status(200).json({ success: true, data: scorers });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getLeagues,
   getLeague,
@@ -250,4 +350,6 @@ module.exports = {
   deleteLeague,
   addTeamToLeague,
   removeTeamFromLeague,
+  getLeagueStandings,
+  getLeagueScorers,
 };

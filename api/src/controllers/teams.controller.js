@@ -1,6 +1,7 @@
 const prisma = require('../config/db');
 const slugify = require('slugify');
 const { uploadImage, deleteImage } = require('../services/storage.service');
+const { enforceSportScope } = require('../utils/scope');
 const logActivity = require('../utils/activityLogger');
 
 // @desc    Get all active teams
@@ -44,6 +45,7 @@ const getTeam = async (req, res, next) => {
         where: { managerUserId: req.user.id, active: true },
         include: {
           sport: true,
+          officials: true,
           managerUser: {
             select: { id: true, fullName: true, email: true, phone: true },
           },
@@ -64,6 +66,7 @@ const getTeam = async (req, res, next) => {
         where: { id },
         include: {
           sport: true,
+          officials: true,
           managerUser: {
             select: { id: true, fullName: true, email: true, phone: true },
           },
@@ -94,8 +97,14 @@ const getTeam = async (req, res, next) => {
 const createTeam = async (req, res, next) => {
   try {
     const { name, shortName, sportId, foundedYear, homeVenue, city, province, description, email, phone, website, managerUserId } = req.body;
-    let logo = null;
 
+    // Federation admins can only create teams in their own sport (default to
+    // it when unspecified, reject a mismatched one).
+    const bodySid = sportId ? parseInt(sportId) : null;
+    const sid = req.user.role === 'FEDERATION_ADMIN' ? (bodySid ?? req.user.sportId) : bodySid;
+    if (!enforceSportScope(req, res, sid)) return;
+
+    let logo = null;
     if (req.file) {
       logo = await uploadImage(req.file, 'teams', 200, 200);
     }
@@ -105,7 +114,7 @@ const createTeam = async (req, res, next) => {
         name,
         shortName,
         slug: slugify(name, { lower: true }),
-        sportId: sportId ? parseInt(sportId) : null,
+        sportId: sid,
         foundedYear: foundedYear ? parseInt(foundedYear) : null,
         homeVenue,
         city,
@@ -145,8 +154,10 @@ const updateTeam = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Team not found' });
     }
 
-    // Authorization check: Admin or Team Manager
-    if (req.user.role !== 'SUPERADMIN' && req.user.id !== team.managerUserId) {
+    // Authorization: SUPERADMIN, the team's own manager, or the FEDERATION_ADMIN of the team's sport.
+    const isManager = req.user.id === team.managerUserId;
+    const isSportAdmin = req.user.role === 'FEDERATION_ADMIN' && Number(req.user.sportId) === Number(team.sportId);
+    if (req.user.role !== 'SUPERADMIN' && !isManager && !isSportAdmin) {
       return res.status(403).json({ success: false, message: 'Not authorized to update this team' });
     }
 
@@ -199,6 +210,11 @@ const updateTeamStatus = async (req, res, next) => {
   try {
     const { status } = req.body;
     const teamId = parseInt(req.params.id);
+
+    // A federation admin can only approve/reject teams in their own sport.
+    const existing = await prisma.team.findUnique({ where: { id: teamId } });
+    if (!existing) return res.status(404).json({ success: false, message: 'Team not found' });
+    if (!enforceSportScope(req, res, existing.sportId)) return;
 
     const team = await prisma.team.update({
       where: { id: teamId },

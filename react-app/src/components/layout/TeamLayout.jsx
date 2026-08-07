@@ -32,7 +32,7 @@ const TeamLayout = () => {
 
       <div className="flex flex-grow relative">
         <Sidebar type="team" isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-        <main className="flex-grow bg-surface-2 p-4 sm:p-6 md:p-8 overflow-x-hidden">
+        <main className="flex-grow bg-surface-2 dark:bg-surface-dark p-4 sm:p-6 md:p-8 overflow-x-hidden">
           <Outlet />
         </main>
       </div>

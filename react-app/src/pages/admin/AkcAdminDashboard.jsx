@@ -2,14 +2,10 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { School, Users, Upload, FileText, CheckCircle2, Plus, Trophy, ArrowRight } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 import Skeleton from '../../components/shared/Skeleton';
 import apiClient from '../../api/client';
-import { useEnumLabel } from '../../i18n/enums';
 
 const AkcAdminDashboard = () => {
-  const { t } = useTranslation();
-  const enumLabel = useEnumLabel();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('schools');
   const [importResults, setImportResults] = useState(null);
@@ -30,7 +26,7 @@ const AkcAdminDashboard = () => {
     },
     onSuccess: (data) => {
       setImportResults(data.data);
-      queryClient.invalidateQueries(['admin-akc-schools']);
+      queryClient.invalidateQueries({ queryKey: ['admin-akc-schools'] });
     }
   });
 
@@ -38,25 +34,23 @@ const AkcAdminDashboard = () => {
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-4xl font-display uppercase tracking-tighter">
-            {t('admin.akc.title')} <span className="text-rwanda-blue">{t('admin.akc.title_accent')}</span>
-          </h1>
-          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">{t('admin.akc.subtitle')}</p>
+          <h1 className="text-4xl font-display uppercase tracking-tighter">Amashuri <span className="text-red">Command Center</span></h1>
+          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Manage the inter-school sports ecosystem and bulk imports</p>
         </div>
       </div>
 
       {/* Tabs */}
       <div className="flex space-x-6 border-b border-surface-3 dark:border-white/5">
         {[
-          { id: 'schools', label: t('admin.akc.tab_schools'), icon: <School size={16} /> },
-          { id: 'import', label: t('admin.akc.tab_import'), icon: <Upload size={16} /> },
-          { id: 'competitions', label: t('amashuri.championships'), icon: <Trophy size={16} /> },
+          { id: 'schools', label: 'School Registry', icon: <School size={16} /> },
+          { id: 'import', label: 'Bulk Import', icon: <Upload size={16} /> },
+          { id: 'competitions', label: 'Championships', icon: <Trophy size={16} /> },
         ].map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center space-x-2 py-4 text-[11px] font-bold uppercase tracking-widest border-b-2 transition-all ${
-              activeTab === tab.id ? 'border-rwanda-blue text-rwanda-blue' : 'border-transparent opacity-40 hover:opacity-100'
+              activeTab === tab.id ? 'border-red text-red' : 'border-transparent opacity-40 hover:opacity-100'
             }`}
           >
             {tab.icon}
@@ -70,10 +64,10 @@ const AkcAdminDashboard = () => {
         {activeTab === 'schools' && (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-display uppercase tracking-tight">{t('admin.akc.registered_institutions')}</h2>
-              <button className="flex items-center space-x-2 bg-rwanda-blue text-white px-6 py-2.5 rounded-xl font-display text-sm uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg shadow-rwanda-blue/20">
+              <h2 className="text-2xl font-display uppercase tracking-tight">Registered Institutions</h2>
+              <button className="flex items-center space-x-2 bg-red text-white px-6 py-2.5 rounded-xl font-display text-sm uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg shadow-red/20">
                 <Plus size={16} />
-                <span>{t('admin.akc.add_school')}</span>
+                <span>Add School</span>
               </button>
             </div>
 
@@ -81,12 +75,12 @@ const AkcAdminDashboard = () => {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-surface-2 dark:bg-white/5 text-[10px] uppercase font-bold tracking-widest opacity-40">
-                    <th className="p-5">{t('admin.akc.col_school')}</th>
-                    <th className="p-5">{t('admin.akc.col_category')}</th>
-                    <th className="p-5">{t('admin.akc.col_code')}</th>
-                    <th className="p-5">{t('admin.nav.teams')}</th>
-                    <th className="p-5">{t('admin.col_status')}</th>
-                    <th className="p-5">{t('admin.col_actions')}</th>
+                    <th className="p-5">School Name</th>
+                    <th className="p-5">Category</th>
+                    <th className="p-5">Code</th>
+                    <th className="p-5">Teams</th>
+                    <th className="p-5">Status</th>
+                    <th className="p-5">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-surface-3 dark:divide-white/5">
@@ -95,14 +89,14 @@ const AkcAdminDashboard = () => {
                   ) : schools?.data?.map(school => (
                     <tr key={school.id} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors">
                       <td className="p-5 font-bold text-sm">{school.name}</td>
-                      <td className="p-5 text-[10px] font-bold opacity-60">{enumLabel('school_category', school.category)}</td>
+                      <td className="p-5 text-[10px] font-bold opacity-60">{school.category}</td>
                       <td className="p-5 font-mono text-[10px] opacity-40">{school.code}</td>
                       <td className="p-5 text-sm">{school._count?.teams || 0}</td>
                       <td className="p-5">
-                        <span className="bg-green/5 text-green text-[8px] font-bold px-2 py-1 rounded border border-green/10 uppercase">{t('enums.league_status.ACTIVE')}</span>
+                        <span className="bg-green/5 text-green text-[8px] font-bold px-2 py-1 rounded border border-green/10 uppercase">Active</span>
                       </td>
                       <td className="p-5">
-                        <button className="text-[10px] font-bold text-rwanda-blue hover:underline uppercase">{t('admin.akc.manage')}</button>
+                        <button className="text-[10px] font-bold text-red hover:underline uppercase">Manage</button>
                       </td>
                     </tr>
                   ))}
@@ -115,11 +109,11 @@ const AkcAdminDashboard = () => {
         {activeTab === 'import' && (
           <div className="max-w-4xl mx-auto space-y-10 py-10">
             <div className="text-center space-y-4">
-              <div className="w-20 h-20 bg-rwanda-blue/5 rounded-full flex items-center justify-center text-rwanda-blue mx-auto">
+              <div className="w-20 h-20 bg-red/5 rounded-full flex items-center justify-center text-red mx-auto">
                 <Upload size={40} />
               </div>
-              <h2 className="text-3xl font-display uppercase tracking-tight">{t('admin.akc.bulk_import_title')}</h2>
-              <p className="text-sm opacity-60 max-w-lg mx-auto">{t('admin.akc.bulk_import_hint')}</p>
+              <h2 className="text-3xl font-display uppercase tracking-tight">Bulk Player Import</h2>
+              <p className="text-sm opacity-60 max-w-lg mx-auto">Upload a CSV file to register players, create teams, and schools automatically across the AKC3 network.</p>
             </div>
 
             <div className="p-12 border-2 border-dashed border-surface-3 dark:border-white/10 rounded-3xl text-center space-y-6 bg-white dark:bg-surface-dark2">
@@ -130,8 +124,8 @@ const AkcAdminDashboard = () => {
                     <FileText size={48} className="mx-auto" />
                   </div>
                   <div className="space-y-1">
-                    <p className="font-bold uppercase text-[10px] tracking-[0.3em]">{t('admin.akc.drop_csv')}</p>
-                    <p className="text-[10px] opacity-40 uppercase tracking-widest italic">{t('admin.akc.csv_limit')}</p>
+                    <p className="font-bold uppercase text-[10px] tracking-[0.3em]">Drop your CSV here or click to browse</p>
+                    <p className="text-[10px] opacity-40 uppercase tracking-widest italic">Supports up to 5,000 rows per upload</p>
                   </div>
                 </div>
               </label>
@@ -141,20 +135,20 @@ const AkcAdminDashboard = () => {
               <div className="bg-white dark:bg-surface-dark2 p-8 rounded-3xl border border-surface-3 dark:border-white/5 space-y-6 animate-in zoom-in-95">
                 <div className="flex items-center space-x-3 text-green">
                   <CheckCircle2 size={24} />
-                  <h3 className="text-xl font-display uppercase tracking-tight">{t('admin.akc.import_complete')}</h3>
+                  <h3 className="text-xl font-display uppercase tracking-tight">Import Complete</h3>
                 </div>
                 <div className="grid grid-cols-3 gap-6">
                   <div className="p-4 bg-surface-2 dark:bg-white/5 rounded-2xl text-center">
                     <span className="block text-2xl font-display text-green">{importResults.created}</span>
-                    <span className="text-[8px] font-bold uppercase tracking-widest opacity-40">{t('admin.akc.created')}</span>
+                    <span className="text-[8px] font-bold uppercase tracking-widest opacity-40">Created</span>
                   </div>
                   <div className="p-4 bg-surface-2 dark:bg-white/5 rounded-2xl text-center">
                     <span className="block text-2xl font-display text-rwanda-yellow">{importResults.skipped}</span>
-                    <span className="text-[8px] font-bold uppercase tracking-widest opacity-40">{t('admin.akc.skipped')}</span>
+                    <span className="text-[8px] font-bold uppercase tracking-widest opacity-40">Skipped</span>
                   </div>
                   <div className="p-4 bg-surface-2 dark:bg-white/5 rounded-2xl text-center">
                     <span className="block text-2xl font-display text-red">{importResults.errors?.length || 0}</span>
-                    <span className="text-[8px] font-bold uppercase tracking-widest opacity-40">{t('admin.akc.errors')}</span>
+                    <span className="text-[8px] font-bold uppercase tracking-widest opacity-40">Errors</span>
                   </div>
                 </div>
               </div>
@@ -164,20 +158,20 @@ const AkcAdminDashboard = () => {
 
         {activeTab === 'competitions' && (
           <div className="max-w-3xl mx-auto py-10 space-y-8 text-center">
-            <div className="w-20 h-20 bg-rwanda-blue/5 rounded-full flex items-center justify-center text-rwanda-blue mx-auto">
+            <div className="w-20 h-20 bg-red/5 rounded-full flex items-center justify-center text-red mx-auto">
               <Trophy size={40} />
             </div>
             <div className="space-y-3">
-              <h2 className="text-3xl font-display uppercase tracking-tight">{t('admin.akc.manage_championships')}</h2>
+              <h2 className="text-3xl font-display uppercase tracking-tight">Manage Championships</h2>
               <p className="text-sm opacity-60 max-w-lg mx-auto">
-                {t('admin.akc.manage_championships_hint')}
+                Create and manage every inter-school championship — including the Kagame Cup — set their level, status and dates, and track fixtures.
               </p>
             </div>
             <Link
               to="/admin/championships"
-              className="inline-flex items-center gap-2 bg-rwanda-blue text-white px-8 py-3 rounded-xl font-display text-lg uppercase tracking-widest hover:brightness-110 transition-all shadow-lg shadow-rwanda-blue/20"
+              className="inline-flex items-center gap-2 bg-red text-white px-8 py-3 rounded-xl font-display text-lg uppercase tracking-widest hover:brightness-110 transition-all shadow-lg shadow-red/20"
             >
-              <span>{t('admin.akc.open_manager')}</span>
+              <span>Open Championship Manager</span>
               <ArrowRight size={18} />
             </Link>
           </div>

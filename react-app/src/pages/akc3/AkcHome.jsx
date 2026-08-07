@@ -40,18 +40,18 @@ const AkcHome = () => {
 
   return (
     <div className="bg-surface-2 dark:bg-surface-dark min-h-screen pb-24">
-      <Seo title={t('seo.amashuri_home_title')} description={t('seo.amashuri_home_desc')} />
+      <Seo title="Amashuri Games — Rwanda Inter-School Sports" description="The home of every Rwandan school championship, from the Kagame Cup to district and provincial leagues." />
 
       <AmashuriHero
-        title={t('amashuri.hero_title')}
-        accent={t('amashuri.hero_accent')}
+        title="Amashuri"
+        accent="Games"
         subtitle={t('amashuri.subtitle')}
       >
         <div className="flex flex-col sm:flex-row gap-3 pt-4">
-          <Button to="/amashuri/schools" variant="secondary" size="md" className="!bg-white !text-rwanda-blue hover:!bg-surface-2">
+          <Button to="/amashuri/schools" variant="secondary" size="md" className="!bg-white !text-red hover:!bg-surface-2">
             {t('amashuri.find_school')}
           </Button>
-          <Button to="/amashuri/championships" variant="blue" size="md" icon={Trophy}>
+          <Button to="/amashuri/championships" variant="secondary" size="md" icon={Trophy} className="!bg-white/10 !text-white !border-white/30 hover:!bg-white/20 backdrop-blur-sm">
             {t('amashuri.view_championships')}
           </Button>
         </div>
@@ -60,14 +60,14 @@ const AkcHome = () => {
       {/* Competition levels ladder — a school-specific differentiator */}
       <section className="py-12 border-b border-surface-3 dark:border-white/5 bg-white dark:bg-surface-dark2">
         <ResponsiveWrapper>
-          <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-rwanda-blue mb-6 text-center">{t('amashuri.road_to_nationals')}</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-red mb-6 text-center">{t('amashuri.road_to_nationals')}</p>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {LEVEL_KEYS.map((levelKey, i) => (
               <div key={levelKey} className="relative flex flex-col items-center text-center p-4 border border-surface-3 dark:border-white/5 rounded-2xl bg-surface-2 dark:bg-white/5">
-                <span className="text-[10px] font-display text-rwanda-blue mb-1">{t('amashuri.stage')} {i + 1}</span>
+                <span className="text-[10px] font-display text-red mb-1">{t('amashuri.stage')} {i + 1}</span>
                 <span className="text-sm font-bold uppercase tracking-widest opacity-70">{t(`amashuri.level.${levelKey}`)}</span>
                 {i < LEVEL_KEYS.length - 1 && (
-                  <ChevronRight size={16} className="hidden md:block absolute -right-3 top-1/2 -translate-y-1/2 text-rwanda-blue/40" />
+                  <ChevronRight size={16} className="hidden md:block absolute -right-3 top-1/2 -translate-y-1/2 text-red/40" />
                 )}
               </div>
             ))}
@@ -88,7 +88,7 @@ const AkcHome = () => {
                 schoolList.slice(0, 4).map((school) => (
                   <Card key={school.id} hover to={`/amashuri/schools/${school.id}`} className="p-6">
                     <div className="flex items-start justify-between mb-4">
-                      <span className="w-12 h-12 bg-surface-2 dark:bg-white/5 rounded-xl flex items-center justify-center text-rwanda-blue">
+                      <span className="w-12 h-12 bg-surface-2 dark:bg-white/5 rounded-xl flex items-center justify-center text-red">
                         <School size={24} />
                       </span>
                       <Badge tone="blue">{school.category}</Badge>
@@ -110,8 +110,8 @@ const AkcHome = () => {
 
           {/* Side stats */}
           <div className="space-y-8">
-            <div className="bg-surface-dark p-8 rounded-3xl text-white space-y-6 relative overflow-hidden shadow-2xl shadow-rwanda-blue/20">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-rwanda-blue opacity-30 -mr-8 -mt-8 rounded-full blur-3xl" />
+            <div className="bg-surface-dark p-8 rounded-3xl text-white space-y-6 relative overflow-hidden shadow-2xl shadow-red/20">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-red opacity-30 -mr-8 -mt-8 rounded-full blur-3xl" />
               <h3 className="font-display text-2xl uppercase tracking-tight relative z-10">{t('amashuri.live_data')}</h3>
               <div className="space-y-5 relative z-10">
                 {stats.map((stat) => (
@@ -124,7 +124,7 @@ const AkcHome = () => {
                   </div>
                 ))}
               </div>
-              <Button to="/amashuri/championships" variant="blue" size="md" className="w-full relative z-10" icon={Trophy}>
+              <Button to="/amashuri/championships" variant="primary" size="md" className="w-full relative z-10" icon={Trophy}>
                 {t('amashuri.explore_championships')}
               </Button>
             </div>

@@ -6,10 +6,19 @@ import { getLeagues } from '../../api/endpoints/leagues';
 import { getFixtures } from '../../api/endpoints/fixtures';
 import Skeleton from '../../components/shared/Skeleton';
 
+// Static class map — Tailwind JIT can't see interpolated `bg-${color}` strings.
+const COLOR_CLASSES = {
+  red: 'bg-red/5 text-red group-hover:bg-red',
+  'rwanda-yellow': 'bg-rwanda-yellow/5 text-rwanda-yellow group-hover:bg-rwanda-yellow',
+  'rwanda-green': 'bg-rwanda-green/5 text-rwanda-green group-hover:bg-rwanda-green',
+  'rwanda-blue': 'bg-rwanda-blue/5 text-rwanda-blue group-hover:bg-rwanda-blue',
+  gold: 'bg-gold/5 text-gold group-hover:bg-gold',
+};
+
 const StatCard = ({ icon, label, value, trend, color = "red" }) => (
   <div className="bg-white dark:bg-surface-dark2 p-6 rounded-3xl border border-surface-3 dark:border-white/5 space-y-4 hover:shadow-xl transition-all group">
     <div className="flex justify-between items-start">
-      <div className={`p-3 bg-${color}/5 rounded-2xl text-${color} group-hover:bg-${color} group-hover:text-white transition-all`}>
+      <div className={`p-3 rounded-2xl group-hover:text-white transition-all ${COLOR_CLASSES[color] || COLOR_CLASSES.red}`}>
         {icon}
       </div>
       {trend && (

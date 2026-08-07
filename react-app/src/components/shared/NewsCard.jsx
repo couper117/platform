@@ -1,18 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, User, ArrowRight } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import { useDateFormat } from '../../i18n/dateLocale';
-import { useEnumLabel } from '../../i18n/enums';
+import { format } from 'date-fns';
 
 const NewsCard = ({ article }) => {
-  const { t } = useTranslation();
-  const formatDate = useDateFormat();
-  const enumLabel = useEnumLabel();
-
   return (
-    <Link 
-      to={`/news/${article.slug}`}
+    <Link
+      to={`/news/${article.slug || article.id}`}
       className="group flex flex-col bg-white dark:bg-surface-dark2 rounded-2xl border border-surface-3 dark:border-white/5 overflow-hidden transition-all hover:shadow-2xl hover:-translate-y-1"
     >
       <div className="relative aspect-[16/9] overflow-hidden">
@@ -29,7 +23,7 @@ const NewsCard = ({ article }) => {
         )}
         <div className="absolute top-4 left-4">
           <span className="bg-red text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-lg">
-            {enumLabel('news_category', article.category)}
+            {article.category}
           </span>
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-surface-dark/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -39,12 +33,12 @@ const NewsCard = ({ article }) => {
         <div className="flex items-center space-x-3 text-[10px] uppercase font-bold tracking-widest opacity-40 mb-3">
           <div className="flex items-center space-x-1">
             <Calendar size={12} />
-            <span>{formatDate(article.createdAt, 'dd MMM yyyy')}</span>
+            <span>{article.createdAt ? format(new Date(article.createdAt), 'dd MMM yyyy') : ''}</span>
           </div>
           <span>•</span>
           <div className="flex items-center space-x-1">
             <User size={12} />
-            <span>{article.author?.fullName || t('news.default_author')}</span>
+            <span>{article.author?.fullName || 'Admin'}</span>
           </div>
         </div>
 
@@ -57,7 +51,7 @@ const NewsCard = ({ article }) => {
         </p>
 
         <div className="flex items-center text-[10px] font-bold uppercase tracking-[0.2em] text-red group-hover:gap-2 transition-all">
-          <span>{t('news.read_full_story')}</span>
+          <span>Read Full Story</span>
           <ArrowRight size={14} className="ml-2 group-hover:translate-x-1 transition-transform" />
         </div>
       </div>

@@ -1,21 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Calendar, School } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import { useDateFormat } from '../../i18n/dateLocale';
-import { useEnumLabel } from '../../i18n/enums';
+import { format } from 'date-fns';
 import { LiveBadge } from '../ui/Badge';
 
 const initials = (name = '') =>
   name.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase();
 
 const SchoolSide = ({ team }) => {
-  const { t } = useTranslation();
-  const enumLabel = useEnumLabel();
   const school = team?.school;
   return (
     <div className="flex-1 flex flex-col items-center text-center gap-2">
-      <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-surface-3 dark:bg-white/10 flex items-center justify-center overflow-hidden border-2 border-transparent group-hover:border-rwanda-blue/30 transition-all">
+      <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-surface-3 dark:bg-white/10 flex items-center justify-center overflow-hidden border-2 border-transparent group-hover:border-red/30 transition-all">
         {school?.logo ? (
           <img src={school.logo} alt={school.name} className="w-full h-full object-cover" />
         ) : (
@@ -23,11 +19,9 @@ const SchoolSide = ({ team }) => {
         )}
       </div>
       <h3 className="font-display text-xs sm:text-sm uppercase tracking-tight line-clamp-1">
-        {school?.name || t('amashuri.school')}
+        {school?.name || 'School'}
       </h3>
-      <span className="text-[9px] uppercase tracking-widest opacity-40">
-        {enumLabel('age_category', team?.ageCategory)} · {enumLabel('gender', team?.gender)}
-      </span>
+      <span className="text-[9px] uppercase tracking-widest opacity-40">{team?.ageCategory} · {team?.gender}</span>
     </div>
   );
 };
@@ -37,22 +31,19 @@ const SchoolSide = ({ team }) => {
  * Blue-accented sibling of RwaSport's FixtureCard.
  */
 const AmashuriFixtureCard = ({ fixture, showCompetition = true }) => {
-  const { t } = useTranslation();
-  const formatDate = useDateFormat();
-  const enumLabel = useEnumLabel();
   const isLive = fixture.status === 'ONGOING';
   const isCompleted = fixture.status === 'COMPLETED';
 
   return (
     <Link
       to={`/amashuri/matches/${fixture.id}`}
-      className="block group bg-white dark:bg-surface-dark2 rounded-2xl border border-surface-3 dark:border-white/5 overflow-hidden transition-all hover:shadow-2xl hover:shadow-rwanda-blue/10 hover:-translate-y-1"
+      className="block group bg-white dark:bg-surface-dark2 rounded-2xl border border-surface-3 dark:border-white/5 overflow-hidden transition-all hover:shadow-2xl hover:shadow-red/10 hover:-translate-y-1"
     >
       {showCompetition && (
         <div className="px-4 py-2 bg-surface-2 dark:bg-white/5 border-b border-surface-3 dark:border-white/5 flex justify-between items-center">
-          <span className="text-[10px] uppercase font-bold tracking-widest text-rwanda-blue line-clamp-1">
+          <span className="text-[10px] uppercase font-bold tracking-widest text-red line-clamp-1">
             <School size={11} className="inline mr-1 -mt-0.5" />
-            {fixture.competition?.name || (fixture.stage ? enumLabel('stage', fixture.stage) : t('amashuri.schools_championship'))}
+            {fixture.competition?.name || fixture.stage?.replace(/_/g, ' ') || 'Schools Championship'}
           </span>
           {isLive && <LiveBadge />}
         </div>
@@ -66,18 +57,18 @@ const AmashuriFixtureCard = ({ fixture, showCompetition = true }) => {
             {isLive || isCompleted ? (
               <div className="flex flex-col items-center gap-1">
                 <div className="flex items-center gap-3 sm:gap-4">
-                  <span className={`text-3xl sm:text-5xl font-display ${fixture.homeScore > fixture.awayScore ? 'text-rwanda-blue' : ''}`}>{fixture.homeScore ?? 0}</span>
+                  <span className={`text-3xl sm:text-5xl font-display ${fixture.homeScore > fixture.awayScore ? 'text-red' : ''}`}>{fixture.homeScore ?? 0}</span>
                   <span className="text-xl font-display opacity-20">—</span>
-                  <span className={`text-3xl sm:text-5xl font-display ${fixture.awayScore > fixture.homeScore ? 'text-rwanda-blue' : ''}`}>{fixture.awayScore ?? 0}</span>
+                  <span className={`text-3xl sm:text-5xl font-display ${fixture.awayScore > fixture.homeScore ? 'text-red' : ''}`}>{fixture.awayScore ?? 0}</span>
                 </div>
-                <span className="text-[10px] uppercase font-bold tracking-[0.2em] opacity-30">{isCompleted ? t('match.full_time') : t('match.live')}</span>
+                <span className="text-[10px] uppercase font-bold tracking-[0.2em] opacity-30">{isCompleted ? 'Full Time' : 'Live'}</span>
               </div>
             ) : (
               <div className="bg-surface-2 dark:bg-white/5 px-4 py-2 rounded-xl border border-surface-3 dark:border-white/10 flex flex-col items-center">
-                <span className="text-xl sm:text-2xl font-display text-rwanda-blue leading-none">
-                  {formatDate(fixture.matchDate, 'HH:mm') || t('common.tbd')}
+                <span className="text-xl sm:text-2xl font-display text-red leading-none">
+                  {fixture.matchDate ? format(new Date(fixture.matchDate), 'HH:mm') : 'TBD'}
                 </span>
-                <span className="text-[8px] uppercase font-bold tracking-widest opacity-40 mt-1">{t('match.kick_off')}</span>
+                <span className="text-[8px] uppercase font-bold tracking-widest opacity-40 mt-1">Kick-off</span>
               </div>
             )}
           </div>
@@ -87,12 +78,12 @@ const AmashuriFixtureCard = ({ fixture, showCompetition = true }) => {
 
         <div className="mt-6 w-full pt-4 border-t border-surface-3 dark:border-white/5 flex items-center justify-between text-[10px] uppercase font-bold tracking-widest opacity-50">
           <div className="flex items-center gap-1">
-            <Calendar size={12} className="text-rwanda-blue" />
-            <span>{formatDate(fixture.matchDate, 'dd MMM') || t('common.tbd')}</span>
+            <Calendar size={12} className="text-red" />
+            <span>{fixture.matchDate ? format(new Date(fixture.matchDate), 'dd MMM') : 'TBD'}</span>
           </div>
           <div className="flex items-center gap-1 min-w-0">
-            <MapPin size={12} className="text-rwanda-blue" />
-            <span className="line-clamp-1">{fixture.venue || t('common.tbd')}</span>
+            <MapPin size={12} className="text-red" />
+            <span className="line-clamp-1">{fixture.venue || 'TBD'}</span>
           </div>
         </div>
       </div>

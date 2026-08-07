@@ -1,20 +1,34 @@
 const prisma = require('../config/db');
+const { getRules } = require('./eligibility.service');
 
 const recalcStandings = async (leagueId) => {
   try {
-    // Get all completed fixtures for this league
+    const rules = await getRules();
+    const PW = rules['rules.pointsWin'];
+    const PD = rules['rules.pointsDraw'];
+    const PL = rules['rules.pointsLoss'];
+
+    // Include every registered team so winless / unplayed teams still appear.
+    const leagueTeams = await prisma.leagueTeam.findMany({
+      where: { leagueId },
+      select: { teamId: true },
+    });
     const fixtures = await prisma.fixture.findMany({
       where: { leagueId, status: 'COMPLETED' },
     });
 
     const stats = new Map();
+    const ensure = (tid) => {
+      if (!stats.has(tid)) {
+        stats.set(tid, { played: 0, won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, points: 0, results: [] });
+      }
+    };
+
+    for (const { teamId } of leagueTeams) ensure(teamId);
 
     for (const f of fixtures) {
-      for (const tid of [f.homeTeamId, f.awayTeamId]) {
-        if (!stats.has(tid)) {
-          stats.set(tid, { played: 0, won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, points: 0, results: [] });
-        }
-      }
+      ensure(f.homeTeamId);
+      ensure(f.awayTeamId);
 
       const h = stats.get(f.homeTeamId);
       const a = stats.get(f.awayTeamId);
@@ -26,14 +40,14 @@ const recalcStandings = async (leagueId) => {
       a.goalsFor += as; a.goalsAgainst += hs;
 
       if (hs > as) {
-        h.won++; h.points += 3; h.results.push('W');
-        a.lost++; a.results.push('L');
+        h.won++; h.points += PW; h.results.push('W');
+        a.lost++; a.points += PL; a.results.push('L');
       } else if (hs < as) {
-        a.won++; a.points += 3; a.results.push('W');
-        h.lost++; h.results.push('L');
+        a.won++; a.points += PW; a.results.push('W');
+        h.lost++; h.points += PL; h.results.push('L');
       } else {
-        h.drawn++; h.points += 1; h.results.push('D');
-        a.drawn++; a.points += 1; a.results.push('D');
+        h.drawn++; h.points += PD; h.results.push('D');
+        a.drawn++; a.points += PD; a.results.push('D');
       }
     }
 

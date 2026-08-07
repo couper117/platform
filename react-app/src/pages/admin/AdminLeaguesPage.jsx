@@ -1,18 +1,16 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { Trophy, Plus, Edit2, Trash2, UserPlus, AlertCircle, Loader2, ShieldCheck, X } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { Trophy, Plus, Edit2, Trash2, UserPlus, AlertCircle, Loader2, ShieldCheck, X, CalendarPlus } from 'lucide-react';
 import apiClient from '../../api/client';
-import { useEnumLabel } from '../../i18n/enums';
 import AdminTable from '../../components/admin/AdminTable';
 import AdminModal from '../../components/admin/AdminModal';
 import Skeleton from '../../components/shared/Skeleton';
+import useSportScope from '../../hooks/useSportScope';
 
 const AdminLeaguesPage = () => {
-  const { t } = useTranslation();
-  const enumLabel = useEnumLabel();
   const queryClient = useQueryClient();
+  const scope = useSportScope();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isReporterModalOpen, setIsModalReporterOpen] = useState(false);
   const [isAdminModalOpen, setIsModalAdminOpen] = useState(false);
@@ -22,10 +20,20 @@ const AdminLeaguesPage = () => {
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
 
+  const p = scope.profile;
+  const compOne = p?.competition || 'League';
+  const compMany = p?.competitionPlural || 'Leagues';
+  const formats = p?.formats || [
+    { value: 'LEAGUE', label: 'League (round-robin)' },
+    { value: 'KNOCKOUT', label: 'Knockout / Cup' },
+    { value: 'GROUP_KNOCKOUT', label: 'Groups + Knockout' },
+    { value: 'ROUND_ROBIN', label: 'Double round-robin' },
+  ];
+
   const { data: leagues, isLoading } = useQuery({
-    queryKey: ['admin-leagues'],
+    queryKey: ['admin-leagues', scope.key],
     queryFn: async () => {
-      const { data } = await apiClient.get('/leagues');
+      const { data } = await apiClient.get('/leagues', { params: scope.params });
       return data.data;
     },
   });
@@ -43,13 +51,13 @@ const AdminLeaguesPage = () => {
       await apiClient.post('/leagues', data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-leagues']);
+      queryClient.invalidateQueries({ queryKey: ['admin-leagues'] });
       setIsModalOpen(false);
       reset();
-      alert(t('admin.leagues.create_success'));
+      alert('League created successfully!');
     },
     onError: (err) => {
-      alert(err.response?.data?.message || t('admin.leagues.create_failed'));
+      alert(err.response?.data?.message || 'Failed to create league');
     }
   });
 
@@ -58,10 +66,29 @@ const AdminLeaguesPage = () => {
       await apiClient.delete(`/leagues/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-leagues']);
-      alert(t('admin.leagues.delete_success'));
+      queryClient.invalidateQueries({ queryKey: ['admin-leagues'] });
+      alert('League deleted successfully');
     }
   });
+
+  const generateFixturesMutation = useMutation({
+    mutationFn: async ({ id, doubleRound, force }) => {
+      const { data } = await apiClient.post(`/leagues/${id}/generate-fixtures`, { doubleRound, force });
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-fixtures'] });
+      alert(data?.message || 'Fixtures generated');
+    },
+    onError: (err) => {
+      alert(err.response?.data?.message || 'Failed to generate fixtures');
+    }
+  });
+
+  const handleGenerate = (league) => {
+    const doubleRound = window.confirm(`Generate a fixture schedule for "${league.name}"?\n\nOK = double round (home & away)\nCancel = single round`);
+    generateFixturesMutation.mutate({ id: league.id, doubleRound, force: true });
+  };
 
   const assignReporterMutation = useMutation({
     mutationFn: async ({ leagueId, email }) => {
@@ -70,7 +97,7 @@ const AdminLeaguesPage = () => {
     onSuccess: () => {
       setIsModalReporterOpen(false);
       setReporterEmail('');
-      alert(t('admin.leagues.reporter_success'));
+      alert('Reporter authorized successfully!');
     }
   });
 
@@ -81,7 +108,7 @@ const AdminLeaguesPage = () => {
     onSuccess: () => {
       setIsModalAdminOpen(false);
       setAdminEmail('');
-      alert(t('admin.leagues.admin_success'));
+      alert('League Admin assigned successfully!');
     }
   });
 
@@ -93,45 +120,46 @@ const AdminLeaguesPage = () => {
     <div className="space-y-10 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-4xl font-display uppercase tracking-tighter">
-            {t('admin.leagues.title')} <span className="text-red">{t('admin.leagues.title_accent')}</span>
-          </h1>
-          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">{t('admin.leagues.subtitle')}</p>
+          <h1 className="text-4xl font-display uppercase tracking-tighter">Manage <span className="text-red">{compMany}</span></h1>
+          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Create and delegate {p ? `${p.label.toLowerCase()} competitions` : 'sports competitions'}</p>
         </div>
-        <button 
+        <button
           onClick={() => setIsModalOpen(true)}
           className="bg-red text-white px-8 py-3 rounded-xl font-display text-lg uppercase tracking-widest hover:bg-red-dark transition-all shadow-xl shadow-red/20 flex items-center space-x-2"
         >
           <Plus size={20} />
-          <span>{t('admin.leagues.create')}</span>
+          <span>Create {compOne}</span>
         </button>
       </div>
 
       {isLoading ? (
         <Skeleton type="card" count={3} />
       ) : (
-        <AdminTable headers={[t('admin.leagues.col_name'), t('admin.col_sport'), t('admin.leagues.col_season'), t('admin.col_status'), t('admin.col_actions')]}>
+        <AdminTable headers={['League Name', 'Sport', 'Season', 'Status', 'Actions']}>
           {leagues?.map(league => (
             <tr key={league.id} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors">
               <td className="px-6 py-5">
                 <span className="font-bold text-sm uppercase tracking-tight">{league.name}</span>
               </td>
-              <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{enumLabel('sport', league.sport?.name)}</td>
+              <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{league.sport?.name}</td>
               <td className="px-6 py-5 text-sm opacity-40">{league.season}</td>
               <td className="px-6 py-5">
                 <span className={`text-[8px] font-bold px-2 py-1 rounded border uppercase ${league.status === 'ACTIVE' ? 'bg-green/5 text-green border-green/10' : 'bg-gold/5 text-gold border-gold/10'}`}>
-                  {enumLabel('league_status', league.status)}
+                  {league.status}
                 </span>
               </td>
               <td className="px-6 py-5">
                 <div className="flex items-center space-x-3">
-                  <button onClick={() => { setSelectedLeague(league); setIsModalAdminOpen(true); }} className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors" title={t('admin.leagues.assign_admin')}>
+                  <button onClick={() => { setSelectedLeague(league); setIsModalAdminOpen(true); }} className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors" title="Assign League Admin">
                     <ShieldCheck size={18} />
                   </button>
-                  <button onClick={() => { setSelectedLeague(league); setIsModalReporterOpen(true); }} className="p-2 hover:bg-blue-500/10 text-blue-500 rounded-lg transition-colors" title={t('admin.leagues.authorize_reporter')}>
+                  <button onClick={() => handleGenerate(league)} className="p-2 hover:bg-green/10 text-green rounded-lg transition-colors" title="Generate Fixtures">
+                    <CalendarPlus size={18} />
+                  </button>
+                  <button onClick={() => { setSelectedLeague(league); setIsModalReporterOpen(true); }} className="p-2 hover:bg-blue-500/10 text-blue-500 rounded-lg transition-colors" title="Authorize Reporter">
                     <UserPlus size={18} />
                   </button>
-                  <button onClick={() => { if(window.confirm(t('admin.leagues.delete_confirm'))) deleteLeagueMutation.mutate(league.id) }} className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors">
+                  <button onClick={() => { if(window.confirm('Delete this league?')) deleteLeagueMutation.mutate(league.id) }} className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors">
                     <Trash2 size={16} />
                   </button>
                 </div>
@@ -142,64 +170,107 @@ const AdminLeaguesPage = () => {
       )}
 
       {/* Create League Modal */}
-      <AdminModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={t('admin.leagues.modal_create')}>
+      <AdminModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={`Create New ${compOne}`}>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2 col-span-2">
-              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">{t('admin.leagues.col_name')}</label>
-              <input {...register('name', { required: true })} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl focus:border-red outline-none" placeholder={t('admin.leagues.name_placeholder')} />
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">League Name</label>
+              <input {...register('name', { required: true })} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl focus:border-red outline-none" placeholder="e.g. Rwanda Premier League" />
             </div>
             
             <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">{t('admin.col_sport')}</label>
-              <select {...register('sportId', { required: true })} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none">
-                <option value="">{t('admin.leagues.select_sport')}</option>
-                {sports?.map(s => <option key={s.id} value={s.id}>{enumLabel('sport', s.name)}</option>)}
-              </select>
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Sport</label>
+              {scope.isScoped ? (
+                <div className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl opacity-70 text-sm font-bold uppercase tracking-tight">
+                  {scope.sport?.name || 'Your Sport'}
+                </div>
+              ) : (
+                <select {...register('sportId', { required: true })} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none">
+                  <option value="">Select Sport...</option>
+                  {sports?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+              )}
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">{t('admin.leagues.col_season')}</label>
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Season</label>
               <input {...register('season', { required: true })} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none" placeholder="2025/2026" />
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">{t('admin.leagues.gender')}</label>
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Gender</label>
               <select {...register('gender')} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none">
-                <option value="MALE">{t('enums.gender.MALE')}</option>
-                <option value="FEMALE">{t('enums.gender.FEMALE')}</option>
-                <option value="MIXED">{t('enums.gender.MIXED')}</option>
+                <option value="MALE">Male</option>
+                <option value="FEMALE">Female</option>
+                <option value="MIXED">Mixed</option>
               </select>
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">{t('admin.leagues.competition_level')}</label>
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Competition Level</label>
               <select {...register('level')} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none">
-                <option value="NATIONAL">{t('enums.level.NATIONAL')}</option>
-                <option value="REGIONAL">{t('enums.level.REGIONAL')}</option>
-                <option value="SCHOOL">{t('enums.level.SCHOOL')}</option>
+                <option value="NATIONAL">National</option>
+                <option value="REGIONAL">Regional</option>
+                <option value="DISTRICT">District</option>
+                <option value="SCHOOL">School</option>
               </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Age Category</label>
+              <select {...register('ageCategory')} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none">
+                <option value="SENIOR">Senior</option>
+                <option value="U20">U20</option>
+                <option value="U17">U17</option>
+                <option value="U15">U15</option>
+                <option value="U13">U13</option>
+                <option value="JUNIOR">Junior</option>
+                <option value="VETERAN">Veteran</option>
+                <option value="ALL">All ages</option>
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Format</label>
+              <select {...register('format')} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none">
+                {formats.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Max Teams</label>
+              <input type="number" min="2" {...register('maxTeams')} defaultValue={16} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none" />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Start Date</label>
+              <input type="date" {...register('startDate')} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none" />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">End Date</label>
+              <input type="date" {...register('endDate')} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none" />
             </div>
           </div>
 
           <button type="submit" disabled={createLeagueMutation.isPending} className="w-full bg-red text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all flex items-center justify-center space-x-3">
-            {createLeagueMutation.isPending ? <Loader2 className="animate-spin" /> : <span>{t('admin.leagues.create')}</span>}
+            {createLeagueMutation.isPending ? <Loader2 className="animate-spin" /> : <span>Create League</span>}
           </button>
         </form>
       </AdminModal>
 
       {/* Delegation Modals (Same as before but integrated) */}
-      <AdminModal isOpen={isReporterModalOpen} onClose={() => setIsModalReporterOpen(false)} title={t('admin.leagues.modal_reporter')}>
+      <AdminModal isOpen={isReporterModalOpen} onClose={() => setIsModalReporterOpen(false)} title="Authorize Match Reporter">
         <div className="space-y-6">
           <input type="email" value={reporterEmail} onChange={e => setReporterEmail(e.target.value)} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl" placeholder="reporter@email.com" />
-          <button onClick={() => assignReporterMutation.mutate({ leagueId: selectedLeague.id, email: reporterEmail })} className="w-full bg-red text-white font-display text-xl uppercase py-4 rounded-xl">{t('admin.leagues.authorize')}</button>
+          <button onClick={() => assignReporterMutation.mutate({ leagueId: selectedLeague.id, email: reporterEmail })} className="w-full bg-red text-white font-display text-xl uppercase py-4 rounded-xl">Authorize</button>
         </div>
       </AdminModal>
 
-      <AdminModal isOpen={isAdminModalOpen} onClose={() => setIsModalAdminOpen(false)} title={t('admin.leagues.assign_admin')}>
+      <AdminModal isOpen={isAdminModalOpen} onClose={() => setIsModalAdminOpen(false)} title="Assign League Admin">
         <div className="space-y-6">
           <input type="email" value={adminEmail} onChange={e => setAdminEmail(e.target.value)} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl" placeholder="admin@email.com" />
-          <button onClick={() => assignAdminMutation.mutate({ leagueId: selectedLeague.id, email: adminEmail })} className="w-full bg-red text-white font-display text-xl uppercase py-4 rounded-xl">{t('admin.leagues.assign_admin_action')}</button>
+          <button onClick={() => assignAdminMutation.mutate({ leagueId: selectedLeague.id, email: adminEmail })} className="w-full bg-red text-white font-display text-xl uppercase py-4 rounded-xl">Assign Admin</button>
         </div>
       </AdminModal>
     </div>

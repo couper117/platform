@@ -11,7 +11,8 @@ const assignFederationAdmin = async (req, res, next) => {
 
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
-    if (user.role === 'PUBLIC') {
+    // Promote to FEDERATION_ADMIN unless they're already a super/federation admin.
+    if (user.role !== 'SUPERADMIN' && user.role !== 'FEDERATION_ADMIN') {
       user = await prisma.user.update({
         where: { id: user.id },
         data: { role: 'FEDERATION_ADMIN' },
@@ -64,7 +65,8 @@ const assignLeagueAdmin = async (req, res, next) => {
     let user = await prisma.user.findUnique({ where: { email } });
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
-    if (user.role === 'PUBLIC') {
+    // Promote to LEAGUE_ADMIN unless they already hold a higher admin role.
+    if (!['SUPERADMIN', 'FEDERATION_ADMIN', 'LEAGUE_ADMIN'].includes(user.role)) {
       user = await prisma.user.update({
         where: { id: user.id },
         data: { role: 'LEAGUE_ADMIN' },

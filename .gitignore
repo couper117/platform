@@ -41,3 +41,6 @@ build/
 # Sharp/Image processing
 /api/uploads/*
 !/api/uploads/.gitkeep
+
+# local QA/PDF scratch (playwright)
+.qa-harness/

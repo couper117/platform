@@ -1,15 +1,11 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Activity, Play, StopCircle, Award, AlertTriangle, Users, Loader2, ChevronRight } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 import apiClient from '../../api/client';
-import { useDateFormat } from '../../i18n/dateLocale';
 import useAuthStore from '../../store/authStore';
 import Skeleton from '../../components/shared/Skeleton';
 
 const LiveReportingPage = () => {
-  const { t } = useTranslation();
-  const formatDate = useDateFormat();
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
   const [selectedFixture, setSelectedFixture] = useState(null);
@@ -29,8 +25,8 @@ const LiveReportingPage = () => {
       await apiClient.post(`/fixtures/${selectedFixture.id}/events`, eventData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['match-details', selectedFixture.id]);
-      alert(t('reporter.event_logged'));
+      queryClient.invalidateQueries({ queryKey: ['match-details', selectedFixture.id] });
+      alert('Event logged successfully!');
     }
   });
 
@@ -40,10 +36,8 @@ const LiveReportingPage = () => {
     return (
       <div className="p-6 sm:p-10 space-y-10 animate-in fade-in duration-500">
         <div className="space-y-2">
-          <h1 className="text-4xl font-display uppercase tracking-tighter">
-            {t('reporter.title')} <span className="text-red">{t('reporter.title_accent')}</span>
-          </h1>
-          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">{t('reporter.subtitle')}</p>
+          <h1 className="text-4xl font-display uppercase tracking-tighter">Pitch-Side <span className="text-red">Reporting</span></h1>
+          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Select an assigned match to begin live updates</p>
         </div>
 
         <div className="grid grid-cols-1 gap-4">
@@ -59,9 +53,9 @@ const LiveReportingPage = () => {
                 </div>
                 <div className="text-left">
                   <p className="text-xl font-display uppercase tracking-tight">
-                    {f.homeTeam.name} <span className="opacity-20 mx-2 text-sm">{t('match.versus')}</span> {f.awayTeam.name}
+                    {f.homeTeam.name} <span className="opacity-20 mx-2 text-sm">VS</span> {f.awayTeam.name}
                   </p>
-                  <p className="text-[10px] uppercase font-bold tracking-widest opacity-40">{f.league.name} • {formatDate(f.matchDate, 'dd MMM yyyy HH:mm')}</p>
+                  <p className="text-[10px] uppercase font-bold tracking-widest opacity-40">{f.league.name} • {new Date(f.matchDate).toLocaleString()}</p>
                 </div>
               </div>
               <ChevronRight size={20} className="opacity-20 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
@@ -77,9 +71,9 @@ const LiveReportingPage = () => {
       {/* Active Match Header */}
       <div className="bg-surface-dark text-white p-6 rounded-3xl space-y-6 shadow-2xl">
         <div className="flex justify-between items-center">
-          <button onClick={() => setSelectedFixture(null)} className="text-[10px] font-bold uppercase tracking-widest opacity-40 hover:text-red">{t('reporter.exit')}</button>
+          <button onClick={() => setSelectedFixture(null)} className="text-[10px] font-bold uppercase tracking-widest opacity-40 hover:text-red">Exit Reporter</button>
           <div className="flex items-center space-x-2 bg-red px-3 py-1 rounded-full animate-pulse">
-            <span className="text-[10px] font-bold uppercase tracking-tighter italic">{t('reporter.live_reporting')}</span>
+            <span className="text-[10px] font-bold uppercase tracking-tighter italic">Live Reporting</span>
           </div>
         </div>
 
@@ -99,10 +93,10 @@ const LiveReportingPage = () => {
       {/* Quick Action Logging Buttons */}
       <div className="grid grid-cols-2 gap-4">
         {[
-          { label: t('reporter.goal_home'), type: 'GOAL', teamId: selectedFixture.homeTeamId, color: 'bg-green text-white' },
-          { label: t('reporter.goal_away'), type: 'GOAL', teamId: selectedFixture.awayTeamId, color: 'bg-green text-white' },
-          { label: t('enums.event_type.YELLOW_CARD'), type: 'YELLOW_CARD', color: 'bg-gold text-white' },
-          { label: t('enums.event_type.RED_CARD'), type: 'RED_CARD', color: 'bg-red text-white' },
+          { label: 'Goal Home', type: 'GOAL', teamId: selectedFixture.homeTeamId, color: 'bg-green text-white' },
+          { label: 'Goal Away', type: 'GOAL', teamId: selectedFixture.awayTeamId, color: 'bg-green text-white' },
+          { label: 'Yellow Card', type: 'YELLOW_CARD', color: 'bg-gold text-white' },
+          { label: 'Red Card', type: 'RED_CARD', color: 'bg-red text-white' },
         ].map((btn, i) => (
           <button
             key={i}
@@ -115,15 +109,15 @@ const LiveReportingPage = () => {
       </div>
 
       <div className="bg-white dark:bg-surface-dark2 p-6 rounded-3xl border border-surface-3 dark:border-white/5">
-        <h3 className="text-sm font-bold uppercase tracking-widest opacity-40 mb-4 border-b border-surface-3 dark:border-white/5 pb-2 text-center">{t('reporter.match_control')}</h3>
+        <h3 className="text-sm font-bold uppercase tracking-widest opacity-40 mb-4 border-b border-surface-3 dark:border-white/5 pb-2 text-center">Match Control</h3>
         <div className="grid grid-cols-1 gap-3">
           <button className="flex items-center justify-center space-x-3 py-4 bg-surface-2 dark:bg-white/5 rounded-2xl font-display text-lg uppercase tracking-widest hover:bg-white/10 transition-all">
             <StopCircle size={20} />
-            <span>{t('reporter.end_first_half')}</span>
+            <span>End First Half</span>
           </button>
           <button className="flex items-center justify-center space-x-3 py-4 bg-surface-dark text-white rounded-2xl font-display text-lg uppercase tracking-widest hover:bg-surface-dark2 transition-all">
             <Play size={20} fill="currentColor" />
-            <span>{t('reporter.finish_match')}</span>
+            <span>Finish Match</span>
           </button>
         </div>
       </div>

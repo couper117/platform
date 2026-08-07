@@ -66,12 +66,12 @@ router.get('/competitions', async (req, res, next) => {
 });
 
 // Admin Routes (SUPERADMIN only for AKC3 management)
-router.post('/admin/schools', protect, authorize('SUPERADMIN'), createSchool);
-router.post('/admin/teams', protect, authorize('SUPERADMIN'), createTeam);
-router.post('/admin/fixtures', protect, authorize('SUPERADMIN'), createFixture);
-router.post('/admin/results/:fixtureId', protect, authorize('SUPERADMIN'), enterResult);
+router.post('/admin/schools', protect, authorize('SUPERADMIN', 'AMASHURI_ADMIN'), createSchool);
+router.post('/admin/teams', protect, authorize('SUPERADMIN', 'AMASHURI_ADMIN'), createTeam);
+router.post('/admin/fixtures', protect, authorize('SUPERADMIN', 'AMASHURI_ADMIN'), createFixture);
+router.post('/admin/results/:fixtureId', protect, authorize('SUPERADMIN', 'AMASHURI_ADMIN'), enterResult);
 
-router.post('/admin/import/players', protect, authorize('SUPERADMIN'), async (req, res, next) => {
+router.post('/admin/import/players', protect, authorize('SUPERADMIN', 'AMASHURI_ADMIN'), async (req, res, next) => {
   try {
     const { rows } = req.body; // In production, use a proper CSV parser middleware
     const result = await importPlayersFromCSV(rows);
@@ -100,7 +100,7 @@ const buildCompetitionData = (body = {}) => {
   return data;
 };
 
-router.post('/admin/competitions', protect, authorize('SUPERADMIN'), async (req, res, next) => {
+router.post('/admin/competitions', protect, authorize('SUPERADMIN', 'AMASHURI_ADMIN'), async (req, res, next) => {
   try {
     if (!req.body?.name) {
       return res.status(400).json({ success: false, message: 'Championship name is required' });
@@ -112,7 +112,7 @@ router.post('/admin/competitions', protect, authorize('SUPERADMIN'), async (req,
   }
 });
 
-router.put('/admin/competitions/:id', protect, authorize('SUPERADMIN'), async (req, res, next) => {
+router.put('/admin/competitions/:id', protect, authorize('SUPERADMIN', 'AMASHURI_ADMIN'), async (req, res, next) => {
   try {
     const competition = await prisma.akcCompetition.update({
       where: { id: parseInt(req.params.id) },
@@ -127,7 +127,7 @@ router.put('/admin/competitions/:id', protect, authorize('SUPERADMIN'), async (r
   }
 });
 
-router.delete('/admin/competitions/:id', protect, authorize('SUPERADMIN'), async (req, res, next) => {
+router.delete('/admin/competitions/:id', protect, authorize('SUPERADMIN', 'AMASHURI_ADMIN'), async (req, res, next) => {
   try {
     await prisma.akcCompetition.delete({ where: { id: parseInt(req.params.id) } });
     res.status(200).json({ success: true, message: 'Championship deleted' });

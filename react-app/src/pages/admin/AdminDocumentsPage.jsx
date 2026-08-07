@@ -31,7 +31,7 @@ const AdminDocumentsPage = () => {
       await apiClient.put(`/documents/${id}/review`, { status, reviewNote: note });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-documents']);
+      queryClient.invalidateQueries({ queryKey: ['admin-documents'] });
       setSelectedDoc(null);
       setReviewNote('');
       alert(t('admin.documents.review_success'));

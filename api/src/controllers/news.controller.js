@@ -1,5 +1,7 @@
 const prisma = require('../config/db');
-const slugify = require('slugify');
+const { uniqueSlug } = require('../utils/slug');
+const { getPagination } = require('../utils/paginate');
+const { enforceSportScope } = require('../utils/scope');
 const { uploadImage, deleteImage } = require('../services/storage.service');
 const logActivity = require('../utils/activityLogger');
 
@@ -15,16 +17,19 @@ const getNews = async (req, res, next) => {
     if (category) where.category = category;
     if (featured) where.featured = featured === 'true';
 
-    const news = await prisma.news.findMany({
-      where,
-      include: {
-        author: { select: { fullName: true } },
-        league: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const { skip, take } = getPagination(req.query);
+    const [news, total] = await Promise.all([
+      prisma.news.findMany({
+        where,
+        include: { author: { select: { fullName: true } }, league: true },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+      }),
+      prisma.news.count({ where }),
+    ]);
 
-    res.status(200).json({ success: true, count: news.length, data: news });
+    res.status(200).json({ success: true, count: news.length, total, data: news });
   } catch (error) {
     next(error);
   }
@@ -35,8 +40,12 @@ const getNews = async (req, res, next) => {
 // @access  Public
 const getArticle = async (req, res, next) => {
   try {
+    // News.slug is not @unique, so findUnique is invalid — use findFirst and
+    // also accept a numeric id fallback (NewsCard links to slug || id).
+    const key = req.params.slug;
+    const idNum = parseInt(key, 10);
     const news = await prisma.news.findFirst({
-      where: { slug: req.params.slug },
+      where: { OR: [{ slug: key }, ...(Number.isInteger(idNum) ? [{ id: idNum }] : [])] },
       include: {
         author: { select: { fullName: true } },
         league: true,
@@ -71,14 +80,20 @@ const createArticle = async (req, res, next) => {
       coverImage = await uploadImage(req.file, 'news', 800, 450);
     }
 
+    // Federation admins publish news only for their own sport (default to it
+    // when unspecified, reject a mismatched one).
+    const bodySid = sportId ? parseInt(sportId) : null;
+    const sid = req.user.role === 'FEDERATION_ADMIN' ? (bodySid ?? req.user.sportId) : bodySid;
+    if (!enforceSportScope(req, res, sid)) return;
+
     const news = await prisma.news.create({
       data: {
         title,
-        slug: slugify(title, { lower: true }),
+        slug: await uniqueSlug('news', title),
         excerpt,
         body,
         category,
-        sportId: sportId ? parseInt(sportId) : null,
+        sportId: sid,
         leagueId: leagueId ? parseInt(leagueId) : null,
         featured: featured === 'true' || featured === true,
         published: published === 'true' || published === true,
@@ -112,6 +127,7 @@ const updateArticle = async (req, res, next) => {
     if (!news) {
       return res.status(404).json({ success: false, message: 'Article not found' });
     }
+    if (!enforceSportScope(req, res, news.sportId)) return;
 
     const { title, excerpt, body, category, sportId, leagueId, featured, published } = req.body;
 
@@ -125,7 +141,7 @@ const updateArticle = async (req, res, next) => {
       where: { id: newsId },
       data: {
         title,
-        slug: title ? slugify(title, { lower: true }) : undefined,
+        slug: title ? await uniqueSlug('news', title, parseInt(req.params.id)) : undefined,
         excerpt,
         body,
         category,
@@ -156,8 +172,12 @@ const updateArticle = async (req, res, next) => {
 // @access  Private/Admin
 const deleteArticle = async (req, res, next) => {
   try {
+    const target = await prisma.news.findUnique({ where: { id: parseInt(req.params.id) } });
+    if (!target) return res.status(404).json({ success: false, message: 'Article not found' });
+    if (!enforceSportScope(req, res, target.sportId)) return;
+
     const news = await prisma.news.delete({
-      where: { id: parseInt(req.params.id) },
+      where: { id: target.id },
     });
 
     if (news.coverImage) await deleteImage(news.coverImage);

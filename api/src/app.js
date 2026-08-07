@@ -33,20 +33,48 @@ app.set('trust proxy', 1);
 
 // Security Middleware
 app.use(helmet());
+
+// CORS — allow only known origins when credentials are enabled (never reflect all).
+const allowedOrigins = [
+  env.FRONTEND_URL,
+  'http://localhost:5173',
+  'http://localhost:5174',
+].filter(Boolean);
 app.use(cors({
   origin: (origin, callback) => {
-    callback(null, true);
+    // Non-browser clients (curl, server-to-server) send no Origin — allow them.
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error(`Origin ${origin} not allowed by CORS`));
   },
   credentials: true,
 }));
 
-// Rate Limiting
+// Rate Limiting — JSON response consistent with the API envelope.
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: 'Too many requests from this IP, please try again after 15 minutes',
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => res.status(429).json({
+    success: false,
+    message: 'Too many requests from this IP, please try again after 15 minutes',
+  }),
 });
 app.use('/api/', limiter);
+
+// Stricter limiter for auth endpoints (brute-force protection).
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => res.status(429).json({
+    success: false,
+    message: 'Too many authentication attempts, please try again later',
+  }),
+});
+app.use('/api/v1/auth/login', authLimiter);
+app.use('/api/v1/auth/refresh', authLimiter);
 
 // Basic Middleware
 app.use(express.json());

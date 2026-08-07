@@ -3,8 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { HelmetProvider } from 'react-helmet-async';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { useTranslation } from 'react-i18next';
-import i18n from './i18n';
 import { ThemeProvider } from './context/ThemeContext';
 import { CommandPaletteProvider } from './context/CommandPaletteContext';
 import CommandPalette from './components/shared/CommandPalette';
@@ -22,6 +20,12 @@ const LeaguesPage = lazy(() => import('./pages/public/LeaguesPage'));
 const LeagueDetailsPage = lazy(() => import('./pages/public/LeagueDetailsPage'));
 const FixturesPage = lazy(() => import('./pages/public/FixturesPage'));
 const MatchDetailsPage = lazy(() => import('./pages/public/MatchDetailsPage'));
+const NewsListPage = lazy(() => import('./pages/public/NewsListPage'));
+const NewsArticlePage = lazy(() => import('./pages/public/NewsArticlePage'));
+const ContactPage = lazy(() => import('./pages/public/ContactPage'));
+const LegalPage = lazy(() => import('./pages/public/LegalPage'));
+const SportHubPage = lazy(() => import('./pages/public/SportHubPage'));
+const ExplorePage = lazy(() => import('./pages/public/ExplorePage'));
 
 // Auth Pages
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
@@ -37,6 +41,7 @@ const AdminPlayersPage = lazy(() => import('./pages/admin/AdminPlayersPage'));
 const AdminDocumentsPage = lazy(() => import('./pages/admin/AdminDocumentsPage'));
 const AdminNewsPage = lazy(() => import('./pages/admin/AdminNewsPage'));
 const AdminSettingsPage = lazy(() => import('./pages/admin/AdminSettingsPage'));
+const AdminSportAdminsPage = lazy(() => import('./pages/admin/AdminSportAdminsPage'));
 const AdminAdsPage = lazy(() => import('./pages/admin/AdminAdsPage'));
 const AdminVisitorsPage = lazy(() => import('./pages/admin/AdminVisitorsPage'));
 const AdminChampionshipsPage = lazy(() => import('./pages/admin/AdminChampionshipsPage'));
@@ -44,6 +49,7 @@ const LiveReportingPage = lazy(() => import('./pages/admin/LiveReportingPage'));
 
 // Team Pages
 const TeamDashboard = lazy(() => import('./pages/team/TeamDashboard'));
+const TeamLineupsPage = lazy(() => import('./pages/team/TeamLineupsPage'));
 
 // Amashuri Games (Rwanda Inter-School Sports) Pages
 const AkcHome = lazy(() => import('./pages/akc3/AkcHome'));
@@ -66,25 +72,6 @@ const queryClient = new QueryClient({
     },
   },
 });
-
-const LanguageSync = () => {
-  useEffect(() => {
-    const onLanguageChanged = () => queryClient.invalidateQueries();
-    i18n.on('languageChanged', onLanguageChanged);
-    return () => i18n.off('languageChanged', onLanguageChanged);
-  }, []);
-
-  return null;
-};
-
-const PlaceholderPage = ({ tKey }) => {
-  const { t } = useTranslation();
-  return (
-    <div className="p-20 font-display text-3xl text-center opacity-20 py-40 uppercase tracking-widest">
-      {t(tKey)}
-    </div>
-  );
-};
 
 const RouteWatcher = ({ children }) => {
   const location = useLocation();
@@ -127,7 +114,6 @@ function App() {
     <HelmetProvider>
       <ThemeProvider>
       <QueryClientProvider client={queryClient}>
-        <LanguageSync />
         {showSplash && <SplashScreen />}
         <BrowserRouter>
         <CommandPaletteProvider>
@@ -137,13 +123,17 @@ function App() {
           <Routes>
             {/* Public Routes */}
             <Route element={<PublicLayout />}>
-              <Route path="/" element={<HomePage />} />
+              {/* Landing page = Choose Your Sport */}
+              <Route path="/" element={<ExplorePage />} />
+              <Route path="/explore" element={<Navigate to="/" replace />} />
+              <Route path="/home" element={<HomePage />} />
+              <Route path="/sports/:slug" element={<SportHubPage />} />
               <Route path="/leagues" element={<LeaguesPage />} />
               <Route path="/leagues/:id" element={<LeagueDetailsPage />} />
               <Route path="/fixtures" element={<FixturesPage />} />
               <Route path="/results" element={<FixturesPage />} />
-              <Route path="/news" element={<PlaceholderPage tKey="news.center" />} />
-              <Route path="/news/:slug" element={<PlaceholderPage tKey="news.article" />} />
+              <Route path="/news" element={<NewsListPage />} />
+              <Route path="/news/:slug" element={<NewsArticlePage />} />
               <Route path="/matches/:id" element={<MatchDetailsPage />} />
               
               {/* Amashuri Games — Rwanda Inter-School Sports (umbrella incl. Kagame Cup) */}
@@ -164,7 +154,9 @@ function App() {
               <Route path="/akc3/results" element={<Navigate to="/amashuri/results" replace />} />
               <Route path="/akc3/standings" element={<Navigate to="/amashuri/standings" replace />} />
               
-              <Route path="/contact" element={<PlaceholderPage tKey="support.center" />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/privacy" element={<LegalPage type="privacy" />} />
+              <Route path="/terms" element={<LegalPage type="terms" />} />
             </Route>
 
             {/* Auth Routes */}
@@ -185,6 +177,7 @@ function App() {
               <Route path="visitors" element={<AdminVisitorsPage />} />
               <Route path="akc3" element={<AkcAdminDashboard />} />
               <Route path="championships" element={<AdminChampionshipsPage />} />
+              <Route path="sport-admins" element={<AdminSportAdminsPage />} />
               <Route path="settings" element={<AdminSettingsPage />} />
             </Route>
 
@@ -192,10 +185,10 @@ function App() {
             <Route path="/team" element={<TeamLayout />}>
               <Route index element={<Navigate to="/team/dashboard" replace />} />
               <Route path="dashboard" element={<TeamDashboard />} />
-              <Route path="players" element={<PlaceholderPage tKey="team.roster_management" />} />
-              <Route path="documents" element={<PlaceholderPage tKey="team.document_uploads" />} />
-              <Route path="fixtures" element={<PlaceholderPage tKey="team.team_schedule" />} />
-              <Route path="profile" element={<PlaceholderPage tKey="team.club_profile" />} />
+              <Route path="players" element={<div className="font-display text-3xl uppercase opacity-20 py-20 uppercase">Roster Management</div>} />
+              <Route path="documents" element={<div className="font-display text-3xl uppercase opacity-20 py-20 uppercase">Document Uploads</div>} />
+              <Route path="fixtures" element={<TeamLineupsPage />} />
+              <Route path="profile" element={<div className="font-display text-3xl uppercase opacity-20 py-20 uppercase">Club Profile</div>} />
             </Route>
 
             {/* Match Reporter Portal */}

@@ -4,7 +4,6 @@ import {
   CartesianGrid, LabelList,
 } from 'recharts';
 import { Goal, TrendingUp, Shield } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../context/ThemeContext';
 import Card from '../ui/Card';
 import EmptyState from '../ui/EmptyState';
@@ -47,13 +46,12 @@ const shortName = (name = '') =>
   name.length > 12 ? name.split(' ').map((w) => w[0]).join('').slice(0, 4).toUpperCase() : name;
 
 const LeagueStats = ({ standings = [], topScorers = [] }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const grid = theme?.dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
   const axis = theme?.dark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)';
 
   if (!standings.length && !topScorers.length) {
-    return <EmptyState icon={TrendingUp} title={t('stats.none')} hint={t('stats.none_hint')} />;
+    return <EmptyState icon={TrendingUp} title="No statistics yet" hint="Stats appear once matches are played." />;
   }
 
   const sortedStandings = [...standings].sort((a, b) => b.points - a.points);
@@ -68,15 +66,7 @@ const LeagueStats = ({ standings = [], topScorers = [] }) => {
     For: s.goalsFor,
     Against: s.goalsAgainst,
   }));
-  const scorersData = [...topScorers]
-    .sort((a, b) => b.goals - a.goals)
-    .slice(0, 8)
-    .map((s) => ({
-      name: s.player?.fullName ? s.player.fullName.split(' ').slice(-1)[0] : t('stats.player'),
-      full: s.player?.fullName,
-      goals: s.goals,
-      assists: s.assists || 0,
-    }));
+  const scorersTable = [...topScorers].sort((a, b) => b.goals - a.goals).slice(0, 10);
 
   const axisProps = {
     tick: { fill: axis, fontSize: 10, fontWeight: 700 },
@@ -88,14 +78,14 @@ const LeagueStats = ({ standings = [], topScorers = [] }) => {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Points */}
       {pointsData.length > 0 && (
-        <ChartCard icon={TrendingUp} title={t('stats.points')} subtitle={t('stats.points_subtitle')}>
+        <ChartCard icon={TrendingUp} title="Points" subtitle="Table by points">
           <ResponsiveContainer width="100%" height={Math.max(220, pointsData.length * 34)}>
             <BarChart data={pointsData} layout="vertical" margin={{ left: 8, right: 24 }}>
               <CartesianGrid horizontal={false} stroke={grid} />
               <XAxis type="number" {...axisProps} />
               <YAxis type="category" dataKey="name" width={56} {...axisProps} />
               <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(232,0,45,0.06)' }} />
-              <Bar dataKey="points" name={t('stats.points')} radius={[0, 6, 6, 0]}>
+              <Bar dataKey="points" radius={[0, 6, 6, 0]}>
                 {pointsData.map((entry, i) => (
                   <Cell key={i} fill={i === 0 ? GOLD : i === 1 ? BLUE : i === 2 ? GREEN : RED} />
                 ))}
@@ -106,38 +96,57 @@ const LeagueStats = ({ standings = [], topScorers = [] }) => {
         </ChartCard>
       )}
 
-      {/* Top scorers */}
-      {scorersData.length > 0 && (
-        <ChartCard icon={Goal} title={t('stats.top_scorers')} subtitle={t('stats.top_scorers_subtitle')}>
-          <ResponsiveContainer width="100%" height={Math.max(220, scorersData.length * 34)}>
-            <BarChart data={scorersData} layout="vertical" margin={{ left: 8, right: 24 }}>
-              <CartesianGrid horizontal={false} stroke={grid} />
-              <XAxis type="number" {...axisProps} />
-              <YAxis type="category" dataKey="name" width={64} {...axisProps} />
-              <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(232,0,45,0.06)' }} />
-              <Bar dataKey="goals" name={t('match.goals')} stackId="a" fill={RED} radius={[0, 0, 0, 0]} />
-              <Bar dataKey="assists" name={t('stats.assists')} stackId="a" fill={GOLD} radius={[0, 6, 6, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+      {/* Top scorers — mobile-fit ranked table */}
+      {scorersTable.length > 0 && (
+        <ChartCard icon={Goal} title="Top Scorers" subtitle="Goals & assists">
+          <div className="overflow-hidden rounded-xl border border-surface-3 dark:border-white/5">
+            <table className="w-full table-fixed border-collapse text-left">
+              <thead>
+                <tr className="bg-surface-2 dark:bg-white/5 text-[9px] sm:text-[10px] uppercase font-bold tracking-[0.1em] sm:tracking-[0.2em] text-surface-dark/40 dark:text-white/40">
+                  <th className="px-1 sm:px-3 py-2.5 text-center w-8 sm:w-12">#</th>
+                  <th className="px-2 sm:px-3 py-2.5">Player</th>
+                  <th className="px-1 sm:px-3 py-2.5 text-center w-10 sm:w-14 text-red">Gls</th>
+                  <th className="px-1 sm:px-3 py-2.5 text-center w-10 sm:w-14">Ast</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-surface-3 dark:divide-white/5">
+                {scorersTable.map((s, i) => (
+                  <tr key={s.id ?? i} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors">
+                    <td className="px-1 sm:px-3 py-2.5 text-center">
+                      <span className={`font-display text-sm sm:text-base ${i === 0 ? 'text-gold' : i === 1 ? 'text-surface-dark/60 dark:text-white/60' : i === 2 ? 'text-rwanda-green/60' : 'opacity-30'}`}>{i + 1}</span>
+                    </td>
+                    <td className="px-2 sm:px-3 py-2.5">
+                      <div className="min-w-0">
+                        <p className="text-xs sm:text-sm font-bold uppercase tracking-tight truncate">{s.player?.fullName || 'Player'}</p>
+                        <p className="text-[9px] sm:text-[10px] uppercase tracking-widest opacity-40 truncate">{s.team?.name || ''}</p>
+                      </div>
+                    </td>
+                    <td className="px-1 sm:px-3 py-2.5 text-center font-display text-base sm:text-lg text-red">{s.goals}</td>
+                    <td className="px-1 sm:px-3 py-2.5 text-center font-medium opacity-60">{s.assists || 0}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </ChartCard>
       )}
 
       {/* Goals for / against */}
       {goalsData.length > 0 && (
-        <ChartCard icon={Shield} title={t('stats.goals_for_against')} subtitle={t('stats.attack_vs_defence')}>
+        <ChartCard icon={Shield} title="Goals For / Against" subtitle="Attack vs defence">
           <ResponsiveContainer width="100%" height={Math.max(240, goalsData.length * 38)}>
             <BarChart data={goalsData} margin={{ left: 0, right: 8, top: 8 }}>
               <CartesianGrid vertical={false} stroke={grid} />
               <XAxis dataKey="name" {...axisProps} interval={0} angle={-30} textAnchor="end" height={50} />
               <YAxis {...axisProps} width={28} />
               <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(0,161,222,0.06)' }} />
-              <Bar dataKey="For" name={t('stats.goals_for')} fill={GREEN} radius={[4, 4, 0, 0]} />
-              <Bar dataKey="Against" name={t('stats.goals_against')} fill={RED} radius={[4, 4, 0, 0]} />
+              <Bar dataKey="For" fill={GREEN} radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Against" fill={RED} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
           <div className="flex items-center justify-center gap-6 mt-3 text-[10px] uppercase tracking-widest font-bold">
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm" style={{ background: GREEN }} />{t('stats.goals_for')}</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm" style={{ background: RED }} />{t('stats.goals_against')}</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm" style={{ background: GREEN }} />For</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm" style={{ background: RED }} />Against</span>
           </div>
         </ChartCard>
       )}

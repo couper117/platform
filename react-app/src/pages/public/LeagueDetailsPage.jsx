@@ -170,7 +170,7 @@ const LeagueDetailsPage = () => {
                 <h2 className="text-2xl font-display uppercase tracking-tight">{t('league.participating_teams')}</h2>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
-                {leagueData?.teams?.map(({ team }) => (
+                {leagueData?.teams?.filter(({ team }) => team).map(({ team }) => (
                   <Link 
                     key={team.id} 
                     to={`/teams/${team.id}`}
@@ -180,7 +180,7 @@ const LeagueDetailsPage = () => {
                       {team.logo ? (
                         <img src={team.logo} alt={team.name} className="w-full h-full object-cover" />
                       ) : (
-                        <span className="font-display text-2xl opacity-20">{team.name.charAt(0)}</span>
+                        <span className="font-display text-2xl opacity-20">{team.name?.charAt(0)}</span>
                       )}
                     </div>
                     <span className="text-[11px] font-bold uppercase tracking-tight leading-tight line-clamp-2">{team.name}</span>

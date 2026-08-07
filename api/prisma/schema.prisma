@@ -15,6 +15,7 @@ model Setting {
   sval  String? @db.Text
   label String? @db.VarChar(200)
   grp   String  @default("general") @db.VarChar(80)
+  isPublic Boolean @default(true)
 }
 
 model Ad {
@@ -41,6 +42,9 @@ model User {
   lastLogin   DateTime?
   createdAt   DateTime @default(now())
 
+  resetTokenHash   String?   @db.VarChar(128)
+  resetTokenExpiry DateTime?
+
   managedTeam Team?         @relation("TeamManager")
   newsArticles News[]
   activityLogs ActivityLog[]
@@ -54,6 +58,7 @@ model User {
 enum Role {
   SUPERADMIN
   FEDERATION_ADMIN
+  AMASHURI_ADMIN
   LEAGUE_ADMIN
   MATCH_REPORTER
   TEAM_MANAGER
@@ -116,6 +121,7 @@ model Sport {
   description String?  @db.Text
   coverImage  String?  @db.VarChar(300)
   category    SportCategory @default(OTHER)
+  type        SportType     @default(TEAM)   // how the sport is competed/managed
   sortOrder   Int      @default(0)
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -133,6 +139,15 @@ enum SportCategory {
   COMBAT
   RACKET
   OTHER
+}
+
+// Governs how a sport is managed in the admin: team-vs-team matches, mass-start
+// races/individual events, weight-class combat bouts, or 1v1 racket/board ties.
+enum SportType {
+  TEAM
+  RACING
+  COMBAT
+  RACKET
 }
 
 model Federation {
@@ -238,7 +253,11 @@ model Team {
   foundedYear    Int?
   homeVenue      String?  @db.VarChar(300)
   city           String?  @db.VarChar(150)
+  district       String?  @db.VarChar(100)
   province       String?  @db.VarChar(100)
+  registrationNo String?  @db.VarChar(60)   // federation club registration number
+  primaryColor   String?  @db.VarChar(30)
+  secondaryColor String?  @db.VarChar(30)
   description    String?  @db.Text
   email          String?  @db.VarChar(200)
   phone          String?  @db.VarChar(50)
@@ -249,6 +268,8 @@ model Team {
   verifiedAt     DateTime?
   verifiedBy     Int?
   active         Boolean  @default(true)
+  subscriptionActive Boolean  @default(false)
+  subscriptionUntil  DateTime?
   createdAt      DateTime @default(now())
 
   leagues        LeagueTeam[]
@@ -260,6 +281,7 @@ model Team {
   registrations  TeamRegistration[]
   transfersFrom  Transfer[]  @relation("TransferFrom")
   transfersTo    Transfer[]  @relation("TransferTo")
+  officials      TeamOfficial[]
 }
 
 enum TeamStatus {
@@ -267,6 +289,30 @@ enum TeamStatus {
   VERIFIED
   SUSPENDED
   REJECTED
+}
+
+model TeamOfficial {
+  id        Int      @id @default(autoincrement())
+  teamId    Int
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  role      OfficialRole @default(OTHER)
+  fullName  String   @db.VarChar(200)
+  phone     String?  @db.VarChar(50)
+  email     String?  @db.VarChar(200)
+  idNumber  String?  @db.VarChar(60)
+  createdAt DateTime @default(now())
+}
+
+enum OfficialRole {
+  PRESIDENT
+  VICE_PRESIDENT
+  SECRETARY
+  TREASURER
+  MANAGER
+  HEAD_COACH
+  ASSISTANT_COACH
+  TEAM_DOCTOR
+  OTHER
 }
 
 model LeagueTeam {
@@ -288,12 +334,14 @@ model Player {
   photo         String?  @db.VarChar(300)
   dateOfBirth   DateTime? @db.Date
   nationality   String   @default("Rwandan") @db.VarChar(100)
+  idNumber      String?  @db.VarChar(60)   // national ID / passport number
+  licenseNo     String?  @db.VarChar(60)   // federation player licence number
   position      String?  @db.VarChar(100)
   jerseyNumber  Int?     @db.SmallInt
   skillLevel    PlayerSkill @default(AMATEUR)
   gender        PlayerGender @default(MALE)
-  height        Int?     
-  weight        Int?     
+  height        Int?
+  weight        Int?
   bio           String?  @db.Text
   status        PlayerStatus @default(PENDING)
   verifiedAt    DateTime?
@@ -307,6 +355,27 @@ model Player {
   events        MatchEvent[]     @relation("PlayerEvent")
   subEvents     MatchEvent[]     @relation("SubEvent")
   transfersFrom Transfer[]
+  suspensions   Suspension[]
+}
+
+model Suspension {
+  id              Int      @id @default(autoincrement())
+  playerId        Int
+  player          Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  reason          SuspensionReason @default(RED_CARD)
+  matches         Int      @default(1)   // number of matches banned
+  matchesServed   Int      @default(0)
+  active          Boolean  @default(true)
+  originFixtureId Int?
+  note            String?  @db.Text
+  createdAt       DateTime @default(now())
+}
+
+enum SuspensionReason {
+  RED_CARD
+  YELLOW_ACCUMULATION
+  MISCONDUCT
+  OTHER
 }
 
 enum PlayerSkill {
@@ -415,7 +484,9 @@ model Fixture {
   events        MatchEvent[]
   lineups       Lineup[]
   liveState     LiveMatchState?
-  
+  teamSheets    MatchTeamSheet[]
+  stats         MatchStat[]
+
   assignedReporters ReporterAssignment[]
 }
 
@@ -425,6 +496,45 @@ enum FixtureStatus {
   COMPLETED
   POSTPONED
   CANCELLED
+}
+
+// Per-team team sheet for a fixture: formation, coach and publish state. The
+// individual player rows live in Lineup (starters/bench, captain, jersey).
+model MatchTeamSheet {
+  id        Int      @id @default(autoincrement())
+  fixtureId Int
+  fixture   Fixture  @relation(fields: [fixtureId], references: [id], onDelete: Cascade)
+  teamId    Int
+  formation String?  @db.VarChar(20)   // e.g. 4-3-3, 4-4-2
+  coachName String?  @db.VarChar(200)
+  published Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+
+  @@unique([fixtureId, teamId])
+}
+
+// Per-team match statistics, entered by the league admin / reporter.
+model MatchStat {
+  id              Int      @id @default(autoincrement())
+  fixtureId       Int
+  fixture         Fixture  @relation(fields: [fixtureId], references: [id], onDelete: Cascade)
+  teamId          Int
+  possession      Int?     // %
+  shots           Int?
+  shotsOnTarget   Int?
+  shotsInsideBox  Int?
+  shotsOutsideBox Int?
+  corners         Int?
+  offsides        Int?
+  fouls           Int?
+  yellowCards     Int?
+  redCards        Int?
+  gkSaves         Int?
+  passAccuracy    Int?     // %
+  xg              Decimal? @db.Decimal(4, 2)
+  updatedAt       DateTime @updatedAt
+
+  @@unique([fixtureId, teamId])
 }
 
 model MatchEvent {
@@ -825,4 +935,21 @@ enum AkcAnnouncementCategory {
   COMPETITION
   RESULTS
   URGENT
+}
+
+// ─── TRANSACTIONS (subscriptions / payments) ─────────────────────
+model Transaction {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  amount    Int
+  type      String   @default("SUBSCRIPTION") @db.VarChar(50)
+  status    TxStatus @default(PENDING)
+  reference String   @unique @db.VarChar(120)
+  createdAt DateTime @default(now())
+}
+
+enum TxStatus {
+  PENDING
+  SUCCESS
+  FAILED
 }

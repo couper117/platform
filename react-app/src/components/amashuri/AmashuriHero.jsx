@@ -16,12 +16,12 @@ const AmashuriHero = ({ eyebrow, title, accent, subtitle, children, compact = fa
   return (
   <section
     className={cn(
-      'relative overflow-hidden text-white bg-rwanda-blue',
+      'relative overflow-hidden text-white bg-red',
       compact ? 'py-12 sm:py-16' : 'py-20 sm:py-28'
     )}
   >
     {/* Branded backdrop */}
-    <div className="absolute inset-0 bg-gradient-to-br from-rwanda-blue via-rwanda-blue to-[#007bb0]" />
+    <div className="absolute inset-0 bg-gradient-to-br from-red via-red to-red-dark" />
     <div className="absolute -top-32 -right-24 w-[34rem] h-[34rem] rounded-full bg-rwanda-yellow/20 blur-[120px]" />
     <div className="absolute -bottom-40 -left-24 w-[30rem] h-[30rem] rounded-full bg-white/10 blur-[120px]" />
     <div

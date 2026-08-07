@@ -1,46 +1,63 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard, Trophy, Users, UserSquare2, FileText,
-  Newspaper, Settings, Activity, School, X, Megaphone, Eye
+  Newspaper, Settings, Activity, School, X, Megaphone, Eye, ShieldCheck
 } from 'lucide-react';
+import useAuthStore from '../../store/authStore';
+import useSportScope from '../../hooks/useSportScope';
 
 const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
-  const { t } = useTranslation();
+  const { role } = useAuthStore();
+  const { profile } = useSportScope();
+  const S = 'SUPERADMIN', F = 'FEDERATION_ADMIN', L = 'LEAGUE_ADMIN', A = 'AMASHURI_ADMIN';
 
+  // For a sport-scoped federation admin, relabel nav to the sport's language
+  // (a cycling admin sees "Races & Tours", a judo admin sees "Bouts", etc.).
+  const labelFor = (link) => {
+    if (!profile) return link.label;
+    return ({
+      '/admin/leagues': profile.competitionPlural,
+      '/admin/fixtures': profile.eventPlural,
+      '/admin/teams': profile.competitorPlural,
+      '/admin/players': profile.rosterPlural,
+    })[link.to] || link.label;
+  };
   const adminLinks = [
-    { to: '/admin/dashboard', icon: <LayoutDashboard size={18} />, label: t('nav.dashboard') },
-    { to: '/admin/leagues', icon: <Trophy size={18} />, label: t('nav.leagues') },
-    { to: '/admin/fixtures', icon: <Activity size={18} />, label: t('nav.fixtures') },
-    { to: '/admin/teams', icon: <Users size={18} />, label: t('admin.nav.teams') },
-    { to: '/admin/players', icon: <UserSquare2 size={18} />, label: t('admin.nav.players') },
-    { to: '/admin/documents', icon: <FileText size={18} />, label: t('admin.nav.documents') },
-    { to: '/admin/news', icon: <Newspaper size={18} />, label: t('nav.news') },
-    { to: '/admin/ads', icon: <Megaphone size={18} />, label: t('admin.nav.ads') },
-    { to: '/admin/visitors', icon: <Eye size={18} />, label: t('admin.nav.visitors') },
-    { to: '/admin/akc3', icon: <School size={18} />, label: t('nav.amashuri') },
-    { to: '/admin/championships', icon: <Trophy size={18} />, label: t('amashuri.championships') },
-    { to: '/admin/settings', icon: <Settings size={18} />, label: t('admin.nav.settings') },
+    { to: '/admin/dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard', roles: [S, F, L] },
+    { to: '/admin/sport-admins', icon: <ShieldCheck size={18} />, label: 'Sport Admins', roles: [S] },
+    { to: '/admin/leagues', icon: <Trophy size={18} />, label: 'Leagues', roles: [S, F, L] },
+    { to: '/admin/fixtures', icon: <Activity size={18} />, label: 'Fixtures', roles: [S, F, L] },
+    { to: '/admin/teams', icon: <Users size={18} />, label: 'Teams', roles: [S, F] },
+    { to: '/admin/players', icon: <UserSquare2 size={18} />, label: 'Players', roles: [S, F] },
+    { to: '/admin/documents', icon: <FileText size={18} />, label: 'Documents', roles: [S, F] },
+    { to: '/admin/news', icon: <Newspaper size={18} />, label: 'News', roles: [S, F] },
+    { to: '/admin/ads', icon: <Megaphone size={18} />, label: 'Ads', roles: [S] },
+    { to: '/admin/visitors', icon: <Eye size={18} />, label: 'Visitors', roles: [S] },
+    { to: '/admin/akc3', icon: <School size={18} />, label: 'Amashuri Games', roles: [S, A] },
+    { to: '/admin/championships', icon: <Trophy size={18} />, label: 'Championships', roles: [S, A] },
+    { to: '/admin/settings', icon: <Settings size={18} />, label: 'Settings', roles: [S] },
   ];
 
   const teamLinks = [
-    { to: '/team/dashboard', icon: <LayoutDashboard size={18} />, label: t('nav.dashboard') },
-    { to: '/team/players', icon: <UserSquare2 size={18} />, label: t('team.nav.my_players') },
-    { to: '/team/documents', icon: <FileText size={18} />, label: t('admin.nav.documents') },
-    { to: '/team/fixtures', icon: <Activity size={18} />, label: t('nav.fixtures') },
-    { to: '/team/profile', icon: <Users size={18} />, label: t('team.nav.team_profile') },
+    { to: '/team/dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
+    { to: '/team/players', icon: <UserSquare2 size={18} />, label: 'My Players' },
+    { to: '/team/documents', icon: <FileText size={18} />, label: 'Documents' },
+    { to: '/team/fixtures', icon: <Activity size={18} />, label: 'Fixtures' },
+    { to: '/team/profile', icon: <Users size={18} />, label: 'Team Profile' },
   ];
 
-  const links = type === 'admin' ? adminLinks : teamLinks;
+  const links = type === 'admin'
+    ? adminLinks.filter((l) => l.roles.includes(role))
+    : teamLinks;
 
   const sidebarContent = (
     <>
       <div className="p-6 border-b border-surface-dark2 flex justify-between items-center">
         <h2 className="font-display text-xl text-red tracking-tighter uppercase">
-          {type === 'admin' ? t('admin.portal') : t('team.portal')}
+          {type === 'admin' ? 'Admin Portal' : 'Team Portal'}
         </h2>
-        <button onClick={onClose} className="lg:hidden p-1 text-white/40 hover:text-white" aria-label={t('common.close')}>
+        <button onClick={onClose} className="lg:hidden p-1 text-white/40 hover:text-white">
           <X size={20} />
         </button>
       </div>
@@ -57,7 +74,7 @@ const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
             }
           >
             {link.icon}
-            <span>{link.label}</span>
+            <span>{labelFor(link)}</span>
           </NavLink>
         ))}
       </nav>
