@@ -10,8 +10,8 @@ const router = express.Router();
 router.get('/', getNews);
 router.get('/:slug', getArticle);
 
-router.post('/', protect, authorize('SUPERADMIN', 'FEDERATION_ADMIN', 'LEAGUE_ADMIN'), upload.single('coverImage'), validate(schemas.createNews), createArticle);
-router.put('/:id', protect, authorize('SUPERADMIN', 'FEDERATION_ADMIN', 'LEAGUE_ADMIN'), upload.single('coverImage'), updateArticle);
+router.post('/', protect, authorize('SUPERADMIN', 'FEDERATION_ADMIN'), upload.single('coverImage'), validate(schemas.createNews), createArticle);
+router.put('/:id', protect, authorize('SUPERADMIN', 'FEDERATION_ADMIN'), upload.single('coverImage'), updateArticle);
 router.delete('/:id', protect, authorize('SUPERADMIN', 'FEDERATION_ADMIN'), deleteArticle);
 
 module.exports = router;
