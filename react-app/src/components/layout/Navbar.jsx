@@ -156,28 +156,38 @@ const Navbar = () => {
           <div className="fixed inset-0 bg-black/50 z-[110] animate-in fade-in duration-200" onClick={closeDrawer} />
           <aside className="fixed top-0 right-0 h-full w-[88%] max-w-md bg-white text-surface-dark dark:bg-surface-dark dark:text-white z-[120] shadow-2xl overflow-y-auto animate-in slide-in-from-right duration-300">
             <div className="flex items-center justify-between px-6 py-5 border-b border-surface-3 dark:border-white/10 sticky top-0 bg-white dark:bg-surface-dark z-10">
-              <span className="font-display text-2xl uppercase tracking-tight flex items-center gap-2"><LayoutGrid size={20} className="text-red" /> Sports</span>
+              <span className="font-display text-2xl uppercase tracking-tight flex items-center gap-2"><Menu size={20} className="text-red" /> Menu</span>
               <button onClick={closeDrawer} aria-label="Close" className="p-2 text-surface-dark/60 dark:text-white/60 hover:text-red"><X size={24} /></button>
             </div>
 
-            <div className="p-6 space-y-8">
-              <div className="grid grid-cols-2 gap-3">
-                {sports.map((s) => (
-                  <Link
-                    key={s.id}
-                    to={`/sports/${s.slug}`}
-                    onClick={closeDrawer}
-                    className="flex items-center gap-3 p-4 rounded-2xl bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 hover:border-red/40 transition-all group"
-                  >
-                    <SportIcon slug={s.slug} size={22} className="text-red shrink-0" />
+            <div className="p-5 space-y-7">
+              {/* Account — top priority */}
+              {isAuthenticated ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-4 p-4 bg-surface-2 dark:bg-white/5 rounded-xl border border-surface-3 dark:border-white/10">
+                    <div className="w-12 h-12 bg-red rounded-full flex items-center justify-center text-xl font-bold uppercase text-white">{displayName.charAt(0)}</div>
                     <div className="min-w-0">
-                      <div className="font-display uppercase tracking-tight text-sm leading-tight group-hover:text-red transition-colors">{s.name}</div>
-                      <div className="text-[9px] uppercase font-bold tracking-widest text-surface-dark/30 dark:text-white/30 mt-1">{s._count?.leagues ?? 0} leagues</div>
+                      <p className="font-display text-xl leading-none truncate">{displayName}</p>
+                      <p className="text-[10px] uppercase tracking-widest text-surface-dark/40 dark:text-white/40 mt-1">{(role || '').replace('_', ' ')}</p>
                     </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Link to={dashboardPath} onClick={closeDrawer} className="flex items-center justify-center bg-red text-white py-4 rounded-xl font-display uppercase tracking-widest shadow-lg shadow-red/20">{t('nav.dashboard')}</Link>
+                    <button onClick={() => { logout(); closeDrawer(); }} className="flex items-center justify-center gap-2 bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 py-4 rounded-xl font-display uppercase tracking-widest text-red"><LogOut size={16} /> {t('nav.logout')}</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  <Link to="/auth/login" onClick={closeDrawer} className="flex items-center justify-center gap-2 bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 py-4 rounded-xl font-display uppercase tracking-widest">
+                    <ChevronRight size={16} className="text-red" /> {t('nav.login', 'Login')}
                   </Link>
-                ))}
-              </div>
+                  <Link to="/auth/team/register" onClick={closeDrawer} className="flex items-center justify-center gap-2 bg-red text-white py-4 rounded-xl font-display uppercase tracking-widest shadow-lg shadow-red/20">
+                    <UserPlus size={16} /> Register
+                  </Link>
+                </div>
+              )}
 
+              {/* Browse */}
               <div className="space-y-1">
                 <h3 className="text-[10px] uppercase font-bold tracking-[0.3em] text-surface-dark/30 dark:text-white/30 mb-2">Browse</h3>
                 {browseLinks.map((link) => (
@@ -193,6 +203,28 @@ const Navbar = () => {
                 ))}
               </div>
 
+              {/* All sports */}
+              <div className="space-y-3">
+                <h3 className="text-[10px] uppercase font-bold tracking-[0.3em] text-surface-dark/30 dark:text-white/30">All Sports</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {sports.map((s) => (
+                    <Link
+                      key={s.id}
+                      to={`/sports/${s.slug}`}
+                      onClick={closeDrawer}
+                      className="flex items-center gap-3 p-3.5 rounded-2xl bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 hover:border-red/40 transition-all group"
+                    >
+                      <SportIcon slug={s.slug} size={20} className="text-red shrink-0" />
+                      <div className="min-w-0">
+                        <div className="font-display uppercase tracking-tight text-sm leading-tight truncate group-hover:text-red transition-colors">{s.name}</div>
+                        <div className="text-[9px] uppercase font-bold tracking-widest text-surface-dark/30 dark:text-white/30 mt-0.5">{s._count?.leagues ?? 0} leagues</div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              {/* Settings */}
               <div className="flex items-center justify-between p-4 bg-surface-2 dark:bg-white/5 rounded-xl border border-surface-3 dark:border-white/10">
                 <span className="text-[10px] uppercase font-bold tracking-[0.3em] text-surface-dark/40 dark:text-white/40">Appearance</span>
                 <ThemeToggle />
@@ -210,27 +242,6 @@ const Navbar = () => {
                     </button>
                   ))}
                 </div>
-              </div>
-
-              <div className="pt-2">
-                {isAuthenticated ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-4 p-4 bg-surface-2 dark:bg-white/5 rounded-xl border border-surface-3 dark:border-white/10">
-                      <div className="w-12 h-12 bg-red rounded-full flex items-center justify-center text-xl font-bold uppercase text-white">{displayName.charAt(0)}</div>
-                      <div>
-                        <p className="font-display text-xl leading-none">{displayName}</p>
-                        <p className="text-[10px] uppercase tracking-widest text-surface-dark/40 dark:text-white/40">{(role || '').replace('_', ' ')}</p>
-                      </div>
-                    </div>
-                    <Link to={dashboardPath} onClick={closeDrawer} className="flex items-center justify-center w-full bg-surface-2 dark:bg-white/5 py-4 rounded-xl font-display text-lg uppercase tracking-widest border border-surface-3 dark:border-white/10">{t('nav.dashboard')}</Link>
-                    <button onClick={() => { logout(); closeDrawer(); }} className="w-full text-red font-display text-lg uppercase py-3">{t('nav.logout')}</button>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 gap-3">
-                    <Link to="/auth/login" onClick={closeDrawer} className="flex items-center justify-center bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 py-4 rounded-xl font-display uppercase tracking-widest">{t('nav.login')}</Link>
-                    <Link to="/auth/team/register" onClick={closeDrawer} className="flex items-center justify-center bg-red text-white py-4 rounded-xl font-display uppercase tracking-widest shadow-lg shadow-red/20">Register</Link>
-                  </div>
-                )}
               </div>
             </div>
           </aside>
