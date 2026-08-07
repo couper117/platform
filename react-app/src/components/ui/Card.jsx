@@ -3,15 +3,27 @@ import { Link } from 'react-router-dom';
 import cn from './cn';
 
 /**
- * Surface card matching the platform's rounded, bordered, dark-aware style.
- * Pass `to` to make the whole card a link with hover lift.
+ * Surface panel: one surface level, one hairline, 8px radius.
+ *
+ * NO SHADOW AND NO HOVER LIFT. Depth in this system comes from surface level and
+ * a 1px border, nothing else — a translate-on-hover is decoration that encodes
+ * nothing, and on a touch device it never fires at all. An interactive card gets
+ * a surface change instead, which reads on both pointer and touch.
  */
-const Card = ({ as = 'div', to, hover = false, className, children, ...props }) => {
+const Card = ({
+  as = 'div',
+  to,
+  className,
+  children,
+  // Swallowed, not forwarded. Un-swept screens still pass `hover` from the old
+  // lift-on-hover API; leaking it to the DOM makes React warn about a
+  // non-boolean attribute. Removed with the last of those screens.
+  hover: _deprecatedHover,
+  ...props
+}) => {
   const classes = cn(
-    'bg-white dark:bg-surface-dark2 rounded-2xl border border-surface-3 dark:border-white/5',
-    hover &&
-      'transition-all duration-200 hover:shadow-2xl hover:shadow-red-glow hover:-translate-y-1',
-    to && 'block cursor-pointer',
+    'rounded-card border border-hairline bg-surface',
+    to && 'block transition-colors duration-150 ease-standard hover:bg-surface-2',
     className
   );
 

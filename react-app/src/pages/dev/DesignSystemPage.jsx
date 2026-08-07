@@ -1,6 +1,21 @@
 import React, { useEffect, useState } from 'react';
+import { Trash2, Plus, Search, Calendar, Trophy, WifiOff } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { knownClubColors } from '../../config/clubColors';
+import {
+  Avatar,
+  Badge,
+  Button,
+  Card,
+  ClubCrest,
+  EmptyState,
+  ErrorState,
+  IconButton,
+  SectionHeading,
+  Skeleton,
+  SkeletonText,
+  StatusPill,
+} from '../../components/ui';
 
 /**
  * Living styleguide at /design-system.
@@ -427,9 +442,198 @@ const DesignSystemPage = () => {
           </>
         )}
 
+        {ready && (
+          <>
+            <Section
+              title="Button"
+              note="No brand accent exists to spend — live is reserved for live state, danger for
+                    destruction. So primary is an inversion: the text colour as a fill. It is the
+                    highest-contrast thing on screen and can never be mistaken for a status."
+            >
+              <Row label="primary / secondary / ghost">
+                <Button>Register team</Button>
+                <Button variant="secondary">Cancel</Button>
+                <Button variant="ghost">Skip</Button>
+              </Row>
+              <Row label="danger">
+                <Button variant="danger" icon={Trash2}>
+                  Delete team
+                </Button>
+                <span className="text-sm text-secondary">
+                  label is 15px/600 — clears the 4.43:1 fill
+                </span>
+              </Row>
+              <Row label="sizes" value="36 / 44 / 52px">
+                <Button size="sm" variant="secondary">
+                  sm — admin only
+                </Button>
+                <Button size="md" variant="secondary">
+                  md
+                </Button>
+                <Button size="lg" variant="secondary">
+                  lg
+                </Button>
+              </Row>
+              <Row label="icon / loading / disabled">
+                <Button icon={Plus}>Add player</Button>
+                <Button loading>Saving</Button>
+                <Button disabled>Unavailable</Button>
+              </Row>
+              <Row label="block" value="mobile default">
+                <Button block size="lg">
+                  Confirm registration
+                </Button>
+              </Row>
+            </Section>
+
+            <Section
+              title="IconButton"
+              note="`label` is a required prop, not an optional attribute — it becomes aria-label
+                    and the tooltip, and warns in dev when missing. The old codebase had 81 buttons
+                    and 9 aria-labels; this fixes that structurally rather than by review."
+            >
+              <Row label="ghost / secondary / danger">
+                <IconButton icon={Search} label="Search" />
+                <IconButton icon={Calendar} label="Pick a date" variant="secondary" />
+                <IconButton icon={Trash2} label="Delete" variant="danger" />
+              </Row>
+              <Row label="sizes" value="36 / 44px">
+                <IconButton icon={Search} label="Search, dense" size="sm" variant="secondary" />
+                <IconButton icon={Search} label="Search" size="md" variant="secondary" />
+              </Row>
+            </Section>
+
+            <Section
+              title="Badge vs StatusPill"
+              note="Badge carries a fact and is never coloured. StatusPill is the one place a
+                    backend enum becomes colour, mapped in a single table so no screen re-decides
+                    what SUSPENDED looks like."
+            >
+              <Row label="Badge — facts">
+                <Badge>Matchday 12</Badge>
+                <Badge>U17</Badge>
+                <Badge>Quarter-final</Badge>
+                <Badge>National ID</Badge>
+              </Row>
+              <Row label="StatusPill — states">
+                <StatusPill status="LIVE" label="Live 67’" />
+                <StatusPill status="VERIFIED" />
+                <StatusPill status="PENDING" />
+                <StatusPill status="REJECTED" />
+                <StatusPill status="POSTPONED" />
+                <StatusPill status="COMPLETED" />
+              </Row>
+              <p className="mt-3 text-sm text-secondary">
+                Live is the only filled pill — it is the one state a fan scans a list for. Rejected
+                stays an outline because a <code>--danger</code> fill cannot carry an 11px label at
+                AA.
+              </p>
+            </Section>
+
+            <Section
+              title="Identity — shape carries meaning"
+              note="Round is a person, squared is an organisation. A mixed list (scorers beside
+                    their clubs) is legible before a word is read. Absence of a club colour is a
+                    valid state and renders as a plain hairline, never an invented hue."
+            >
+              <Row label="Avatar — person">
+                <Avatar name="Jacques Tuyisenge" size="sm" />
+                <Avatar name="Jacques Tuyisenge" size="md" />
+                <Avatar name="Jacques Tuyisenge" size="lg" />
+              </Row>
+              <Row label="ClubCrest — known colour">
+                <ClubCrest team={{ name: 'Rayon Sports' }} size="sm" />
+                <ClubCrest team={{ name: 'Rayon Sports' }} size="md" />
+                <ClubCrest team={{ name: 'APR FC' }} size="md" />
+                <ClubCrest team={{ name: 'Police FC' }} size="md" />
+              </Row>
+              <Row label="ClubCrest — unknown">
+                <ClubCrest team={{ name: 'Gasogi United' }} size="md" />
+                <span className="text-sm text-secondary">hairline, not a guess</span>
+              </Row>
+            </Section>
+
+            <Section
+              title="Card & SectionHeading"
+              note="One surface level, one hairline, 8px radius. No shadow and no hover lift — a
+                    translate encodes nothing and never fires on touch. Interactive cards change
+                    surface instead."
+            >
+              <div className="space-y-3">
+                <SectionHeading title="Upcoming fixtures" action="All" actionTo="/fixtures" />
+                <Card className="p-3">
+                  <p className="text-base">Static card</p>
+                  <p className="text-sm text-secondary">Surface, hairline, 8px.</p>
+                </Card>
+                <Card to="/fixtures" className="p-3">
+                  <p className="text-base">Interactive card</p>
+                  <p className="text-sm text-secondary">Hover changes surface, nothing moves.</p>
+                </Card>
+              </div>
+            </Section>
+
+            <Section
+              title="Skeleton"
+              note="Skeletons everywhere, spinners nowhere. Primitives only — each domain component
+                    ships its own skeleton built from these and sharing its metrics, so the two
+                    cannot drift apart the way a typed `Skeleton type='card'` did."
+            >
+              <Row label="blocks">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-8 w-8" circle />
+                <Skeleton className="h-8 w-8" />
+              </Row>
+              <Row label="SkeletonText">
+                <div className="w-full max-w-sm">
+                  <SkeletonText lines={3} />
+                </div>
+              </Row>
+            </Section>
+
+            <Section
+              title="Empty vs Error"
+              note="35 screens ran queries and 4 handled isError — the rest showed an empty list on
+                    a failed request, which says “no fixtures” when the truth is “we could not reach
+                    the server”. Opposite meanings, and common on a flaky connection."
+            >
+              <div className="grid gap-3 md:grid-cols-2">
+                <Card>
+                  <EmptyState
+                    icon={Trophy}
+                    title="No fixtures yet"
+                    hint="Matches appear here once the league publishes its schedule."
+                  />
+                </Card>
+                <Card>
+                  <ErrorState
+                    title="Could not load fixtures"
+                    hint="Check your connection and try again."
+                    onRetry={() => {}}
+                  />
+                </Card>
+              </div>
+              <Row label="offline, with action">
+                <div className="w-full">
+                  <EmptyState
+                    icon={WifiOff}
+                    title="You are offline"
+                    hint="Scores will catch up as soon as you reconnect."
+                    action={
+                      <Button variant="secondary" size="md">
+                        Retry now
+                      </Button>
+                    }
+                  />
+                </div>
+              </Row>
+            </Section>
+          </>
+        )}
+
         <footer className="border-t border-hairline pt-6 text-sm text-tertiary">
-          Phase 1 — foundation. Primitives (Phase 2) and domain components (Phase 3) render here
-          as they land.
+          Phase 2 — primitives, batch 1. Forms (Field, Input, Select, Textarea, Checkbox, Radio) and
+          composites (Tabs, SegmentedControl, Modal, BottomSheet, Toast, DataTable) land next, then
+          domain components in Phase 3.
         </footer>
       </div>
     </div>
