@@ -4,7 +4,12 @@
  * Shapes mirror what the API controllers return ({ data: [...] }, detail objects, etc.).
  */
 
-import i18n from '../../i18n';
+// Imported straight from the package, not from src/i18n: this module is loaded
+// through the top-level `await import()` in api/client.js, and reaching back
+// into the app's own i18n module closes a cycle across that await, which stalls
+// the entry module and leaves the app unmounted. It is the same singleton
+// instance that src/i18n configures.
+import i18n from 'i18next';
 
 const now = Date.now();
 const days = (n) => new Date(now + n * 86400000).toISOString();

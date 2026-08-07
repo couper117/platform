@@ -11,10 +11,16 @@ const apiClient = axios.create({
 
 // Static showcase build: serve every request from a local demo dataset so the
 // app runs with no backend. Inert unless built with VITE_DEMO=true — in normal
-// builds the branch is dead code and dropped, so this module stays synchronous.
+// builds the branch is dead code and dropped.
+//
+// The adapter is installed synchronously and defers to the module promise per
+// request. Awaiting the import at the top level instead would make the whole
+// entry graph block on this module, so anything the demo dataset imports that
+// also lives in the entry chunk would deadlock evaluation and leave the app
+// mounted-but-empty.
 if (import.meta.env.VITE_DEMO === 'true') {
-  const { default: mockAdapter } = await import('./demo/mockAdapter');
-  apiClient.defaults.adapter = mockAdapter;
+  const mockAdapterReady = import('./demo/mockAdapter').then((m) => m.default);
+  apiClient.defaults.adapter = (config) => mockAdapterReady.then((adapter) => adapter(config));
 }
 
 apiClient.interceptors.request.use(
