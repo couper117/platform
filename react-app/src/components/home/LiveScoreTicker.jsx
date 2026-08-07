@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { getLiveScores } from '../../api/endpoints/fixtures';
 import Pusher from 'pusher-js';
 
 const LiveScoreTicker = () => {
+  const { t } = useTranslation();
   const { data: initialScores } = useQuery({
     queryKey: ['live-scores-ticker'],
     queryFn: getLiveScores,
@@ -49,7 +51,7 @@ const LiveScoreTicker = () => {
           >
             <div className="flex items-center space-x-2">
               <span className="w-1.5 h-1.5 bg-red rounded-full animate-pulse" />
-              <span className="text-[10px] font-bold text-red uppercase italic">Live</span>
+              <span className="text-[10px] font-bold text-red uppercase italic">{t('match.live')}</span>
             </div>
             
             <div className="flex items-center space-x-3">

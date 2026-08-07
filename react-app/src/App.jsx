@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { HelmetProvider } from 'react-helmet-async';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { useTranslation } from 'react-i18next';
+import i18n from './i18n';
 import { ThemeProvider } from './context/ThemeContext';
 import { CommandPaletteProvider } from './context/CommandPaletteContext';
 import CommandPalette from './components/shared/CommandPalette';
@@ -65,6 +67,25 @@ const queryClient = new QueryClient({
   },
 });
 
+const LanguageSync = () => {
+  useEffect(() => {
+    const onLanguageChanged = () => queryClient.invalidateQueries();
+    i18n.on('languageChanged', onLanguageChanged);
+    return () => i18n.off('languageChanged', onLanguageChanged);
+  }, []);
+
+  return null;
+};
+
+const PlaceholderPage = ({ tKey }) => {
+  const { t } = useTranslation();
+  return (
+    <div className="p-20 font-display text-3xl text-center opacity-20 py-40 uppercase tracking-widest">
+      {t(tKey)}
+    </div>
+  );
+};
+
 const RouteWatcher = ({ children }) => {
   const location = useLocation();
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -106,6 +127,7 @@ function App() {
     <HelmetProvider>
       <ThemeProvider>
       <QueryClientProvider client={queryClient}>
+        <LanguageSync />
         {showSplash && <SplashScreen />}
         <BrowserRouter>
         <CommandPaletteProvider>
@@ -120,8 +142,8 @@ function App() {
               <Route path="/leagues/:id" element={<LeagueDetailsPage />} />
               <Route path="/fixtures" element={<FixturesPage />} />
               <Route path="/results" element={<FixturesPage />} />
-              <Route path="/news" element={<div className="p-20 font-display text-3xl text-center opacity-20 py-40 italic">RwaSport News Center</div>} />
-              <Route path="/news/:slug" element={<div className="p-20 font-display text-3xl">Article Page</div>} />
+              <Route path="/news" element={<PlaceholderPage tKey="news.center" />} />
+              <Route path="/news/:slug" element={<PlaceholderPage tKey="news.article" />} />
               <Route path="/matches/:id" element={<MatchDetailsPage />} />
               
               {/* Amashuri Games — Rwanda Inter-School Sports (umbrella incl. Kagame Cup) */}
@@ -142,7 +164,7 @@ function App() {
               <Route path="/akc3/results" element={<Navigate to="/amashuri/results" replace />} />
               <Route path="/akc3/standings" element={<Navigate to="/amashuri/standings" replace />} />
               
-              <Route path="/contact" element={<div className="p-20 font-display text-3xl text-center opacity-20 py-40 italic">Support Center</div>} />
+              <Route path="/contact" element={<PlaceholderPage tKey="support.center" />} />
             </Route>
 
             {/* Auth Routes */}
@@ -170,10 +192,10 @@ function App() {
             <Route path="/team" element={<TeamLayout />}>
               <Route index element={<Navigate to="/team/dashboard" replace />} />
               <Route path="dashboard" element={<TeamDashboard />} />
-              <Route path="players" element={<div className="font-display text-3xl uppercase opacity-20 py-20 uppercase">Roster Management</div>} />
-              <Route path="documents" element={<div className="font-display text-3xl uppercase opacity-20 py-20 uppercase">Document Uploads</div>} />
-              <Route path="fixtures" element={<div className="font-display text-3xl uppercase opacity-20 py-20 uppercase">Team Schedule</div>} />
-              <Route path="profile" element={<div className="font-display text-3xl uppercase opacity-20 py-20 uppercase">Club Profile</div>} />
+              <Route path="players" element={<PlaceholderPage tKey="team.roster_management" />} />
+              <Route path="documents" element={<PlaceholderPage tKey="team.document_uploads" />} />
+              <Route path="fixtures" element={<PlaceholderPage tKey="team.team_schedule" />} />
+              <Route path="profile" element={<PlaceholderPage tKey="team.club_profile" />} />
             </Route>
 
             {/* Match Reporter Portal */}

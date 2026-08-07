@@ -40,11 +40,11 @@ const AkcHome = () => {
 
   return (
     <div className="bg-surface-2 dark:bg-surface-dark min-h-screen pb-24">
-      <Seo title="Amashuri Games — Rwanda Inter-School Sports" description="The home of every Rwandan school championship, from the Kagame Cup to district and provincial leagues." />
+      <Seo title={t('seo.amashuri_home_title')} description={t('seo.amashuri_home_desc')} />
 
       <AmashuriHero
-        title="Amashuri"
-        accent="Games"
+        title={t('amashuri.hero_title')}
+        accent={t('amashuri.hero_accent')}
         subtitle={t('amashuri.subtitle')}
       >
         <div className="flex flex-col sm:flex-row gap-3 pt-4">

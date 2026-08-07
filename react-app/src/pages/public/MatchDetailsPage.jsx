@@ -6,7 +6,8 @@ import { motion } from 'framer-motion';
 import {
   Trophy, Clock, MapPin, ChevronLeft, Calendar, Users, Play, Award, Wifi,
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { useEnumLabel } from '../../i18n/enums';
+import { useDateFormat } from '../../i18n/dateLocale';
 import { getFixture } from '../../api/endpoints/fixtures';
 import useLiveMatch from '../../hooks/useLiveMatch';
 import ResponsiveWrapper from '../../components/shared/ResponsiveWrapper';
@@ -64,6 +65,8 @@ const TeamBadge = ({ team, size = 'lg' }) => {
 
 const MatchDetailsPage = () => {
   const { t } = useTranslation();
+  const enumLabel = useEnumLabel();
+  const formatDate = useDateFormat();
   const { id } = useParams();
   const [tab, setTab] = useState('timeline');
 
@@ -116,7 +119,10 @@ const MatchDetailsPage = () => {
 
   return (
     <div className="bg-surface-2 dark:bg-surface-dark min-h-screen pb-24">
-      <Seo title={`${m.homeTeam?.name} vs ${m.awayTeam?.name}`} description={`Live coverage of ${m.homeTeam?.name} vs ${m.awayTeam?.name}.`} />
+      <Seo
+        title={t('seo.match_title', { home: m.homeTeam?.name, away: m.awayTeam?.name })}
+        description={t('seo.match_desc', { home: m.homeTeam?.name, away: m.awayTeam?.name })}
+      />
 
       {/* Breadcrumb */}
       <div className="bg-surface-dark border-b border-white/5 py-4">
@@ -142,13 +148,13 @@ const MatchDetailsPage = () => {
                   <LiveBadge minute={live.minute} />
                   {connected && (
                     <span className="flex items-center gap-1 text-[9px] uppercase tracking-widest text-green/80">
-                      <Wifi size={11} /> Real-time
+                      <Wifi size={11} /> {t('match.real_time')}
                     </span>
                   )}
                 </div>
               ) : (
                 <span className="text-xs font-bold uppercase tracking-widest opacity-40">
-                  {isCompleted ? 'Full Time' : live.status}
+                  {isCompleted ? t('match.full_time') : enumLabel('match_status', live.status)}
                 </span>
               )}
             </div>
@@ -174,8 +180,8 @@ const MatchDetailsPage = () => {
 
             {/* Info bar */}
             <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-[10px] font-bold uppercase tracking-widest text-white/50 border-t border-white/5 pt-8 w-full">
-              <span className="flex items-center gap-2"><Calendar size={14} className="text-red" />{m.matchDate ? format(new Date(m.matchDate), 'dd MMM yyyy') : 'TBD'}</span>
-              <span className="flex items-center gap-2"><Clock size={14} className="text-red" />{m.matchDate ? format(new Date(m.matchDate), 'HH:mm') : 'TBD'} CAT</span>
+              <span className="flex items-center gap-2"><Calendar size={14} className="text-red" />{formatDate(m.matchDate, 'dd MMM yyyy') || t('common.tbd')}</span>
+              <span className="flex items-center gap-2"><Clock size={14} className="text-red" />{formatDate(m.matchDate, 'HH:mm') || t('common.tbd')} CAT</span>
               <span className="flex items-center gap-2"><MapPin size={14} className="text-red" />{m.venue || 'TBD'}</span>
               {m.referee && <span className="flex items-center gap-2"><Award size={14} className="text-red" />REF: {m.referee}</span>}
             </div>
@@ -234,7 +240,7 @@ const MatchDetailsPage = () => {
                     ))}
                   </ul>
                 ) : (
-                  <EmptyState icon={Users} title="No lineup yet" hint="Team sheet not published." className="py-10" />
+                  <EmptyState icon={Users} title={t('match.no_lineup')} hint={t('match.no_lineup_hint')} className="py-10" />
                 )}
               </Card>
             ))}
@@ -246,13 +252,13 @@ const MatchDetailsPage = () => {
           <Card className="p-6 sm:p-8 max-w-2xl mx-auto">
             <div className="flex items-center justify-between mb-6 text-[10px] uppercase tracking-widest font-bold">
               <span className="text-red truncate max-w-[40%]">{m.homeTeam?.name}</span>
-              <span className="opacity-40">Match Stats</span>
+              <span className="opacity-40">{t('match.match_stats')}</span>
               <span className="text-rwanda-blue truncate max-w-[40%] text-right">{m.awayTeam?.name}</span>
             </div>
             <div className="space-y-5">
-              <StatBar label="Goals" home={stats.goals[0]} away={stats.goals[1]} />
-              <StatBar label="Yellow Cards" home={stats.yellow[0]} away={stats.yellow[1]} />
-              <StatBar label="Red Cards" home={stats.red[0]} away={stats.red[1]} />
+              <StatBar label={t('match.goals')} home={stats.goals[0]} away={stats.goals[1]} />
+              <StatBar label={t('match.yellow_cards')} home={stats.yellow[0]} away={stats.yellow[1]} />
+              <StatBar label={t('match.red_cards')} home={stats.red[0]} away={stats.red[1]} />
             </div>
             <p className="mt-6 text-[10px] uppercase tracking-widest opacity-30 text-center">
               Derived live from match events

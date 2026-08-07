@@ -31,7 +31,7 @@ const AkcFixturesPage = () => {
 
   return (
     <div className="bg-surface-2 dark:bg-surface-dark min-h-screen pb-24">
-      <Seo title="Schedule — Amashuri Games" description="Fixtures, live matches and results across Rwanda's inter-school championships." />
+      <Seo title={t('seo.amashuri_fixtures_title')} description={t('seo.amashuri_fixtures_desc')} />
 
       <AmashuriHero
         eyebrow={t('amashuri.schedule.eyebrow')}

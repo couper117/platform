@@ -31,7 +31,7 @@ const HomePage = () => {
 
   return (
     <div className="space-y-0">
-      <Seo title="Home" description="Experience the heartbeat of Rwandan sports." />
+      <Seo title={t('seo.home_title')} description={t('seo.home_desc')} />
       {/* 1. AD SPACE BELOW NAV */}
       <AdBanner position="HOME_BANNER" />
 
@@ -62,7 +62,7 @@ const HomePage = () => {
             <div className="lg:col-span-7 space-y-8 animate-in fade-in slide-in-from-left-4 duration-1000">
               <div className="inline-flex items-center space-x-2 bg-red/10 border border-red/20 px-4 py-1.5 rounded-full">
                 <span className="w-2 h-2 bg-red rounded-full animate-pulse" />
-                <span className="text-[10px] font-bold text-red uppercase tracking-widest italic">RwaSport Official</span>
+                <span className="text-[10px] font-bold text-red uppercase tracking-widest italic">{t('home.rwasport_official')}</span>
               </div>
               
               <h1 className="text-6xl sm:text-8xl md:text-9xl font-display text-white leading-[0.85] tracking-tighter uppercase whitespace-pre-line">
@@ -82,7 +82,7 @@ const HomePage = () => {
 
             {/* Right: Integrated Matches */}
             <div className="lg:col-span-5 space-y-6 animate-in fade-in slide-in-from-right-4 duration-1000 delay-300">
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/40 border-b border-white/10 pb-3">Match Spotlight</h3>
+              <h3 className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/40 border-b border-white/10 pb-3">{t('home.match_spotlight')}</h3>
 
               <div className="space-y-4">
                 {fixturesLoading ? (
@@ -96,7 +96,7 @@ const HomePage = () => {
                 ) : (
                   <div className="py-12 bg-white/5 rounded-3xl border border-white/10 flex flex-col items-center justify-center text-center space-y-3 opacity-30">
                     <Activity size={32} />
-                    <span className="font-display text-xl uppercase tracking-widest">No Active Matches</span>
+                    <span className="font-display text-xl uppercase tracking-widest">{t('home.no_active_matches')}</span>
                   </div>
                 )}
               </div>
@@ -117,7 +117,7 @@ const HomePage = () => {
         <ResponsiveWrapper>
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 space-y-4 md:space-y-0">
             <div className="space-y-2">
-              <h2 className="text-[10px] uppercase font-bold tracking-[0.4em] text-red">Bulletin</h2>
+              <h2 className="text-[10px] uppercase font-bold tracking-[0.4em] text-red">{t('home.bulletin')}</h2>
               <h3 className="text-4xl sm:text-5xl font-display uppercase tracking-tight">{t('home.latest_headlines')}</h3>
             </div>
             <Link to="/news" className="group flex items-center space-x-2 text-[10px] font-bold uppercase tracking-widest text-surface-dark/40 dark:text-white/40 hover:text-red transition-colors">

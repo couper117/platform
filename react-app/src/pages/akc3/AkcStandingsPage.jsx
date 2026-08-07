@@ -34,7 +34,7 @@ const AkcStandingsPage = () => {
 
   return (
     <div className="bg-surface-2 dark:bg-surface-dark min-h-screen pb-24">
-      <Seo title="Standings — Amashuri Games" description="Competitive rankings across Rwanda's inter-school championships." />
+      <Seo title={t('seo.amashuri_standings_title')} description={t('seo.amashuri_standings_desc')} />
 
       <AmashuriHero
         title={t('amashuri.standings.title')}

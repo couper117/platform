@@ -5,19 +5,23 @@ import { useTranslation } from 'react-i18next';
 import useAuthStore from '../../store/authStore';
 import ThemeToggle from '../ui/ThemeToggle';
 import { useCommandPalette } from '../../context/CommandPaletteContext';
+import { SUPPORTED_LANGUAGES, changeLanguage as applyLanguage } from '../../i18n';
+import { useEnumLabel } from '../../i18n/enums';
 
 const Navbar = () => {
   const { t, i18n } = useTranslation();
+  const enumLabel = useEnumLabel();
   const { isAuthenticated, user, logout, role } = useAuthStore();
   const { openPalette } = useCommandPalette();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
 
   const changeLanguage = (lng) => {
-    i18n.changeLanguage(lng);
-    localStorage.setItem('rnsp-lang', lng);
+    applyLanguage(lng);
     setIsLangOpen(false);
   };
+
+  const activeLanguage = SUPPORTED_LANGUAGES.find((l) => l.code === i18n.language) || SUPPORTED_LANGUAGES[0];
 
   const navLinks = [
     { to: '/', label: t('nav.home'), icon: <Home size={16} /> },
@@ -26,13 +30,6 @@ const Navbar = () => {
     { to: '/results', label: t('nav.results') },
     { to: '/news', label: t('nav.news') },
     { to: '/amashuri', label: t('nav.amashuri'), highlight: true },
-  ];
-
-  const languages = [
-    { code: 'en', label: 'English' },
-    { code: 'fr', label: 'Français' },
-    { code: 'rw', label: 'Kinyarwanda' },
-    { code: 'sw', label: 'Kiswahili' },
   ];
 
   return (
@@ -44,7 +41,7 @@ const Navbar = () => {
             <span className="text-xl font-display leading-none text-white uppercase tracking-tighter">RwaSport</span>
           </div>
           <span className="hidden sm:inline text-[10px] border-l border-white/20 pl-2 opacity-50 uppercase tracking-[0.2em] font-medium">
-            Rwanda National <br/> Sports Platform
+            {t('brand.tagline')}
           </span>
         </Link>
 
@@ -69,10 +66,10 @@ const Navbar = () => {
           <button
             onClick={openPalette}
             className="hidden md:flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-full bg-white/5 border border-white/10 text-white/40 hover:text-white hover:border-white/20 transition-colors cursor-pointer"
-            aria-label="Search"
+            aria-label={t('common.search')}
           >
             <Search size={14} />
-            <span className="text-[10px] uppercase tracking-widest">Search</span>
+            <span className="text-[10px] uppercase tracking-widest">{t('common.search')}</span>
             <kbd className="text-[9px] font-bold bg-white/10 rounded px-1.5 py-0.5 leading-none">⌘K</kbd>
           </button>
 
@@ -80,7 +77,7 @@ const Navbar = () => {
           <button
             onClick={openPalette}
             className="md:hidden p-2 rounded-full text-white/60 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
-            aria-label="Search"
+            aria-label={t('common.search')}
           >
             <Search size={18} />
           </button>
@@ -93,13 +90,14 @@ const Navbar = () => {
             <button 
               onClick={() => setIsLangOpen(!isLangOpen)}
               className="p-2 hover:bg-white/5 rounded-full text-white/60 hover:text-white transition-all flex items-center space-x-1"
+              aria-label={t('common.language')}
             >
               <Languages size={18} />
-              <span className="text-[10px] font-bold uppercase">{i18n.language}</span>
+              <span className="text-[10px] font-bold uppercase">{activeLanguage.short}</span>
             </button>
             {isLangOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-surface-dark border border-white/10 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                {languages.map(lang => (
+                {SUPPORTED_LANGUAGES.map(lang => (
                   <button
                     key={lang.code}
                     onClick={() => changeLanguage(lang.code)}
@@ -172,15 +170,15 @@ const Navbar = () => {
 
             {/* Mobile Appearance */}
             <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
-              <span className="text-[10px] uppercase font-bold tracking-[0.3em] text-white/40">Appearance</span>
+              <span className="text-[10px] uppercase font-bold tracking-[0.3em] text-white/40">{t('common.appearance')}</span>
               <ThemeToggle />
             </div>
 
             {/* Mobile Language Switcher */}
             <div className="space-y-4">
-              <h3 className="text-[10px] uppercase font-bold tracking-[0.3em] text-white/30">Language</h3>
+              <h3 className="text-[10px] uppercase font-bold tracking-[0.3em] text-white/30">{t('common.language')}</h3>
               <div className="grid grid-cols-2 gap-2">
-                {languages.map(lang => (
+                {SUPPORTED_LANGUAGES.map(lang => (
                   <button
                     key={lang.code}
                     onClick={() => changeLanguage(lang.code)}
@@ -201,7 +199,7 @@ const Navbar = () => {
                     </div>
                     <div>
                       <p className="font-display text-xl leading-none">{user.fullName}</p>
-                      <p className="text-[10px] uppercase tracking-widest text-white/40">{role.replace('_', ' ')}</p>
+                      <p className="text-[10px] uppercase tracking-widest text-white/40">{enumLabel('role', role)}</p>
                     </div>
                   </div>
                   <Link 

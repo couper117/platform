@@ -37,7 +37,10 @@ const SchoolProfilePage = () => {
 
   return (
     <div className="bg-surface-2 dark:bg-surface-dark min-h-screen pb-24">
-      <Seo title={`${s?.name || 'School'} — Amashuri Games`} description={`${s?.name} teams, fixtures and results in Rwanda's inter-school championships.`} />
+      <Seo
+        title={t('seo.school_profile_title', { school: s?.name || t('amashuri.school') })}
+        description={t('seo.school_profile_desc', { school: s?.name || t('amashuri.school') })}
+      />
 
       {/* Header */}
       <section className="bg-rwanda-blue py-16 sm:py-20 text-white relative overflow-hidden">

@@ -1,7 +1,9 @@
 import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Clock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { eventMeta } from './matchEventMeta';
+import { useEnumLabel } from '../../i18n/enums';
 import EmptyState from '../ui/EmptyState';
 
 /**
@@ -9,8 +11,11 @@ import EmptyState from '../ui/EmptyState';
  * live match center). `homeTeamId` decides which side an event renders on.
  */
 const MatchEventTimeline = ({ events = [], homeTeamId }) => {
+  const { t } = useTranslation();
+  const enumLabel = useEnumLabel();
+
   if (!events.length) {
-    return <EmptyState icon={Clock} title="Awaiting kick-off" hint="Live events will appear here as the match unfolds." />;
+    return <EmptyState icon={Clock} title={t('match.awaiting_kickoff')} hint={t('match.awaiting_hint')} />;
   }
 
   // Newest first; if minutes are present, keep chronological-desc ordering.
@@ -37,7 +42,9 @@ const MatchEventTimeline = ({ events = [], homeTeamId }) => {
               {/* Card */}
               <div className={`flex-1 ${isHome ? 'sm:pr-8 sm:text-right' : 'sm:pl-8 sm:text-left'}`}>
                 <div className={`inline-flex flex-col gap-0.5 rounded-2xl border p-3 sm:p-4 w-full sm:w-auto ${meta.ring} ${meta.major ? 'shadow-sm' : ''} ${isHome ? 'sm:items-end' : 'sm:items-start'}`}>
-                  <span className={`text-[10px] font-bold uppercase tracking-widest ${meta.color}`}>{meta.label}</span>
+                  <span className={`text-[10px] font-bold uppercase tracking-widest ${meta.color}`}>
+                    {enumLabel('event_type', event.eventType, t('match.event'))}
+                  </span>
                   {event.player?.fullName && (
                     <span className="font-display uppercase tracking-tight text-sm text-surface-dark dark:text-white">{event.player.fullName}</span>
                   )}

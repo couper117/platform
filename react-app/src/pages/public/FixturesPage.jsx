@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Calendar, Search, Filter, ChevronLeft, ChevronRight, Activity } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { getFixtures } from '../../api/endpoints/fixtures';
 import { getLeagues } from '../../api/endpoints/leagues';
 import ResponsiveWrapper from '../../components/shared/ResponsiveWrapper';
@@ -10,6 +11,7 @@ import Skeleton from '../../components/shared/Skeleton';
 import { format, addDays, subDays } from 'date-fns';
 
 const FixturesPage = () => {
+  const { t } = useTranslation();
   const location = useLocation();
   const isResultsPage = location.pathname === '/results';
   
@@ -42,12 +44,13 @@ const FixturesPage = () => {
         <ResponsiveWrapper className="relative z-10 space-y-4">
           <div className="inline-flex items-center space-x-2 bg-red/10 border border-red/20 px-4 py-1 rounded-full mb-2">
             <Activity size={12} className="text-red animate-pulse" />
-            <span className="text-[10px] font-bold text-red uppercase tracking-widest">Live Match Center</span>
+            <span className="text-[10px] font-bold text-red uppercase tracking-widest">{t('fixtures.live_match_center')}</span>
           </div>
           <h1 className="text-5xl sm:text-7xl font-display text-white uppercase tracking-tighter">
-            {isResultsPage ? 'Match' : 'Upcoming'} <span className="text-red">{isResultsPage ? 'Results' : 'Fixtures'}</span>
+            {isResultsPage ? t('fixtures.results_title') : t('fixtures.upcoming_title')}{' '}
+            <span className="text-red">{isResultsPage ? t('fixtures.results_accent') : t('fixtures.upcoming_accent')}</span>
           </h1>
-          <p className="text-white/40 uppercase tracking-[0.3em] text-[10px] font-bold">Every match, every goal, every moment</p>
+          <p className="text-white/40 uppercase tracking-[0.3em] text-[10px] font-bold">{t('fixtures.subtitle')}</p>
         </ResponsiveWrapper>
       </section>
 
@@ -62,8 +65,9 @@ const FixturesPage = () => {
                 className="bg-transparent border-none text-[11px] font-bold uppercase tracking-widest focus:ring-0 cursor-pointer p-0"
                 value={filters.leagueId}
                 onChange={(e) => setFilters(prev => ({ ...prev, leagueId: e.target.value }))}
+                aria-label={t('fixtures.filter_league')}
               >
-                <option value="">All Leagues</option>
+                <option value="">{t('fixtures.all_leagues')}</option>
                 {leagues?.data?.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
               </select>
             </div>
@@ -76,20 +80,20 @@ const FixturesPage = () => {
                 onClick={() => setFilters(prev => ({ ...prev, status: 'SCHEDULED' }))}
                 className={`text-[11px] font-bold uppercase tracking-widest transition-colors ${filters.status === 'SCHEDULED' ? 'text-red underline underline-offset-8 decoration-2' : 'opacity-40 hover:opacity-100'}`}
               >
-                Upcoming
+                {t('fixtures.tab_upcoming')}
               </button>
               <button 
                 onClick={() => setFilters(prev => ({ ...prev, status: 'LIVE' }))}
                 className={`text-[11px] font-bold uppercase tracking-widest transition-colors flex items-center space-x-1 ${filters.status === 'LIVE' ? 'text-red underline underline-offset-8 decoration-2' : 'opacity-40 hover:opacity-100'}`}
               >
                 {filters.status === 'LIVE' && <span className="w-1 h-1 bg-red rounded-full animate-pulse" />}
-                <span>Live</span>
+                <span>{t('match.live')}</span>
               </button>
               <button 
                 onClick={() => setFilters(prev => ({ ...prev, status: 'COMPLETED' }))}
                 className={`text-[11px] font-bold uppercase tracking-widest transition-colors ${filters.status === 'COMPLETED' ? 'text-red underline underline-offset-8 decoration-2' : 'opacity-40 hover:opacity-100'}`}
               >
-                Results
+                {t('nav.results')}
               </button>
             </div>
 
@@ -98,7 +102,7 @@ const FixturesPage = () => {
             {/* Date Filter (Simplified) */}
             <div className="flex items-center space-x-3 flex-shrink-0 text-[11px] font-bold uppercase tracking-widest opacity-60">
               <Calendar size={14} className="text-red" />
-              <span>All Dates</span>
+              <span>{t('fixtures.all_dates')}</span>
             </div>
           </div>
         </ResponsiveWrapper>
@@ -125,14 +129,14 @@ const FixturesPage = () => {
               <Search size={32} />
             </div>
             <div className="space-y-2">
-              <h3 className="text-3xl font-display uppercase tracking-tight opacity-40">No Matches Found</h3>
-              <p className="text-sm opacity-30 uppercase tracking-widest">There are no matches matching your current criteria.</p>
+              <h3 className="text-3xl font-display uppercase tracking-tight opacity-40">{t('fixtures.none')}</h3>
+              <p className="text-sm opacity-30 uppercase tracking-widest">{t('fixtures.none_hint')}</p>
             </div>
             <button 
               onClick={() => setFilters({ status: isResultsPage ? 'COMPLETED' : 'SCHEDULED', leagueId: '', from: '', to: '' })}
               className="text-[10px] font-bold uppercase tracking-widest text-red hover:underline"
             >
-              Reset Filters
+              {t('common.reset_filters')}
             </button>
           </div>
         )}

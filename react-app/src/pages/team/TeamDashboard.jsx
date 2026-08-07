@@ -2,12 +2,17 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Users, FileText, Activity, AlertCircle, Plus, ChevronRight, Trophy } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import useAuthStore from '../../store/authStore';
 import apiClient from '../../api/client';
+import { useEnumLabel } from '../../i18n/enums';
 import Skeleton from '../../components/shared/Skeleton';
 import FixtureCard from '../../components/shared/FixtureCard';
 
 const TeamDashboard = () => {
+  const { t } = useTranslation();
+  const enumLabel = useEnumLabel();
+
   const { data: team, isLoading: teamLoading } = useQuery({
     queryKey: ['team-dashboard-data'],
     queryFn: async () => {
@@ -53,17 +58,17 @@ const TeamDashboard = () => {
           <div className="space-y-1">
             <div className="flex items-center space-x-2">
               <span className={`text-[8px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest ${team?.status === 'VERIFIED' ? 'bg-green/10 text-green border border-green/20' : 'bg-gold/10 text-gold border border-gold/20'}`}>
-                {team?.status}
+                {enumLabel('team_status', team?.status)}
               </span>
             </div>
             <h1 className="text-4xl font-display uppercase tracking-tighter leading-none">{team?.name}</h1>
-            <p className="text-[10px] uppercase font-bold tracking-widest opacity-40 italic">Club Management Portal</p>
+            <p className="text-[10px] uppercase font-bold tracking-widest opacity-40 italic">{t('team.club_management_portal')}</p>
           </div>
         </div>
         
         <Link to="/team/players/new" className="bg-red text-white px-8 py-3 rounded-xl font-display text-lg uppercase tracking-widest hover:bg-red-dark transition-all shadow-xl shadow-red/20 flex items-center space-x-2">
           <Plus size={20} />
-          <span>Register Athlete</span>
+          <span>{t('team.register_athlete')}</span>
         </Link>
       </div>
 
@@ -72,7 +77,7 @@ const TeamDashboard = () => {
         <div className="bg-white dark:bg-surface-dark2 p-6 rounded-3xl border border-surface-3 dark:border-white/5 space-y-2">
           <div className="flex items-center space-x-3 text-red">
             <Users size={20} />
-            <span className="text-[10px] font-bold uppercase tracking-widest">Roster Size</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest">{t('team.roster_size')}</span>
           </div>
           <p className="text-4xl font-display">{team?.players?.length || 0}</p>
         </div>
@@ -80,7 +85,7 @@ const TeamDashboard = () => {
         <div className="bg-white dark:bg-surface-dark2 p-6 rounded-3xl border border-surface-3 dark:border-white/5 space-y-2">
           <div className="flex items-center space-x-3 text-red">
             <FileText size={20} />
-            <span className="text-[10px] font-bold uppercase tracking-widest">Missing Docs</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest">{t('team.missing_docs')}</span>
           </div>
           <p className="text-4xl font-display text-gold">{missingDocsCount}</p>
         </div>
@@ -88,9 +93,9 @@ const TeamDashboard = () => {
         <div className="bg-white dark:bg-surface-dark2 p-6 rounded-3xl border border-surface-3 dark:border-white/5 space-y-2">
           <div className="flex items-center space-x-3 text-red">
             <Activity size={20} />
-            <span className="text-[10px] font-bold uppercase tracking-widest">Next Match</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest">{t('team.next_match')}</span>
           </div>
-          <p className="text-4xl font-display">{daysUntilMatch}{typeof daysUntilMatch === 'number' ? 'd' : ''}</p>
+          <p className="text-4xl font-display">{daysUntilMatch}{typeof daysUntilMatch === 'number' ? t('team.days_suffix') : ''}</p>
         </div>
       </div>
 
@@ -99,8 +104,8 @@ const TeamDashboard = () => {
         <div className="bg-gold/10 border border-gold/20 p-6 rounded-3xl flex items-center space-x-6 text-gold animate-pulse">
           <AlertCircle size={32} />
           <div className="space-y-1">
-            <h3 className="font-display text-xl uppercase leading-none">Account Pending Approval</h3>
-            <p className="text-xs font-bold uppercase tracking-widest opacity-60">Upload your club certification documents to unlock all features.</p>
+            <h3 className="font-display text-xl uppercase leading-none">{t('team.pending_approval')}</h3>
+            <p className="text-xs font-bold uppercase tracking-widest opacity-60">{t('team.pending_approval_hint')}</p>
           </div>
         </div>
       )}
@@ -110,8 +115,8 @@ const TeamDashboard = () => {
         {/* Roster Preview */}
         <div className="space-y-6">
           <div className="flex items-center justify-between border-b border-surface-3 dark:border-white/5 pb-4">
-            <h2 className="text-2xl font-display uppercase tracking-tight">Recent Athletes</h2>
-            <Link to="/team/players" className="text-[10px] font-bold uppercase tracking-widest text-red hover:underline">View Full Roster</Link>
+            <h2 className="text-2xl font-display uppercase tracking-tight">{t('team.recent_athletes')}</h2>
+            <Link to="/team/players" className="text-[10px] font-bold uppercase tracking-widest text-red hover:underline">{t('team.view_full_roster')}</Link>
           </div>
           <div className="space-y-3">
             {team?.players?.slice(0, 5).map(player => (
@@ -122,11 +127,11 @@ const TeamDashboard = () => {
                   </div>
                   <div>
                     <p className="text-sm font-bold uppercase tracking-tight">{player.fullName}</p>
-                    <p className="text-[10px] opacity-40 uppercase tracking-widest">{player.position} • No. {player.jerseyNumber}</p>
+                    <p className="text-[10px] opacity-40 uppercase tracking-widest">{enumLabel('position', player.position)} • {t('team.jersey_no', { number: player.jerseyNumber })}</p>
                   </div>
                 </div>
                 <div className={`text-[8px] font-bold px-2 py-1 rounded-full uppercase ${player.status === 'VERIFIED' ? 'text-green' : 'text-gold'}`}>
-                  {player.status}
+                  {enumLabel('player_status', player.status)}
                 </div>
               </div>
             ))}
@@ -136,15 +141,15 @@ const TeamDashboard = () => {
         {/* Schedule Preview */}
         <div className="space-y-6">
           <div className="flex items-center justify-between border-b border-surface-3 dark:border-white/5 pb-4">
-            <h2 className="text-2xl font-display uppercase tracking-tight">Upcoming Schedule</h2>
-            <Link to="/team/fixtures" className="text-[10px] font-bold uppercase tracking-widest text-red hover:underline">View Calendar</Link>
+            <h2 className="text-2xl font-display uppercase tracking-tight">{t('team.upcoming_schedule')}</h2>
+            <Link to="/team/fixtures" className="text-[10px] font-bold uppercase tracking-widest text-red hover:underline">{t('team.view_calendar')}</Link>
           </div>
           <div className="space-y-4">
             {fixtures?.length > 0 ? fixtures.map(f => (
               <FixtureCard key={f.id} fixture={f} showLeague={true} />
             )) : (
               <div className="py-20 text-center opacity-20 border-2 border-dashed border-surface-3 dark:border-white/5 rounded-3xl">
-                <p className="font-display text-xl uppercase tracking-widest">No Matches Scheduled</p>
+                <p className="font-display text-xl uppercase tracking-widest">{t('team.no_matches')}</p>
               </div>
             )}
           </div>

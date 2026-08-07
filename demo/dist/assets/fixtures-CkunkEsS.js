@@ -1,0 +1,1 @@
+import{b as e}from"./index-6hiu0Dbe.js";const r=async(t={})=>{const{data:a}=await e.get("/fixtures",{params:t});return a},i=async t=>{const{data:a}=await e.get(`/fixtures/${t}`);return a};export{i as a,r as g};

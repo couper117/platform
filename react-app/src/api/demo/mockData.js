@@ -4,6 +4,8 @@
  * Shapes mirror what the API controllers return ({ data: [...] }, detail objects, etc.).
  */
 
+import i18n from '../../i18n';
+
 const now = Date.now();
 const days = (n) => new Date(now + n * 86400000).toISOString();
 const hours = (n) => new Date(now + n * 3600000).toISOString();
@@ -117,11 +119,23 @@ export const activityLogs = Array.from({ length: 20 }, (_, i) => ({
   pagePath: PATHS[i % PATHS.length],
 }));
 
+const article = (id, slug, key, coverId, ageInDays, authorName, category) => ({
+  id,
+  slug,
+  category,
+  coverImage: img(coverId),
+  createdAt: days(ageInDays),
+  author: { fullName: authorName },
+  get title() { return i18n.t(`demo.news.${key}.title`); },
+  get excerpt() { return i18n.t(`demo.news.${key}.excerpt`); },
+  get body() { return i18n.t(`demo.news.${key}.body`); },
+});
+
 export const news = [
-  { id: 1, slug: 'apr-clinch-derby', title: 'APR Clinch the Kigali Derby in Style', category: 'Match Report', coverImage: img('1551958219-acbc608c6377'), createdAt: days(-1), author: { fullName: 'Eric Niyonzima' }, excerpt: 'A second-half surge sealed a memorable derby night at Amahoro Stadium.', body: 'A second-half surge sealed a memorable derby night at Amahoro Stadium, with the champions reasserting their dominance in front of a roaring home crowd.' },
-  { id: 2, slug: 'rayon-sign-striker', title: 'Rayon Sports Complete Marquee Striker Signing', category: 'Transfers', coverImage: img('1431324155629-1a6deb1dec8d'), createdAt: days(-2), author: { fullName: 'Aline Uwase' }, excerpt: 'The Blues bolster their attack ahead of the title run-in.', body: 'The Blues have bolstered their attacking options ahead of a crucial title run-in, announcing the capture of one of the league\'s most prolific forwards.' },
-  { id: 3, slug: 'kagame-cup-preview', title: 'Kagame Cup: Schools Gear Up for National Finals', category: 'Amashuri', coverImage: img('1459865264687-595d652de67e'), createdAt: days(-3), author: { fullName: 'Jean Damascene' }, excerpt: 'The road to the national schools championship reaches its climax.', body: 'The road to the national schools championship reaches its climax this month as district winners converge on Kigali for the final stages.' },
-  { id: 4, slug: 'volleyball-league-roundup', title: "Women's Volleyball League Weekend Roundup", category: 'Roundup', coverImage: img('1612872087720-bb876e2e67d1'), createdAt: days(-5), author: { fullName: 'Claudine Mukamana' }, excerpt: 'Title contenders trade blows in a thrilling weekend of action.', body: 'Title contenders traded blows in a thrilling weekend of action, leaving the championship race finely poised heading into the final rounds.' },
+  article(1, 'apr-clinch-derby', 'derby', '1551958219-acbc608c6377', -1, 'Eric Niyonzima', 'MATCH_REPORT'),
+  article(2, 'rayon-sign-striker', 'striker', '1431324155629-1a6deb1dec8d', -2, 'Aline Uwase', 'TRANSFERS'),
+  article(3, 'kagame-cup-preview', 'kagame_cup', '1459865264687-595d652de67e', -3, 'Jean Damascene', 'AMASHURI'),
+  article(4, 'volleyball-league-roundup', 'volleyball', '1612872087720-bb876e2e67d1', -5, 'Claudine Mukamana', 'ROUNDUP'),
 ];
 
 // Flat ad list (admin) + position lookup (public banners).
@@ -133,7 +147,7 @@ export const adsList = [
 
 export const settings = {
   site_name: 'RwaSport',
-  hero_title: 'The Heartbeat of Rwandan Sport',
+  get hero_title() { return i18n.t('demo.settings.hero_title'); },
   contact_email: 'info@rwasport.rw',
   support_phone: '+250 788 000 000',
 };
@@ -171,9 +185,9 @@ export const akcTeams = [
 ];
 
 export const akcCompetitions = [
-  { id: 1, name: 'Kagame Cup Schools', edition: '2026 Edition', status: 'ONGOING', level: 'National', venue: 'Amahoro Stadium', startDate: days(-10), _count: { fixtures: 12, standings: 6 } },
-  { id: 2, name: 'Genocide Memorial Tournament', edition: '2026 Edition', status: 'UPCOMING', level: 'Provincial', venue: 'Huye Stadium', startDate: days(14), _count: { fixtures: 8, standings: 8 } },
-  { id: 3, name: 'Inter-District Basketball Championship', edition: '2025 Edition', status: 'COMPLETED', level: 'District', venue: 'BK Arena', startDate: days(-90), _count: { fixtures: 20, standings: 10 } },
+  { id: 1, name: 'Kagame Cup Schools', get edition() { return i18n.t('demo.edition', { year: 2026 }); }, status: 'ONGOING', level: 'NATIONAL', venue: 'Amahoro Stadium', startDate: days(-10), _count: { fixtures: 12, standings: 6 } },
+  { id: 2, name: 'Genocide Memorial Tournament', get edition() { return i18n.t('demo.edition', { year: 2026 }); }, status: 'UPCOMING', level: 'PROVINCE', venue: 'Huye Stadium', startDate: days(14), _count: { fixtures: 8, standings: 8 } },
+  { id: 3, name: 'Inter-District Basketball Championship', get edition() { return i18n.t('demo.edition', { year: 2025 }); }, status: 'COMPLETED', level: 'DISTRICT', venue: 'BK Arena', startDate: days(-90), _count: { fixtures: 20, standings: 10 } },
 ];
 
 export const akcStandings = [
@@ -188,10 +202,10 @@ export const akcStandings = [
 const akcTeamSide = (schoolId, ageCategory, gender) => ({ schoolId, school: schoolRef(schoolId), ageCategory, gender });
 
 export const akcFixtures = [
-  { id: 201, competitionId: 1, competition: { id: 1, name: 'Kagame Cup Schools' }, status: 'COMPLETED', homeTeamId: 1, winnerTeamId: 1, isDraw: false, stage: 'GROUP_STAGE', round: 'Round 4', homeTeam: akcTeamSide(1, 'U17', 'MALE'), awayTeam: akcTeamSide(3, 'U17', 'MALE'), homeScore: 3, awayScore: 1, matchDate: days(-2), venue: 'Amahoro Stadium', notes: 'A commanding group-stage win sends Kigali International top of the table.' },
-  { id: 202, competitionId: 1, competition: { id: 1, name: 'Kagame Cup Schools' }, status: 'ONGOING', homeTeamId: 2, stage: 'GROUP_STAGE', round: 'Round 5', homeTeam: akcTeamSide(2, 'U17', 'MALE'), awayTeam: akcTeamSide(4, 'U17', 'MALE'), homeScore: 1, awayScore: 1, matchDate: hours(-1), venue: 'Kigali Pelé Stadium' },
-  { id: 203, competitionId: 1, competition: { id: 1, name: 'Kagame Cup Schools' }, status: 'SCHEDULED', homeTeamId: 5, stage: 'GROUP_STAGE', round: 'Round 5', homeTeam: akcTeamSide(5, 'U19', 'FEMALE'), awayTeam: akcTeamSide(6, 'U19', 'FEMALE'), homeScore: null, awayScore: null, matchDate: days(2), venue: 'Petit Stade' },
-  { id: 204, competitionId: 1, competition: { id: 1, name: 'Kagame Cup Schools' }, status: 'SCHEDULED', homeTeamId: 1, stage: 'SEMI_FINAL', round: 'Semi-final', homeTeam: akcTeamSide(1, 'U17', 'MALE'), awayTeam: akcTeamSide(2, 'U17', 'MALE'), homeScore: null, awayScore: null, matchDate: days(4), venue: 'Amahoro Stadium' },
+  { id: 201, competitionId: 1, competition: { id: 1, name: 'Kagame Cup Schools' }, status: 'COMPLETED', homeTeamId: 1, winnerTeamId: 1, isDraw: false, stage: 'GROUP_STAGE', get round() { return i18n.t('demo.round', { number: 4 }); }, homeTeam: akcTeamSide(1, 'U17', 'MALE'), awayTeam: akcTeamSide(3, 'U17', 'MALE'), homeScore: 3, awayScore: 1, matchDate: days(-2), venue: 'Amahoro Stadium', get notes() { return i18n.t('demo.fixture_notes.group_win'); } },
+  { id: 202, competitionId: 1, competition: { id: 1, name: 'Kagame Cup Schools' }, status: 'ONGOING', homeTeamId: 2, stage: 'GROUP_STAGE', get round() { return i18n.t('demo.round', { number: 5 }); }, homeTeam: akcTeamSide(2, 'U17', 'MALE'), awayTeam: akcTeamSide(4, 'U17', 'MALE'), homeScore: 1, awayScore: 1, matchDate: hours(-1), venue: 'Kigali Pelé Stadium' },
+  { id: 203, competitionId: 1, competition: { id: 1, name: 'Kagame Cup Schools' }, status: 'SCHEDULED', homeTeamId: 5, stage: 'GROUP_STAGE', get round() { return i18n.t('demo.round', { number: 5 }); }, homeTeam: akcTeamSide(5, 'U19', 'FEMALE'), awayTeam: akcTeamSide(6, 'U19', 'FEMALE'), homeScore: null, awayScore: null, matchDate: days(2), venue: 'Petit Stade' },
+  { id: 204, competitionId: 1, competition: { id: 1, name: 'Kagame Cup Schools' }, status: 'SCHEDULED', homeTeamId: 1, stage: 'SEMI_FINAL', get round() { return i18n.t('enums.stage.SEMI_FINAL'); }, homeTeam: akcTeamSide(1, 'U17', 'MALE'), awayTeam: akcTeamSide(2, 'U17', 'MALE'), homeScore: null, awayScore: null, matchDate: days(4), venue: 'Amahoro Stadium' },
 ];
 
 // Demo admin account surfaced on the login screen.

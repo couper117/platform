@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { UserSquare2, Search, Trash2, Edit2, ShieldCheck, Filter, User } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import apiClient from '../../api/client';
+import { useEnumLabel } from '../../i18n/enums';
 import AdminTable from '../../components/admin/AdminTable';
 import Skeleton from '../../components/shared/Skeleton';
 
 const AdminPlayersPage = () => {
+  const { t } = useTranslation();
+  const enumLabel = useEnumLabel();
   const queryClient = useQueryClient();
   const [searchTerm, setSearcherTerm] = useState('');
 
@@ -23,7 +27,7 @@ const AdminPlayersPage = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['admin-players']);
-      alert('Player removed successfully');
+      alert(t('admin.players.delete_success'));
     }
   });
 
@@ -31,15 +35,17 @@ const AdminPlayersPage = () => {
     <div className="space-y-10 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-4xl font-display uppercase tracking-tighter">Athlete <span className="text-red">Registry</span></h1>
-          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Manage all registered sports players</p>
+          <h1 className="text-4xl font-display uppercase tracking-tighter">
+            {t('admin.players.title')} <span className="text-red">{t('admin.players.title_accent')}</span>
+          </h1>
+          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">{t('admin.players.subtitle')}</p>
         </div>
         
         <div className="flex bg-white dark:bg-white/5 rounded-2xl border border-surface-3 dark:border-white/10 p-2 w-full max-w-md">
           <Search className="text-white/20 ml-2 mt-1.5" size={18} />
           <input 
             type="text" 
-            placeholder="Search name or ID..." 
+            placeholder={t('admin.players.search_placeholder')}
             className="bg-transparent border-none focus:ring-0 text-sm font-bold uppercase tracking-widest p-2 w-full"
             value={searchTerm}
             onChange={(e) => setSearcherTerm(e.target.value)}
@@ -50,7 +56,7 @@ const AdminPlayersPage = () => {
       {isLoading ? (
         <Skeleton type="table-row" count={5} />
       ) : (
-        <AdminTable headers={['Player', 'Team', 'Position', 'Skill', 'Status', 'Actions']}>
+        <AdminTable headers={[t('admin.players.col_player'), t('admin.players.col_team'), t('admin.players.col_position'), t('admin.players.col_skill'), t('admin.col_status'), t('admin.col_actions')]}>
           {players?.map(player => (
             <tr key={player.id} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors">
               <td className="px-6 py-5">
@@ -65,11 +71,11 @@ const AdminPlayersPage = () => {
                 </div>
               </td>
               <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{player.team?.name}</td>
-              <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{player.position || 'N/A'}</td>
-              <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{player.skillLevel}</td>
+              <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{player.position ? enumLabel('position', player.position) : t('common.not_available')}</td>
+              <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{enumLabel('skill_level', player.skillLevel)}</td>
               <td className="px-6 py-5">
                 <span className={`text-[8px] font-bold px-2 py-1 rounded border uppercase ${player.status === 'VERIFIED' ? 'bg-green/5 text-green border-green/10' : 'bg-gold/5 text-gold border-gold/20'}`}>
-                  {player.status}
+                  {enumLabel('player_status', player.status)}
                 </span>
               </td>
               <td className="px-6 py-5">

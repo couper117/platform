@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -7,22 +7,24 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { UserPlus, Loader2, AlertCircle, ChevronLeft, Building2, User, Trophy } from 'lucide-react';
 import { getSports } from '../../api/endpoints/sports';
+import { useEnumLabel } from '../../i18n/enums';
 import apiClient from '../../api/client';
 
-const registerSchema = z.object({
-  fullName: z.string().min(3, 'Full name must be at least 3 characters'),
-  username: z.string().min(3, 'Username must be at least 3 characters'),
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+const buildRegisterSchema = (t) => z.object({
+  fullName: z.string().min(3, t('auth.validation.full_name_min')),
+  username: z.string().min(3, t('auth.validation.username_min')),
+  email: z.string().email(t('auth.validation.email_invalid')),
+  password: z.string().min(6, t('auth.validation.password_min')),
   phone: z.string().optional(),
-  teamName: z.string().min(2, 'Team name must be at least 2 characters'),
-  sportId: z.string().min(1, 'Please select a sport'),
-  city: z.string().min(2, 'City is required'),
-  province: z.string().min(2, 'Province is required'),
+  teamName: z.string().min(2, t('auth.validation.team_name_min')),
+  sportId: z.string().min(1, t('auth.validation.sport_required')),
+  city: z.string().min(2, t('auth.validation.city_required')),
+  province: z.string().min(2, t('auth.validation.province_required')),
 });
 
 const RegisterTeamPage = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const enumLabel = useEnumLabel();
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -33,6 +35,8 @@ const RegisterTeamPage = () => {
     queryKey: ['sports-list-register'],
     queryFn: getSports,
   });
+
+  const registerSchema = useMemo(() => buildRegisterSchema(t), [t, i18n.language]);
 
   const { register, handleSubmit, trigger, formState: { errors } } = useForm({
     resolver: zodResolver(registerSchema),
@@ -52,7 +56,7 @@ const RegisterTeamPage = () => {
       setSuccess(true);
       setTimeout(() => navigate('/auth/login'), 5000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      setError(err.response?.data?.message || t('auth.register_failed'));
     } finally {
       setIsLoading(false);
     }
@@ -65,13 +69,15 @@ const RegisterTeamPage = () => {
           <Trophy size={48} className="text-white" />
         </div>
         <div className="space-y-4">
-          <h1 className="text-5xl font-display text-white uppercase tracking-tighter">Application <span className="text-green">Submitted</span></h1>
+          <h1 className="text-5xl font-display text-white uppercase tracking-tighter">
+            {t('auth.application')} <span className="text-green">{t('auth.submitted')}</span>
+          </h1>
           <p className="text-white/60 max-w-md mx-auto leading-relaxed">
-            Your team registration has been received! Our administrators will review your application and documents. You will receive an email once approved.
+            {t('auth.application_received')}
           </p>
         </div>
         <Link to="/auth/login" className="bg-white/10 text-white font-display text-xl uppercase tracking-widest px-10 py-4 rounded-xl hover:bg-white/20 transition-all">
-          Back to Login
+          {t('auth.back_to_login')}
         </Link>
       </div>
     );
@@ -92,9 +98,9 @@ const RegisterTeamPage = () => {
             <UserPlus size={32} />
           </div>
           <h1 className="text-4xl sm:text-6xl font-display text-white uppercase tracking-tighter leading-none">
-            Manager <span className="text-red">Registration</span>
+            {t('auth.manager')} <span className="text-red">{t('auth.registration')}</span>
           </h1>
-          <p className="text-white/40 text-[10px] font-bold uppercase tracking-[0.3em]">Join the RwaSport Community</p>
+          <p className="text-white/40 text-[10px] font-bold uppercase tracking-[0.3em]">{t('auth.join_community')}</p>
         </div>
 
         {/* Step Indicator */}
@@ -117,73 +123,73 @@ const RegisterTeamPage = () => {
               <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                 <div className="flex items-center space-x-3 text-white/30 mb-2">
                   <User size={18} />
-                  <h2 className="text-[10px] uppercase font-bold tracking-[0.3em]">Manager Information</h2>
+                  <h2 className="text-[10px] uppercase font-bold tracking-[0.3em]">{t('auth.manager_information')}</h2>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">Full Name</label>
-                    <input {...register('fullName')} className="w-full bg-white/5 border border-white/10 text-white p-4 rounded-xl focus:border-red outline-none transition-all" placeholder="Enter full name" />
+                    <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">{t('auth.full_name')}</label>
+                    <input {...register('fullName')} className="w-full bg-white/5 border border-white/10 text-white p-4 rounded-xl focus:border-red outline-none transition-all" placeholder={t('auth.full_name_placeholder')} />
                     {errors.fullName && <p className="text-[10px] font-bold text-red uppercase tracking-widest ml-1">{errors.fullName.message}</p>}
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">Username</label>
-                    <input {...register('username')} className="w-full bg-white/5 border border-white/10 text-white p-4 rounded-xl focus:border-red outline-none transition-all" placeholder="Choose username" />
+                    <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">{t('auth.username')}</label>
+                    <input {...register('username')} className="w-full bg-white/5 border border-white/10 text-white p-4 rounded-xl focus:border-red outline-none transition-all" placeholder={t('auth.username_placeholder')} />
                     {errors.username && <p className="text-[10px] font-bold text-red uppercase tracking-widest ml-1">{errors.username.message}</p>}
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">Email Address</label>
+                  <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">{t('auth.email_address')}</label>
                   <input {...register('email')} className="w-full bg-white/5 border border-white/10 text-white p-4 rounded-xl focus:border-red outline-none transition-all" placeholder="email@example.com" />
                   {errors.email && <p className="text-[10px] font-bold text-red uppercase tracking-widest ml-1">{errors.email.message}</p>}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">Password</label>
+                    <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">{t('auth.password')}</label>
                     <input {...register('password')} type="password" className="w-full bg-white/5 border border-white/10 text-white p-4 rounded-xl focus:border-red outline-none transition-all" placeholder="••••••••" />
                     {errors.password && <p className="text-[10px] font-bold text-red uppercase tracking-widest ml-1">{errors.password.message}</p>}
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">Phone Number</label>
+                    <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">{t('auth.phone_number')}</label>
                     <input {...register('phone')} className="w-full bg-white/5 border border-white/10 text-white p-4 rounded-xl focus:border-red outline-none transition-all" placeholder="+250..." />
                   </div>
                 </div>
-                <button type="button" onClick={nextStep} className="w-full bg-red text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all">Next: Team Details</button>
+                <button type="button" onClick={nextStep} className="w-full bg-red text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all">{t('auth.next_team_details')}</button>
               </div>
             ) : (
               <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                 <div className="flex items-center space-x-3 text-white/30 mb-2">
                   <Building2 size={18} />
-                  <h2 className="text-[10px] uppercase font-bold tracking-[0.3em]">Team Information</h2>
+                  <h2 className="text-[10px] uppercase font-bold tracking-[0.3em]">{t('auth.team_information')}</h2>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">Official Team Name</label>
-                  <input {...register('teamName')} className="w-full bg-white/5 border border-white/10 text-white p-4 rounded-xl focus:border-red outline-none transition-all" placeholder="e.g. Kigali Tigers FC" />
+                  <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">{t('auth.official_team_name')}</label>
+                  <input {...register('teamName')} className="w-full bg-white/5 border border-white/10 text-white p-4 rounded-xl focus:border-red outline-none transition-all" placeholder={t('auth.team_name_placeholder')} />
                   {errors.teamName && <p className="text-[10px] font-bold text-red uppercase tracking-widest ml-1">{errors.teamName.message}</p>}
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">Primary Sport</label>
+                  <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">{t('auth.primary_sport')}</label>
                   <select {...register('sportId')} className="w-full bg-surface-dark border border-white/10 text-white p-4 rounded-xl focus:border-red outline-none transition-all appearance-none cursor-pointer">
-                    <option value="">Select a sport</option>
-                    {sports?.data?.map(s => <option key={s.id} value={s.id}>{s.icon} {s.name}</option>)}
+                    <option value="">{t('auth.select_sport')}</option>
+                    {sports?.data?.map(s => <option key={s.id} value={s.id}>{s.icon} {enumLabel('sport', s.name)}</option>)}
                   </select>
                   {errors.sportId && <p className="text-[10px] font-bold text-red uppercase tracking-widest ml-1">{errors.sportId.message}</p>}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">City / District</label>
-                    <input {...register('city')} className="w-full bg-white/5 border border-white/10 text-white p-4 rounded-xl focus:border-red outline-none transition-all" placeholder="e.g. Nyarugenge" />
+                    <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">{t('auth.city_district')}</label>
+                    <input {...register('city')} className="w-full bg-white/5 border border-white/10 text-white p-4 rounded-xl focus:border-red outline-none transition-all" placeholder={t('auth.city_placeholder')} />
                     {errors.city && <p className="text-[10px] font-bold text-red uppercase tracking-widest ml-1">{errors.city.message}</p>}
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">Province</label>
-                    <input {...register('province')} className="w-full bg-white/5 border border-white/10 text-white p-4 rounded-xl focus:border-red outline-none transition-all" placeholder="e.g. Kigali City" />
+                    <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">{t('auth.province')}</label>
+                    <input {...register('province')} className="w-full bg-white/5 border border-white/10 text-white p-4 rounded-xl focus:border-red outline-none transition-all" placeholder={t('auth.province_placeholder')} />
                     {errors.province && <p className="text-[10px] font-bold text-red uppercase tracking-widest ml-1">{errors.province.message}</p>}
                   </div>
                 </div>
                 <div className="flex gap-4">
-                  <button type="button" onClick={() => setStep(1)} className="flex-1 border border-white/20 text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-white/5 transition-all">Back</button>
+                  <button type="button" onClick={() => setStep(1)} className="flex-1 border border-white/20 text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-white/5 transition-all">{t('common.back')}</button>
                   <button type="submit" disabled={isLoading} className="flex-[2] bg-red text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all flex items-center justify-center space-x-3 disabled:opacity-50">
-                    {isLoading ? <Loader2 className="animate-spin" size={24} /> : <span>Submit Application</span>}
+                    {isLoading ? <Loader2 className="animate-spin" size={24} /> : <span>{t('auth.submit_application')}</span>}
                   </button>
                 </div>
               </div>

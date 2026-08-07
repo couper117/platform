@@ -25,7 +25,7 @@ const SchoolDirectory = () => {
 
   return (
     <div className="bg-surface-2 dark:bg-surface-dark min-h-screen pb-24">
-      <Seo title="School Directory — Amashuri Games" description="Discover every institution competing in Rwanda's inter-school championships." />
+      <Seo title={t('seo.amashuri_directory_title')} description={t('seo.amashuri_directory_desc')} />
 
       <AmashuriHero title={t('amashuri.directory.title')} accent={t('amashuri.directory.accent')} subtitle={t('amashuri.directory.subtitle')} compact>
         <div className="flex items-center bg-white/10 backdrop-blur-md rounded-2xl p-2 border border-white/20 w-full max-w-md mt-2">

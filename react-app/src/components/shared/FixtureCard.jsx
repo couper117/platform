@@ -1,12 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Calendar, Clock, ChevronRight } from 'lucide-react';
-import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
+import { useDateFormat } from '../../i18n/dateLocale';
 
 const FixtureCard = ({ fixture, showLeague = true }) => {
+  const { t } = useTranslation();
+  const formatDate = useDateFormat();
   const isLive = fixture.status === 'LIVE';
   const isCompleted = fixture.status === 'COMPLETED';
-  
+
+
   const getInitials = (name) => name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 
   return (
@@ -18,12 +22,12 @@ const FixtureCard = ({ fixture, showLeague = true }) => {
       {showLeague && (
         <div className="px-4 py-2 bg-surface-2 dark:bg-white/5 border-b border-surface-3 dark:border-white/5 flex justify-between items-center">
           <span className="text-[10px] uppercase font-bold tracking-widest text-surface-dark/40 dark:text-white/40">
-            {fixture.league?.name || 'National League'}
+            {fixture.league?.name || t('fixtures.default_league')}
           </span>
           {isLive && (
             <div className="flex items-center space-x-1.5">
               <span className="w-1.5 h-1.5 bg-red rounded-full animate-pulse shadow-sm shadow-red" />
-              <span className="text-[10px] font-bold text-red uppercase tracking-tighter italic">Live</span>
+              <span className="text-[10px] font-bold text-red uppercase tracking-tighter italic">{t('match.live')}</span>
             </div>
           )}
         </div>
@@ -57,15 +61,15 @@ const FixtureCard = ({ fixture, showLeague = true }) => {
                     {fixture.awayScore ?? 0}
                   </span>
                 </div>
-                {isCompleted && <span className="text-[10px] uppercase font-bold tracking-[0.2em] opacity-30">Full Time</span>}
-                {isLive && <span className="text-[10px] uppercase font-bold tracking-[0.2em] text-red animate-pulse italic">In Progress</span>}
+                {isCompleted && <span className="text-[10px] uppercase font-bold tracking-[0.2em] opacity-30">{t('match.full_time')}</span>}
+                {isLive && <span className="text-[10px] uppercase font-bold tracking-[0.2em] text-red animate-pulse italic">{t('match.in_progress')}</span>}
               </div>
             ) : (
               <div className="bg-surface-2 dark:bg-white/5 px-4 py-2 rounded-xl border border-surface-3 dark:border-white/10 flex flex-col items-center">
                 <span className="text-xl sm:text-2xl font-display text-red leading-none">
-                  {fixture.matchDate ? format(new Date(fixture.matchDate), 'HH:mm') : 'TBD'}
+                  {formatDate(fixture.matchDate, 'HH:mm') || t('common.tbd')}
                 </span>
-                <span className="text-[8px] uppercase font-bold tracking-widest opacity-40 mt-1">Match Time</span>
+                <span className="text-[8px] uppercase font-bold tracking-widest opacity-40 mt-1">{t('match.match_time')}</span>
               </div>
             )}
           </div>
@@ -88,11 +92,11 @@ const FixtureCard = ({ fixture, showLeague = true }) => {
           <div className="flex items-center space-x-3">
             <div className="flex items-center space-x-1">
               <Calendar size={12} className="text-red" />
-              <span>{fixture.matchDate ? format(new Date(fixture.matchDate), 'dd MMM') : 'TBD'}</span>
+              <span>{formatDate(fixture.matchDate, 'dd MMM') || t('common.tbd')}</span>
             </div>
             <div className="flex items-center space-x-1">
               <MapPin size={12} className="text-red" />
-              <span className="line-clamp-1">{fixture.venue || 'TBD'}</span>
+              <span className="line-clamp-1">{fixture.venue || t('common.tbd')}</span>
             </div>
           </div>
           <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform text-red" />

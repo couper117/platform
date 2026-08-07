@@ -1,8 +1,10 @@
 import React from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { useTranslation } from 'react-i18next';
 
 const StandingsTable = ({ standings = [] }) => {
+  const { t } = useTranslation();
   const getInitials = (name) => name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 
   const FormPill = ({ result }) => {
@@ -11,9 +13,13 @@ const StandingsTable = ({ standings = [] }) => {
       D: 'bg-gold text-white',
       L: 'bg-red text-white',
     };
+    const key = ['W', 'D', 'L'].includes(result) ? result : null;
     return (
-      <span className={twMerge('w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-bold', colors[result] || 'bg-surface-3 opacity-20')}>
-        {result}
+      <span
+        title={key ? t(`standings.form_full.${key}`) : undefined}
+        className={twMerge('w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-bold', colors[result] || 'bg-surface-3 opacity-20')}
+      >
+        {key ? t(`standings.form_short.${key}`) : result}
       </span>
     );
   };
@@ -24,17 +30,17 @@ const StandingsTable = ({ standings = [] }) => {
         <table className="w-full text-left border-collapse min-w-[600px]">
           <thead>
             <tr className="bg-surface-2 dark:bg-white/5 text-[10px] uppercase font-bold tracking-[0.2em] text-surface-dark/40 dark:text-white/40">
-              <th className="px-4 py-4 text-center w-12">Pos</th>
-              <th className="px-4 py-4 sticky left-0 bg-surface-2 dark:bg-[#1A1A2E] z-10">Team</th>
-              <th className="px-4 py-4 text-center">P</th>
-              <th className="px-4 py-4 text-center">W</th>
-              <th className="px-4 py-4 text-center">D</th>
-              <th className="px-4 py-4 text-center">L</th>
-              <th className="px-4 py-4 text-center hidden sm:table-cell">GF</th>
-              <th className="px-4 py-4 text-center hidden sm:table-cell">GA</th>
-              <th className="px-4 py-4 text-center">GD</th>
-              <th className="px-4 py-4 text-center font-display text-sm text-red">Pts</th>
-              <th className="px-4 py-4">Form</th>
+              <th className="px-4 py-4 text-center w-12" title={t('standings.col_pos_full')}>{t('standings.col_pos')}</th>
+              <th className="px-4 py-4 sticky left-0 bg-surface-2 dark:bg-[#1A1A2E] z-10">{t('standings.col_team')}</th>
+              <th className="px-4 py-4 text-center" title={t('standings.col_played_full')}>{t('standings.col_played')}</th>
+              <th className="px-4 py-4 text-center" title={t('standings.col_won_full')}>{t('standings.col_won')}</th>
+              <th className="px-4 py-4 text-center" title={t('standings.col_drawn_full')}>{t('standings.col_drawn')}</th>
+              <th className="px-4 py-4 text-center" title={t('standings.col_lost_full')}>{t('standings.col_lost')}</th>
+              <th className="px-4 py-4 text-center hidden sm:table-cell" title={t('standings.col_gf_full')}>{t('standings.col_gf')}</th>
+              <th className="px-4 py-4 text-center hidden sm:table-cell" title={t('standings.col_ga_full')}>{t('standings.col_ga')}</th>
+              <th className="px-4 py-4 text-center" title={t('standings.col_gd_full')}>{t('standings.col_gd')}</th>
+              <th className="px-4 py-4 text-center font-display text-sm text-red" title={t('standings.col_points_full')}>{t('standings.col_points')}</th>
+              <th className="px-4 py-4">{t('standings.col_form')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-surface-3 dark:divide-white/5">
@@ -77,7 +83,7 @@ const StandingsTable = ({ standings = [] }) => {
             )) : (
               <tr>
                 <td colSpan="11" className="px-4 py-20 text-center opacity-30 uppercase tracking-widest font-display text-xl">
-                  No standings data available
+                  {t('standings.empty')}
                 </td>
               </tr>
             )}

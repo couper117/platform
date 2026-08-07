@@ -22,21 +22,21 @@ const AmashuriStandingsTable = ({ standings = [] }) => {
         <table className="w-full text-left border-collapse min-w-[560px]">
           <thead>
             <tr className="bg-surface-2 dark:bg-white/5 text-[10px] uppercase font-bold tracking-[0.2em] text-surface-dark/40 dark:text-white/40">
-              <th className="px-4 py-4 text-center w-12">Pos</th>
-              <th className="px-4 py-4 sticky left-0 bg-surface-2 dark:bg-[#1A1A2E] z-10">School</th>
-              <th className="px-4 py-4 text-center">P</th>
-              <th className="px-4 py-4 text-center">W</th>
-              <th className="px-4 py-4 text-center">D</th>
-              <th className="px-4 py-4 text-center">L</th>
-              <th className="px-4 py-4 text-center hidden sm:table-cell">GF</th>
-              <th className="px-4 py-4 text-center hidden sm:table-cell">GA</th>
-              <th className="px-4 py-4 text-center">GD</th>
-              <th className="px-4 py-4 text-center font-display text-sm text-rwanda-blue">Pts</th>
+              <th className="px-4 py-4 text-center w-12" title={t('standings.col_pos_full')}>{t('standings.col_pos')}</th>
+              <th className="px-4 py-4 sticky left-0 bg-surface-2 dark:bg-[#1A1A2E] z-10">{t('amashuri.school')}</th>
+              <th className="px-4 py-4 text-center" title={t('standings.col_played_full')}>{t('standings.col_played')}</th>
+              <th className="px-4 py-4 text-center" title={t('standings.col_won_full')}>{t('standings.col_won')}</th>
+              <th className="px-4 py-4 text-center" title={t('standings.col_drawn_full')}>{t('standings.col_drawn')}</th>
+              <th className="px-4 py-4 text-center" title={t('standings.col_lost_full')}>{t('standings.col_lost')}</th>
+              <th className="px-4 py-4 text-center hidden sm:table-cell" title={t('standings.col_gf_full')}>{t('standings.col_gf')}</th>
+              <th className="px-4 py-4 text-center hidden sm:table-cell" title={t('standings.col_ga_full')}>{t('standings.col_ga')}</th>
+              <th className="px-4 py-4 text-center" title={t('standings.col_gd_full')}>{t('standings.col_gd')}</th>
+              <th className="px-4 py-4 text-center font-display text-sm text-rwanda-blue" title={t('standings.col_points_full')}>{t('standings.col_points')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-surface-3 dark:divide-white/5">
             {standings.map((s, index) => {
-              const name = s.team?.school?.name || `Team ${s.teamId}`;
+              const name = s.team?.school?.name || t('standings.team_fallback', { id: s.teamId });
               return (
                 <tr key={s.id} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors group">
                   <td className="px-4 py-4 text-center">

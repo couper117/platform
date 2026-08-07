@@ -61,7 +61,7 @@ const LoginPage = () => {
             <LogIn size={32} />
           </div>
           <h1 className="text-4xl sm:text-5xl font-display text-white uppercase tracking-tighter">
-            Access <span className="text-red">Portal</span>
+            {t('auth.access')} <span className="text-red">{t('auth.portal')}</span>
           </h1>
           <p className="text-white/40 text-[10px] font-bold uppercase tracking-[0.3em]">{t('auth.login_subtitle')}</p>
         </div>
@@ -81,7 +81,7 @@ const LoginPage = () => {
                 <input
                   {...register('username')}
                   className={`w-full bg-white/5 border ${errors.username ? 'border-red/50' : 'border-white/10'} text-white p-4 rounded-xl focus:border-red focus:bg-white/10 outline-none transition-all placeholder:text-white/10`}
-                  placeholder="Enter your username"
+                  placeholder={t('auth.username_login_placeholder')}
                 />
                 {errors.username && <p className="text-[10px] font-bold text-red uppercase tracking-widest ml-1">{errors.username.message}</p>}
               </div>

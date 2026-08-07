@@ -68,7 +68,7 @@ const ChampionshipsPage = () => {
 
   return (
     <div className="bg-surface-2 dark:bg-surface-dark min-h-screen pb-24">
-      <Seo title="School Championships — Amashuri Games" description="Every Rwandan inter-school championship in one place, including the Kagame Cup." />
+      <Seo title={t('seo.amashuri_championships_title')} description={t('seo.amashuri_championships_desc')} />
 
       <AmashuriHero
         title={t('amashuri.championships_page.title')}
