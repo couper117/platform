@@ -9,27 +9,27 @@ import { UserPlus, Loader2, AlertCircle, ChevronLeft, Building2, User, Trophy, U
 import { getSports } from '../../api/endpoints/sports';
 import apiClient from '../../api/client';
 
-const registerSchema = z.object({
+const buildRegisterSchema = (t) => z.object({
   // Step 1 — manager
-  fullName: z.string().min(3, 'Full name must be at least 3 characters'),
-  username: z.string().min(3, 'Username must be at least 3 characters'),
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  fullName: z.string().min(3, t('auth.validation.full_name_min')),
+  username: z.string().min(3, t('auth.validation.username_min')),
+  email: z.string().email(t('auth.validation.email_invalid')),
+  password: z.string().min(6, t('auth.validation.password_min')),
   phone: z.string().optional(),
   // Step 2 — club
-  teamName: z.string().min(2, 'Team name must be at least 2 characters'),
+  teamName: z.string().min(2, t('auth.validation.team_name_min')),
   shortName: z.string().optional(),
-  sportId: z.string().min(1, 'Please select a sport'),
-  city: z.string().min(2, 'City is required'),
+  sportId: z.string().min(1, t('auth.validation.sport_required')),
+  city: z.string().min(2, t('auth.validation.city_required')),
   district: z.string().optional(),
-  province: z.string().min(2, 'Province is required'),
+  province: z.string().min(2, t('auth.validation.province_required')),
   homeVenue: z.string().optional(),
   foundedYear: z.string().optional(),
   registrationNo: z.string().optional(),
   primaryColor: z.string().optional(),
   secondaryColor: z.string().optional(),
   // Step 3 — officials
-  presidentName: z.string().min(2, 'Club president is required'),
+  presidentName: z.string().min(2, t('auth.validation.president_required')),
   presidentPhone: z.string().optional(),
   secretaryName: z.string().optional(),
   secretaryPhone: z.string().optional(),
@@ -40,7 +40,7 @@ const lbl = 'text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1'
 const errCls = 'text-[10px] font-bold text-red uppercase tracking-widest ml-1';
 
 const RegisterTeamPage = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -48,6 +48,8 @@ const RegisterTeamPage = () => {
   const [step, setStep] = useState(1);
 
   const { data: sports } = useQuery({ queryKey: ['sports-list-register'], queryFn: getSports });
+
+  const registerSchema = React.useMemo(() => buildRegisterSchema(t), [t, i18n.language]);
 
   const { register, handleSubmit, trigger, formState: { errors } } = useForm({
     resolver: zodResolver(registerSchema),
@@ -88,7 +90,7 @@ const RegisterTeamPage = () => {
           <Trophy size={48} className="text-white" />
         </div>
         <div className="space-y-4">
-          <h1 className="text-5xl font-display text-white uppercase tracking-tighter">Application <span className="text-green">Submitted</span></h1>
+          <h1 className="text-5xl font-display text-white uppercase tracking-tighter">{t('auth.application')} <span className="text-green">{t('auth.submitted')}</span></h1>
           <p className="text-white/60 max-w-md mx-auto leading-relaxed">
             Your club registration has been received. The sport federation will review your application and documents. You will receive an email once approved.
           </p>
@@ -115,9 +117,9 @@ const RegisterTeamPage = () => {
             <UserPlus size={32} />
           </div>
           <h1 className="text-4xl sm:text-6xl font-display text-white uppercase tracking-tighter leading-none">
-            Club <span className="text-red">Registration</span>
+            {t('auth.club')} <span className="text-red">{t('auth.registration')}</span>
           </h1>
-          <p className="text-white/40 text-[10px] font-bold uppercase tracking-[0.3em]">Register your club with the federation</p>
+          <p className="text-white/40 text-[10px] font-bold uppercase tracking-[0.3em]">{t('auth.register_club_hint')}</p>
         </div>
 
         {/* Step Indicator */}
@@ -143,37 +145,37 @@ const RegisterTeamPage = () => {
               <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                 <div className="flex items-center space-x-3 text-white/30 mb-2">
                   <User size={18} />
-                  <h2 className="text-[10px] uppercase font-bold tracking-[0.3em]">Manager Information</h2>
+                  <h2 className="text-[10px] uppercase font-bold tracking-[0.3em]">{t('auth.manager_information')}</h2>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className={lbl}>Full Name</label>
-                    <input {...register('fullName')} className={field} placeholder="Enter full name" />
+                    <label className={lbl}>{t('auth.full_name')}</label>
+                    <input {...register('fullName')} className={field} placeholder={t('auth.full_name_placeholder')} />
                     {errors.fullName && <p className={errCls}>{errors.fullName.message}</p>}
                   </div>
                   <div className="space-y-2">
-                    <label className={lbl}>Username</label>
-                    <input {...register('username')} className={field} placeholder="Choose username" />
+                    <label className={lbl}>{t('auth.username')}</label>
+                    <input {...register('username')} className={field} placeholder={t('auth.username_placeholder')} />
                     {errors.username && <p className={errCls}>{errors.username.message}</p>}
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className={lbl}>Email Address</label>
+                  <label className={lbl}>{t('auth.email_address')}</label>
                   <input {...register('email')} className={field} placeholder="email@example.com" />
                   {errors.email && <p className={errCls}>{errors.email.message}</p>}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className={lbl}>Password</label>
+                    <label className={lbl}>{t('auth.password')}</label>
                     <input {...register('password')} type="password" className={field} placeholder="••••••••" />
                     {errors.password && <p className={errCls}>{errors.password.message}</p>}
                   </div>
                   <div className="space-y-2">
-                    <label className={lbl}>Phone Number</label>
+                    <label className={lbl}>{t('auth.phone_number')}</label>
                     <input {...register('phone')} className={field} placeholder="+250..." />
                   </div>
                 </div>
-                <button type="button" onClick={nextStep} className="w-full bg-red text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all">Next: Club Details</button>
+                <button type="button" onClick={nextStep} className="w-full bg-red text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all">{t('auth.next_club_details')}</button>
               </div>
             )}
 
@@ -181,65 +183,65 @@ const RegisterTeamPage = () => {
               <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                 <div className="flex items-center space-x-3 text-white/30 mb-2">
                   <Building2 size={18} />
-                  <h2 className="text-[10px] uppercase font-bold tracking-[0.3em]">Club Information</h2>
+                  <h2 className="text-[10px] uppercase font-bold tracking-[0.3em]">{t('auth.club_information')}</h2>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-2 sm:col-span-2">
-                    <label className={lbl}>Official Club Name</label>
-                    <input {...register('teamName')} className={field} placeholder="e.g. Kigali Tigers FC" />
+                    <label className={lbl}>{t('auth.official_club_name')}</label>
+                    <input {...register('teamName')} className={field} placeholder={t('auth.team_name_placeholder')} />
                     {errors.teamName && <p className={errCls}>{errors.teamName.message}</p>}
                   </div>
                   <div className="space-y-2">
-                    <label className={lbl}>Short Name</label>
+                    <label className={lbl}>{t('auth.short_name')}</label>
                     <input {...register('shortName')} className={field} placeholder="KTG" maxLength={10} />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className={lbl}>Primary Sport</label>
+                  <label className={lbl}>{t('auth.primary_sport')}</label>
                   <select {...register('sportId')} className={`${field} bg-surface-dark appearance-none cursor-pointer`}>
-                    <option value="">Select a sport</option>
+                    <option value="">{t('auth.select_sport')}</option>
                     {sports?.data?.map(s => <option key={s.id} value={s.id}>{s.icon} {s.name}</option>)}
                   </select>
                   {errors.sportId && <p className={errCls}>{errors.sportId.message}</p>}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <label className={lbl}>City / Town</label>
-                    <input {...register('city')} className={field} placeholder="e.g. Kigali" />
+                    <label className={lbl}>{t('auth.city_town')}</label>
+                    <input {...register('city')} className={field} placeholder={t('auth.city_town_placeholder')} />
                     {errors.city && <p className={errCls}>{errors.city.message}</p>}
                   </div>
                   <div className="space-y-2">
-                    <label className={lbl}>District</label>
-                    <input {...register('district')} className={field} placeholder="e.g. Nyarugenge" />
+                    <label className={lbl}>{t('enums.level.DISTRICT')}</label>
+                    <input {...register('district')} className={field} placeholder={t('auth.city_placeholder')} />
                   </div>
                   <div className="space-y-2">
-                    <label className={lbl}>Province</label>
-                    <input {...register('province')} className={field} placeholder="e.g. Kigali City" />
+                    <label className={lbl}>{t('auth.province')}</label>
+                    <input {...register('province')} className={field} placeholder={t('auth.province_placeholder')} />
                     {errors.province && <p className={errCls}>{errors.province.message}</p>}
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className={lbl}>Home Venue / Stadium</label>
-                    <input {...register('homeVenue')} className={field} placeholder="e.g. Amahoro Stadium" />
+                    <label className={lbl}>{t('auth.home_venue')}</label>
+                    <input {...register('homeVenue')} className={field} placeholder={t('admin.championships.venue_placeholder')} />
                   </div>
                   <div className="space-y-2">
-                    <label className={lbl}>Year Founded</label>
-                    <input {...register('foundedYear')} type="number" className={field} placeholder="e.g. 1998" />
+                    <label className={lbl}>{t('auth.year_founded')}</label>
+                    <input {...register('foundedYear')} type="number" className={field} placeholder="1998" />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <label className={lbl}>Reg. Number</label>
+                    <label className={lbl}>{t('auth.reg_number')}</label>
                     <input {...register('registrationNo')} className={field} placeholder="RGB/…" />
                   </div>
                   <div className="space-y-2">
-                    <label className={lbl}>Primary Colour</label>
-                    <input {...register('primaryColor')} className={field} placeholder="e.g. Blue" />
+                    <label className={lbl}>{t('auth.primary_colour')}</label>
+                    <input {...register('primaryColor')} className={field} placeholder={t('auth.colour_placeholder_1')} />
                   </div>
                   <div className="space-y-2">
-                    <label className={lbl}>Secondary Colour</label>
-                    <input {...register('secondaryColor')} className={field} placeholder="e.g. White" />
+                    <label className={lbl}>{t('auth.secondary_colour')}</label>
+                    <input {...register('secondaryColor')} className={field} placeholder={t('auth.colour_placeholder_2')} />
                   </div>
                 </div>
                 <div className="flex gap-4">
@@ -253,28 +255,28 @@ const RegisterTeamPage = () => {
               <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                 <div className="flex items-center space-x-3 text-white/30 mb-2">
                   <Users size={18} />
-                  <h2 className="text-[10px] uppercase font-bold tracking-[0.3em]">Club Officials</h2>
+                  <h2 className="text-[10px] uppercase font-bold tracking-[0.3em]">{t('auth.club_officials')}</h2>
                 </div>
                 <div className="space-y-4 p-4 rounded-2xl bg-white/5 border border-white/10">
-                  <p className="text-[10px] uppercase font-bold tracking-widest text-red/80">President <span className="text-white/30">(required)</span></p>
+                  <p className="text-[10px] uppercase font-bold tracking-widest text-red/80">{t('auth.president')} <span className="text-white/30">{t('auth.required_suffix')}</span></p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className={lbl}>Full Name</label>
-                      <input {...register('presidentName')} className={field} placeholder="President name" />
+                      <label className={lbl}>{t('auth.full_name')}</label>
+                      <input {...register('presidentName')} className={field} placeholder={t('auth.president_name_placeholder')} />
                       {errors.presidentName && <p className={errCls}>{errors.presidentName.message}</p>}
                     </div>
                     <div className="space-y-2">
-                      <label className={lbl}>Phone</label>
+                      <label className={lbl}>{t('footer.phone')}</label>
                       <input {...register('presidentPhone')} className={field} placeholder="+250..." />
                     </div>
                   </div>
                 </div>
                 <div className="space-y-4 p-4 rounded-2xl bg-white/5 border border-white/10">
-                  <p className="text-[10px] uppercase font-bold tracking-widest text-white/50">Secretary <span className="text-white/30">(optional)</span></p>
+                  <p className="text-[10px] uppercase font-bold tracking-widest text-white/50">{t('auth.secretary')} <span className="text-white/30">{t('auth.optional_suffix')}</span></p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className={lbl}>Full Name</label>
-                      <input {...register('secretaryName')} className={field} placeholder="Secretary name" />
+                      <label className={lbl}>{t('auth.full_name')}</label>
+                      <input {...register('secretaryName')} className={field} placeholder={t('auth.secretary_name_placeholder')} />
                     </div>
                     <div className="space-y-2">
                       <label className={lbl}>Phone</label>
@@ -285,7 +287,7 @@ const RegisterTeamPage = () => {
                 <div className="flex gap-4">
                   <button type="button" onClick={() => setStep(2)} className="flex-1 border border-white/20 text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-white/5 transition-all">Back</button>
                   <button type="submit" disabled={isLoading} className="flex-[2] bg-red text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all flex items-center justify-center space-x-3 disabled:opacity-50">
-                    {isLoading ? <Loader2 className="animate-spin" size={24} /> : <span>Submit Application</span>}
+                    {isLoading ? <Loader2 className="animate-spin" size={24} /> : <span>{t('auth.submit_application')}</span>}
                   </button>
                 </div>
               </div>

@@ -24,16 +24,16 @@ const NewsListPage = () => {
 
   return (
     <div className="bg-surface-2 dark:bg-surface-dark min-h-screen pb-24">
-      <Seo title="News" description="Latest news, announcements, results and transfers across Rwandan sport." />
+      <Seo title={t('news.seo_title')} description={t('news.seo_desc')} />
 
       {/* Header */}
       <section className="bg-surface-dark py-16 sm:py-24 relative overflow-hidden">
         <div className="absolute -top-32 -right-24 w-[30rem] h-[30rem] rounded-full bg-red/15 blur-[120px]" />
         <ResponsiveWrapper className="relative z-10 text-center space-y-3">
           <h1 className="text-5xl sm:text-7xl font-display text-white uppercase tracking-tighter">
-            {t('nav.news')} <span className="text-red">Center</span>
+            {t('nav.news')} <span className="text-red">{t('news.center_accent')}</span>
           </h1>
-          <p className="text-white/40 text-[10px] font-bold uppercase tracking-[0.3em]">The pulse of Rwandan sport</p>
+          <p className="text-white/40 text-[10px] font-bold uppercase tracking-[0.3em]">{t('news.subtitle')}</p>
         </ResponsiveWrapper>
       </section>
 
@@ -64,8 +64,8 @@ const NewsListPage = () => {
         ) : isError ? (
           <div className="py-24 flex flex-col items-center gap-4 text-center">
             <AlertCircle size={40} className="text-red" />
-            <p className="font-display text-2xl uppercase tracking-widest opacity-60">Couldn't load news</p>
-            <button onClick={() => refetch()} className="bg-red text-white px-6 py-2 rounded-lg font-display uppercase tracking-widest text-sm">Retry</button>
+            <p className="font-display text-2xl uppercase tracking-widest opacity-60">{t('news.load_failed')}</p>
+            <button onClick={() => refetch()} className="bg-red text-white px-6 py-2 rounded-lg font-display uppercase tracking-widest text-sm">{t('common.retry')}</button>
           </div>
         ) : articles.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -74,7 +74,7 @@ const NewsListPage = () => {
         ) : (
           <div className="py-24 flex flex-col items-center gap-4 text-center opacity-30">
             <Newspaper size={40} />
-            <p className="font-display text-2xl uppercase tracking-widest">No articles yet</p>
+            <p className="font-display text-2xl uppercase tracking-widest">{t('news.empty')}</p>
           </div>
         )}
       </ResponsiveWrapper>

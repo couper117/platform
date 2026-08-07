@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Search, Trash2, Edit2, User, Plus, Loader2, AlertCircle } from 'lucide-react';
 import apiClient from '../../api/client';
@@ -16,6 +17,7 @@ const inputCls = 'w-full bg-surface-2 dark:bg-white/5 border border-surface-3 da
 const lblCls = 'text-[10px] uppercase font-bold tracking-widest opacity-40';
 
 const AdminPlayersPage = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [searchTerm, setSearcherTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -96,7 +98,7 @@ const AdminPlayersPage = () => {
             <Search className="text-white/20 ml-2 mt-1.5" size={18} />
             <input
               type="text"
-              placeholder="Search name..."
+              placeholder={t('admin.players.search_placeholder')}
               className="bg-transparent border-none focus:ring-0 text-sm font-bold uppercase tracking-widest p-2 w-full"
               value={searchTerm}
               onChange={(e) => setSearcherTerm(e.target.value)}
@@ -107,7 +109,7 @@ const AdminPlayersPage = () => {
             className="bg-red text-white px-6 py-3 rounded-xl font-display text-sm uppercase tracking-widest hover:bg-red-dark transition-all shadow-xl shadow-red/20 flex items-center space-x-2 whitespace-nowrap"
           >
             <Plus size={18} />
-            <span>Register {rosterOne}</span>
+            <span>{t('admin.players.register_named', { name: rosterOne })}</span>
           </button>
         </div>
       </div>
@@ -115,7 +117,7 @@ const AdminPlayersPage = () => {
       {isLoading ? (
         <Skeleton type="table-row" count={5} />
       ) : (
-        <AdminTable headers={[rosterOne, teamLabel, posLabel, 'Jersey', 'Status', 'Actions']}>
+        <AdminTable headers={[rosterOne, teamLabel, posLabel, t('admin.players.col_jersey'), t('admin.col_status'), t('admin.col_actions')]}>
           {players?.map(player => (
             <tr key={player.id} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors">
               <td className="px-6 py-5">
@@ -143,7 +145,7 @@ const AdminPlayersPage = () => {
                     <Edit2 size={16} />
                   </button>
                   <button
-                    onClick={() => { if (window.confirm(`Remove ${player.fullName}?`)) deletePlayerMutation.mutate(player.id); }}
+                    onClick={() => { if (window.confirm(t('admin.players.delete_confirm', { name: player.fullName }))) deletePlayerMutation.mutate(player.id); }}
                     className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors"
                   >
                     <Trash2 size={16} />
@@ -173,26 +175,26 @@ const AdminPlayersPage = () => {
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className={lblCls}>Full Name</label>
+              <label className={lblCls}>{t('auth.full_name')}</label>
               <input value={form.fullName} onChange={set('fullName')} className={inputCls} placeholder="Player name" />
             </div>
             <div className="space-y-1.5">
-              <label className={lblCls}>Date of Birth</label>
+              <label className={lblCls}>{t('admin.players.dob')}</label>
               <input type="date" value={form.dateOfBirth} onChange={set('dateOfBirth')} className={inputCls} />
             </div>
             <div className="space-y-1.5">
-              <label className={lblCls}>Gender</label>
+              <label className={lblCls}>{t('admin.leagues.gender')}</label>
               <select value={form.gender} onChange={set('gender')} className={inputCls}>
-                <option value="MALE">Male</option>
-                <option value="FEMALE">Female</option>
+                <option value="MALE">{t('enums.gender.MALE')}</option>
+                <option value="FEMALE">{t('enums.gender.FEMALE')}</option>
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className={lblCls}>Nationality</label>
+              <label className={lblCls}>{t('admin.players.nationality')}</label>
               <input value={form.nationality} onChange={set('nationality')} className={inputCls} placeholder="Rwandan" />
             </div>
             <div className="space-y-1.5">
-              <label className={lblCls}>National ID / Passport</label>
+              <label className={lblCls}>{t('admin.players.national_id')}</label>
               <input value={form.idNumber} onChange={set('idNumber')} className={inputCls} placeholder="ID number" />
             </div>
             <div className="space-y-1.5">
@@ -200,32 +202,32 @@ const AdminPlayersPage = () => {
               <input value={form.position} onChange={set('position')} className={inputCls} placeholder={`e.g. ${posLabel === 'Weight Category' ? '-73kg' : posLabel === 'Specialty' ? 'Sprinter' : posLabel === 'Discipline' ? 'Singles' : 'Goalkeeper'}`} />
             </div>
             <div className="space-y-1.5">
-              <label className={lblCls}>Jersey Number</label>
+              <label className={lblCls}>{t('admin.players.jersey_number')}</label>
               <input type="number" value={form.jerseyNumber} onChange={set('jerseyNumber')} className={inputCls} placeholder="10" />
             </div>
             <div className="space-y-1.5">
-              <label className={lblCls}>Licence Number</label>
+              <label className={lblCls}>{t('admin.players.licence_number')}</label>
               <input value={form.licenseNo} onChange={set('licenseNo')} className={inputCls} placeholder="Federation licence" />
             </div>
             <div className="space-y-1.5">
-              <label className={lblCls}>Skill Level</label>
+              <label className={lblCls}>{t('admin.players.col_skill')}</label>
               <select value={form.skillLevel} onChange={set('skillLevel')} className={inputCls}>
-                <option value="AMATEUR">Amateur</option>
-                <option value="SEMI_PROFESSIONAL">Semi-professional</option>
-                <option value="PROFESSIONAL">Professional</option>
-                <option value="ELITE">Elite</option>
+                <option value="AMATEUR">{t('enums.skill_level.AMATEUR')}</option>
+                <option value="SEMI_PROFESSIONAL">{t('enums.skill_level.SEMI_PRO')}</option>
+                <option value="PROFESSIONAL">{t('enums.skill_level.PROFESSIONAL')}</option>
+                <option value="ELITE">{t('enums.skill_level.ELITE')}</option>
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className={lblCls}>Height (cm)</label>
+              <label className={lblCls}>{t('admin.players.height')}</label>
               <input type="number" value={form.height} onChange={set('height')} className={inputCls} placeholder="180" />
             </div>
             <div className="space-y-1.5">
-              <label className={lblCls}>Weight (kg)</label>
+              <label className={lblCls}>{t('admin.players.weight')}</label>
               <input type="number" value={form.weight} onChange={set('weight')} className={inputCls} placeholder="75" />
             </div>
             <div className="space-y-1.5 md:col-span-2">
-              <label className={lblCls}>Photo</label>
+              <label className={lblCls}>{t('admin.players.photo')}</label>
               <input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files?.[0] || null)} className={inputCls} />
             </div>
           </div>

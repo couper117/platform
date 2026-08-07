@@ -14,7 +14,18 @@
     "amashuri": "Jeux Scolaires",
     "login": "Connexion",
     "logout": "Déconnexion",
-    "dashboard": "Tableau de bord"
+    "dashboard": "Tableau de bord",
+    "explore": "Explorer",
+    "all_sports": "Tous les sports",
+    "browse": "Parcourir",
+    "menu": "Menu",
+    "open_menu": "Ouvrir le menu",
+    "close_menu": "Fermer le menu",
+    "contact": "Contact",
+    "register": "S'inscrire",
+    "register_team": "Inscrire une équipe",
+    "default_user": "Utilisateur",
+    "league_count": "{{count}} championnats"
   },
   "common": {
     "loading": "Chargement…",
@@ -35,7 +46,8 @@
     "language": "Langue",
     "appearance": "Apparence",
     "synchronizing": "Synchronisation des données",
-    "tbd": "À définir"
+    "tbd": "À définir",
+    "retry": "Réessayer"
   },
   "theme": {
     "light_mode": "Mode clair",
@@ -58,7 +70,11 @@
     "send_message": "Envoyer un message",
     "copyright": "© {{year}} Plateforme RwaSport. Tous droits réservés.",
     "privacy": "Politique de confidentialité",
-    "terms": "Conditions d'utilisation"
+    "terms": "Conditions d'utilisation",
+    "competitions": "Compétitions",
+    "contact": "Contact",
+    "school_directory": "Annuaire des écoles",
+    "heritage": "Héritage Sportif"
   },
   "home": {
     "hero_title": "Nourrir l'Esprit du Rwanda",
@@ -68,13 +84,26 @@
     "rwasport_official": "RwaSport Officiel",
     "match_spotlight": "Match à la une",
     "no_active_matches": "Aucun match en cours",
-    "bulletin": "Bulletin"
+    "bulletin": "Bulletin",
+    "choose_game": "Choisissez votre sport",
+    "explore_by_sport": "Explorer par sport",
+    "pick_sport_hint": "Choisissez un sport pour voir ses championnats, matchs, classements et actualités.",
+    "live_and_today": "En direct & aujourd'hui",
+    "live_count": "{{count}} en direct"
   },
   "news": {
     "center": "Centre d'actualités RwaSport",
     "article": "Page de l'article",
     "read_full_story": "Lire l'article complet",
-    "default_author": "Rédaction"
+    "default_author": "Rédaction",
+    "seo_title": "Actualités",
+    "seo_desc": "Dernières actualités, annonces, résultats et transferts du sport rwandais.",
+    "center_accent": "du Sport",
+    "subtitle": "Le pouls du sport rwandais",
+    "load_failed": "Impossible de charger les actualités",
+    "empty": "Aucun article pour le moment",
+    "not_found": "Article introuvable",
+    "back_to_news": "Retour aux actualités"
   },
   "support": {
     "center": "Centre d'assistance"
@@ -159,7 +188,13 @@
     "round": "Journée",
     "competition": "Compétition",
     "status": "Statut",
-    "view": "Voir"
+    "view": "Voir",
+    "watch_live": "Regarder en direct",
+    "stream_unavailable": "La diffusion en direct n'est pas disponible",
+    "fixture_info_full": "Infos du match",
+    "starting_xi": "Onze de départ",
+    "substitutes": "Remplaçants",
+    "no_events": "Aucun événement"
   },
   "standings": {
     "col_pos": "Pos",
@@ -207,7 +242,9 @@
     "goals_for_against": "Buts pour / contre",
     "attack_vs_defence": "Attaque contre défense",
     "goals_for": "Pour",
-    "goals_against": "Contre"
+    "goals_against": "Contre",
+    "gls": "Buts",
+    "ast": "PD"
   },
   "search": {
     "placeholder": "Rechercher équipes, championnats, actualités…",
@@ -265,8 +302,31 @@
       "team_name_min": "Le nom de l'équipe doit contenir au moins 2 caractères",
       "sport_required": "Veuillez sélectionner un sport",
       "city_required": "La ville est obligatoire",
-      "province_required": "La province est obligatoire"
-    }
+      "province_required": "La province est obligatoire",
+      "president_required": "Le président du club est obligatoire"
+    },
+    "club": "Club",
+    "register_club_hint": "Inscrivez votre club auprès de la fédération",
+    "club_information": "Informations du club",
+    "club_officials": "Dirigeants du club",
+    "next_club_details": "Suivant : détails du club",
+    "official_club_name": "Nom officiel du club",
+    "short_name": "Nom court",
+    "city_town": "Ville",
+    "city_town_placeholder": "ex. Kigali",
+    "home_venue": "Stade / terrain",
+    "year_founded": "Année de fondation",
+    "reg_number": "N° d'enregistrement",
+    "primary_colour": "Couleur principale",
+    "secondary_colour": "Couleur secondaire",
+    "colour_placeholder_1": "ex. Bleu",
+    "colour_placeholder_2": "ex. Blanc",
+    "president": "Président",
+    "secretary": "Secrétaire",
+    "required_suffix": "(obligatoire)",
+    "optional_suffix": "(facultatif)",
+    "president_name_placeholder": "Nom du président",
+    "secretary_name_placeholder": "Nom du secrétaire"
   },
   "amashuri": {
     "hero_title": "Jeux",
@@ -374,7 +434,8 @@
       "documents": "Documents",
       "ads": "Publicités",
       "visitors": "Visiteurs",
-      "settings": "Paramètres"
+      "settings": "Paramètres",
+      "sport_admins": "Admins des sports"
     },
     "dashboard": {
       "title": "Vue",
@@ -425,7 +486,14 @@
       "delete_success": "Championnat supprimé avec succès",
       "delete_confirm": "Supprimer ce championnat ?",
       "reporter_success": "Reporter autorisé avec succès !",
-      "admin_success": "Admin de championnat assigné avec succès !"
+      "admin_success": "Admin de championnat assigné avec succès !",
+      "create_named": "Créer : {{name}}",
+      "modal_create_named": "Nouveau : {{name}}",
+      "fixtures_generated": "Calendrier généré",
+      "generate_failed": "Échec de la génération du calendrier",
+      "generate_confirm": "Générer un calendrier pour « {{name}} » ?\n\nOK = matchs aller-retour\nAnnuler = match simple",
+      "format": "Format",
+      "max_teams": "Nombre max d'équipes"
     },
     "teams": {
       "title": "Vérification",
@@ -454,7 +522,18 @@
       "col_team": "Équipe",
       "col_position": "Poste",
       "col_skill": "Niveau",
-      "delete_success": "Joueur retiré avec succès"
+      "delete_success": "Joueur retiré avec succès",
+      "register_named": "Inscrire : {{name}}",
+      "delete_confirm": "Retirer {{name}} ?",
+      "col_jersey": "Maillot",
+      "dob": "Date de naissance",
+      "nationality": "Nationalité",
+      "national_id": "Carte d'identité / Passeport",
+      "jersey_number": "Numéro de maillot",
+      "licence_number": "Numéro de licence",
+      "height": "Taille (cm)",
+      "weight": "Poids (kg)",
+      "photo": "Photo"
     },
     "fixtures": {
       "title": "Gestion",
@@ -476,7 +555,14 @@
       "venue_placeholder": "Nom du stade",
       "create_success": "Match programmé avec succès !",
       "delete_success": "Match supprimé avec succès",
-      "delete_confirm": "Supprimer ce match ?"
+      "delete_confirm": "Supprimer ce match ?",
+      "select_named": "Sélectionner : {{name}}",
+      "stream_title": "Lien de diffusion en direct",
+      "stream_failed": "Échec de l’enregistrement du lien",
+      "stats_title": "Statistiques du match",
+      "stats_saved": "Statistiques enregistrées",
+      "stats_failed": "Échec de l’enregistrement des statistiques",
+      "stream_hint": "Collez un lien de diffusion (YouTube Live, CAF TV, FIFA+, ESPN, toute URL http(s)). Les visiteurs verront un bouton « Regarder en direct » sur la page du match."
     },
     "documents": {
       "title": "Vérification",
@@ -610,6 +696,10 @@
       "delete_confirm": "Supprimer « {{name}} » ? Cette action est irréversible.",
       "save_failed": "Échec de l'enregistrement du championnat",
       "delete_failed": "Échec de la suppression du championnat"
+    },
+    "sport_admins": {
+      "title": "Admins",
+      "title_accent": "des Sports"
     }
   },
   "team": {
@@ -636,7 +726,15 @@
     "jersey_no": "N° {{number}}",
     "upcoming_schedule": "Calendrier à venir",
     "view_calendar": "Voir le calendrier",
-    "no_matches": "Aucun match programmé"
+    "no_matches": "Aucun match programmé",
+    "formation": "Formation",
+    "no_team": "Aucune équipe trouvée pour votre compte.",
+    "lineups_subtitle": "Publiez votre onze de départ, le banc, le capitaine et la formation",
+    "locked": "Verrouillé",
+    "manage_lineup": "Gérer la composition",
+    "squad_hint": "Effectif — touchez pour changer : Hors → Titulaire → Banc",
+    "starter_count": "{{count}} titulaires",
+    "captain": "Capitaine"
   },
   "reporter": {
     "title": "Reportage",
@@ -767,7 +865,8 @@
     "skill_level": {
       "PROFESSIONAL": "Professionnel",
       "SEMI_PRO": "Semi-professionnel",
-      "AMATEUR": "Amateur"
+      "AMATEUR": "Amateur",
+      "ELITE": "Élite"
     },
     "school_category": {
       "PRIMARY": "Primaire",
@@ -803,6 +902,18 @@
     "activity_action": {
       "PAGE_VIEW": "Page consultée",
       "LOGIN": "Connexion"
+    },
+    "age_group": {
+      "SENIOR": "Senior",
+      "JUNIOR": "Junior",
+      "VETERAN": "Vétéran",
+      "ALL": "Tous âges"
+    },
+    "sport_type": {
+      "TEAM": "Sport collectif",
+      "RACING": "Course",
+      "COMBAT": "Combat",
+      "RACKET": "Raquette"
     }
   },
   "demo": {
@@ -834,6 +945,164 @@
         "title": "Résumé du week-end du championnat féminin de volley-ball",
         "excerpt": "Les prétendantes au titre s'affrontent lors d'un week-end palpitant.",
         "body": "Les prétendantes au titre se sont affrontées lors d'un week-end palpitant, laissant la course au championnat parfaitement indécise avant les dernières journées."
+      }
+    }
+  },
+  "calendar": {
+    "today": "Aujourd'hui",
+    "tomorrow": "Demain",
+    "yesterday": "Hier"
+  },
+  "explore": {
+    "seo_title": "Explorer les sports",
+    "seo_desc": "Explorez chaque sport de la Plateforme Nationale des Sports du Rwanda — choisissez un sport pour voir ses championnats, matchs et scores en direct.",
+    "search_placeholder": "Rechercher un sport…",
+    "generic_sport": "Sport",
+    "hero_title": "Choisissez votre",
+    "hero_accent": "sport",
+    "hero_hint": "Choisissez un sport pour ouvrir son espace dédié — championnats, scores en direct, matchs, classements et centre des matchs."
+  },
+  "sport_hub": {
+    "not_found": "Sport introuvable",
+    "back_home": "Retour à l'accueil",
+    "register_team": "Inscrire une équipe",
+    "match_centre": "Centre des matchs"
+  },
+  "match_day": {
+    "search_leagues": "Rechercher des championnats…",
+    "empty": "Aucun match le {{day}}",
+    "empty_hint": "Essayez un autre jour ou championnat."
+  },
+  "contact": {
+    "title": "Contactez",
+    "title_accent": "-nous",
+    "subtitle": "Nous serions ravis de vous lire",
+    "seo_title": "Contact",
+    "seo_desc": "Contactez l'équipe RwaSport.",
+    "name": "Nom",
+    "name_placeholder": "Votre nom",
+    "subject": "Objet",
+    "subject_placeholder": "Comment pouvons-nous aider ?",
+    "message": "Message",
+    "message_placeholder": "Écrivez votre message…",
+    "send": "Envoyer le message",
+    "send_another": "En envoyer un autre",
+    "sent_title": "Message envoyé",
+    "sent_body": "Merci de nous avoir contactés — notre équipe vous répondra sous peu.",
+    "send_failed": "Une erreur est survenue. Veuillez réessayer.",
+    "validation": {
+      "name": "Veuillez saisir votre nom",
+      "email": "Saisissez un e-mail valide",
+      "message": "Le message doit contenir au moins 10 caractères"
+    }
+  },
+  "legal": {
+    "last_updated": "Mis à jour : {{year}}",
+    "privacy": {
+      "title": "Politique de confidentialité",
+      "intro": "RwaSport respecte votre vie privée. Cette politique explique ce que nous collectons et comment nous l’utilisons.",
+      "s1_h": "Informations que nous collectons",
+      "s1_body": "Les informations de compte (nom, e-mail, téléphone), les données d'équipe et de joueurs que vous soumettez, et des statistiques d'usage de base comme les pages visitées.",
+      "s2_h": "Comment nous les utilisons",
+      "s2_body": "Pour gérer les championnats, vérifier les équipes et joueurs, afficher les matchs et résultats, et améliorer la plateforme.",
+      "s3_h": "Traitement des documents",
+      "s3_body": "Les documents de vérification téléversés sont stockés en sécurité et accessibles uniquement aux administrateurs autorisés.",
+      "s4_h": "Vos droits",
+      "s4_body": "Vous pouvez demander l’accès, la correction ou la suppression de vos données personnelles en nous contactant.",
+      "s5_h": "Contact",
+      "s5_body": "Pour toute question de confidentialité, écrivez à info@rwasport.rw."
+    },
+    "terms": {
+      "title": "Conditions d'utilisation",
+      "intro": "En utilisant RwaSport, vous acceptez ces conditions.",
+      "s1_h": "Comptes",
+      "s1_body": "Vous êtes responsable de l’exactitude des informations fournies et de la sécurité de vos identifiants.",
+      "s2_h": "Utilisation acceptable",
+      "s2_body": "Vous acceptez de ne pas détourner la plateforme, publier de contenu illicite ou tenter de perturber le service.",
+      "s3_h": "Contenu",
+      "s3_body": "Les données d'équipe, de joueurs et de matchs que vous soumettez peuvent être affichées publiquement dans le cadre des championnats.",
+      "s4_h": "Vérification et abonnements",
+      "s4_body": "La vérification d'équipe et la participation aux championnats peuvent être soumises à examen et à des frais.",
+      "s5_h": "Modifications",
+      "s5_body": "Nous pouvons mettre à jour ces conditions ; l'usage continu vaut acceptation."
+    }
+  },
+  "sport_profile": {
+    "TEAM": {
+      "label": "Sport collectif",
+      "competitor": "Équipe",
+      "competitorPlural": "Équipes",
+      "roster": "Joueur",
+      "rosterPlural": "Joueurs",
+      "rosterField": "Poste",
+      "rosterRegistry": "Registre des athlètes",
+      "competition": "Championnat",
+      "competitionPlural": "Championnats",
+      "event": "Match",
+      "eventPlural": "Matchs",
+      "result": "Score",
+      "formats": {
+        "LEAGUE": "Championnat (toutes rondes)",
+        "KNOCKOUT": "Élimination / Coupe",
+        "GROUP_KNOCKOUT": "Groupes + Élimination",
+        "ROUND_ROBIN": "Double confrontation"
+      }
+    },
+    "RACING": {
+      "label": "Course / individuel",
+      "competitor": "Club",
+      "competitorPlural": "Clubs",
+      "roster": "Athlète",
+      "rosterPlural": "Coureurs et athlètes",
+      "rosterField": "Spécialité",
+      "rosterRegistry": "Registre des athlètes",
+      "competition": "Série de courses",
+      "competitionPlural": "Courses et tours",
+      "event": "Course",
+      "eventPlural": "Calendrier des courses",
+      "result": "Temps / Position",
+      "formats": {
+        "ROUND_ROBIN": "Course à étapes / Tour",
+        "KNOCKOUT": "Course unique / Contre-la-montre",
+        "LEAGUE": "Série de la saison"
+      }
+    },
+    "COMBAT": {
+      "label": "Sport de combat",
+      "competitor": "Club",
+      "competitorPlural": "Clubs",
+      "roster": "Athlète",
+      "rosterPlural": "Athlètes",
+      "rosterField": "Catégorie de poids",
+      "rosterRegistry": "Registre des athlètes",
+      "competition": "Championnat",
+      "competitionPlural": "Championnats",
+      "event": "Combat",
+      "eventPlural": "Combats",
+      "result": "Résultat",
+      "formats": {
+        "KNOCKOUT": "Tableau à élimination",
+        "GROUP_KNOCKOUT": "Poules + Tableau",
+        "ROUND_ROBIN": "Poule toutes rondes"
+      }
+    },
+    "RACKET": {
+      "label": "Raquette / 1c1",
+      "competitor": "Club",
+      "competitorPlural": "Clubs",
+      "roster": "Joueur",
+      "rosterPlural": "Joueurs",
+      "rosterField": "Discipline",
+      "rosterRegistry": "Registre des joueurs",
+      "competition": "Tournoi",
+      "competitionPlural": "Tournois",
+      "event": "Match",
+      "eventPlural": "Matchs",
+      "result": "Sets",
+      "formats": {
+        "KNOCKOUT": "Élimination directe",
+        "GROUP_KNOCKOUT": "Groupes + Élimination",
+        "ROUND_ROBIN": "Toutes rondes"
       }
     }
   }

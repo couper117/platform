@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Activity, Loader2, Users, Star, Shield, Lock, ClipboardList } from 'lucide-react';
 import apiClient from '../../api/client';
@@ -9,6 +10,7 @@ const FORMATIONS = ['4-3-3', '4-4-2', '4-2-3-1', '3-5-2', '3-4-3', '5-3-2', '4-1
 const LOCKED = ['LIVE', 'COMPLETED'];
 
 const TeamLineupsPage = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(null); // fixture being edited
   const [formation, setFormation] = useState('4-3-3');
@@ -90,21 +92,21 @@ const TeamLineupsPage = () => {
   const homeAway = (f) => (f.homeTeamId === teamId ? 'H' : 'A');
 
   if (teamLoading) return <div className="py-10"><Skeleton type="card" count={3} /></div>;
-  if (!team) return <p className="opacity-50 py-10">No team found for your account.</p>;
+  if (!team) return <p className="opacity-50 py-10">{t('team.no_team')}</p>;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="space-y-2">
         <h1 className="text-4xl font-display uppercase tracking-tighter flex items-center gap-3">
-          <ClipboardList className="text-red" /> Fixtures &amp; <span className="text-red">Lineups</span>
+          <ClipboardList className="text-red" /> {t('nav.fixtures')} <span className="text-red">{t('match.lineups')}</span>
         </h1>
-        <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Publish your starting XI, bench, captain &amp; formation</p>
+        <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">{t('team.lineups_subtitle')}</p>
       </div>
 
       {fxLoading ? (
         <Skeleton type="card" count={3} />
       ) : !fixtures?.length ? (
-        <p className="opacity-50 py-10">No fixtures scheduled yet.</p>
+        <p className="opacity-50 py-10">{t('team.no_matches')}</p>
       ) : (
         <div className="space-y-3">
           {fixtures.map((f) => {
@@ -115,7 +117,7 @@ const TeamLineupsPage = () => {
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded bg-surface-2 dark:bg-white/10 shrink-0">{homeAway(f)}</div>
                   <div className="min-w-0">
-                    <p className="font-bold text-sm uppercase tracking-tight truncate">vs {opp?.name || 'TBD'}</p>
+                    <p className="font-bold text-sm uppercase tracking-tight truncate">vs {opp?.name || t('common.tbd')}</p>
                     <p className="text-[10px] opacity-40 uppercase tracking-widest truncate">
                       {f.matchDate ? new Date(f.matchDate).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Date TBD'} · {f.status}
                     </p>
@@ -126,7 +128,7 @@ const TeamLineupsPage = () => {
                   disabled={locked}
                   className={`w-full sm:w-auto px-5 py-2.5 rounded-xl font-display text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all shrink-0 ${locked ? 'opacity-40 cursor-not-allowed bg-surface-2 dark:bg-white/5' : 'bg-red text-white hover:bg-red-dark'}`}
                 >
-                  {locked ? <><Lock size={14} /> Locked</> : <><Users size={14} /> Manage Lineup</>}
+                  {locked ? <><Lock size={14} /> {t('team.locked')}</> : <><Users size={14} /> {t('team.manage_lineup')}</>}
                 </button>
               </div>
             );
@@ -140,20 +142,20 @@ const TeamLineupsPage = () => {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Formation</label>
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">{t('team.formation')}</label>
               <select value={formation} onChange={(e) => setFormation(e.target.value)} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-3 rounded-xl outline-none">
                 {FORMATIONS.map((f) => <option key={f} value={f}>{f}</option>)}
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Coach</label>
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">{t('amashuri.school_profile.coach')}</label>
               <input value={coachName} onChange={(e) => setCoachName(e.target.value)} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-3 rounded-xl outline-none" placeholder="Head coach name" />
             </div>
           </div>
 
           <div className="flex items-center justify-between text-[10px] uppercase font-bold tracking-widest opacity-60">
-            <span>Squad — tap to cycle Out → Starter → Bench</span>
-            <span className="text-red">{starters} starters</span>
+            <span>{t('team.squad_hint')}</span>
+            <span className="text-red">{t('team.starter_count', { count: starters })}</span>
           </div>
 
           <div className="max-h-72 overflow-y-auto space-y-2 pr-1">
@@ -170,7 +172,7 @@ const TeamLineupsPage = () => {
                   <button
                     onClick={() => setCaptain(captain === p.id ? null : p.id)}
                     disabled={role === 'OUT'}
-                    title="Captain"
+                    title={t('team.captain')}
                     className={`p-2 rounded-lg transition-colors ${captain === p.id ? 'text-gold' : 'opacity-30 hover:opacity-70'} ${role === 'OUT' ? 'invisible' : ''}`}
                   >
                     <Star size={16} fill={captain === p.id ? 'currentColor' : 'none'} />

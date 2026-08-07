@@ -1,13 +1,14 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
-
-const DEFAULT_DESC = 'The heartbeat of Rwandan sports. Real-time scores, league management, and athlete journeys.';
+import { useTranslation } from 'react-i18next';
 
 const Seo = ({ title, description, image, canonical, type = 'website' }) => {
-  const fullTitle = title ? `${title} | RwaSport` : 'RwaSport | Rwanda National Sports Platform';
-  const desc = description || DEFAULT_DESC;
+  const { t, i18n } = useTranslation();
+  const fullTitle = title ? `${title} | RwaSport` : t('seo.site_title');
+  const desc = description || t('seo.site_description');
   return (
     <Helmet>
+      <html lang={i18n.language} />
       <title>{fullTitle}</title>
       <meta name="description" content={desc} />
       {canonical && <link rel="canonical" href={canonical} />}

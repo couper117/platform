@@ -14,7 +14,18 @@
     "amashuri": "Amashuri Games",
     "login": "Login",
     "logout": "Logout",
-    "dashboard": "Dashboard"
+    "dashboard": "Dashboard",
+    "explore": "Explore",
+    "all_sports": "All Sports",
+    "browse": "Browse",
+    "menu": "Menu",
+    "open_menu": "Open menu",
+    "close_menu": "Close menu",
+    "contact": "Contact",
+    "register": "Register",
+    "register_team": "Register Team",
+    "default_user": "User",
+    "league_count": "{{count}} leagues"
   },
   "common": {
     "loading": "Loading…",
@@ -35,7 +46,8 @@
     "language": "Language",
     "appearance": "Appearance",
     "synchronizing": "Synchronizing Data",
-    "tbd": "TBD"
+    "tbd": "TBD",
+    "retry": "Retry"
   },
   "theme": {
     "light_mode": "Light mode",
@@ -58,7 +70,11 @@
     "send_message": "Send a Message",
     "copyright": "© {{year}} RwaSport Platform. All rights reserved.",
     "privacy": "Privacy Policy",
-    "terms": "Terms of Service"
+    "terms": "Terms of Service",
+    "competitions": "Competitions",
+    "contact": "Contact",
+    "school_directory": "School Directory",
+    "heritage": "Sporting Heritage"
   },
   "home": {
     "hero_title": "Fueling the Spirit of Rwanda",
@@ -68,13 +84,26 @@
     "rwasport_official": "RwaSport Official",
     "match_spotlight": "Match Spotlight",
     "no_active_matches": "No Active Matches",
-    "bulletin": "Bulletin"
+    "bulletin": "Bulletin",
+    "choose_game": "Choose your game",
+    "explore_by_sport": "Explore by sport",
+    "pick_sport_hint": "Pick a sport to dive into its leagues, fixtures, standings and news.",
+    "live_and_today": "Live & Today",
+    "live_count": "{{count}} live"
   },
   "news": {
     "center": "RwaSport News Center",
     "article": "Article Page",
     "read_full_story": "Read Full Story",
-    "default_author": "Editorial Desk"
+    "default_author": "Editorial Desk",
+    "seo_title": "News",
+    "seo_desc": "Latest news, announcements, results and transfers across Rwandan sport.",
+    "center_accent": "Center",
+    "subtitle": "The pulse of Rwandan sport",
+    "load_failed": "Couldn't load news",
+    "empty": "No articles yet",
+    "not_found": "Article not found",
+    "back_to_news": "Back to News"
   },
   "support": {
     "center": "Support Center"
@@ -159,7 +188,13 @@
     "round": "Round",
     "competition": "Competition",
     "status": "Status",
-    "view": "View"
+    "view": "View",
+    "watch_live": "Watch Live",
+    "stream_unavailable": "Live streaming is unavailable",
+    "fixture_info_full": "Match Info",
+    "starting_xi": "Starting XI",
+    "substitutes": "Substitutes",
+    "no_events": "No events yet"
   },
   "standings": {
     "col_pos": "Pos",
@@ -207,7 +242,9 @@
     "goals_for_against": "Goals For / Against",
     "attack_vs_defence": "Attack vs defence",
     "goals_for": "For",
-    "goals_against": "Against"
+    "goals_against": "Against",
+    "gls": "Gls",
+    "ast": "Ast"
   },
   "search": {
     "placeholder": "Search teams, leagues, news…",
@@ -265,8 +302,31 @@
       "team_name_min": "Team name must be at least 2 characters",
       "sport_required": "Please select a sport",
       "city_required": "City is required",
-      "province_required": "Province is required"
-    }
+      "province_required": "Province is required",
+      "president_required": "Club president is required"
+    },
+    "club": "Club",
+    "register_club_hint": "Register your club with the federation",
+    "club_information": "Club Information",
+    "club_officials": "Club Officials",
+    "next_club_details": "Next: Club Details",
+    "official_club_name": "Official Club Name",
+    "short_name": "Short Name",
+    "city_town": "City / Town",
+    "city_town_placeholder": "e.g. Kigali",
+    "home_venue": "Home Venue / Stadium",
+    "year_founded": "Year Founded",
+    "reg_number": "Reg. Number",
+    "primary_colour": "Primary Colour",
+    "secondary_colour": "Secondary Colour",
+    "colour_placeholder_1": "e.g. Blue",
+    "colour_placeholder_2": "e.g. White",
+    "president": "President",
+    "secretary": "Secretary",
+    "required_suffix": "(required)",
+    "optional_suffix": "(optional)",
+    "president_name_placeholder": "President name",
+    "secretary_name_placeholder": "Secretary name"
   },
   "amashuri": {
     "hero_title": "Amashuri",
@@ -374,7 +434,8 @@
       "documents": "Documents",
       "ads": "Ads",
       "visitors": "Visitors",
-      "settings": "Settings"
+      "settings": "Settings",
+      "sport_admins": "Sport Admins"
     },
     "dashboard": {
       "title": "System",
@@ -425,7 +486,14 @@
       "delete_success": "League deleted successfully",
       "delete_confirm": "Delete this league?",
       "reporter_success": "Reporter authorized successfully!",
-      "admin_success": "League Admin assigned successfully!"
+      "admin_success": "League Admin assigned successfully!",
+      "create_named": "Create {{name}}",
+      "modal_create_named": "Create New {{name}}",
+      "fixtures_generated": "Fixtures generated",
+      "generate_failed": "Failed to generate fixtures",
+      "generate_confirm": "Generate a fixture schedule for \"{{name}}\"?\n\nOK = double round (home & away)\nCancel = single round",
+      "format": "Format",
+      "max_teams": "Max Teams"
     },
     "teams": {
       "title": "Team",
@@ -454,7 +522,18 @@
       "col_team": "Team",
       "col_position": "Position",
       "col_skill": "Skill",
-      "delete_success": "Player removed successfully"
+      "delete_success": "Player removed successfully",
+      "register_named": "Register {{name}}",
+      "delete_confirm": "Remove {{name}}?",
+      "col_jersey": "Jersey",
+      "dob": "Date of Birth",
+      "nationality": "Nationality",
+      "national_id": "National ID / Passport",
+      "jersey_number": "Jersey Number",
+      "licence_number": "Licence Number",
+      "height": "Height (cm)",
+      "weight": "Weight (kg)",
+      "photo": "Photo"
     },
     "fixtures": {
       "title": "Schedule",
@@ -476,7 +555,14 @@
       "venue_placeholder": "Stadium name",
       "create_success": "Match scheduled successfully!",
       "delete_success": "Fixture deleted successfully",
-      "delete_confirm": "Delete this fixture?"
+      "delete_confirm": "Delete this fixture?",
+      "select_named": "Select {{name}}",
+      "stream_title": "Live Streaming URL",
+      "stream_failed": "Failed to save streaming URL",
+      "stats_title": "Match Statistics",
+      "stats_saved": "Match statistics saved",
+      "stats_failed": "Failed to save statistics",
+      "stream_hint": "Paste a broadcast link (YouTube Live, CAF TV, FIFA+, ESPN, any http(s) URL). Viewers get an active Watch Live button on the match page."
     },
     "documents": {
       "title": "Document",
@@ -610,6 +696,10 @@
       "delete_confirm": "Delete \"{{name}}\"? This cannot be undone.",
       "save_failed": "Failed to save championship",
       "delete_failed": "Failed to delete championship"
+    },
+    "sport_admins": {
+      "title": "Sport",
+      "title_accent": "Admins"
     }
   },
   "team": {
@@ -636,7 +726,15 @@
     "jersey_no": "No. {{number}}",
     "upcoming_schedule": "Upcoming Schedule",
     "view_calendar": "View Calendar",
-    "no_matches": "No Matches Scheduled"
+    "no_matches": "No Matches Scheduled",
+    "formation": "Formation",
+    "no_team": "No team found for your account.",
+    "lineups_subtitle": "Publish your starting XI, bench, captain & formation",
+    "locked": "Locked",
+    "manage_lineup": "Manage Lineup",
+    "squad_hint": "Squad — tap to cycle Out → Starter → Bench",
+    "starter_count": "{{count}} starters",
+    "captain": "Captain"
   },
   "reporter": {
     "title": "Pitch-Side",
@@ -767,7 +865,8 @@
     "skill_level": {
       "PROFESSIONAL": "Professional",
       "SEMI_PRO": "Semi-pro",
-      "AMATEUR": "Amateur"
+      "AMATEUR": "Amateur",
+      "ELITE": "Elite"
     },
     "school_category": {
       "PRIMARY": "Primary",
@@ -803,6 +902,18 @@
     "activity_action": {
       "PAGE_VIEW": "Page View",
       "LOGIN": "Login"
+    },
+    "age_group": {
+      "SENIOR": "Senior",
+      "JUNIOR": "Junior",
+      "VETERAN": "Veteran",
+      "ALL": "All ages"
+    },
+    "sport_type": {
+      "TEAM": "Team sport",
+      "RACING": "Racing",
+      "COMBAT": "Combat",
+      "RACKET": "Racket"
     }
   },
   "demo": {
@@ -834,6 +945,164 @@
         "title": "Women's Volleyball League Weekend Roundup",
         "excerpt": "Title contenders trade blows in a thrilling weekend of action.",
         "body": "Title contenders traded blows in a thrilling weekend of action, leaving the championship race finely poised heading into the final rounds."
+      }
+    }
+  },
+  "calendar": {
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "yesterday": "Yesterday"
+  },
+  "explore": {
+    "seo_title": "Explore Sports",
+    "seo_desc": "Explore every sport on the Rwanda National Sports Platform — pick a sport to see its leagues, fixtures and live scores.",
+    "search_placeholder": "Search a sport…",
+    "generic_sport": "Sport",
+    "hero_title": "Choose your",
+    "hero_accent": "sport",
+    "hero_hint": "Pick a sport to open its dedicated hub — leagues, live scores, fixtures, standings and match centre."
+  },
+  "sport_hub": {
+    "not_found": "Sport not found",
+    "back_home": "Back home",
+    "register_team": "Register a Team",
+    "match_centre": "Match Centre"
+  },
+  "match_day": {
+    "search_leagues": "Search leagues…",
+    "empty": "No matches on {{day}}",
+    "empty_hint": "Try another day or league."
+  },
+  "contact": {
+    "title": "Get In",
+    "title_accent": "Touch",
+    "subtitle": "We'd love to hear from you",
+    "seo_title": "Contact",
+    "seo_desc": "Get in touch with the RwaSport team.",
+    "name": "Name",
+    "name_placeholder": "Your name",
+    "subject": "Subject",
+    "subject_placeholder": "How can we help?",
+    "message": "Message",
+    "message_placeholder": "Write your message…",
+    "send": "Send Message",
+    "send_another": "Send another",
+    "sent_title": "Message sent",
+    "sent_body": "Thank you for reaching out — our team will get back to you shortly.",
+    "send_failed": "Something went wrong. Please try again.",
+    "validation": {
+      "name": "Please enter your name",
+      "email": "Enter a valid email",
+      "message": "Message must be at least 10 characters"
+    }
+  },
+  "legal": {
+    "last_updated": "Last updated: {{year}}",
+    "privacy": {
+      "title": "Privacy Policy",
+      "intro": "RwaSport respects your privacy. This policy explains what we collect and how we use it.",
+      "s1_h": "Information we collect",
+      "s1_body": "Account details (name, email, phone), team and player information you submit, and basic usage analytics such as pages visited.",
+      "s2_h": "How we use it",
+      "s2_body": "To operate leagues and competitions, verify teams and players, display fixtures and results, and improve the platform.",
+      "s3_h": "Document handling",
+      "s3_body": "Uploaded verification documents are stored securely and only accessible to authorised administrators for review.",
+      "s4_h": "Your rights",
+      "s4_body": "You may request access to, correction of, or deletion of your personal data by contacting us.",
+      "s5_h": "Contact",
+      "s5_body": "For privacy questions, email info@rwasport.rw."
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "intro": "By using RwaSport you agree to these terms.",
+      "s1_h": "Accounts",
+      "s1_body": "You are responsible for the accuracy of information you provide and for keeping your credentials secure.",
+      "s2_h": "Acceptable use",
+      "s2_body": "You agree not to misuse the platform, upload unlawful content, or attempt to disrupt the service.",
+      "s3_h": "Content",
+      "s3_body": "Team, player, and match data you submit may be displayed publicly as part of league operations.",
+      "s4_h": "Verification & subscriptions",
+      "s4_body": "Team verification and league participation may be subject to review and applicable fees.",
+      "s5_h": "Changes",
+      "s5_body": "We may update these terms; continued use constitutes acceptance of the updated terms."
+    }
+  },
+  "sport_profile": {
+    "TEAM": {
+      "label": "Team sport",
+      "competitor": "Team",
+      "competitorPlural": "Teams",
+      "roster": "Player",
+      "rosterPlural": "Players",
+      "rosterField": "Position",
+      "rosterRegistry": "Athlete Registry",
+      "competition": "League",
+      "competitionPlural": "Leagues",
+      "event": "Fixture",
+      "eventPlural": "Fixtures",
+      "result": "Score",
+      "formats": {
+        "LEAGUE": "League (round-robin)",
+        "KNOCKOUT": "Knockout / Cup",
+        "GROUP_KNOCKOUT": "Groups + Knockout",
+        "ROUND_ROBIN": "Double round-robin"
+      }
+    },
+    "RACING": {
+      "label": "Racing / individual",
+      "competitor": "Club",
+      "competitorPlural": "Clubs",
+      "roster": "Athlete",
+      "rosterPlural": "Riders & Athletes",
+      "rosterField": "Specialty",
+      "rosterRegistry": "Athlete Registry",
+      "competition": "Race Series",
+      "competitionPlural": "Races & Tours",
+      "event": "Race",
+      "eventPlural": "Race Calendar",
+      "result": "Time / Position",
+      "formats": {
+        "ROUND_ROBIN": "Stage race / Tour",
+        "KNOCKOUT": "Single race / Time-trial",
+        "LEAGUE": "Season series"
+      }
+    },
+    "COMBAT": {
+      "label": "Combat sport",
+      "competitor": "Club",
+      "competitorPlural": "Clubs",
+      "roster": "Athlete",
+      "rosterPlural": "Athletes",
+      "rosterField": "Weight Category",
+      "rosterRegistry": "Athlete Registry",
+      "competition": "Championship",
+      "competitionPlural": "Championships",
+      "event": "Bout",
+      "eventPlural": "Bouts",
+      "result": "Result",
+      "formats": {
+        "KNOCKOUT": "Elimination bracket",
+        "GROUP_KNOCKOUT": "Pools + Bracket",
+        "ROUND_ROBIN": "Round-robin pool"
+      }
+    },
+    "RACKET": {
+      "label": "Racket / 1v1",
+      "competitor": "Club",
+      "competitorPlural": "Clubs",
+      "roster": "Player",
+      "rosterPlural": "Players",
+      "rosterField": "Discipline",
+      "rosterRegistry": "Player Registry",
+      "competition": "Tournament",
+      "competitionPlural": "Tournaments",
+      "event": "Match",
+      "eventPlural": "Matches",
+      "result": "Sets",
+      "formats": {
+        "KNOCKOUT": "Single-elimination",
+        "GROUP_KNOCKOUT": "Groups + Knockout",
+        "ROUND_ROBIN": "Round-robin"
       }
     }
   }

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Facebook, Instagram, Youtube, Twitter, Mail, Phone, MapPin, ArrowRight } from 'lucide-react';
 
 const socials = [
@@ -7,20 +8,6 @@ const socials = [
   { icon: Twitter, label: 'X', href: '#' },
   { icon: Instagram, label: 'Instagram', href: '#' },
   { icon: Youtube, label: 'YouTube', href: '#' },
-];
-
-const quickLinks = [
-  { to: '/leagues', label: 'All Leagues' },
-  { to: '/fixtures', label: 'Upcoming Fixtures' },
-  { to: '/results', label: 'Match Results' },
-  { to: '/news', label: 'Latest News' },
-];
-
-const competitions = [
-  { to: '/amashuri', label: 'Amashuri Games' },
-  { to: '/amashuri/championships', label: 'Championships' },
-  { to: '/amashuri/schools', label: 'School Directory' },
-  { to: '/amashuri/standings', label: 'Standings' },
 ];
 
 const contact = [
@@ -37,6 +24,22 @@ const ColHeading = ({ children }) => (
 );
 
 const Footer = () => {
+  const { t } = useTranslation();
+
+  const quickLinks = [
+    { to: '/leagues', label: t('footer.all_leagues') },
+    { to: '/fixtures', label: t('footer.upcoming_fixtures') },
+    { to: '/results', label: t('footer.match_results') },
+    { to: '/news', label: t('footer.latest_news') },
+  ];
+
+  const competitions = [
+    { to: '/amashuri', label: t('nav.amashuri') },
+    { to: '/amashuri/championships', label: t('amashuri.championships') },
+    { to: '/amashuri/schools', label: t('footer.school_directory') },
+    { to: '/amashuri/standings', label: t('league.tab_standings') },
+  ];
+
   return (
     <footer className="relative bg-white text-surface-dark dark:bg-surface-dark dark:text-white overflow-hidden border-t border-surface-3 dark:border-transparent">
       {/* Rwanda tri-colour top accent */}
@@ -63,7 +66,7 @@ const Footer = () => {
               </div>
             </Link>
             <p className="text-sm text-surface-dark/50 dark:text-white/50 leading-relaxed max-w-xs">
-              The heartbeat of Rwandan sport — managing leagues, teams, and athletes across the nation.
+              {t('footer.about')}
             </p>
             <div className="flex gap-3">
               {socials.map(({ icon: Icon, label, href }) => (
@@ -81,7 +84,7 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div>
-            <ColHeading>Quick Links</ColHeading>
+            <ColHeading>{t('footer.quick_links')}</ColHeading>
             <ul className="space-y-3 text-sm">
               {quickLinks.map((l) => (
                 <li key={l.to}>
@@ -93,7 +96,7 @@ const Footer = () => {
 
           {/* Competitions */}
           <div>
-            <ColHeading>Competitions</ColHeading>
+            <ColHeading>{t('footer.competitions')}</ColHeading>
             <ul className="space-y-3 text-sm">
               {competitions.map((l) => (
                 <li key={l.to}>
@@ -105,7 +108,7 @@ const Footer = () => {
 
           {/* Contact */}
           <div className="col-span-2 lg:col-span-1">
-            <ColHeading>Contact</ColHeading>
+            <ColHeading>{t('footer.contact')}</ColHeading>
             <ul className="space-y-4 text-sm">
               {contact.map(({ icon: Icon, text }) => (
                 <li key={text} className="flex items-center gap-3">
@@ -120,7 +123,7 @@ const Footer = () => {
                   to="/contact"
                   className="inline-flex items-center gap-2 bg-red text-white px-5 py-2.5 rounded-lg hover:bg-red-dark transition-all font-display text-xs uppercase tracking-widest shadow-lg shadow-red/20"
                 >
-                  Send a Message
+                  {t('footer.send_message')}
                   <ArrowRight size={14} />
                 </Link>
               </li>
@@ -135,17 +138,17 @@ const Footer = () => {
             <span className="w-1.5 h-1.5 rounded-full bg-rwanda-green" />
             <span className="w-1.5 h-1.5 rounded-full bg-rwanda-yellow" />
             <span className="w-1.5 h-1.5 rounded-full bg-rwanda-blue" />
-            <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-[0.2em] sm:tracking-[0.35em] text-surface-dark/40 dark:text-white/40 ml-1 whitespace-nowrap">Umurage w'Imikino</span>
+            <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-[0.2em] sm:tracking-[0.35em] text-surface-dark/40 dark:text-white/40 ml-1 whitespace-nowrap">{t('footer.heritage')}</span>
           </div>
           <div className="h-px flex-1 bg-gradient-to-l from-transparent to-surface-3 dark:to-white/15" />
         </div>
 
         {/* Bottom bar */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-3 sm:gap-4 text-center text-[10px] uppercase tracking-widest text-surface-dark/40 dark:text-white/40">
-          <p>&copy; 2026 RwaSport Platform. All rights reserved.</p>
+          <p>{t('footer.copyright', { year: new Date().getFullYear() })}</p>
           <div className="flex gap-5 sm:gap-6">
-            <Link to="/privacy" className="hover:text-red transition-colors">Privacy Policy</Link>
-            <Link to="/terms" className="hover:text-red transition-colors">Terms of Service</Link>
+            <Link to="/privacy" className="hover:text-red transition-colors">{t('footer.privacy')}</Link>
+            <Link to="/terms" className="hover:text-red transition-colors">{t('footer.terms')}</Link>
           </div>
         </div>
       </div>

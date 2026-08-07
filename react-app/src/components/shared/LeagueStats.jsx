@@ -4,6 +4,7 @@ import {
   CartesianGrid, LabelList,
 } from 'recharts';
 import { Goal, TrendingUp, Shield } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../context/ThemeContext';
 import Card from '../ui/Card';
 import EmptyState from '../ui/EmptyState';
@@ -51,7 +52,7 @@ const LeagueStats = ({ standings = [], topScorers = [] }) => {
   const axis = theme?.dark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)';
 
   if (!standings.length && !topScorers.length) {
-    return <EmptyState icon={TrendingUp} title="No statistics yet" hint="Stats appear once matches are played." />;
+    return <EmptyState icon={TrendingUp} title={t('stats.none')} hint={t('stats.none_hint')} />;
   }
 
   const sortedStandings = [...standings].sort((a, b) => b.points - a.points);
@@ -78,14 +79,14 @@ const LeagueStats = ({ standings = [], topScorers = [] }) => {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Points */}
       {pointsData.length > 0 && (
-        <ChartCard icon={TrendingUp} title="Points" subtitle="Table by points">
+        <ChartCard icon={TrendingUp} title={t('stats.points')} subtitle={t('stats.points_subtitle')}>
           <ResponsiveContainer width="100%" height={Math.max(220, pointsData.length * 34)}>
             <BarChart data={pointsData} layout="vertical" margin={{ left: 8, right: 24 }}>
               <CartesianGrid horizontal={false} stroke={grid} />
               <XAxis type="number" {...axisProps} />
               <YAxis type="category" dataKey="name" width={56} {...axisProps} />
               <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(232,0,45,0.06)' }} />
-              <Bar dataKey="points" radius={[0, 6, 6, 0]}>
+              <Bar dataKey="points" name={t('stats.points')} radius={[0, 6, 6, 0]}>
                 {pointsData.map((entry, i) => (
                   <Cell key={i} fill={i === 0 ? GOLD : i === 1 ? BLUE : i === 2 ? GREEN : RED} />
                 ))}
@@ -98,15 +99,15 @@ const LeagueStats = ({ standings = [], topScorers = [] }) => {
 
       {/* Top scorers — mobile-fit ranked table */}
       {scorersTable.length > 0 && (
-        <ChartCard icon={Goal} title="Top Scorers" subtitle="Goals & assists">
+        <ChartCard icon={Goal} title={t('stats.top_scorers')} subtitle={t('stats.top_scorers_subtitle')}>
           <div className="overflow-hidden rounded-xl border border-surface-3 dark:border-white/5">
             <table className="w-full table-fixed border-collapse text-left">
               <thead>
                 <tr className="bg-surface-2 dark:bg-white/5 text-[9px] sm:text-[10px] uppercase font-bold tracking-[0.1em] sm:tracking-[0.2em] text-surface-dark/40 dark:text-white/40">
                   <th className="px-1 sm:px-3 py-2.5 text-center w-8 sm:w-12">#</th>
                   <th className="px-2 sm:px-3 py-2.5">Player</th>
-                  <th className="px-1 sm:px-3 py-2.5 text-center w-10 sm:w-14 text-red">Gls</th>
-                  <th className="px-1 sm:px-3 py-2.5 text-center w-10 sm:w-14">Ast</th>
+                  <th className="px-1 sm:px-3 py-2.5 text-center w-10 sm:w-14 text-red" title={t('match.goals')}>{t('stats.gls')}</th>
+                  <th className="px-1 sm:px-3 py-2.5 text-center w-10 sm:w-14" title={t('stats.assists')}>{t('stats.ast')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-3 dark:divide-white/5">
@@ -117,7 +118,7 @@ const LeagueStats = ({ standings = [], topScorers = [] }) => {
                     </td>
                     <td className="px-2 sm:px-3 py-2.5">
                       <div className="min-w-0">
-                        <p className="text-xs sm:text-sm font-bold uppercase tracking-tight truncate">{s.player?.fullName || 'Player'}</p>
+                        <p className="text-xs sm:text-sm font-bold uppercase tracking-tight truncate">{s.player?.fullName || t('stats.player')}</p>
                         <p className="text-[9px] sm:text-[10px] uppercase tracking-widest opacity-40 truncate">{s.team?.name || ''}</p>
                       </div>
                     </td>
@@ -133,20 +134,20 @@ const LeagueStats = ({ standings = [], topScorers = [] }) => {
 
       {/* Goals for / against */}
       {goalsData.length > 0 && (
-        <ChartCard icon={Shield} title="Goals For / Against" subtitle="Attack vs defence">
+        <ChartCard icon={Shield} title={t('stats.goals_for_against')} subtitle={t('stats.attack_vs_defence')}>
           <ResponsiveContainer width="100%" height={Math.max(240, goalsData.length * 38)}>
             <BarChart data={goalsData} margin={{ left: 0, right: 8, top: 8 }}>
               <CartesianGrid vertical={false} stroke={grid} />
               <XAxis dataKey="name" {...axisProps} interval={0} angle={-30} textAnchor="end" height={50} />
               <YAxis {...axisProps} width={28} />
               <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(0,161,222,0.06)' }} />
-              <Bar dataKey="For" fill={GREEN} radius={[4, 4, 0, 0]} />
-              <Bar dataKey="Against" fill={RED} radius={[4, 4, 0, 0]} />
+              <Bar dataKey="For" name={t('stats.goals_for')} fill={GREEN} radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Against" name={t('stats.goals_against')} fill={RED} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
           <div className="flex items-center justify-center gap-6 mt-3 text-[10px] uppercase tracking-widest font-bold">
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm" style={{ background: GREEN }} />For</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm" style={{ background: RED }} />Against</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm" style={{ background: GREEN }} />{t('stats.goals_for')}</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm" style={{ background: RED }} />{t('stats.goals_against')}</span>
           </div>
         </ChartCard>
       )}

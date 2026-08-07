@@ -160,7 +160,7 @@ const MatchDetailsPage = () => {
                   <LiveBadge minute={live.minute} />
                   {connected && (
                     <span className="flex items-center gap-1 text-[9px] uppercase tracking-widest text-green/80">
-                      <Wifi size={11} /> Real-time
+                      <Wifi size={11} /> {t('match.real_time')}
                     </span>
                   )}
                 </div>
@@ -205,11 +205,11 @@ const MatchDetailsPage = () => {
                 rel="noreferrer"
                 className="inline-flex items-center gap-2.5 bg-red text-white font-display text-lg uppercase tracking-widest px-8 py-3.5 rounded-xl hover:bg-red-dark transition-all shadow-xl shadow-red/30 hover:scale-[1.03]"
               >
-                <Play size={20} fill="currentColor" /> Watch Live
+                <Play size={20} fill="currentColor" /> {t('match.watch_live')}
               </a>
             ) : (
               <span className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-white/30 border border-white/10 rounded-xl px-5 py-3">
-                <Play size={14} /> Live streaming is unavailable
+                <Play size={14} /> {t('match.stream_unavailable')}
               </span>
             )}
           </div>
@@ -239,7 +239,7 @@ const MatchDetailsPage = () => {
         {tab === 'overview' && (
           <div className="grid gap-6 lg:grid-cols-3 max-w-5xl mx-auto">
             <Card className="p-6 lg:col-span-2 space-y-4">
-              <h3 className="font-display text-lg uppercase tracking-tight">Match Info</h3>
+              <h3 className="font-display text-lg uppercase tracking-tight">{t('match.fixture_info_full')}</h3>
               <dl className="grid grid-cols-2 gap-y-4 gap-x-6 text-sm">
                 {[
                   ['Competition', m.league?.name],
@@ -275,7 +275,7 @@ const MatchDetailsPage = () => {
           <Card className="p-6 sm:p-8 max-w-2xl mx-auto">
             <div className="flex items-center justify-between mb-6 text-[10px] uppercase tracking-widest font-bold">
               <span className="text-red truncate max-w-[40%]">{m.homeTeam?.name}</span>
-              <span className="opacity-40">Match Stats</span>
+              <span className="opacity-40">{t('match.match_stats')}</span>
               <span className="text-rwanda-blue truncate max-w-[40%] text-right">{m.awayTeam?.name}</span>
             </div>
             {hasStats ? (
@@ -288,9 +288,9 @@ const MatchDetailsPage = () => {
               </div>
             ) : (
               <div className="space-y-5">
-                <StatBar label="Goals" home={stats.goals[0]} away={stats.goals[1]} />
-                <StatBar label="Yellow Cards" home={stats.yellow[0]} away={stats.yellow[1]} />
-                <StatBar label="Red Cards" home={stats.red[0]} away={stats.red[1]} />
+                <StatBar label={t('match.goals')} home={stats.goals[0]} away={stats.goals[1]} />
+                <StatBar label={t('match.yellow_cards')} home={stats.yellow[0]} away={stats.yellow[1]} />
+                <StatBar label={t('match.red_cards')} home={stats.red[0]} away={stats.red[1]} />
                 <p className="mt-6 text-[10px] uppercase tracking-widest opacity-30 text-center">
                   Detailed statistics not published yet — derived live from match events
                 </p>
@@ -327,11 +327,11 @@ const MatchDetailsPage = () => {
                       {side.sheet?.formation && <span className="text-xs font-display px-3 py-1 rounded-lg bg-red/10 text-red">{side.sheet.formation}</span>}
                     </div>
                     {starters.length > 0 && <>
-                      <p className="text-[10px] uppercase font-bold tracking-widest opacity-40 mb-1">Starting XI</p>
+                      <p className="text-[10px] uppercase font-bold tracking-widest opacity-40 mb-1">{t('match.starting_xi')}</p>
                       <ul className="space-y-1 mb-4">{starters.map(Row)}</ul>
                     </>}
                     {bench.length > 0 && <>
-                      <p className="text-[10px] uppercase font-bold tracking-widest opacity-40 mb-1">Substitutes</p>
+                      <p className="text-[10px] uppercase font-bold tracking-widest opacity-40 mb-1">{t('match.substitutes')}</p>
                       <ul className="space-y-1 opacity-80">{bench.map(Row)}</ul>
                     </>}
                   </Card>
@@ -339,7 +339,7 @@ const MatchDetailsPage = () => {
               })}
             </div>
           ) : (
-            <EmptyState icon={Users} title="Lineups not available yet" hint="Team sheets have not been published for this match." className="py-16" />
+            <EmptyState icon={Users} title={t('match.no_lineup')} hint="Team sheets have not been published for this match." className="py-16" />
           )
         )}
 
@@ -349,7 +349,7 @@ const MatchDetailsPage = () => {
             {orderedEvents.length ? (
               <MatchEventTimeline events={orderedEvents} homeTeamId={m.homeTeamId} />
             ) : (
-              <EmptyState icon={Clock} title="No events yet" hint="Match events will appear here as they happen." className="py-16" />
+              <EmptyState icon={Clock} title={t('match.no_events')} hint="Match events will appear here as they happen." className="py-16" />
             )}
           </div>
         )}

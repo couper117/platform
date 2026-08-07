@@ -9,11 +9,14 @@ import { useCommandPalette } from '../../context/CommandPaletteContext';
 import { roleHome } from '../../utils/roleHome';
 import { getSports } from '../../api/endpoints/sports';
 import SportIcon from '../shared/SportIcon';
+import { SUPPORTED_LANGUAGES, changeLanguage as applyLanguage } from '../../i18n';
+import { useEnumLabel } from '../../i18n/enums';
 
 const Navbar = () => {
   const { t, i18n } = useTranslation();
+  const enumLabel = useEnumLabel();
   const { isAuthenticated, user, logout, role } = useAuthStore();
-  const displayName = user?.fullName || user?.username || 'User';
+  const displayName = user?.fullName || user?.username || t('nav.default_user');
   const dashboardPath = roleHome(role);
   const { openPalette } = useCommandPalette();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -24,10 +27,11 @@ const Navbar = () => {
   const topSports = sports.slice(0, 6);
 
   const changeLanguage = (lng) => {
-    i18n.changeLanguage(lng);
-    localStorage.setItem('rnsp-lang', lng);
+    applyLanguage(lng);
     setIsLangOpen(false);
   };
+
+  const activeLanguage = SUPPORTED_LANGUAGES.find((l) => l.code === i18n.language) || SUPPORTED_LANGUAGES[0];
   const closeDrawer = () => setIsMenuOpen(false);
 
   const browseLinks = [
@@ -36,14 +40,7 @@ const Navbar = () => {
     { to: '/results', label: t('nav.results', 'Results') },
     { to: '/news', label: t('nav.news', 'News') },
     { to: '/amashuri', label: t('nav.amashuri', 'Amashuri Games'), highlight: true },
-    { to: '/contact', label: t('nav.contact', 'Contact') },
-  ];
-
-  const languages = [
-    { code: 'en', label: 'English' },
-    { code: 'fr', label: 'Français' },
-    { code: 'rw', label: 'Kinyarwanda' },
-    { code: 'sw', label: 'Kiswahili' },
+    { to: '/contact', label: t('nav.contact') },
   ];
 
   return (
@@ -56,7 +53,7 @@ const Navbar = () => {
             end
             className={({ isActive }) => `relative whitespace-nowrap transition-all hover:text-red ${isActive ? 'text-red' : 'text-surface-dark/70 dark:text-white/70'}`}
           >
-            Explore
+            {t('nav.explore')}
           </NavLink>
           {topSports.map((s, i) => (
             <NavLink
@@ -66,7 +63,7 @@ const Navbar = () => {
                 `relative whitespace-nowrap transition-all hover:text-red ${isActive ? 'text-red' : 'text-surface-dark/70 dark:text-white/70'} ${i >= 4 ? 'hidden xl:block' : ''}`
               }
             >
-              {s.name}
+              {enumLabel('sport', s.name)}
             </NavLink>
           ))}
           <button
@@ -74,7 +71,7 @@ const Navbar = () => {
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-surface-3 dark:border-white/15 text-surface-dark/60 dark:text-white/60 hover:text-red hover:border-red/40 dark:hover:text-white dark:hover:border-white/30 transition-all"
           >
             <LayoutGrid size={13} />
-            <span className="text-[10px] tracking-wider">All Sports</span>
+            <span className="text-[10px] tracking-wider">{t('nav.all_sports')}</span>
           </button>
         </div>
 
@@ -87,7 +84,7 @@ const Navbar = () => {
 
         {/* RIGHT: Actions */}
         <div className="flex items-center gap-1.5 sm:gap-2 lg:justify-self-end">
-          <button onClick={openPalette} className="p-2 rounded-full text-surface-dark/50 dark:text-white/50 hover:text-red dark:hover:text-white hover:bg-surface-2 dark:hover:bg-white/5 transition-colors cursor-pointer" aria-label="Search">
+          <button onClick={openPalette} className="p-2 rounded-full text-surface-dark/50 dark:text-white/50 hover:text-red dark:hover:text-white hover:bg-surface-2 dark:hover:bg-white/5 transition-colors cursor-pointer" aria-label={t('common.search')}>
             <Search size={18} />
           </button>
           <ThemeToggle />
@@ -95,18 +92,18 @@ const Navbar = () => {
           <div className="relative">
             <button
               onClick={() => setIsLangOpen(!isLangOpen)}
-              aria-label={t('nav.language', 'Language')}
+              aria-label={t('common.language')}
               aria-haspopup="menu"
               aria-expanded={isLangOpen}
               className="flex items-center gap-1 px-2 py-1.5 sm:gap-1.5 sm:px-2.5 rounded-lg border border-surface-3 dark:border-white/15 text-surface-dark/70 dark:text-white/70 hover:text-red hover:border-red/40 dark:hover:text-white dark:hover:border-white/30 transition-all"
             >
               <Languages size={15} />
-              <span className="text-[10px] font-bold uppercase tracking-wider">{i18n.language}</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider">{activeLanguage.short}</span>
               <ChevronDown size={12} className="opacity-60 hidden sm:block" />
             </button>
             {isLangOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-surface-dark border border-surface-3 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 z-50">
-                {languages.map((lang) => (
+                {SUPPORTED_LANGUAGES.map((lang) => (
                   <button
                     key={lang.code}
                     onClick={() => changeLanguage(lang.code)}
@@ -133,7 +130,7 @@ const Navbar = () => {
               <>
                 <Link to="/auth/login" className="text-[11px] font-bold uppercase tracking-widest text-surface-dark/70 dark:text-white/70 hover:text-red dark:hover:text-white transition-colors px-2">{t('nav.login')}</Link>
                 <Link to="/auth/team/register" className="flex items-center gap-2 bg-red text-white font-display text-sm uppercase tracking-widest px-5 py-2 rounded-lg hover:bg-red-dark transition-all hover:scale-105 active:scale-95 shadow-lg shadow-red/20">
-                  <UserPlus size={16} /><span>Register Team</span>
+                  <UserPlus size={16} /><span>{t('nav.register_team')}</span>
                 </Link>
               </>
             )}
@@ -142,7 +139,7 @@ const Navbar = () => {
           <button
             className="lg:hidden p-2 text-surface-dark/80 dark:text-white/80 hover:text-red dark:hover:text-white transition-colors"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-label={isMenuOpen ? t('nav.close_menu') : t('nav.open_menu')}
             aria-expanded={isMenuOpen}
           >
             {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
@@ -156,8 +153,8 @@ const Navbar = () => {
           <div className="fixed inset-0 bg-black/50 z-[110] animate-in fade-in duration-200" onClick={closeDrawer} />
           <aside className="fixed top-0 right-0 h-full w-[88%] max-w-md bg-white text-surface-dark dark:bg-surface-dark dark:text-white z-[120] shadow-2xl overflow-y-auto animate-in slide-in-from-right duration-300">
             <div className="flex items-center justify-between px-6 py-5 border-b border-surface-3 dark:border-white/10 sticky top-0 bg-white dark:bg-surface-dark z-10">
-              <span className="font-display text-2xl uppercase tracking-tight flex items-center gap-2"><Menu size={20} className="text-red" /> Menu</span>
-              <button onClick={closeDrawer} aria-label="Close" className="p-2 text-surface-dark/60 dark:text-white/60 hover:text-red"><X size={24} /></button>
+              <span className="font-display text-2xl uppercase tracking-tight flex items-center gap-2"><Menu size={20} className="text-red" /> {t('nav.menu')}</span>
+              <button onClick={closeDrawer} aria-label={t('common.close')} className="p-2 text-surface-dark/60 dark:text-white/60 hover:text-red"><X size={24} /></button>
             </div>
 
             <div className="p-5 space-y-7">
@@ -168,7 +165,7 @@ const Navbar = () => {
                     <div className="w-12 h-12 bg-red rounded-full flex items-center justify-center text-xl font-bold uppercase text-white">{displayName.charAt(0)}</div>
                     <div className="min-w-0">
                       <p className="font-display text-xl leading-none truncate">{displayName}</p>
-                      <p className="text-[10px] uppercase tracking-widest text-surface-dark/40 dark:text-white/40 mt-1">{(role || '').replace('_', ' ')}</p>
+                      <p className="text-[10px] uppercase tracking-widest text-surface-dark/40 dark:text-white/40 mt-1">{enumLabel('role', role)}</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
@@ -179,17 +176,17 @@ const Navbar = () => {
               ) : (
                 <div className="grid grid-cols-2 gap-3">
                   <Link to="/auth/login" onClick={closeDrawer} className="flex items-center justify-center gap-2 bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 py-4 rounded-xl font-display uppercase tracking-widest">
-                    <ChevronRight size={16} className="text-red" /> {t('nav.login', 'Login')}
+                    <ChevronRight size={16} className="text-red" /> {t('nav.login')}
                   </Link>
                   <Link to="/auth/team/register" onClick={closeDrawer} className="flex items-center justify-center gap-2 bg-red text-white py-4 rounded-xl font-display uppercase tracking-widest shadow-lg shadow-red/20">
-                    <UserPlus size={16} /> Register
+                    <UserPlus size={16} /> {t('nav.register')}
                   </Link>
                 </div>
               )}
 
               {/* Browse */}
               <div className="space-y-1">
-                <h3 className="text-[10px] uppercase font-bold tracking-[0.3em] text-surface-dark/30 dark:text-white/30 mb-2">Browse</h3>
+                <h3 className="text-[10px] uppercase font-bold tracking-[0.3em] text-surface-dark/30 dark:text-white/30 mb-2">{t('nav.browse')}</h3>
                 {browseLinks.map((link) => (
                   <Link
                     key={link.to}
@@ -205,7 +202,7 @@ const Navbar = () => {
 
               {/* All sports */}
               <div className="space-y-3">
-                <h3 className="text-[10px] uppercase font-bold tracking-[0.3em] text-surface-dark/30 dark:text-white/30">All Sports</h3>
+                <h3 className="text-[10px] uppercase font-bold tracking-[0.3em] text-surface-dark/30 dark:text-white/30">{t('nav.all_sports')}</h3>
                 <div className="grid grid-cols-2 gap-3">
                   {sports.map((s) => (
                     <Link
@@ -216,8 +213,8 @@ const Navbar = () => {
                     >
                       <SportIcon slug={s.slug} size={20} className="text-red shrink-0" />
                       <div className="min-w-0">
-                        <div className="font-display uppercase tracking-tight text-sm leading-tight truncate group-hover:text-red transition-colors">{s.name}</div>
-                        <div className="text-[9px] uppercase font-bold tracking-widest text-surface-dark/30 dark:text-white/30 mt-0.5">{s._count?.leagues ?? 0} leagues</div>
+                        <div className="font-display uppercase tracking-tight text-sm leading-tight truncate group-hover:text-red transition-colors">{enumLabel('sport', s.name)}</div>
+                        <div className="text-[9px] uppercase font-bold tracking-widest text-surface-dark/30 dark:text-white/30 mt-0.5">{t('nav.league_count', { count: s._count?.leagues ?? 0 })}</div>
                       </div>
                     </Link>
                   ))}
@@ -226,13 +223,13 @@ const Navbar = () => {
 
               {/* Settings */}
               <div className="flex items-center justify-between p-4 bg-surface-2 dark:bg-white/5 rounded-xl border border-surface-3 dark:border-white/10">
-                <span className="text-[10px] uppercase font-bold tracking-[0.3em] text-surface-dark/40 dark:text-white/40">Appearance</span>
+                <span className="text-[10px] uppercase font-bold tracking-[0.3em] text-surface-dark/40 dark:text-white/40">{t('common.appearance')}</span>
                 <ThemeToggle />
               </div>
               <div className="space-y-3">
-                <h3 className="text-[10px] uppercase font-bold tracking-[0.3em] text-surface-dark/30 dark:text-white/30">Language</h3>
+                <h3 className="text-[10px] uppercase font-bold tracking-[0.3em] text-surface-dark/30 dark:text-white/30">{t('common.language')}</h3>
                 <div className="grid grid-cols-2 gap-2">
-                  {languages.map((lang) => (
+                  {SUPPORTED_LANGUAGES.map((lang) => (
                     <button
                       key={lang.code}
                       onClick={() => changeLanguage(lang.code)}

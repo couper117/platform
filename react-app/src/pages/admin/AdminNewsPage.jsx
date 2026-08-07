@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Newspaper, Plus, Edit2, Trash2, Eye, Loader2, Image as ImageIcon } from 'lucide-react';
 import apiClient from '../../api/client';
@@ -8,6 +9,7 @@ import Skeleton from '../../components/shared/Skeleton';
 import useSportScope from '../../hooks/useSportScope';
 
 const AdminNewsPage = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({ title: '', category: 'NEWS', excerpt: '', body: '', published: true });
@@ -35,7 +37,7 @@ const AdminNewsPage = () => {
     <div className="space-y-10 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-4xl font-display uppercase tracking-tighter">News <span className="text-red">Publisher</span></h1>
+          <h1 className="text-4xl font-display uppercase tracking-tighter">{t('admin.news.title')} <span className="text-red">{t('admin.news.title_accent')}</span></h1>
           <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Manage platform-wide announcements and news</p>
         </div>
         <button 
@@ -43,14 +45,14 @@ const AdminNewsPage = () => {
           className="bg-red text-white px-8 py-3 rounded-xl font-display text-lg uppercase tracking-widest hover:bg-red-dark transition-all shadow-xl shadow-red/20 flex items-center space-x-2"
         >
           <Plus size={20} />
-          <span>Write Article</span>
+          <span>{t('admin.news.write')}</span>
         </button>
       </div>
 
       {isLoading ? (
         <Skeleton type="card" count={3} />
       ) : (
-        <AdminTable headers={['Article Title', 'Category', 'Views', 'Date', 'Status', 'Actions']}>
+        <AdminTable headers={[t('admin.news.col_title'), t('admin.news.col_category'), t('admin.news.col_views'), t('admin.news.col_date'), t('admin.col_status'), t('admin.col_actions')]}>
           {news?.map(article => (
             <tr key={article.id} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors">
               <td className="px-6 py-5">
@@ -88,18 +90,18 @@ const AdminNewsPage = () => {
       )}
 
       {/* Write Article Modal */}
-      <AdminModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Publish New Article">
+      <AdminModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={t('admin.news.modal_title')}>
         <div className="space-y-6">
           <div className="space-y-2">
-            <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Article Title</label>
+            <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">{t('admin.news.col_title')}</label>
             <input className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none focus:border-red" placeholder="Headline here..." />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Short Excerpt</label>
+            <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">{t('admin.news.excerpt')}</label>
             <textarea className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none focus:border-red" placeholder="Brief summary..." rows={2} />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Main Content (HTML/Text)</label>
+            <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">{t('admin.news.main_content')}</label>
             <textarea className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none focus:border-red min-h-[200px]" placeholder="Full story..." />
           </div>
           <button className="w-full bg-red text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all">Publish Story</button>

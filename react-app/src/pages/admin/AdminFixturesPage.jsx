@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { Activity, Plus, Calendar, MapPin, Trophy, Clock, Search, Trash2, Edit2, Loader2, Tv, BarChart3 } from 'lucide-react';
@@ -9,6 +10,7 @@ import Skeleton from '../../components/shared/Skeleton';
 import useSportScope from '../../hooks/useSportScope';
 
 const AdminFixturesPage = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const scope = useSportScope();
@@ -55,7 +57,7 @@ const AdminFixturesPage = () => {
       queryClient.invalidateQueries({ queryKey: ['admin-fixtures'] });
       setIsModalOpen(false);
       reset();
-      alert('Match scheduled successfully!');
+      alert(t('admin.fixtures.create_success'));
     }
   });
 
@@ -65,7 +67,7 @@ const AdminFixturesPage = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-fixtures'] });
-      alert('Fixture deleted successfully');
+      alert(t('admin.fixtures.delete_success'));
     }
   });
 
@@ -79,7 +81,7 @@ const AdminFixturesPage = () => {
   const streamMutation = useMutation({
     mutationFn: async ({ id, url }) => { await apiClient.patch(`/fixtures/${id}`, { streamUrl: url, streamActive: !!url }); },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-fixtures'] }); setStreamFixture(null); },
-    onError: (err) => alert(err.response?.data?.message || 'Failed to save streaming URL'),
+    onError: (err) => alert(err.response?.data?.message || t('admin.fixtures.stream_failed')),
   });
 
   // ── Match statistics (both teams) ──
@@ -104,15 +106,15 @@ const AdminFixturesPage = () => {
       await apiClient.put(`/fixtures/${statsFixture.id}/stats`, { teamId: statsFixture.homeTeamId, ...homeStats });
       await apiClient.put(`/fixtures/${statsFixture.id}/stats`, { teamId: statsFixture.awayTeamId, ...awayStats });
     },
-    onSuccess: () => { setStatsFixture(null); alert('Match statistics saved'); },
-    onError: (err) => alert(err.response?.data?.message || 'Failed to save statistics'),
+    onSuccess: () => { setStatsFixture(null); alert(t('admin.fixtures.stats_saved')); },
+    onError: (err) => alert(err.response?.data?.message || t('admin.fixtures.stats_failed')),
   });
 
   return (
     <div className="space-y-10 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-4xl font-display uppercase tracking-tighter">{evMany} <span className="text-red">Management</span></h1>
+          <h1 className="text-4xl font-display uppercase tracking-tighter">{evMany} <span className="text-red">{t('admin.fixtures.title_accent')}</span></h1>
           <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Schedule {evMany.toLowerCase()} and assign reporters</p>
         </div>
         <button
@@ -127,7 +129,7 @@ const AdminFixturesPage = () => {
       {fixturesLoading ? (
         <Skeleton type="card" count={3} />
       ) : (
-        <AdminTable headers={['Match', 'League', 'Date & Time', 'Venue', 'Status', 'Actions']}>
+        <AdminTable headers={[t('admin.fixtures.col_match'), t('admin.fixtures.col_league'), t('admin.fixtures.col_datetime'), t('admin.fixtures.col_venue'), t('admin.col_status'), t('admin.col_actions')]}>
           {fixtures?.map(f => (
             <tr key={f.id} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors group">
               <td className="px-6 py-5">
@@ -177,40 +179,40 @@ const AdminFixturesPage = () => {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2 col-span-2">
-              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Select {compOne}</label>
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">{t('admin.fixtures.select_named', { name: compOne })}</label>
               <select 
                 {...register('leagueId', { required: true })} 
                 className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none"
                 onChange={(e) => setSelectedLeagueId(e.target.value)}
               >
-                <option value="">Choose a competition...</option>
+                <option value="">{t('admin.fixtures.choose_competition')}</option>
                 {leagues?.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
               </select>
             </div>
             
             <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Home Team</label>
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">{t('admin.fixtures.home_team')}</label>
               <select {...register('homeTeamId', { required: true })} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none">
-                <option value="">Select Home...</option>
+                <option value="">{t('admin.fixtures.select_home')}</option>
                 {teams?.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Away Team</label>
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">{t('admin.fixtures.away_team')}</label>
               <select {...register('awayTeamId', { required: true })} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none">
-                <option value="">Select Away...</option>
+                <option value="">{t('admin.fixtures.select_away')}</option>
                 {teams?.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Match Date & Time</label>
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">{t('admin.fixtures.col_datetime')}</label>
               <input {...register('matchDate', { required: true })} type="datetime-local" className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none" />
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Venue</label>
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">{t('admin.fixtures.col_venue')}</label>
               <input {...register('venue')} type="text" className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none" placeholder="Stadium name" />
             </div>
           </div>
@@ -222,10 +224,10 @@ const AdminFixturesPage = () => {
       </AdminModal>
 
       {/* Streaming URL Modal */}
-      <AdminModal isOpen={!!streamFixture} onClose={() => setStreamFixture(null)} title="Live Streaming URL">
+      <AdminModal isOpen={!!streamFixture} onClose={() => setStreamFixture(null)} title={t('admin.fixtures.stream_title')}>
         <div className="space-y-5">
           <p className="text-xs opacity-60 leading-relaxed">
-            Paste a broadcast link (YouTube Live, CAF TV, FIFA+, ESPN, any http(s) URL). Viewers get an active <b>Watch Live</b> button on the match page.
+            {t('admin.fixtures.stream_hint')}
           </p>
           <input
             value={streamUrl}
@@ -247,7 +249,7 @@ const AdminFixturesPage = () => {
       </AdminModal>
 
       {/* Match Statistics Modal */}
-      <AdminModal isOpen={!!statsFixture} onClose={() => setStatsFixture(null)} title="Match Statistics">
+      <AdminModal isOpen={!!statsFixture} onClose={() => setStatsFixture(null)} title={t('admin.fixtures.stats_title')}>
         {statsFixture && (
           <div className="space-y-5">
             <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-center">

@@ -37,7 +37,7 @@ const HomePage = () => {
 
   return (
     <div className="space-y-0">
-      <Seo title="Home" description="Experience the heartbeat of Rwandan sports." />
+      <Seo title={t('seo.home_title')} description={t('seo.home_desc')} />
       {/* HERO — full-bleed image with dark overlay (isengesho-style) */}
       <section className="relative min-h-[60vh] sm:min-h-[78vh] flex items-center overflow-hidden bg-surface-dark">
         {/* Background image + overlays */}
@@ -60,7 +60,7 @@ const HomePage = () => {
             <div className="lg:col-span-7 space-y-6 animate-in fade-in slide-in-from-left-4 duration-1000">
               <div className="inline-flex items-center gap-2 bg-red/15 border border-red/30 px-4 py-1.5 rounded-full backdrop-blur-sm">
                 <span className="w-2 h-2 bg-red rounded-full animate-pulse" />
-                <span className="text-[10px] font-bold text-red uppercase tracking-[0.3em] italic">RwaSport Official</span>
+                <span className="text-[10px] font-bold text-red uppercase tracking-[0.3em] italic">{t('home.rwasport_official')}</span>
               </div>
 
               <h1 className="text-5xl sm:text-6xl md:text-7xl xl:text-8xl font-display text-white leading-[0.85] tracking-tighter uppercase whitespace-pre-line drop-shadow-2xl">
@@ -85,7 +85,7 @@ const HomePage = () => {
             <div className="lg:col-span-5 animate-in fade-in slide-in-from-right-4 duration-1000 delay-300">
               <div className="bg-surface-dark2/80 backdrop-blur-xl border border-white/10 rounded-3xl p-5 shadow-2xl">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-[10px] font-bold uppercase tracking-[0.35em] text-white/50">Match Spotlight</h3>
+                  <h3 className="text-[10px] font-bold uppercase tracking-[0.35em] text-white/50">{t('home.match_spotlight')}</h3>
                   {liveMatches.length > 0 && (
                     <span className="flex items-center gap-1.5 text-[9px] font-bold text-red uppercase tracking-widest">
                       <span className="w-1.5 h-1.5 bg-red rounded-full animate-pulse" /> Live
@@ -103,7 +103,7 @@ const HomePage = () => {
                 ) : (
                   <div className="py-12 flex flex-col items-center justify-center text-center gap-3 text-white/30">
                     <Activity size={32} />
-                    <span className="font-display text-xl uppercase tracking-widest">No Active Matches</span>
+                    <span className="font-display text-xl uppercase tracking-widest">{t('home.no_active_matches')}</span>
                   </div>
                 )}
               </div>
@@ -120,10 +120,10 @@ const HomePage = () => {
         <ResponsiveWrapper>
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-3">
             <div className="space-y-2">
-              <h2 className="text-[10px] uppercase font-bold tracking-[0.4em] text-red">Choose your game</h2>
-              <h3 className="text-4xl sm:text-5xl font-display uppercase tracking-tight">Explore by sport</h3>
+              <h2 className="text-[10px] uppercase font-bold tracking-[0.4em] text-red">{t('home.choose_game')}</h2>
+              <h3 className="text-4xl sm:text-5xl font-display uppercase tracking-tight">{t('home.explore_by_sport')}</h3>
             </div>
-            <p className="text-sm opacity-50 max-w-xs">Pick a sport to dive into its leagues, fixtures, standings and news.</p>
+            <p className="text-sm opacity-50 max-w-xs">{t('home.pick_sport_hint')}</p>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -165,7 +165,7 @@ const HomePage = () => {
         <ResponsiveWrapper>
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 space-y-4 md:space-y-0">
             <div className="space-y-2">
-              <h2 className="text-[10px] uppercase font-bold tracking-[0.4em] text-red">Bulletin</h2>
+              <h2 className="text-[10px] uppercase font-bold tracking-[0.4em] text-red">{t('home.bulletin')}</h2>
               <h3 className="text-4xl sm:text-5xl font-display uppercase tracking-tight">{t('home.latest_headlines')}</h3>
             </div>
             <Link to="/news" className="group flex items-center space-x-2 text-[10px] font-bold uppercase tracking-widest text-surface-dark/40 dark:text-white/40 hover:text-red transition-colors">

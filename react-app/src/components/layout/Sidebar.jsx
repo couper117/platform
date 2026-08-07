@@ -4,10 +4,12 @@ import {
   LayoutDashboard, Trophy, Users, UserSquare2, FileText,
   Newspaper, Settings, Activity, School, X, Megaphone, Eye, ShieldCheck
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import useAuthStore from '../../store/authStore';
 import useSportScope from '../../hooks/useSportScope';
 
 const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
+  const { t } = useTranslation();
   const { role } = useAuthStore();
   const { profile } = useSportScope();
   const S = 'SUPERADMIN', F = 'FEDERATION_ADMIN', L = 'LEAGUE_ADMIN', A = 'AMASHURI_ADMIN';
@@ -24,27 +26,27 @@ const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
     })[link.to] || link.label;
   };
   const adminLinks = [
-    { to: '/admin/dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard', roles: [S, F, L] },
-    { to: '/admin/sport-admins', icon: <ShieldCheck size={18} />, label: 'Sport Admins', roles: [S] },
-    { to: '/admin/leagues', icon: <Trophy size={18} />, label: 'Leagues', roles: [S, F, L] },
-    { to: '/admin/fixtures', icon: <Activity size={18} />, label: 'Fixtures', roles: [S, F, L] },
-    { to: '/admin/teams', icon: <Users size={18} />, label: 'Teams', roles: [S, F] },
-    { to: '/admin/players', icon: <UserSquare2 size={18} />, label: 'Players', roles: [S, F] },
-    { to: '/admin/documents', icon: <FileText size={18} />, label: 'Documents', roles: [S, F] },
-    { to: '/admin/news', icon: <Newspaper size={18} />, label: 'News', roles: [S, F] },
-    { to: '/admin/ads', icon: <Megaphone size={18} />, label: 'Ads', roles: [S] },
-    { to: '/admin/visitors', icon: <Eye size={18} />, label: 'Visitors', roles: [S] },
-    { to: '/admin/akc3', icon: <School size={18} />, label: 'Amashuri Games', roles: [S, A] },
-    { to: '/admin/championships', icon: <Trophy size={18} />, label: 'Championships', roles: [S, A] },
-    { to: '/admin/settings', icon: <Settings size={18} />, label: 'Settings', roles: [S] },
+    { to: '/admin/dashboard', icon: <LayoutDashboard size={18} />, label: t('nav.dashboard'), roles: [S, F, L] },
+    { to: '/admin/sport-admins', icon: <ShieldCheck size={18} />, label: t('admin.nav.sport_admins'), roles: [S] },
+    { to: '/admin/leagues', icon: <Trophy size={18} />, label: t('nav.leagues'), roles: [S, F, L] },
+    { to: '/admin/fixtures', icon: <Activity size={18} />, label: t('nav.fixtures'), roles: [S, F, L] },
+    { to: '/admin/teams', icon: <Users size={18} />, label: t('admin.nav.teams'), roles: [S, F] },
+    { to: '/admin/players', icon: <UserSquare2 size={18} />, label: t('admin.nav.players'), roles: [S, F] },
+    { to: '/admin/documents', icon: <FileText size={18} />, label: t('admin.nav.documents'), roles: [S, F] },
+    { to: '/admin/news', icon: <Newspaper size={18} />, label: t('nav.news'), roles: [S, F] },
+    { to: '/admin/ads', icon: <Megaphone size={18} />, label: t('admin.nav.ads'), roles: [S] },
+    { to: '/admin/visitors', icon: <Eye size={18} />, label: t('admin.nav.visitors'), roles: [S] },
+    { to: '/admin/akc3', icon: <School size={18} />, label: t('nav.amashuri'), roles: [S, A] },
+    { to: '/admin/championships', icon: <Trophy size={18} />, label: t('amashuri.championships'), roles: [S, A] },
+    { to: '/admin/settings', icon: <Settings size={18} />, label: t('admin.nav.settings'), roles: [S] },
   ];
 
   const teamLinks = [
-    { to: '/team/dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
-    { to: '/team/players', icon: <UserSquare2 size={18} />, label: 'My Players' },
-    { to: '/team/documents', icon: <FileText size={18} />, label: 'Documents' },
-    { to: '/team/fixtures', icon: <Activity size={18} />, label: 'Fixtures' },
-    { to: '/team/profile', icon: <Users size={18} />, label: 'Team Profile' },
+    { to: '/team/dashboard', icon: <LayoutDashboard size={18} />, label: t('nav.dashboard') },
+    { to: '/team/players', icon: <UserSquare2 size={18} />, label: t('team.nav.my_players') },
+    { to: '/team/documents', icon: <FileText size={18} />, label: t('admin.nav.documents') },
+    { to: '/team/fixtures', icon: <Activity size={18} />, label: t('nav.fixtures') },
+    { to: '/team/profile', icon: <Users size={18} />, label: t('team.nav.team_profile') },
   ];
 
   const links = type === 'admin'
@@ -55,9 +57,9 @@ const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
     <>
       <div className="p-6 border-b border-surface-dark2 flex justify-between items-center">
         <h2 className="font-display text-xl text-red tracking-tighter uppercase">
-          {type === 'admin' ? 'Admin Portal' : 'Team Portal'}
+          {type === 'admin' ? t('admin.portal') : t('team.portal')}
         </h2>
-        <button onClick={onClose} className="lg:hidden p-1 text-white/40 hover:text-white">
+        <button onClick={onClose} aria-label={t('common.close')} className="lg:hidden p-1 text-white/40 hover:text-white">
           <X size={20} />
         </button>
       </div>

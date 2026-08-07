@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ShieldCheck, UserPlus, X, GraduationCap, Loader2, AlertCircle } from 'lucide-react';
 import apiClient from '../../api/client';
@@ -44,6 +45,7 @@ const AdminChip = ({ user, onRevoke }) => (
 );
 
 const AdminSportAdminsPage = () => {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [error, setError] = useState('');
 
@@ -80,7 +82,7 @@ const AdminSportAdminsPage = () => {
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="space-y-2">
-        <h1 className="text-4xl font-display uppercase tracking-tighter">Sport <span className="text-red">Admins</span></h1>
+        <h1 className="text-4xl font-display uppercase tracking-tighter">{t('admin.sport_admins.title')} <span className="text-red">{t('admin.sport_admins.title_accent')}</span></h1>
         <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Assign an admin to each sport / federation. They manage only that sport.</p>
       </div>
 
@@ -122,7 +124,7 @@ const AdminSportAdminsPage = () => {
             <div className="flex items-center gap-3 mb-4">
               <span className="w-11 h-11 rounded-xl bg-red text-white flex items-center justify-center"><GraduationCap size={18} /></span>
               <div>
-                <h3 className="font-display text-xl uppercase tracking-tight leading-none">Amashuri Games</h3>
+                <h3 className="font-display text-xl uppercase tracking-tight leading-none">{t('nav.amashuri')}</h3>
                 <p className="text-[10px] uppercase font-bold tracking-widest opacity-40 mt-1">Inter-school section · dedicated admin</p>
               </div>
             </div>

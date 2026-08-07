@@ -1,4 +1,6 @@
 import React from 'react';
+import { useDateFormat } from '../../i18n/dateLocale';
+import { useTranslation } from 'react-i18next';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
@@ -9,6 +11,8 @@ import Skeleton from '../../components/shared/Skeleton';
 import Seo from '../../components/shared/Seo';
 
 const NewsArticlePage = () => {
+  const { t } = useTranslation();
+  const formatDate = useDateFormat();
   const { slug } = useParams();
   const { data, isLoading, isError } = useQuery({
     queryKey: ['news-article', slug],
@@ -26,8 +30,8 @@ const NewsArticlePage = () => {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 text-center px-4">
         <AlertCircle size={40} className="text-red" />
-        <p className="font-display text-3xl uppercase tracking-widest opacity-60">Article not found</p>
-        <Link to="/news" className="bg-red text-white px-6 py-2 rounded-lg font-display uppercase tracking-widest text-sm">Back to News</Link>
+        <p className="font-display text-3xl uppercase tracking-widest opacity-60">{t('news.not_found')}</p>
+        <Link to="/news" className="bg-red text-white px-6 py-2 rounded-lg font-display uppercase tracking-widest text-sm">{t('news.back_to_news')}</Link>
       </div>
     );
   }
@@ -49,7 +53,7 @@ const NewsArticlePage = () => {
           <span className="bg-red text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full w-fit mb-4">{article.category}</span>
           <h1 className="text-3xl sm:text-5xl font-display text-white uppercase tracking-tighter leading-tight max-w-4xl">{article.title}</h1>
           <div className="flex items-center gap-4 mt-4 text-[10px] uppercase font-bold tracking-widest text-white/50">
-            <span className="flex items-center gap-1"><Calendar size={12} />{article.createdAt ? format(new Date(article.createdAt), 'dd MMM yyyy') : ''}</span>
+            <span className="flex items-center gap-1"><Calendar size={12} />{formatDate(article.createdAt, 'dd MMM yyyy')}</span>
             <span className="flex items-center gap-1"><User size={12} />{article.author?.fullName || 'RwaSport'}</span>
           </div>
         </ResponsiveWrapper>

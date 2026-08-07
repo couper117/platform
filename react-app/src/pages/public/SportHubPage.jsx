@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Trophy, Users, Calendar, ChevronLeft, ArrowRight, Newspaper, LayoutGrid, AlertCircle } from 'lucide-react';
@@ -25,6 +26,7 @@ const statusPill = (status) => {
 };
 
 const SportHubPage = () => {
+  const { t } = useTranslation();
   const { slug } = useParams();
   const theme = sportTheme(slug);
 
@@ -53,8 +55,8 @@ const SportHubPage = () => {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 text-center px-4">
         <AlertCircle size={40} className="text-red" />
-        <p className="font-display text-3xl uppercase tracking-widest opacity-60">Sport not found</p>
-        <Link to="/" className="bg-red text-white px-6 py-2 rounded-lg font-display uppercase tracking-widest text-sm">Back home</Link>
+        <p className="font-display text-3xl uppercase tracking-widest opacity-60">{t('sport_hub.not_found')}</p>
+        <Link to="/" className="bg-red text-white px-6 py-2 rounded-lg font-display uppercase tracking-widest text-sm">{t('sport_hub.back_home')}</Link>
       </div>
     );
   }
@@ -101,7 +103,7 @@ const SportHubPage = () => {
             <LayoutGrid size={40} className="mx-auto opacity-30" />
             <h3 className="font-display text-2xl uppercase tracking-widest">{sport.name} is coming soon</h3>
             <p className="opacity-60 max-w-md mx-auto">No leagues have been set up for {sport.name} yet. Be part of it — register your team and we'll get the competition rolling.</p>
-            <Link to="/auth/team/register" className="inline-flex items-center gap-2 bg-red text-white px-6 py-3 rounded-xl font-display uppercase tracking-widest text-sm">Register a Team <ArrowRight size={16} /></Link>
+            <Link to="/auth/team/register" className="inline-flex items-center gap-2 bg-red text-white px-6 py-3 rounded-xl font-display uppercase tracking-widest text-sm">{t('sport_hub.register_team')} <ArrowRight size={16} /></Link>
           </div>
         </ResponsiveWrapper>
       )}
@@ -109,8 +111,8 @@ const SportHubPage = () => {
       {/* MATCH CENTRE — LiveScore-style browser (comes before competitions) */}
       <ResponsiveWrapper className="mt-8 sm:mt-12" id="matches">
         <div className="mb-6">
-          <h2 className="text-[10px] uppercase font-bold tracking-[0.4em]" style={{ color: theme.accent }}>Match Centre</h2>
-          <h3 className="text-3xl sm:text-4xl font-display uppercase tracking-tight">Fixtures &amp; Results</h3>
+          <h2 className="text-[10px] uppercase font-bold tracking-[0.4em]" style={{ color: theme.accent }}>{t('sport_hub.match_centre')}</h2>
+          <h3 className="text-3xl sm:text-4xl font-display uppercase tracking-tight">{t('league.fixtures_and_results')}</h3>
         </div>
         <MatchDayBrowser sportId={sportId} accent={theme.accent} leagues={leagues} />
       </ResponsiveWrapper>
@@ -120,7 +122,7 @@ const SportHubPage = () => {
         <ResponsiveWrapper className="mt-16">
           <div className="flex items-end justify-between mb-6">
             <div>
-              <h2 className="text-[10px] uppercase font-bold tracking-[0.4em]" style={{ color: theme.accent }}>Competitions</h2>
+              <h2 className="text-[10px] uppercase font-bold tracking-[0.4em]" style={{ color: theme.accent }}>{t('footer.competitions')}</h2>
               <h3 className="text-3xl sm:text-4xl font-display uppercase tracking-tight">{sport.name} Leagues</h3>
             </div>
           </div>
@@ -147,7 +149,7 @@ const SportHubPage = () => {
         <ResponsiveWrapper className="mt-16">
           <div className="flex items-end justify-between mb-6">
             <div>
-              <h2 className="text-[10px] uppercase font-bold tracking-[0.4em]" style={{ color: theme.accent }}>Bulletin</h2>
+              <h2 className="text-[10px] uppercase font-bold tracking-[0.4em]" style={{ color: theme.accent }}>{t('home.bulletin')}</h2>
               <h3 className="text-3xl sm:text-4xl font-display uppercase tracking-tight flex items-center gap-3"><Newspaper size={26} /> {sport.name} News</h3>
             </div>
           </div>

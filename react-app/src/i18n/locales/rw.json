@@ -14,7 +14,18 @@
     "amashuri": "Imikino y'Amashuri",
     "login": "Injira",
     "logout": "Sohoka",
-    "dashboard": "Imbonerahamwe"
+    "dashboard": "Imbonerahamwe",
+    "explore": "Reba byose",
+    "all_sports": "Imikino yose",
+    "browse": "Shakisha",
+    "menu": "Menu",
+    "open_menu": "Fungura menu",
+    "close_menu": "Funga menu",
+    "contact": "Twandikire",
+    "register": "Iyandikishe",
+    "register_team": "Andikisha ikipe",
+    "default_user": "Umukoresha",
+    "league_count": "Amarushanwa {{count}}"
   },
   "common": {
     "loading": "Birapakirwa…",
@@ -35,7 +46,8 @@
     "language": "Ururimi",
     "appearance": "Imiterere",
     "synchronizing": "Amakuru arahuzwa",
-    "tbd": "Ntibiramenyekana"
+    "tbd": "Ntibiramenyekana",
+    "retry": "Ongera ugerageze"
   },
   "theme": {
     "light_mode": "Imiterere y'umucyo",
@@ -58,7 +70,11 @@
     "send_message": "Ohereza ubutumwa",
     "copyright": "© {{year}} Urubuga RwaSport. Uburenganzira bwose bwitabwaho.",
     "privacy": "Politiki y'ibanga",
-    "terms": "Amabwiriza y'imikoreshereze"
+    "terms": "Amabwiriza y'imikoreshereze",
+    "competitions": "Amarushanwa",
+    "contact": "Twandikire",
+    "school_directory": "Urutonde rw'amashuri",
+    "heritage": "Umurage w'Imikino"
   },
   "home": {
     "hero_title": "Duhesha Imbaraga Umwuka w'u Rwanda",
@@ -68,13 +84,26 @@
     "rwasport_official": "RwaSport ku mugaragaro",
     "match_spotlight": "Umukino w'umwihariko",
     "no_active_matches": "Nta mikino iri kuba",
-    "bulletin": "Ikinyamakuru"
+    "bulletin": "Ikinyamakuru",
+    "choose_game": "Hitamo umukino wawe",
+    "explore_by_sport": "Shakisha ukurikije umukino",
+    "pick_sport_hint": "Hitamo umukino urebe amarushanwa yawo, imikino, urutonde n'amakuru.",
+    "live_and_today": "Ibiri kuba n'iby'uyu munsi",
+    "live_count": "{{count}} biri kuba"
   },
   "news": {
     "center": "Ikigo cy'Amakuru cya RwaSport",
     "article": "Urupapuro rw'inkuru",
     "read_full_story": "Soma inkuru yose",
-    "default_author": "Ubuyobozi bw'amakuru"
+    "default_author": "Ubuyobozi bw'amakuru",
+    "seo_title": "Amakuru",
+    "seo_desc": "Amakuru aheruka, amatangazo, ibyavuyemo n'ihererekanya mu mikino y'u Rwanda.",
+    "center_accent": "Yose",
+    "subtitle": "Umutima w'imikino y'u Rwanda",
+    "load_failed": "Amakuru ntiyaboneka",
+    "empty": "Nta nkuru irahari",
+    "not_found": "Inkuru ntiyabonetse",
+    "back_to_news": "Subira ku makuru"
   },
   "support": {
     "center": "Ikigo cy'ubufasha"
@@ -159,7 +188,13 @@
     "round": "Umuzenguruko",
     "competition": "Irushanwa",
     "status": "Uko bimeze",
-    "view": "Reba"
+    "view": "Reba",
+    "watch_live": "Reba umukino",
+    "stream_unavailable": "Kureba umukino ntibishoboka ubu",
+    "fixture_info_full": "Amakuru y'umukino",
+    "starting_xi": "Abatangira umukino",
+    "substitutes": "Abasimbura",
+    "no_events": "Nta bikorwa birahari"
   },
   "standings": {
     "col_pos": "Umw.",
@@ -207,7 +242,9 @@
     "goals_for_against": "Ibitego yatsinze / yatsinzwe",
     "attack_vs_defence": "Igitero n'ubwirinzi",
     "goals_for": "Yatsinze",
-    "goals_against": "Yatsinzwe"
+    "goals_against": "Yatsinzwe",
+    "gls": "IB",
+    "ast": "IT"
   },
   "search": {
     "placeholder": "Shakisha amakipe, amarushanwa, amakuru…",
@@ -265,8 +302,31 @@
       "team_name_min": "Izina ry'ikipe rigomba kuba nibura inyuguti 2",
       "sport_required": "Hitamo umukino",
       "city_required": "Umujyi urakenewe",
-      "province_required": "Intara irakenewe"
-    }
+      "province_required": "Intara irakenewe",
+      "president_required": "Perezida wa klabu arakenewe"
+    },
+    "club": "Klabu",
+    "register_club_hint": "Andikisha klabu yawe muri federasiyo",
+    "club_information": "Amakuru ya klabu",
+    "club_officials": "Abayobozi ba klabu",
+    "next_club_details": "Ibikurikira: Amakuru ya klabu",
+    "official_club_name": "Izina ryemewe rya klabu",
+    "short_name": "Izina rigufi",
+    "city_town": "Umujyi",
+    "city_town_placeholder": "urugero: Kigali",
+    "home_venue": "Ikibuga cy'iwabo",
+    "year_founded": "Umwaka yashinzwe",
+    "reg_number": "Nimero y'iyandikwa",
+    "primary_colour": "Ibara ry'ibanze",
+    "secondary_colour": "Ibara rya kabiri",
+    "colour_placeholder_1": "urugero: Ubururu",
+    "colour_placeholder_2": "urugero: Umweru",
+    "president": "Perezida",
+    "secretary": "Umunyamabanga",
+    "required_suffix": "(birakenewe)",
+    "optional_suffix": "(si ngombwa)",
+    "president_name_placeholder": "Izina rya perezida",
+    "secretary_name_placeholder": "Izina ry'umunyamabanga"
   },
   "amashuri": {
     "hero_title": "Amashuri",
@@ -374,7 +434,8 @@
       "documents": "Inyandiko",
       "ads": "Kwamamaza",
       "visitors": "Abasuye",
-      "settings": "Igenamiterere"
+      "settings": "Igenamiterere",
+      "sport_admins": "Abayobozi b'imikino"
     },
     "dashboard": {
       "title": "Incamake",
@@ -425,7 +486,14 @@
       "delete_success": "Irushanwa ryasibwe neza",
       "delete_confirm": "Siba iri rushanwa?",
       "reporter_success": "Umutangazamakuru yemerewe neza!",
-      "admin_success": "Umuyobozi w'irushanwa yashyizweho neza!"
+      "admin_success": "Umuyobozi w'irushanwa yashyizweho neza!",
+      "create_named": "Kora {{name}}",
+      "modal_create_named": "{{name}} nshya",
+      "fixtures_generated": "Imikino yakozwe",
+      "generate_failed": "Gukora imikino ntibyakunze",
+      "generate_confirm": "Kora gahunda y’imikino ya \"{{name}}\"?\n\nYEGO = imikino ibiri (mu rugo no hanze)\nOYA = umukino umwe",
+      "format": "Uburyo",
+      "max_teams": "Amakipe ntarengwa"
     },
     "teams": {
       "title": "Kwemeza",
@@ -454,7 +522,18 @@
       "col_team": "Ikipe",
       "col_position": "Umwanya",
       "col_skill": "Urwego",
-      "delete_success": "Umukinnyi yavanyweho neza"
+      "delete_success": "Umukinnyi yavanyweho neza",
+      "register_named": "Andikisha {{name}}",
+      "delete_confirm": "Gukuraho {{name}}?",
+      "col_jersey": "Nimero",
+      "dob": "Itariki y'amavuko",
+      "nationality": "Ubwenegihugu",
+      "national_id": "Indangamuntu / Pasiporo",
+      "jersey_number": "Nimero y'umwambaro",
+      "licence_number": "Nimero y'uruhushya",
+      "height": "Uburebure (cm)",
+      "weight": "Ibiro (kg)",
+      "photo": "Ifoto"
     },
     "fixtures": {
       "title": "Gucunga",
@@ -476,7 +555,14 @@
       "venue_placeholder": "Izina ry'ikibuga",
       "create_success": "Umukino wateganyijwe neza!",
       "delete_success": "Umukino wasibwe neza",
-      "delete_confirm": "Siba uyu mukino?"
+      "delete_confirm": "Siba uyu mukino?",
+      "select_named": "Hitamo {{name}}",
+      "stream_title": "Aderesi yo kureba umukino",
+      "stream_failed": "Kubika aderesi ntibyakunze",
+      "stats_title": "Imibare y'umukino",
+      "stats_saved": "Imibare y'umukino yabitswe",
+      "stats_failed": "Kubika imibare ntibyakunze",
+      "stream_hint": "Shyiramo aderesi yo kureba umukino (YouTube Live, CAF TV, FIFA+, ESPN, cyangwa indi aderesi http(s)). Abareba bazabona buto yo kureba ku ipaji y'umukino."
     },
     "documents": {
       "title": "Kwemeza",
@@ -610,6 +696,10 @@
       "delete_confirm": "Siba \"{{name}}\"? Ibi ntibisubirwaho.",
       "save_failed": "Kubika irushanwa ntibyakunze",
       "delete_failed": "Gusiba irushanwa ntibyakunze"
+    },
+    "sport_admins": {
+      "title": "Abayobozi",
+      "title_accent": "b'Imikino"
     }
   },
   "team": {
@@ -636,7 +726,15 @@
     "jersey_no": "Nimero {{number}}",
     "upcoming_schedule": "Gahunda iri imbere",
     "view_calendar": "Reba kalendari",
-    "no_matches": "Nta mukino wateganyijwe"
+    "no_matches": "Nta mukino wateganyijwe",
+    "formation": "Imiterere y'ikipe",
+    "no_team": "Nta kipe ihuye na konti yawe.",
+    "lineups_subtitle": "Tangaza abatangira, abasimbura, kapiteni n'imiterere y'ikipe",
+    "locked": "Birafunze",
+    "manage_lineup": "Gucunga abakinnyi",
+    "squad_hint": "Ikipe — kanda uhindure: Hanze → Utangira → Umusimbura",
+    "starter_count": "Abatangira {{count}}",
+    "captain": "Kapiteni"
   },
   "reporter": {
     "title": "Gutanga Amakuru",
@@ -767,7 +865,8 @@
     "skill_level": {
       "PROFESSIONAL": "Umwuga",
       "SEMI_PRO": "Hafi y'umwuga",
-      "AMATEUR": "Utari umwuga"
+      "AMATEUR": "Utari umwuga",
+      "ELITE": "Indashyikirwa"
     },
     "school_category": {
       "PRIMARY": "Abanza",
@@ -803,6 +902,18 @@
     "activity_action": {
       "PAGE_VIEW": "Yarebye urupapuro",
       "LOGIN": "Yinjiye"
+    },
+    "age_group": {
+      "SENIOR": "Abakuru",
+      "JUNIOR": "Abato",
+      "VETERAN": "Abarangije",
+      "ALL": "Imyaka yose"
+    },
+    "sport_type": {
+      "TEAM": "Umukino w'ikipe",
+      "RACING": "Isiganwa",
+      "COMBAT": "Imirwano",
+      "RACKET": "Raketi"
     }
   },
   "demo": {
@@ -834,6 +945,164 @@
         "title": "Incamake y'icyumweru y'irushanwa ry'umupira w'amaboko w'abagore",
         "excerpt": "Abahatanira igikombe bahanganye mu cyumweru gishimishije.",
         "body": "Abahatanira igikombe bahanganye mu cyumweru gishimishije cy'imikino, bisiga ipiganwa ry'igikombe ritaramenyekana mbere y'imizenguruko ya nyuma."
+      }
+    }
+  },
+  "calendar": {
+    "today": "Uyu munsi",
+    "tomorrow": "Ejo hazaza",
+    "yesterday": "Ejo hashize"
+  },
+  "explore": {
+    "seo_title": "Reba imikino",
+    "seo_desc": "Reba buri mukino uri ku rubuga rw'igihugu rw'imikino — hitamo umukino urebe amarushanwa, imikino n'ibitego ako kanya.",
+    "search_placeholder": "Shakisha umukino…",
+    "generic_sport": "Umukino",
+    "hero_title": "Hitamo",
+    "hero_accent": "umukino",
+    "hero_hint": "Hitamo umukino ufungure ikigo cyawo — amarushanwa, ibitego ako kanya, imikino, urutonde n'ikigo cy'imikino."
+  },
+  "sport_hub": {
+    "not_found": "Umukino ntiwabonetse",
+    "back_home": "Subira ahabanza",
+    "register_team": "Andikisha ikipe",
+    "match_centre": "Ikigo cy'imikino"
+  },
+  "match_day": {
+    "search_leagues": "Shakisha amarushanwa…",
+    "empty": "Nta mikino ku {{day}}",
+    "empty_hint": "Gerageza undi munsi cyangwa irindi rushanwa."
+  },
+  "contact": {
+    "title": "Tuvugane",
+    "title_accent": "Natwe",
+    "subtitle": "Twishimiye kukumva",
+    "seo_title": "Twandikire",
+    "seo_desc": "Vugana n'ikipe ya RwaSport.",
+    "name": "Izina",
+    "name_placeholder": "Izina ryawe",
+    "subject": "Impamvu",
+    "subject_placeholder": "Twagufasha dute?",
+    "message": "Ubutumwa",
+    "message_placeholder": "Andika ubutumwa bwawe…",
+    "send": "Ohereza ubutumwa",
+    "send_another": "Ohereza ubundi",
+    "sent_title": "Ubutumwa bwoherejwe",
+    "sent_body": "Urakoze kutwandikira — ikipe yacu izagusubiza vuba.",
+    "send_failed": "Habaye ikibazo. Ongera ugerageze.",
+    "validation": {
+      "name": "Andika izina ryawe",
+      "email": "Andika imeyili yemewe",
+      "message": "Ubutumwa bugomba kuba nibura inyuguti 10"
+    }
+  },
+  "legal": {
+    "last_updated": "Byavuguruwe: {{year}}",
+    "privacy": {
+      "title": "Politiki y'ibanga",
+      "intro": "RwaSport yubahiriza ibanga ryawe. Iyi politiki isobanura ibyo dukusanya n'uko tubikoresha.",
+      "s1_h": "Amakuru dukusanya",
+      "s1_body": "Amakuru ya konti (izina, imeyili, telefone), amakuru y'ikipe n'abakinnyi utanga, n'imibare y'ibanze y'imikoreshereze nk'impapuro wasuye.",
+      "s2_h": "Uko tuyakoresha",
+      "s2_body": "Gucunga amarushanwa, kwemeza amakipe n'abakinnyi, kwerekana imikino n'ibyayivuyemo, no kunoza urubuga.",
+      "s3_h": "Uko inyandiko zitunganywa",
+      "s3_body": "Inyandiko zoherezwa zibikwa mu mutekano kandi zigerwaho gusa n'abayobozi babifitiye uburenganzira.",
+      "s4_h": "Uburenganzira bwawe",
+      "s4_body": "Ushobora gusaba kubona, gukosora cyangwa gusiba amakuru yawe bwite utwandikiye.",
+      "s5_h": "Twandikire",
+      "s5_body": "Ku bibazo by'ibanga, twandikire kuri info@rwasport.rw."
+    },
+    "terms": {
+      "title": "Amabwiriza y'imikoreshereze",
+      "intro": "Gukoresha RwaSport bisobanura ko wemera aya mabwiriza.",
+      "s1_h": "Konti",
+      "s1_body": "Ushinzwe ukuri kw'amakuru utanga no kubungabunga umutekano w'ibyo winjiriraho.",
+      "s2_h": "Imikoreshereze yemewe",
+      "s2_body": "Wemera kutabangamira urubuga, kutashyiraho ibinyuranyije n'amategeko, no kutagerageza guhungabanya serivisi.",
+      "s3_h": "Ibikubiyemo",
+      "s3_body": "Amakuru y'ikipe, ay'abakinnyi n'ay'imikino utanga ashobora kugaragazwa mu ruhame nk'igice cy'imicungire y'amarushanwa.",
+      "s4_h": "Kwemeza n'ubwiyandikishe",
+      "s4_body": "Kwemeza ikipe no kwitabira amarushanwa bishobora gusaba isuzuma n'amafaranga akenewe.",
+      "s5_h": "Impinduka",
+      "s5_body": "Dushobora kuvugurura aya mabwiriza; gukomeza gukoresha bisobanura kwemera ayavuguruwe."
+    }
+  },
+  "sport_profile": {
+    "TEAM": {
+      "label": "Umukino w'ikipe",
+      "competitor": "Ikipe",
+      "competitorPlural": "Amakipe",
+      "roster": "Umukinnyi",
+      "rosterPlural": "Abakinnyi",
+      "rosterField": "Umwanya",
+      "rosterRegistry": "Urutonde rw'abakinnyi",
+      "competition": "Irushanwa",
+      "competitionPlural": "Amarushanwa",
+      "event": "Umukino",
+      "eventPlural": "Imikino",
+      "result": "Amanota",
+      "formats": {
+        "LEAGUE": "Irushanwa (bahurira bose)",
+        "KNOCKOUT": "Gukuranaho / Igikombe",
+        "GROUP_KNOCKOUT": "Amatsinda + Gukuranaho",
+        "ROUND_ROBIN": "Bahurira bose kabiri"
+      }
+    },
+    "RACING": {
+      "label": "Isiganwa / ku giti cye",
+      "competitor": "Klabu",
+      "competitorPlural": "Amaklabu",
+      "roster": "Umukinnyi",
+      "rosterPlural": "Abasiganwa n'abakinnyi",
+      "rosterField": "Ubuhanga bwihariye",
+      "rosterRegistry": "Urutonde rw'abakinnyi",
+      "competition": "Uruhererekane rw'isiganwa",
+      "competitionPlural": "Isiganwa n'ingendo",
+      "event": "Isiganwa",
+      "eventPlural": "Gahunda y'isiganwa",
+      "result": "Igihe / Umwanya",
+      "formats": {
+        "ROUND_ROBIN": "Isiganwa ry’ibyiciro / Urugendo",
+        "KNOCKOUT": "Isiganwa rimwe / Kwisiganwa n’igihe",
+        "LEAGUE": "Uruhererekane rw'igihembwe"
+      }
+    },
+    "COMBAT": {
+      "label": "Umukino w'imirwano",
+      "competitor": "Klabu",
+      "competitorPlural": "Amaklabu",
+      "roster": "Umukinnyi",
+      "rosterPlural": "Abakinnyi",
+      "rosterField": "Icyiciro cy'ibiro",
+      "rosterRegistry": "Urutonde rw'abakinnyi",
+      "competition": "Irushanwa",
+      "competitionPlural": "Amarushanwa",
+      "event": "Umurwano",
+      "eventPlural": "Imirwano",
+      "result": "Icyavuyemo",
+      "formats": {
+        "KNOCKOUT": "Uruhererekane rwo gukuranaho",
+        "GROUP_KNOCKOUT": "Amatsinda + Uruhererekane",
+        "ROUND_ROBIN": "Itsinda bahurira bose"
+      }
+    },
+    "RACKET": {
+      "label": "Raketi / 1 kuri 1",
+      "competitor": "Klabu",
+      "competitorPlural": "Amaklabu",
+      "roster": "Umukinnyi",
+      "rosterPlural": "Abakinnyi",
+      "rosterField": "Ubwoko bw’umukino",
+      "rosterRegistry": "Urutonde rw'abakinnyi",
+      "competition": "Irushanwa",
+      "competitionPlural": "Amarushanwa",
+      "event": "Umukino",
+      "eventPlural": "Imikino",
+      "result": "Ibice",
+      "formats": {
+        "KNOCKOUT": "Gukuranaho rimwe",
+        "GROUP_KNOCKOUT": "Amatsinda + Gukuranaho",
+        "ROUND_ROBIN": "Bahurira bose"
       }
     }
   }

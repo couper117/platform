@@ -2,20 +2,24 @@ import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Search, Trophy, CalendarDays } from 'lucide-react';
-import { startOfDay, endOfDay, addDays, format, isToday, isTomorrow, isYesterday } from 'date-fns';
+import { startOfDay, endOfDay, addDays, isToday, isTomorrow, isYesterday } from 'date-fns';
+import { useTranslation } from 'react-i18next';
+import { useDateFormat } from '../../i18n/dateLocale';
 import { getFixtures } from '../../api/endpoints/fixtures';
 import Skeleton from '../shared/Skeleton';
 
 const initials = (name = '') => (name || '?').split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
 
-const dayLabel = (d) => {
-  if (isYesterday(d)) return 'Yesterday';
-  if (isToday(d)) return 'Today';
-  if (isTomorrow(d)) return 'Tomorrow';
-  return format(d, 'EEE');
+const dayLabel = (d, t, formatDate) => {
+  if (isYesterday(d)) return t('calendar.yesterday');
+  if (isToday(d)) return t('calendar.today');
+  if (isTomorrow(d)) return t('calendar.tomorrow');
+  return formatDate(d, 'EEE');
 };
 
 const StatusCell = ({ f }) => {
+  const { t } = useTranslation();
+  const formatDate = useDateFormat();
   if (f.status === 'LIVE') {
     return (
       <div className="flex flex-col items-center min-w-[54px]">
@@ -29,7 +33,7 @@ const StatusCell = ({ f }) => {
   if (f.status === 'COMPLETED') {
     return (
       <div className="flex flex-col items-center min-w-[54px]">
-        <span className="text-[9px] font-bold opacity-40 uppercase tracking-widest">FT</span>
+        <span className="text-[9px] font-bold opacity-40 uppercase tracking-widest">{t('match.full_time')}</span>
         <span className="font-display text-lg leading-none mt-1">{f.homeScore ?? 0}-{f.awayScore ?? 0}</span>
       </div>
     );
@@ -39,7 +43,7 @@ const StatusCell = ({ f }) => {
   }
   return (
     <span className="min-w-[54px] text-center font-display text-base opacity-70">
-      {f.matchDate ? format(new Date(f.matchDate), 'HH:mm') : 'TBD'}
+      {formatDate(f.matchDate, 'HH:mm') || t('common.tbd')}
     </span>
   );
 };
@@ -54,6 +58,8 @@ const TeamRow = ({ team, score, bold }) => (
 );
 
 const MatchDayBrowser = ({ sportId, accent = '#E8002D', leagues = [], showSidebar = true }) => {
+  const { t } = useTranslation();
+  const formatDate = useDateFormat();
   const [leagueId, setLeagueId] = useState(null);
   const [search, setSearch] = useState('');
   const [offset, setOffset] = useState(0); // 0 = today
@@ -95,7 +101,7 @@ const MatchDayBrowser = ({ sportId, accent = '#E8002D', leagues = [], showSideba
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search leagues..."
+            placeholder={t('match_day.search_leagues')}
             className="bg-transparent text-sm p-2.5 w-full outline-none"
           />
         </div>
@@ -138,8 +144,8 @@ const MatchDayBrowser = ({ sportId, accent = '#E8002D', leagues = [], showSideba
                   className={`shrink-0 flex flex-col items-center px-4 py-2 rounded-xl border transition-all ${active ? 'text-white border-transparent' : 'bg-white dark:bg-white/5 border-surface-3 dark:border-white/10 hover:border-red/40'}`}
                   style={active ? { background: accent } : undefined}
                 >
-                  <span className="text-[10px] font-bold uppercase tracking-widest">{dayLabel(d)}</span>
-                  <span className="text-[9px] opacity-70">{format(d, 'd MMM')}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest">{dayLabel(d, t, formatDate)}</span>
+                  <span className="text-[9px] opacity-70">{formatDate(d, 'd MMM')}</span>
                 </button>
               );
             })}
@@ -151,8 +157,8 @@ const MatchDayBrowser = ({ sportId, accent = '#E8002D', leagues = [], showSideba
         ) : matches.length === 0 ? (
           <div className="rounded-2xl border border-surface-3 dark:border-white/10 bg-white dark:bg-surface-dark2 p-12 text-center">
             <CalendarDays size={34} className="mx-auto opacity-25 mb-3" />
-            <p className="font-display text-xl uppercase tracking-widest opacity-60">No matches on {dayLabel(activeDay)}</p>
-            <p className="text-xs opacity-40 mt-1">Try another day or league.</p>
+            <p className="font-display text-xl uppercase tracking-widest opacity-60">{t('match_day.empty', { day: dayLabel(activeDay, t, formatDate) })}</p>
+            <p className="text-xs opacity-40 mt-1">{t('match_day.empty_hint')}</p>
           </div>
         ) : (
           <div className="space-y-6">

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useEnumLabel } from '../../i18n/enums';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Search, ArrowRight, Compass } from 'lucide-react';
@@ -10,35 +12,37 @@ import LiveTodayStrip from '../../components/public/LiveTodayStrip';
 import Skeleton from '../../components/shared/Skeleton';
 import Seo from '../../components/shared/Seo';
 
-const TYPE_LABEL = { TEAM: 'Team sport', RACING: 'Racing', COMBAT: 'Combat', RACKET: 'Racket' };
+
 
 const ExplorePage = () => {
+  const { t } = useTranslation();
+  const enumLabel = useEnumLabel();
   const [search, setSearch] = useState('');
   const { data, isLoading } = useQuery({ queryKey: ['explore-sports'], queryFn: getSports });
   const sports = (data?.data || []).filter((s) => s.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className="bg-surface-2 dark:bg-surface-dark min-h-screen pb-24">
-      <Seo title="Explore Sports" description="Explore every sport on the Rwanda National Sports Platform — pick a sport to see its leagues, fixtures and live scores." />
+      <Seo title={t('explore.seo_title')} description={t('explore.seo_desc')} />
 
       <section className="relative overflow-hidden bg-surface-dark text-white">
         <div className="absolute inset-0 bg-gradient-to-br from-red/25 via-transparent to-rwanda-green/20" />
         <ResponsiveWrapper className="relative z-10 py-16 sm:py-20">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.3em] bg-white/10 border border-white/15 mb-5">
-            <Compass size={13} /> Explore
+            <Compass size={13} /> {t('nav.explore')}
           </div>
           <h1 className="text-5xl sm:text-7xl font-display uppercase tracking-tighter leading-none">
-            Choose your <span className="text-red">sport</span>
+            {t('explore.hero_title')} <span className="text-red">{t('explore.hero_accent')}</span>
           </h1>
           <p className="text-white/50 mt-4 max-w-lg text-sm">
-            Pick a sport to open its dedicated hub — leagues, live scores, fixtures, standings and match centre.
+            {t('explore.hero_hint')}
           </p>
           <div className="mt-8 flex items-center bg-white/10 border border-white/15 rounded-2xl px-4 max-w-md backdrop-blur">
             <Search size={18} className="text-white/40" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search a sport..."
+              placeholder={t('explore.search_placeholder')}
               className="bg-transparent text-white placeholder:text-white/30 p-4 w-full outline-none text-sm"
             />
           </div>
@@ -71,7 +75,7 @@ const ExplorePage = () => {
                   <div className="relative z-10 h-full flex flex-col justify-between p-4 sm:p-5 text-white">
                     <SportIcon slug={s.slug} className="text-3xl sm:text-4xl drop-shadow-lg" style={{ color: theme.accent }} />
                     <div>
-                      <span className="text-[8px] font-bold uppercase tracking-[0.3em] text-white/60">{TYPE_LABEL[s.type] || 'Sport'}</span>
+                      <span className="text-[8px] font-bold uppercase tracking-[0.3em] text-white/60">{enumLabel('sport_type', s.type, t('explore.generic_sport'))}</span>
                       <h3 className="font-display text-xl sm:text-2xl uppercase tracking-tight leading-none mt-1">{s.name}</h3>
                       <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest mt-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity" style={{ color: theme.accent }}>
                         Enter <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />

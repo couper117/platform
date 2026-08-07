@@ -1,15 +1,17 @@
 import React from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { useTranslation } from 'react-i18next';
 
 const StandingsTable = ({ standings = [] }) => {
   const getInitials = (name = '') => (name || '?').split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase();
 
   const FormPill = ({ result }) => {
     const colors = { W: 'bg-green text-white', D: 'bg-gold text-white', L: 'bg-red text-white' };
+    const code = ['W', 'D', 'L'].includes(result) ? result : null;
     return (
       <span className={twMerge('w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-bold', colors[result] || 'bg-surface-3 opacity-20')}>
-        {result}
+        {code ? t(`standings.form_short.${code}`) : result}
       </span>
     );
   };
@@ -24,17 +26,17 @@ const StandingsTable = ({ standings = [] }) => {
       <table className="w-full table-fixed border-collapse text-left">
         <thead>
           <tr className="bg-surface-2 dark:bg-white/5 text-[9px] sm:text-[10px] uppercase font-bold tracking-[0.1em] sm:tracking-[0.2em] text-surface-dark/40 dark:text-white/40">
-            <th className="px-1 sm:px-4 py-3 sm:py-4 text-center w-9 sm:w-14">Pos</th>
-            <th className="px-2 sm:px-4 py-3 sm:py-4">Team</th>
-            <th className={numW}>P</th>
-            <th className={`${numW} hidden sm:table-cell`}>W</th>
-            <th className={`${numW} hidden sm:table-cell`}>D</th>
-            <th className={`${numW} hidden sm:table-cell`}>L</th>
-            <th className={`${numW} hidden md:table-cell`}>GF</th>
-            <th className={`${numW} hidden md:table-cell`}>GA</th>
-            <th className={numW}>GD</th>
-            <th className={`${numW} font-display text-xs sm:text-sm text-red`}>Pts</th>
-            <th className="px-4 py-4 hidden lg:table-cell w-36">Form</th>
+            <th className="px-1 sm:px-4 py-3 sm:py-4 text-center w-9 sm:w-14" title={t('standings.col_pos_full')}>{t('standings.col_pos')}</th>
+            <th className="px-2 sm:px-4 py-3 sm:py-4">{t('standings.col_team')}</th>
+            <th className={numW} title={t('standings.col_played_full')}>{t('standings.col_played')}</th>
+            <th className={`${numW} hidden sm:table-cell`} title={t('standings.col_won_full')}>{t('standings.col_won')}</th>
+            <th className={`${numW} hidden sm:table-cell`} title={t('standings.col_drawn_full')}>{t('standings.col_drawn')}</th>
+            <th className={`${numW} hidden sm:table-cell`} title={t('standings.col_lost_full')}>{t('standings.col_lost')}</th>
+            <th className={`${numW} hidden md:table-cell`} title={t('standings.col_gf_full')}>{t('standings.col_gf')}</th>
+            <th className={`${numW} hidden md:table-cell`} title={t('standings.col_ga_full')}>{t('standings.col_ga')}</th>
+            <th className={numW} title={t('standings.col_gd_full')}>{t('standings.col_gd')}</th>
+            <th className={`${numW} font-display text-xs sm:text-sm text-red`} title={t('standings.col_points_full')}>{t('standings.col_points')}</th>
+            <th className="px-4 py-4 hidden lg:table-cell w-36">{t('standings.col_form')}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-surface-3 dark:divide-white/5">

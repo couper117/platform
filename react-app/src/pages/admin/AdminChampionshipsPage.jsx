@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { Trophy, Plus, Edit2, Trash2, Loader2, Layers } from 'lucide-react';
@@ -29,6 +30,7 @@ const inputCls = 'w-full bg-surface-2 dark:bg-white/5 border border-surface-3 da
 const labelCls = 'text-[10px] uppercase font-bold tracking-widest opacity-40';
 
 const AdminChampionshipsPage = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -72,7 +74,7 @@ const AdminChampionshipsPage = () => {
       setIsModalOpen(false);
       setEditing(null);
     },
-    onError: (err) => alert(err.response?.data?.message || 'Failed to save championship'),
+    onError: (err) => alert(err.response?.data?.message || t('admin.championships.save_failed')),
   });
 
   const deleteMutation = useMutation({
@@ -81,7 +83,7 @@ const AdminChampionshipsPage = () => {
       queryClient.invalidateQueries({ queryKey: ['admin-championships'] });
       queryClient.invalidateQueries({ queryKey: ['amashuri-championships'] });
     },
-    onError: (err) => alert(err.response?.data?.message || 'Failed to delete championship'),
+    onError: (err) => alert(err.response?.data?.message || t('admin.championships.delete_failed')),
   });
 
   const openCreate = () => { setEditing(null); setIsModalOpen(true); };
@@ -93,7 +95,7 @@ const AdminChampionshipsPage = () => {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-2">
           <h1 className="text-4xl font-display uppercase tracking-tighter">
-            Amashuri <span className="text-red">Championships</span>
+            {t('admin.championships.title')} <span className="text-red">{t('admin.championships.title_accent')}</span>
           </h1>
           <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">
             Create and manage all school championships, including the Kagame Cup
@@ -104,14 +106,14 @@ const AdminChampionshipsPage = () => {
           className="bg-red text-white px-8 py-3 rounded-xl font-display text-lg uppercase tracking-widest hover:brightness-110 transition-all shadow-xl shadow-red/20 flex items-center gap-2 cursor-pointer"
         >
           <Plus size={20} />
-          <span>New Championship</span>
+          <span>{t('admin.championships.new')}</span>
         </button>
       </div>
 
       {isLoading ? (
         <Skeleton type="card" count={3} />
       ) : championships.length > 0 ? (
-        <AdminTable headers={['Championship', 'Level', 'Window', 'Fixtures', 'Status', 'Actions']}>
+        <AdminTable headers={[t('admin.championships.col_name'), t('admin.championships.col_level'), t('admin.championships.col_window'), t('nav.fixtures'), t('admin.col_status'), t('admin.col_actions')]}>
           {championships.map((c) => (
             <tr key={c.id} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors">
               <td className="px-6 py-5">
@@ -138,13 +140,13 @@ const AdminChampionshipsPage = () => {
               </td>
               <td className="px-6 py-5">
                 <div className="flex items-center gap-2">
-                  <button onClick={() => openEdit(c)} className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors cursor-pointer" title="Edit">
+                  <button onClick={() => openEdit(c)} className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors cursor-pointer" title={t('common.edit')}>
                     <Edit2 size={16} />
                   </button>
                   <button
-                    onClick={() => { if (window.confirm(`Delete "${c.name}"? This cannot be undone.`)) deleteMutation.mutate(c.id); }}
+                    onClick={() => { if (window.confirm(t('admin.championships.delete_confirm', { name: c.name }))) deleteMutation.mutate(c.id); }}
                     className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors cursor-pointer"
-                    title="Delete"
+                    title={t('common.delete')}
                   >
                     <Trash2 size={16} />
                   </button>
@@ -156,7 +158,7 @@ const AdminChampionshipsPage = () => {
       ) : (
         <div className="py-24 text-center border-2 border-dashed border-surface-3 dark:border-white/5 rounded-3xl space-y-4">
           <Trophy size={48} className="mx-auto text-red/40" />
-          <p className="font-display text-2xl uppercase tracking-widest opacity-40">No championships yet</p>
+          <p className="font-display text-2xl uppercase tracking-widest opacity-40">{t('amashuri.championships_page.none')}</p>
           <button onClick={openCreate} className="text-[11px] font-bold uppercase tracking-widest text-red hover:underline cursor-pointer">
             Create the first one
           </button>
@@ -172,58 +174,58 @@ const AdminChampionshipsPage = () => {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2 md:col-span-2">
-              <label className={labelCls}>Championship Name *</label>
-              <input {...register('name', { required: true })} className={inputCls} placeholder="e.g. Kagame Cup 2026" />
-              {errors.name && <span className="text-[10px] text-red uppercase tracking-widest">Name is required</span>}
+              <label className={labelCls}>{t('admin.championships.name_label')}</label>
+              <input {...register('name', { required: true })} className={inputCls} placeholder={t('admin.championships.name_placeholder')} />
+              {errors.name && <span className="text-[10px] text-red uppercase tracking-widest">{t('admin.championships.name_required')}</span>}
             </div>
 
             <div className="space-y-2">
-              <label className={labelCls}>Edition</label>
-              <input {...register('edition')} className={inputCls} placeholder="e.g. 12th Edition" />
+              <label className={labelCls}>{t('admin.championships.edition')}</label>
+              <input {...register('edition')} className={inputCls} placeholder={t('admin.championships.edition_placeholder')} />
             </div>
             <div className="space-y-2">
-              <label className={labelCls}>Venue</label>
-              <input {...register('venue')} className={inputCls} placeholder="e.g. Amahoro Stadium" />
+              <label className={labelCls}>{t('admin.fixtures.col_venue')}</label>
+              <input {...register('venue')} className={inputCls} placeholder={t('admin.championships.venue_placeholder')} />
             </div>
 
             <div className="space-y-2">
-              <label className={labelCls}>Level</label>
+              <label className={labelCls}>{t('admin.championships.col_level')}</label>
               <select {...register('level')} className={inputCls}>
                 {LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
               </select>
             </div>
             <div className="space-y-2">
-              <label className={labelCls}>Status</label>
+              <label className={labelCls}>{t('admin.col_status')}</label>
               <select {...register('status')} className={inputCls}>
                 {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
 
             <div className="space-y-2">
-              <label className={labelCls}>Gender</label>
+              <label className={labelCls}>{t('admin.leagues.gender')}</label>
               <select {...register('gender')} className={inputCls}>
-                <option value="mixed">Mixed</option>
-                <option value="male">Boys</option>
-                <option value="female">Girls</option>
+                <option value="mixed">{t('enums.gender.MIXED')}</option>
+                <option value="male">{t('enums.gender.BOYS')}</option>
+                <option value="female">{t('enums.gender.GIRLS')}</option>
               </select>
             </div>
             <div className="space-y-2">
-              <label className={labelCls}>Age Category</label>
-              <input {...register('ageCategory')} className={inputCls} placeholder="e.g. U17 / Open" />
+              <label className={labelCls}>{t('admin.championships.age_category')}</label>
+              <input {...register('ageCategory')} className={inputCls} placeholder={t('admin.championships.age_placeholder')} />
             </div>
 
             <div className="space-y-2">
-              <label className={labelCls}>Start Date</label>
+              <label className={labelCls}>{t('admin.championships.start_date')}</label>
               <input type="date" {...register('startDate')} className={inputCls} />
             </div>
             <div className="space-y-2">
-              <label className={labelCls}>End Date</label>
+              <label className={labelCls}>{t('admin.championships.end_date')}</label>
               <input type="date" {...register('endDate')} className={inputCls} />
             </div>
 
             <div className="space-y-2 md:col-span-2">
-              <label className={labelCls}>Description</label>
-              <textarea {...register('description')} rows={3} className={inputCls} placeholder="Short description of the championship…" />
+              <label className={labelCls}>{t('admin.championships.description')}</label>
+              <textarea {...register('description')} rows={3} className={inputCls} placeholder={t('admin.championships.description_placeholder')} />
             </div>
           </div>
 
