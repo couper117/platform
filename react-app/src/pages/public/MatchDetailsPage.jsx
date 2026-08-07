@@ -67,13 +67,15 @@ const MatchDetailsPage = () => {
   const { id } = useParams();
   const [tab, setTab] = useState('timeline');
 
-  const { data: fixture, isLoading } = useQuery({
+  const { data: fixture, isLoading, refetch } = useQuery({
     queryKey: ['match-details', id],
     queryFn: () => getFixture(id),
   });
 
   const m = fixture?.data;
-  const { live, connected } = useLiveMatch(id, m);
+  // Pass `refetch` so a dropped socket re-syncs authoritative state instead of
+  // leaving fans on a stale score. See hooks/useLiveMatch.js.
+  const { live, connected } = useLiveMatch(id, m, refetch);
   const isLive = live.status === 'LIVE';
   const isCompleted = live.status === 'COMPLETED';
 

@@ -44,3 +44,6 @@ build/
 
 # local QA/PDF scratch (playwright)
 .qa-harness/
+
+# Redesign before/after acceptance captures (360x800). Local evidence only.
+design-refs/captures/

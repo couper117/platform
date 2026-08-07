@@ -11,10 +11,17 @@ import Pusher from 'pusher-js';
  * Any field present in a payload is merged into live state; `event` payloads are
  * prepended to the events list. Returns null-safe defaults when Pusher is not configured.
  *
+ * RECONNECT: resuming the socket is not enough — any event emitted while we were
+ * offline was missed, so the score in `live` can be stale indefinitely. On every
+ * re-connect (never the first connect) we ask the caller to refetch authoritative
+ * state over REST, and the merge in the `initial` effect below re-seeds from it.
+ *
  * @param {string|number} fixtureId
- * @param {object} initial  initial fixture object from the REST API
+ * @param {object} initial       initial fixture object from the REST API
+ * @param {() => void} [onReconnect]  called after a dropped socket comes back —
+ *                                    pass the `refetch` from the caller's useQuery
  */
-export default function useLiveMatch(fixtureId, initial) {
+export default function useLiveMatch(fixtureId, initial, onReconnect) {
   const [live, setLive] = useState({
     homeScore: initial?.homeScore ?? 0,
     awayScore: initial?.awayScore ?? 0,
@@ -25,6 +32,13 @@ export default function useLiveMatch(fixtureId, initial) {
   });
   const [connected, setConnected] = useState(false);
   const seenEventIds = useRef(new Set((initial?.events || []).map((e) => e.id)));
+
+  // Kept in a ref so a caller passing an inline closure can't tear down and
+  // rebuild the whole Pusher subscription on every render.
+  const onReconnectRef = useRef(onReconnect);
+  useEffect(() => {
+    onReconnectRef.current = onReconnect;
+  }, [onReconnect]);
 
   // Re-seed when the REST payload arrives/changes.
   useEffect(() => {
@@ -51,8 +65,26 @@ export default function useLiveMatch(fixtureId, initial) {
       return undefined;
     }
 
-    pusher.connection.bind('connected', () => setConnected(true));
-    pusher.connection.bind('disconnected', () => setConnected(false));
+    // Distinguishes "connected for the first time" from "connected again after a
+    // drop". Only the latter needs a refetch; firing on the first connect would
+    // duplicate the REST call the caller just made on mount.
+    let hasDropped = false;
+
+    pusher.connection.bind('connected', () => {
+      setConnected(true);
+      if (hasDropped) {
+        hasDropped = false;
+        onReconnectRef.current?.();
+      }
+    });
+
+    const onDrop = () => {
+      hasDropped = true;
+      setConnected(false);
+    };
+    pusher.connection.bind('disconnected', onDrop);
+    pusher.connection.bind('unavailable', onDrop);
+    pusher.connection.bind('failed', onDrop);
     pusher.connection.bind('error', () => setConnected(false));
 
     const mergeScore = (u = {}) => {

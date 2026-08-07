@@ -7,6 +7,7 @@ import { getFixtures } from '../../api/endpoints/fixtures';
 import { getNews } from '../../api/endpoints/news';
 import { getSports } from '../../api/endpoints/sports';
 import { sportTheme, HERO_BG } from '../../config/sportThemes';
+import responsiveImage from '../../utils/responsiveImage';
 import SportIcon from '../../components/shared/SportIcon';
 import ResponsiveWrapper from '../../components/shared/ResponsiveWrapper';
 import FixtureCard from '../../components/shared/FixtureCard';
@@ -43,8 +44,10 @@ const HomePage = () => {
         {/* Background image + overlays */}
         <div className="absolute inset-0 z-0">
           <img
-            src={HERO_BG}
+            {...responsiveImage(HERO_BG)}
             alt=""
+            loading="eager"
+            fetchPriority="high"
             className="w-full h-full object-cover object-center"
           />
           {/* Dark wash for legibility */}

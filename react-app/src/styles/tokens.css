@@ -1,0 +1,107 @@
+/**
+ * RwaSport design tokens — the single source of colour truth.
+ *
+ * Values are stored as space-separated sRGB channels, not hex, so Tailwind can
+ * compose them with an alpha channel: `rgb(var(--surface) / <alpha-value>)`
+ * makes `bg-surface/50` work. The canonical hex is in the comment beside each.
+ *
+ * THEMING
+ * Dark is the default: `:root` carries the dark values, and `html:not(.dark)`
+ * overrides them for light. That inversion is deliberate — it keys the tokens
+ * to the very same `.dark` class Tailwind's legacy `dark:` variants respond to,
+ * so tokenised and un-swept screens can never disagree about which theme is on.
+ * Once the sweep is finished and no `dark:` variants remain, this can flip to a
+ * conventional `[data-theme]` attribute without changing any token value.
+ *
+ * Dark is the theme that must be pixel-right. Light is authored for every token
+ * and kept correct, but is not the QA gate.
+ */
+
+:root {
+  /* ─── Surfaces ────────────────────────────────────────────────── */
+  --bg: 13 13 15; /* #0D0D0F — page */
+  --surface: 23 23 26; /* #17171A — cards, rows */
+  --surface-2: 31 31 35; /* #1F1F23 — inset areas, ad slots, skeletons */
+  --hairline: 42 42 48; /* #2A2A30 — 1px borders, dividers */
+
+  /* ─── Text ────────────────────────────────────────────────────── */
+  /* Ratios are measured against --surface, which is what text actually sits on
+     — cards and rows, not the page. Anything quoted against --bg flatters. */
+  --text: 242 242 240; /* #F2F2F0 — primary    15.96:1 */
+  --text-2: 154 154 150; /* #9A9A96 — secondary   6.33:1 */
+  --text-3: 130 130 126; /* #82827E — metadata    4.64:1  small text OK */
+  --text-disabled: 94 94 92; /* #5E5E5C — 2.75:1  ⚠ NON-TEXT ONLY */
+
+  /* ─── Semantic ────────────────────────────────────────────────── */
+  --live: 232 89 12; /* #E8590C — LIVE STATE ONLY. 5.00:1 as text */
+  --on-live: 13 13 15; /* label on a --live fill.    5.42:1 */
+  --danger: 214 69 69; /* #D64545 — fills, chips, borders */
+  --danger-text: 232 106 106; /* #E86A6A — danger AS TEXT.  5.71:1 */
+  --on-danger: 13 13 15; /* label on a --danger fill.  4.43:1 ⚠ see note */
+  --success: 63 163 122; /* #3FA37A — verified, approved 5.73:1 */
+
+  /* ─── Derived ─────────────────────────────────────────────────── */
+  /* Club identity fallback. A team with no known colour gets a hairline, not
+     an invented hue — a wrong club colour reads as broken, absence reads as
+     neutral. See src/config/clubColors.js. */
+  --club: var(--hairline);
+  /* Focus ring. Uses primary text so it stays high-contrast in both themes
+     rather than competing with --live, which is reserved for live state. */
+  --focus: var(--text);
+}
+
+html:not(.dark) {
+  --bg: 244 244 241; /* #F4F4F1 */
+  --surface: 255 255 255; /* #FFFFFF */
+  --surface-2: 239 239 235; /* #EFEFEB */
+  --hairline: 220 220 213; /* #DCDCD5 */
+
+  --text: 23 23 26; /* #17171A — 17.89:1 */
+  --text-2: 94 94 92; /* #5E5E5C —  6.50:1 */
+  --text-3: 118 118 113; /* #767671 —  4.57:1  small text OK */
+  --text-disabled: 158 158 153; /* #9E9E99 — 2.69:1  ⚠ NON-TEXT ONLY */
+
+  /* Darkened so each clears 4.5:1 against a light surface. On a light theme the
+     fills are dark enough that a WHITE label is the passing pairing, not black. */
+  --live: 194 65 12; /* #C2410C — 5.18:1 */
+  --on-live: 255 255 255; /* white on --live fill.  5.18:1 */
+  --danger: 185 50 50; /* #B93232 — 5.89:1 */
+  --danger-text: 185 50 50; /* same — it already passes as text here */
+  --on-danger: 255 255 255; /* white on --danger fill. 5.89:1 */
+  --success: 47 125 92; /* #2F7D5C — 4.99:1 */
+}
+
+/**
+ * CONTRAST NOTES — read before using a token for text.
+ * All figures measured against --surface by the /design-system route, which
+ * recomputes them live. Do not hand-estimate these; check that page.
+ *
+ * THREE TEXT LEVELS, NOT TWO-AND-A-HALF
+ *   --text          primary copy
+ *   --text-2        secondary copy
+ *   --text-3        real metadata — kickoff times, venues, match meta. Clears
+ *                   4.5:1 on --surface, so it is safe at 11px.
+ *   --text-disabled ⚠ 2.75:1. NEVER carries information a user needs to read.
+ *                   Disabled controls, decorative glyphs, separators. If you are
+ *                   reaching for it to style real content, use --text-3.
+ *
+ * DANGER HAS A FILL COLOUR AND A TEXT COLOUR — THEY ARE NOT THE SAME
+ *   --danger       #D64545, for fills, chips and borders. Only 4.09:1, so it is
+ *                  NOT a text colour on a dark surface.
+ *   --danger-text  #E86A6A, 5.71:1. This is red text. Use it for "Rejected",
+ *                  red-card labels, destructive link text.
+ *
+ * ⚠ --on-danger is 4.43:1 on the #D64545 fill — the best available pairing
+ *   (near-black 4.43 beats white 4.38), but still short of AA for small text.
+ *   So a FILLED danger chip needs its label at 14px+/600 to qualify as large
+ *   text. The default red-card / rejected chip therefore does NOT use a fill:
+ *   it is --danger-text on --surface with a --danger hairline, which passes at
+ *   any size. Reach for the fill only on destructive buttons, where the label
+ *   is large enough.
+ *
+ *   --on-live is 5.42:1 on the #E8590C fill (white would be only 3.58), which
+ *   is why the LIVE pill inverts to a near-black label. That pairing is pinned
+ *   here so nobody re-decides it per component.
+ *
+ *   --live 5.00:1 and --success 5.73:1 both clear AA as text at any size.
+ */

@@ -7,6 +7,7 @@ import { getLeagues } from '../../api/endpoints/leagues';
 import { getFixtures } from '../../api/endpoints/fixtures';
 import { getNews } from '../../api/endpoints/news';
 import { sportTheme } from '../../config/sportThemes';
+import responsiveImage from '../../utils/responsiveImage';
 import SportIcon from '../../components/shared/SportIcon';
 import ResponsiveWrapper from '../../components/shared/ResponsiveWrapper';
 import FixtureCard from '../../components/shared/FixtureCard';
@@ -67,7 +68,13 @@ const SportHubPage = () => {
       {/* HERO — full-bleed sport pitch background */}
       <section className="relative min-h-[60vh] flex items-end overflow-hidden bg-surface-dark">
         <div className="absolute inset-0 z-0">
-          <img src={sport.coverImage || theme.bg} alt="" className="w-full h-full object-cover" />
+          <img
+            {...responsiveImage(sport.coverImage || theme.bg)}
+            alt=""
+            loading="eager"
+            fetchPriority="high"
+            className="w-full h-full object-cover"
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-surface-dark via-surface-dark/60 to-surface-dark/10" />
           <div className="absolute inset-0" style={{ background: `radial-gradient(60% 60% at 20% 100%, ${theme.accent}33, transparent)` }} />
         </div>

@@ -1,7 +1,10 @@
 // Per-sport visual identity: a Rwanda-themed background + accent colour + venue
 // label. Keyed by sport slug; falls back to a generic Rwanda scene. Each sport
 // reuses Rwandan imagery (hills, Kigali, stadiums) tinted with its accent.
-const U = (id) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1920&q=80`;
+// Base URL only — width is chosen per-device by utils/responsiveImage.js, which
+// builds a srcSet from this. Never hardcode a width here (it used to be 1920,
+// which every phone downloaded in full).
+const U = (id) => `https://images.unsplash.com/${id}?auto=format&fit=crop&q=75`;
 
 // Sports-action backdrops per game (verified to load). These are DEFAULTS —
 // SportHubPage prefers a sport's `coverImage` from the DB, so MINISPORTS can

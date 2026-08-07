@@ -1,28 +1,94 @@
+/* Self-hosted variable font. One file, two axes (wght 100–900, wdth 62–125%),
+   so body and display share a single download. Never load fonts from a CDN —
+   the extra RTT is felt on Rwandan mobile networks. */
+@import '@fontsource-variable/archivo/wdth.css';
+
+@import './styles/tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+  html {
+    /* Keep the installed-PWA viewport clear of the notch/home indicator. */
+    padding-top: env(safe-area-inset-top);
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
-    @apply bg-surface text-surface-dark font-body dark:bg-surface-dark dark:text-white/90 transition-colors duration-300;
+    @apply bg-page text-primary font-sans text-base antialiased;
+    /* Stop pull-to-refresh from fighting live-updating lists. */
+    overscroll-behavior-y: contain;
   }
 
-  h1, h2, h3, h4, h5, h6, .font-display {
-    font-family: "Bebas Neue", sans-serif;
-    @apply tracking-wider uppercase;
+  /* Headings default to the display face. Deliberately NOT uppercase: screens
+     that want caps say `uppercase` explicitly, and most already do. */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-semibold;
+  }
+
+  /* Every numeral in the product is tabular. Scores, minutes, standings columns
+     and stats must never shift width as digits change — this is the single most
+     visible correctness issue in the old UI, so it is a base rule, not opt-in.
+     `.tnum` stays available for spans that need it explicitly. */
+  th, td, time, output, [data-numeric] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* iOS zooms the viewport when a focused input is under 16px. The body scale is
+     15px, so form controls are pinned one notch up on purpose. */
+  input, select, textarea {
+    font-size: 16px;
+  }
+
+  /* A visible, consistent focus ring everywhere — never remove the outline. */
+  :focus-visible {
+    outline: 2px solid rgb(var(--focus));
+    outline-offset: 2px;
   }
 }
 
+@layer utilities {
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Scores and other display numerals: expanded width + semibold + tabular. */
+  .numerals {
+    @apply font-display font-semibold;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Scroll containers: contain overscroll so a nested list can't trigger the
+     browser's pull-to-refresh mid-match. */
+  .scroll-contain {
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Bottom-nav and sticky-footer clearance in installed mode. */
+  .pb-safe {
+    padding-bottom: calc(var(--nav-h, 0px) + env(safe-area-inset-bottom));
+  }
+}
+
+/* Motion is functional only — score changes, live pulse, route transitions.
+   When the user asks for less, honour it globally rather than per-component. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ─── DEPRECATED ─────────────────────────────────────────────────────
+   Keyframes for un-swept components (PageLoader, SplashScreen, the legacy
+   ticker markup). Removed when those are rebuilt. */
 @keyframes progress {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }

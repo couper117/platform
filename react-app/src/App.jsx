@@ -58,6 +58,9 @@ const AkcStandingsPage = lazy(() => import('./pages/akc3/AkcStandingsPage'));
 const ChampionshipsPage = lazy(() => import('./pages/akc3/ChampionshipsPage'));
 const AmashuriMatchPage = lazy(() => import('./pages/akc3/AmashuriMatchPage'));
 
+// Living styleguide (/design-system). Lazy, so it costs nothing unless visited.
+const DesignSystemPage = lazy(() => import('./pages/dev/DesignSystemPage'));
+
 // Shared (eager — needed for first paint / transitions)
 import SplashScreen from './components/shared/SplashScreen';
 import PageLoader from './components/shared/PageLoader';
@@ -191,6 +194,10 @@ function App() {
               <Route path="/reporter/dashboard" element={<LiveReportingPage />} />
             </Route>
             
+            {/* Living styleguide — deliberately outside PublicLayout so the
+                chrome can't interfere with judging tokens in isolation. */}
+            <Route path="/design-system" element={<DesignSystemPage />} />
+
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           </Suspense>
