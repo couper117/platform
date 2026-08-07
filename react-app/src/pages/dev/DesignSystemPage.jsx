@@ -64,11 +64,18 @@ const Section = ({ title, note, children }) => (
   </section>
 );
 
+// Mobile-first: the label stacks above its content at 360px and only becomes a
+// fixed-width gutter from md up. A styleguide that overflows on a phone is not
+// one you can trust to police mobile layouts.
 const Row = ({ label, value, children }) => (
-  <div className="flex items-baseline gap-4 border-b border-hairline py-3 last:border-0">
-    <code className="w-44 shrink-0 text-xs text-secondary">{label}</code>
-    {children}
-    {value && <span className="ml-auto shrink-0 text-xs tabular-nums text-tertiary">{value}</span>}
+  <div className="border-b border-hairline py-3 last:border-0 md:flex md:items-baseline md:gap-4">
+    <code className="block text-xs text-secondary md:w-44 md:shrink-0">{label}</code>
+    <div className="mt-1 flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1 md:mt-0 md:flex-1">
+      {children}
+      {value && (
+        <span className="ml-auto shrink-0 text-xs tabular-nums text-tertiary">{value}</span>
+      )}
+    </div>
   </div>
 );
 
@@ -183,9 +190,10 @@ const DesignSystemPage = () => {
 
             <Section
               title="Text on surface"
-              note="Live contrast against --surface, graded at 4.5:1 (3:1 for tertiary, which is
-                    only ever large or decorative). Tertiary fails both bars in dark — treat it as
-                    non-text: disabled affordances and separator glyphs, never copy a user reads."
+              note="Live contrast against --surface — cards and rows, not the page. Anything quoted
+                    against --bg flatters. All four graded at 4.5:1, because metadata appears at
+                    11px: --text-3 clears it and is safe anywhere, --text-disabled does not and
+                    must never carry information a user needs to read."
             >
               {texts.map(({ n, sample }) => (
                 <Row key={n} label={`--${n}`}>
@@ -397,7 +405,7 @@ const DesignSystemPage = () => {
                   <div
                     key={c.key}
                     style={{ '--club': c.color }}
-                    className="flex items-center gap-3 border-l-[3px] border-l-[var(--club)] bg-surface py-2 pl-3"
+                    className="flex flex-wrap items-center gap-x-3 gap-y-1 border-l-[3px] border-l-[var(--club)] bg-surface px-3 py-2"
                   >
                     <span className="text-base">{c.label}</span>
                     <code className="text-xs tabular-nums text-tertiary">{c.color}</code>
@@ -406,7 +414,7 @@ const DesignSystemPage = () => {
                     </span>
                   </div>
                 ))}
-                <div className="flex items-center gap-3 border-l-[3px] border-l-hairline bg-surface py-2 pl-3">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-l-[3px] border-l-hairline bg-surface px-3 py-2">
                   <span className="text-base text-secondary">Unknown club — neutral fallback</span>
                   <span className="ml-auto text-xs text-tertiary">no colour data</span>
                 </div>

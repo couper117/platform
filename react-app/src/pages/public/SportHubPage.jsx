@@ -72,7 +72,8 @@ const SportHubPage = () => {
             {...responsiveImage(sport.coverImage || theme.bg)}
             alt=""
             loading="eager"
-            fetchPriority="high"
+            // lowercase: React 18 does not recognise the camelCase form
+            fetchpriority="high"
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-surface-dark via-surface-dark/60 to-surface-dark/10" />

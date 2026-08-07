@@ -47,7 +47,8 @@ const HomePage = () => {
             {...responsiveImage(HERO_BG)}
             alt=""
             loading="eager"
-            fetchPriority="high"
+            // lowercase: React 18 does not recognise the camelCase form
+            fetchpriority="high"
             className="w-full h-full object-cover object-center"
           />
           {/* Dark wash for legibility */}
