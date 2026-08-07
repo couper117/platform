@@ -9,7 +9,7 @@
     "home": "Ahabanza",
     "leagues": "Amarushanwa",
     "fixtures": "Imikino",
-    "results": "Ibyavuyemo",
+    "results": "Ibyarangiye",
     "news": "Amakuru",
     "amashuri": "Imikino y'Amashuri",
     "login": "Injira",
@@ -48,7 +48,7 @@
     "quick_links": "Aho wahita ujya",
     "all_leagues": "Amarushanwa yose",
     "upcoming_fixtures": "Imikino iri imbere",
-    "match_results": "Ibyavuye mu mikino",
+    "match_results": "Imikino yarangiye",
     "latest_news": "Amakuru aheruka",
     "kagame_cup": "Igikombe cya Kagame cy'Amashuri",
     "contact_us": "Twandikire",
@@ -67,7 +67,7 @@
     "latest_headlines": "Amakuru aheruka",
     "rwasport_official": "RwaSport ku mugaragaro",
     "match_spotlight": "Umukino w'umwihariko",
-    "no_active_matches": "Nta mikino iri gukinwa",
+    "no_active_matches": "Nta mikino iri kuba",
     "bulletin": "Ikinyamakuru"
   },
   "news": {
@@ -105,16 +105,16 @@
     "last_updated_today": "Byavuguruwe: Uyu munsi",
     "season_statistics": "Imibare y'igihembwe",
     "visual_insights": "Ibishushanyo",
-    "fixtures_and_results": "Imikino n'ibyayivuyemo",
+    "fixtures_and_results": "Imikino n'ibyarangiye",
     "no_fixtures": "Nta mukino wateganyijwe",
     "participating_teams": "Amakipe yitabiriye"
   },
   "fixtures": {
-    "live_match_center": "Ikigo cy'imikino iri gukinwa",
+    "live_match_center": "Ikigo cy'imikino iri kuba",
     "upcoming_title": "Imikino",
     "upcoming_accent": "Iri imbere",
-    "results_title": "Ibyavuye",
-    "results_accent": "mu Mikino",
+    "results_title": "Imikino",
+    "results_accent": "Yarangiye",
     "subtitle": "Buri mukino, buri gitego, buri kanya",
     "all_leagues": "Amarushanwa yose",
     "filter_league": "Shungura ukurikije irushanwa",
@@ -126,7 +126,7 @@
   },
   "match": {
     "back_to_schedule": "Subira kuri gahunda",
-    "live": "Biriho",
+    "live": "Ibiri kuba",
     "real_time": "Ako kanya",
     "full_time": "Byarangiye",
     "in_progress": "Birakomeje",
@@ -154,7 +154,7 @@
     "match_drawn": "Banganyije",
     "won": "yatsinze",
     "not_started": "Ntiwatangiye",
-    "result_hint": "Ibyavuyemo n'incamake bizagaragara hano.",
+    "result_hint": "Amanota n'incamake bizagaragara hano.",
     "stage": "Icyiciro",
     "round": "Umuzenguruko",
     "competition": "Irushanwa",
@@ -316,7 +316,7 @@
       "eyebrow": "Ikigo cy'imikino y'amashuri",
       "title": "Gahunda",
       "accent": "y'Imikino",
-      "subtitle": "Imikino iri imbere, iri gukinwa n'ibyavuyemo muri buri rushanwa ry'amashuri.",
+      "subtitle": "Imikino iri imbere, iri kuba n'iyarangiye muri buri rushanwa ry'amashuri.",
       "empty": "Nta mikino iri hano",
       "empty_hint": "Nta mikino iri muri iki cyiciro kugeza ubu."
     },
@@ -390,12 +390,12 @@
       "quick_actions": "Ibikorwa byihuse",
       "action_create_league": "Kora irushanwa rishya",
       "action_verify_teams": "Emeza amakipe ategereje",
-      "action_input_results": "Injiza ibyavuye mu mikino",
+      "action_input_results": "Injiza amanota y'imikino",
       "action_settings": "Igenamiterere rya sisitemu"
     },
     "activity": {
       "team_verified": "Ikipe yemejwe",
-      "match_result": "Ibyavuye mu mukino",
+      "match_result": "Amanota y'umukino",
       "new_article": "Inkuru nshya",
       "player_registered": "Umukinnyi yanditswe",
       "article_detail": "Hatangajwe abatoranyijwe mu ikipe y'igihugu",
@@ -661,7 +661,7 @@
     "amashuri_home_title": "Imikino y'Amashuri — Imikino y'Amashuri mu Rwanda",
     "amashuri_home_desc": "Urugo rwa buri rushanwa rw'amashuri mu Rwanda, kuva ku Gikombe cya Kagame kugeza ku marushanwa y'uturere n'intara.",
     "amashuri_fixtures_title": "Gahunda — Imikino y'Amashuri",
-    "amashuri_fixtures_desc": "Imikino, iri gukinwa n'ibyavuyemo mu marushanwa y'amashuri mu Rwanda.",
+    "amashuri_fixtures_desc": "Imikino, iri kuba n'iyarangiye mu marushanwa y'amashuri mu Rwanda.",
     "amashuri_standings_title": "Urutonde — Imikino y'Amashuri",
     "amashuri_standings_desc": "Urutonde rw'ihatana mu marushanwa y'amashuri mu Rwanda.",
     "amashuri_championships_title": "Amarushanwa y'Amashuri — Imikino y'Amashuri",
@@ -671,7 +671,7 @@
     "amashuri_match_title": "{{home}} na {{away}} — Imikino y'Amashuri",
     "amashuri_match_desc": "Umukino w'amashuri: {{home}} na {{away}}.",
     "school_profile_title": "{{school}} — Imikino y'Amashuri",
-    "school_profile_desc": "Amakipe, imikino n'ibyavuyemo bya {{school}} mu marushanwa y'amashuri mu Rwanda."
+    "school_profile_desc": "Amakipe, imikino n'iyarangiye bya {{school}} mu marushanwa y'amashuri mu Rwanda."
   },
   "enums": {
     "sport": {
@@ -681,7 +681,7 @@
     },
     "match_status": {
       "SCHEDULED": "Wateganyijwe",
-      "LIVE": "Uri gukinwa",
+      "LIVE": "Uri kuba",
       "ONGOING": "Urakomeje",
       "COMPLETED": "Warangiye",
       "POSTPONED": "Wasubitswe",
