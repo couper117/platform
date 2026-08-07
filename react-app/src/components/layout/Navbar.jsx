@@ -92,17 +92,17 @@ const Navbar = () => {
           </button>
           <ThemeToggle />
 
-          <div className="relative hidden sm:block">
+          <div className="relative">
             <button
               onClick={() => setIsLangOpen(!isLangOpen)}
               aria-label={t('nav.language', 'Language')}
               aria-haspopup="menu"
               aria-expanded={isLangOpen}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-surface-3 dark:border-white/15 text-surface-dark/70 dark:text-white/70 hover:text-red hover:border-red/40 dark:hover:text-white dark:hover:border-white/30 transition-all"
+              className="flex items-center gap-1 px-2 py-1.5 sm:gap-1.5 sm:px-2.5 rounded-lg border border-surface-3 dark:border-white/15 text-surface-dark/70 dark:text-white/70 hover:text-red hover:border-red/40 dark:hover:text-white dark:hover:border-white/30 transition-all"
             >
               <Languages size={15} />
               <span className="text-[10px] font-bold uppercase tracking-wider">{i18n.language}</span>
-              <ChevronDown size={12} className="opacity-60" />
+              <ChevronDown size={12} className="opacity-60 hidden sm:block" />
             </button>
             {isLangOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-surface-dark border border-surface-3 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 z-50">
