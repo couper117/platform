@@ -15,16 +15,27 @@ import cn from './cn';
  *   <Skeleton circle className="h-8 w-8" />  avatar
  *   <SkeletonText lines={3} />               paragraph, last line short
  */
+/**
+ * A shimmer sweep rather than a pulse: a sweep reads as "work in progress", where
+ * a fading block reads as broken content. The highlight is a masked overflow-hidden
+ * child, so it never affects layout.
+ *
+ * This is the one sanctioned gradient in the system. The no-gradients rule exists
+ * to stop decorative surface treatment; here the soft edge IS the affordance — a
+ * hard-edged band sweeping past looks like a rendering fault.
+ */
 const Skeleton = ({ circle = false, className, ...props }) => (
   <div
     aria-hidden="true"
     className={cn(
-      'animate-pulse bg-surface-2',
+      'relative overflow-hidden bg-surface-2',
       circle ? 'rounded-pill' : 'rounded-control',
       className
     )}
     {...props}
-  />
+  >
+    <span className="absolute inset-0 animate-shimmer bg-gradient-to-r from-transparent via-primary/[0.07] to-transparent" />
+  </div>
 );
 
 /** Multi-line text placeholder. The short last line reads as prose, not bars. */

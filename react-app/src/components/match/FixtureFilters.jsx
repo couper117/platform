@@ -1,19 +1,23 @@
 import React from 'react';
+import Select from '../ui/Select';
 import cn from '../ui/cn';
 
 /**
- * The two filters the matches screen needs: which state, and which competition.
+ * The two filters this screen needs: which state, and which competition.
  *
- * CHIPS, NOT A <select>
- * The old control bar was a native <select> for leagues plus three underlined
- * text buttons, inside a horizontally scrolling flex row with pipe separators —
- * about 68px of chrome whose targets were 11px text. Chips are self-evident, are
- * full-height tap targets, and show the available options without a tap. It also
- * means this screen needs no form primitives.
+ * TWO CONTROLS FOR THE COMPETITION, ONE PER BREAKPOINT — and they are mutually
+ * exclusive, not duplicated.
  *
- * Two rows of 36px rather than one of 44: cramming both dimensions into a single
- * scroll row makes it unclear which axis you are changing, and at 360px the
- * league chips would start off-screen.
+ *   mobile  chips on their own scrolling row. Self-evident, full-height tap
+ *           targets, and they show what is available without a tap. There is no
+ *           room for a label plus a control on one 360px line.
+ *   desktop a single strip: state on the left, a league <select> pushed to the far
+ *           right. A desktop viewport fits both on one row, and a select is the
+ *           denser control when there is a pointer and a keyboard to drive it.
+ *
+ * The old control bar was a native <select>, three underlined text buttons and pipe
+ * separators in one scrolling flex row — about 68px of chrome whose targets were
+ * 11px of text.
  */
 
 const Chip = ({ active, children, ...props }) => (
@@ -40,35 +44,50 @@ const STATES = [
 
 const FixtureFilters = ({ status, leagueId, leagues = [], onStatus, onLeague }) => (
   <div className="sticky top-tap z-30 border-b border-hairline bg-surface">
-    <div className="scroll-contain flex gap-2 overflow-x-auto px-3 py-1">
-      {STATES.map(([value, label]) => (
-        <Chip key={value} active={status === value} onClick={() => onStatus(value)}>
-          {/* The live chip carries a pulsing dot so "is anything on right now" is
-              answerable without tapping it. */}
-          {value === 'LIVE' && status !== 'LIVE' && (
-            <span className="mr-1.5 inline-block h-1.5 w-1.5 animate-live-pulse rounded-pill bg-live align-middle" />
-          )}
-          {label}
-        </Chip>
-      ))}
-    </div>
-
-    {leagues.length > 0 && (
-      <div className="scroll-contain flex gap-2 overflow-x-auto border-t border-hairline px-3 py-1">
-        <Chip active={!leagueId} onClick={() => onLeague('')}>
-          All leagues
-        </Chip>
-        {leagues.map((l) => (
-          <Chip
-            key={l.id}
-            active={String(leagueId) === String(l.id)}
-            onClick={() => onLeague(String(l.id))}
-          >
-            {l.name}
+    <div className="mx-auto max-w-3xl lg:max-w-6xl lg:px-6">
+      {/* State — one row at every width. On desktop the league select joins it. */}
+      <div className="scroll-contain flex items-center gap-2 overflow-x-auto px-3 py-1 lg:px-0 lg:py-2">
+        {STATES.map(([value, label]) => (
+          <Chip key={value} active={status === value} onClick={() => onStatus(value)}>
+            {/* The live chip carries a pulsing dot, so "is anything on right now"
+                is answerable without tapping it. */}
+            {value === 'LIVE' && status !== 'LIVE' && (
+              <span className="mr-1.5 inline-block h-1.5 w-1.5 animate-live-pulse rounded-pill bg-live align-middle" />
+            )}
+            {label}
           </Chip>
         ))}
+
+        {leagues.length > 0 && (
+          <Select
+            className="ml-auto hidden lg:inline-flex"
+            label="Competition"
+            value={leagueId}
+            onChange={onLeague}
+            placeholder="All leagues"
+            options={leagues.map((l) => ({ value: String(l.id), label: l.name }))}
+          />
+        )}
       </div>
-    )}
+
+      {/* Competition — mobile only, as chips. */}
+      {leagues.length > 0 && (
+        <div className="scroll-contain flex gap-2 overflow-x-auto border-t border-hairline px-3 py-1 lg:hidden">
+          <Chip active={!leagueId} onClick={() => onLeague('')}>
+            All leagues
+          </Chip>
+          {leagues.map((l) => (
+            <Chip
+              key={l.id}
+              active={String(leagueId) === String(l.id)}
+              onClick={() => onLeague(String(l.id))}
+            >
+              {l.name}
+            </Chip>
+          ))}
+        </div>
+      )}
+    </div>
   </div>
 );
 

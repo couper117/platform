@@ -1,6 +1,8 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Home, CalendarDays, Trophy, Newspaper } from 'lucide-react';
+import { useMotionSafe, DUR, EASE } from '../../lib/motion';
 import cn from '../ui/cn';
 
 /**
@@ -31,7 +33,9 @@ const TABS = [
   { to: '/news', label: 'News', icon: Newspaper },
 ];
 
-const BottomNav = () => (
+const BottomNav = () => {
+  const safe = useMotionSafe();
+  return (
   <nav
     aria-label="Main"
     className={cn(
@@ -58,13 +62,24 @@ const BottomNav = () => (
             {({ isActive }) => (
               <>
                 {isActive && (
-                  <span
+                  // A shared layoutId slides the indicator between tabs instead of
+                  // blinking out and in, so the bar reads as one object moving —
+                  // which is what tells you the two tabs are the same control.
+                  <motion.span
+                    layoutId={safe ? 'bottom-nav-indicator' : undefined}
                     aria-hidden="true"
+                    transition={{ duration: DUR.base, ease: EASE }}
                     className="absolute inset-x-0 top-0 h-0.5 bg-primary"
                   />
                 )}
-                <Icon size={20} aria-hidden="true" />
-                <span className="text-xs leading-none">{label}</span>
+                <motion.span
+                  animate={safe ? { scale: isActive ? 1.06 : 1 } : undefined}
+                  transition={{ duration: DUR.fast, ease: EASE }}
+                  className="flex flex-col items-center gap-0.5"
+                >
+                  <Icon size={20} aria-hidden="true" />
+                  <span className="text-xs leading-none">{label}</span>
+                </motion.span>
               </>
             )}
           </NavLink>
@@ -72,6 +87,7 @@ const BottomNav = () => (
       ))}
     </ul>
   </nav>
-);
+  );
+};
 
 export default BottomNav;

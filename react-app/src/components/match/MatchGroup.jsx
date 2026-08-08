@@ -15,9 +15,19 @@ import cn from '../ui/cn';
  */
 
 /**
- * Sticky date divider. Stays under the header while its group scrolls, so you
- * always know which day you are looking at — the single most useful thing to
- * pin on this screen.
+ * Date divider.
+ *
+ * NOT STICKY, deliberately. It was, and it collided twice: the filter bar is
+ * already sticky at the same offset, so a pinned divider slid underneath it; and
+ * on desktop the list sits in an `overflow-hidden` card, which becomes the sticky
+ * containing block and parked the divider 44px down from the card's top edge —
+ * directly on top of the first row.
+ *
+ * Both were fixable with a measured offset, but a pinned divider earns its keep
+ * only when groups are long enough to scroll past. Real groups here hold one or
+ * two matches, so the date is never more than ~90px away. Keeping the filter bar
+ * pinned is worth more: it lets you switch Upcoming/Live/Results at any scroll
+ * position.
  */
 export const MatchdayDivider = ({ date, competition, className }) => {
   const d = date ? new Date(date) : null;
@@ -35,8 +45,7 @@ export const MatchdayDivider = ({ date, competition, className }) => {
   return (
     <div
       className={cn(
-        // top-tap == the 44px header height, so it parks directly beneath it.
-        'sticky top-tap z-30 flex h-6 items-center justify-between gap-2',
+        'flex h-6 items-center justify-between gap-2',
         'border-y border-hairline bg-surface-2 px-3',
         className
       )}
@@ -64,6 +73,24 @@ export const CompetitionHeader = ({ name, meta, className }) => (
     {meta && <span className="shrink-0 text-xs text-tertiary">{meta}</span>}
   </div>
 );
+
+/**
+ * Group by competition, then keep each competition's fixtures in API order.
+ *
+ * The DESKTOP grouping. Mobile groups by date, because a phone user is asking
+ * "what is on today"; a desktop user looking at a two-column grid of twelve cards
+ * is scanning a competition at a time, and a date divider every one or two cards
+ * would fragment the grid into unusable slivers.
+ */
+export const groupByCompetition = (fixtures = []) => {
+  const byComp = new Map();
+  fixtures.forEach((f) => {
+    const name = f.league?.name || 'Other';
+    if (!byComp.has(name)) byComp.set(name, []);
+    byComp.get(name).push(f);
+  });
+  return [...byComp.entries()].map(([name, list]) => ({ name, fixtures: list }));
+};
 
 /**
  * Group a flat fixture array into [{ date, competitions: [{ name, fixtures }] }].

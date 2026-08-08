@@ -17,6 +17,7 @@ import {
   StatusPill,
 } from '../../components/ui';
 import MatchRow from '../../components/match/MatchRow';
+import MatchCard from '../../components/match/MatchCard';
 
 /**
  * Living styleguide at /design-system.
@@ -153,6 +154,7 @@ const MATCH_STATES = [
     awayTeam: T('Police FC'),
     homeScore: 2,
     awayScore: 1,
+    matchDate: '2026-08-08T16:00:00.000Z',
     liveState: { minute: 67, status: 'live' },
   },
   {
@@ -162,6 +164,7 @@ const MATCH_STATES = [
     awayTeam: T('Musanze FC'),
     homeScore: 0,
     awayScore: 0,
+    matchDate: '2026-08-08T17:30:00.000Z',
     liveState: { minute: 45, status: 'halftime' },
   },
   {
@@ -171,6 +174,7 @@ const MATCH_STATES = [
     awayTeam: T('REG BBC'),
     homeScore: 88,
     awayScore: 102,
+    matchDate: '2026-08-07T18:00:00.000Z',
   },
   {
     id: 'ds-5',
@@ -708,6 +712,34 @@ const DesignSystemPage = () => {
               <div className="overflow-hidden rounded-card border border-hairline">
                 <MatchRow.Skeleton />
                 <MatchRow.Skeleton />
+              </div>
+            </div>
+          </Section>
+        )}
+
+        {ready && (
+          <Section
+            title="MatchCard — six states"
+            note="The desktop grid unit, lg and up only. Home left, away right, and the centre slot
+                  carries the state: score when there is one, VS when there is not, empty for a
+                  match that is not happening. Kickoff and status sit in the corners so scanning a
+                  grid means reading one column."
+          >
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+              {MATCH_STATES.map((f) => (
+                <MatchCard key={f.id} fixture={f} />
+              ))}
+            </div>
+            <p className="mt-3 text-sm text-secondary">
+              Upcoming carries no status pill: “Scheduled” is the default expectation, so printing
+              it on every card in a twelve-card grid is twelve repetitions of nothing. Postponed and
+              abandoned leave the centre empty rather than showing a dash, which reads as 0–0.
+            </p>
+            <div className="mt-4">
+              <p className="mb-2 text-sm text-secondary">Skeleton — same shape, so nothing moves:</p>
+              <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                <MatchCard.Skeleton />
+                <MatchCard.Skeleton />
               </div>
             </div>
           </Section>

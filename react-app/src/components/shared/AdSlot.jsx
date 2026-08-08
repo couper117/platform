@@ -22,7 +22,18 @@ import cn from '../ui/cn';
  * height reserves exactly what the creative needs and is stable across viewports,
  * which is the actual goal.
  */
-const AdSlot = ({ position, className }) => {
+/**
+ * Reserved heights per placement, matching the sizes ads are actually sold at:
+ * a mobile banner (320x50), a desktop leaderboard (728x90) and a sidebar
+ * medium rectangle (300x250).
+ */
+const VARIANTS = {
+  inline: 'h-16 border-b',
+  leaderboard: 'h-24 rounded-card border',
+  sidebar: 'h-[250px] rounded-card border',
+};
+
+const AdSlot = ({ position, variant = 'inline', className }) => {
   const [imgError, setImgError] = useState(false);
 
   // Query copied verbatim from the old AdBanner — same key, same shape.
@@ -42,7 +53,11 @@ const AdSlot = ({ position, className }) => {
 
   return (
     <div
-      className={cn('h-16 w-full overflow-hidden border-b border-hairline bg-surface-2', className)}
+      className={cn(
+        'w-full overflow-hidden border-hairline bg-surface-2',
+        VARIANTS[variant] ?? VARIANTS.inline,
+        className
+      )}
     >
       {ad?.imageUrl ? (
         <a

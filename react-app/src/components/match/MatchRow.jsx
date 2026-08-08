@@ -1,10 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { MapPin } from 'lucide-react';
 import { format } from 'date-fns';
 import ClubCrest from '../ui/ClubCrest';
 import Skeleton from '../ui/Skeleton';
 import clubColor from '../../config/clubColors';
+import { useMotionSafe, listItem, pressable, scorePop } from '../../lib/motion';
 import cn from '../ui/cn';
+
+const MotionLink = motion.create(Link);
 
 /**
  * MatchRow — the atom of this product. Everything else is arranged around it.
@@ -56,6 +61,16 @@ export const matchState = (fixture = {}) => {
 const SHOWS_SCORE = new Set(['live', 'halftime', 'fulltime']);
 const IS_LIVE = new Set(['live', 'halftime']);
 
+/**
+ * The match a screen should lead with: a live one if there is one, otherwise the
+ * next kickoff. Used to decide which league the desktop rail describes.
+ */
+export const pickFeatured = (fixtures = []) =>
+  fixtures.find((f) => IS_LIVE.has(matchState(f))) ??
+  fixtures.find((f) => matchState(f) === 'upcoming') ??
+  fixtures[0] ??
+  null;
+
 /* ─── rail ──────────────────────────────────────────────────────────── */
 
 const Rail = ({ state, fixture, showDate }) => {
@@ -63,8 +78,11 @@ const Rail = ({ state, fixture, showDate }) => {
 
   if (state === 'live') {
     return (
-      <span className="flex flex-col items-center gap-0.5 text-live">
-        <span className="h-1.5 w-1.5 animate-live-pulse rounded-pill bg-live" />
+      // Dot and clock pulse together, so "this is happening now" is legible from
+      // peripheral vision while scanning. CSS-driven, so reduced-motion kills it
+      // through the global rule without needing a JS gate.
+      <span className="flex animate-live-pulse flex-col items-center gap-0.5 text-live">
+        <span className="h-1.5 w-1.5 rounded-pill bg-live" />
         <span className="text-xs font-semibold tabular-nums leading-none">
           {typeof minute === 'number' ? `${minute}’` : 'LIVE'}
         </span>
@@ -107,7 +125,7 @@ const Rail = ({ state, fixture, showDate }) => {
 
 /* ─── one side of the tie ───────────────────────────────────────────── */
 
-const Side = ({ team, score, showScore, dim, winner }) => (
+const Side = ({ team, score, showScore, dim, winner, live, safe }) => (
   <div className="flex min-w-0 items-center gap-2">
     <ClubCrest team={team} size="sm" />
     <span
@@ -127,7 +145,20 @@ const Side = ({ team, score, showScore, dim, winner }) => (
         winner ? 'font-semibold text-primary' : dim ? 'text-secondary' : 'text-primary'
       )}
     >
-      {showScore ? (score ?? 0) : ''}
+      {showScore ? (
+        // Keyed on the value, so it remounts and replays only when the score
+        // genuinely changes. Live goals flash --live: a score moving is by
+        // definition a live-state event, which is the one thing that colour marks.
+        <motion.span
+          key={score ?? 0}
+          {...scorePop(safe && live)}
+          className={cn('inline-block', safe && live && 'text-live')}
+        >
+          {score ?? 0}
+        </motion.span>
+      ) : (
+        ''
+      )}
     </span>
   </div>
 );
@@ -135,6 +166,7 @@ const Side = ({ team, score, showScore, dim, winner }) => (
 /* ─── row ───────────────────────────────────────────────────────────── */
 
 const MatchRow = ({ fixture, showDate = false, className }) => {
+  const safe = useMotionSafe();
   const state = matchState(fixture);
   const live = IS_LIVE.has(state);
   const showScore = SHOWS_SCORE.has(state);
@@ -162,10 +194,12 @@ const MatchRow = ({ fixture, showDate = false, className }) => {
     .join(' ');
 
   return (
-    <Link
+    <MotionLink
       to={`/matches/${fixture.id}`}
       aria-label={label}
       style={bar ? { '--club': bar } : undefined}
+      variants={listItem(safe)}
+      {...pressable(safe)}
       className={cn(
         // h-row is 68px. Uniform across all six states.
         'flex h-row items-center gap-3 border-b border-hairline px-3',
@@ -177,16 +211,31 @@ const MatchRow = ({ fixture, showDate = false, className }) => {
         className
       )}
     >
-      <div className="flex min-w-0 flex-1 flex-col justify-center gap-1">
-        <Side team={home} score={hs} showScore={showScore} dim={off || awayWon} winner={homeWon} />
-        <Side team={away} score={as} showScore={showScore} dim={off || homeWon} winner={awayWon} />
+      {/* On a 360px phone this block takes all the width there is. On a 750px
+          desktop column it stops at 360px, because letting it stretch would drag
+          the score column halfway across the screen and break the vertical line
+          the whole layout depends on. */}
+      <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 lg:flex-none lg:basis-[360px]">
+        <Side team={home} score={hs} showScore={showScore} dim={off || awayWon} winner={homeWon} live={live} safe={safe} />
+        <Side team={away} score={as} showScore={showScore} dim={off || homeWon} winner={awayWon} live={live} safe={safe} />
+      </div>
+
+      {/* Desktop fills the gap that opens up with the venue — information the
+          phone layout has no room for, rather than dead space. */}
+      <div className="hidden min-w-0 flex-1 items-center gap-1.5 px-2 lg:flex">
+        {fixture.venue && (
+          <>
+            <MapPin size={12} className="shrink-0 text-tertiary" aria-hidden="true" />
+            <span className="truncate text-sm text-tertiary">{fixture.venue}</span>
+          </>
+        )}
       </div>
 
       {/* The rail. Fixed 56px, hairline-separated so it reads as its own column. */}
       <div className="flex h-full w-rail shrink-0 items-center justify-center border-l border-hairline">
         <Rail state={state} fixture={fixture} showDate={showDate} />
       </div>
-    </Link>
+    </MotionLink>
   );
 };
 

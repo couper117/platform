@@ -46,9 +46,19 @@ const AppHeader = ({ title, activeSportSlug, className }) => {
       )}
     >
       <div className="mx-auto flex h-tap max-w-3xl items-center gap-2 px-3">
-        <h1 className="min-w-0 truncate font-display text-lg font-semibold text-primary md:shrink-0">
+        {/* Mobile shows the SCREEN's name — a logo on every screen tells a
+            returning user nothing, while "Matches" says where they are. Desktop has
+            room for the wordmark and expects it, so it shows both roles: wordmark
+            here, and the screen identified by the lit nav item beside it. */}
+        <h1 className="min-w-0 truncate font-display text-lg font-semibold text-primary md:hidden">
           {title}
         </h1>
+        <Link
+          to="/"
+          className="hidden shrink-0 font-display text-lg font-semibold tracking-tight text-primary md:block"
+        >
+          RWA<span className="text-tertiary">·</span>SPORTS
+        </Link>
 
         {/* On desktop there is no bottom bar, so the same four destinations live
             here inline. One navigation model, two placements. */}
