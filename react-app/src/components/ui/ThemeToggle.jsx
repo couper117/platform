@@ -4,7 +4,16 @@ import { useTheme } from '../../context/ThemeContext';
 import cn from './cn';
 
 /**
- * Light/Dark theme switch. Reads from ThemeContext (must be inside ThemeProvider).
+ * Light / dark switch. Reads ThemeContext, so it must sit inside ThemeProvider.
+ *
+ * Styled to match IconButton's ghost variant exactly — same 36px box, same radius,
+ * same hover wash — because it sits in a row with the search and menu buttons and
+ * a differently-shaped control there reads as a mistake. It is not an IconButton
+ * itself only because it cross-fades two glyphs rather than showing one.
+ *
+ * The sun and moon are stacked and swapped by opacity/rotate/scale, so the icon
+ * morphs instead of popping. Pure CSS transitions, which means the global
+ * prefers-reduced-motion rule in index.css neutralises them without a JS gate.
  */
 const ThemeToggle = ({ className }) => {
   const theme = useTheme();
@@ -16,28 +25,29 @@ const ThemeToggle = ({ className }) => {
       type="button"
       onClick={toggle}
       aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+      aria-pressed={dark}
       title={dark ? 'Light mode' : 'Dark mode'}
       className={cn(
-        'relative p-2 rounded-full cursor-pointer transition-colors',
-        // Theme-aware so it stays visible on both the light and dark navbar.
-        'text-surface-dark/60 dark:text-white/70 hover:text-red dark:hover:text-white',
-        'hover:bg-surface-2 dark:hover:bg-white/10 border border-surface-3 dark:border-white/15',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red',
+        'relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-control',
+        'text-secondary transition-colors duration-150 ease-standard',
+        'hover:bg-brand-tint hover:text-brand-text',
         className
       )}
     >
       <Sun
         size={18}
+        aria-hidden="true"
         className={cn(
-          'transition-all duration-300',
-          dark ? 'opacity-0 rotate-90 scale-0 absolute inset-2' : 'opacity-100 rotate-0 scale-100'
+          'absolute transition-all duration-300 ease-standard',
+          dark ? 'scale-0 rotate-90 opacity-0' : 'scale-100 rotate-0 opacity-100'
         )}
       />
       <Moon
         size={18}
+        aria-hidden="true"
         className={cn(
-          'transition-all duration-300',
-          dark ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-0 absolute inset-2'
+          'absolute transition-all duration-300 ease-standard',
+          dark ? 'scale-100 rotate-0 opacity-100' : 'scale-0 -rotate-90 opacity-0'
         )}
       />
     </button>

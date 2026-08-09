@@ -237,9 +237,11 @@ const AppHeader = ({ className }) => {
 
         <div className="flex shrink-0 items-center gap-1">
           <IconButton icon={Search} label="Search" size="sm" onClick={openPalette} />
-          <span className="hidden sm:inline-flex">
-            <ThemeToggle />
-          </span>
+          {/* Visible at every width, phones included. Switching theme is a
+              one-tap thing people do in bright sun or at night — burying it two
+              taps deep behind the hamburger made the least sense on the device
+              most likely to be used outdoors. */}
+          <ThemeToggle />
 
           {isAuthenticated ? (
             <>
@@ -325,10 +327,8 @@ const AppHeader = ({ className }) => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between border-t border-hairline pt-4">
-              <span className="text-xs font-bold uppercase tracking-wider text-tertiary">Appearance</span>
-              <ThemeToggle />
-            </div>
+            {/* No Appearance row here any more — the toggle lives in the header at
+                every width, and offering it in both places invites the two to drift. */}
 
             {isAuthenticated ? (
               <Button variant="secondary" block onClick={logout} icon={LogOut}>
