@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Search, ArrowRight, Compass, Trophy, Users, CalendarDays } from 'lucide-react';
+import {
+  Search, ArrowRight, ArrowDown, ChevronDown, Compass, Trophy, Users, CalendarDays, Radio,
+} from 'lucide-react';
 import { getSports } from '../../api/endpoints/sports';
 import { sportTheme, HERO_BG } from '../../config/sportThemes';
 import SportIcon from '../../components/shared/SportIcon';
@@ -9,7 +11,7 @@ import HeroVideo from '../../components/shared/HeroVideo';
 import LiveTodayStrip from '../../components/public/LiveTodayStrip';
 import responsiveImage from '../../utils/responsiveImage';
 import Seo from '../../components/shared/Seo';
-import { EmptyState, Input, Skeleton } from '../../components/ui';
+import { Button, EmptyState, Input, Skeleton } from '../../components/ui';
 
 const TYPE_LABEL = { TEAM: 'Team sport', RACING: 'Racing', COMBAT: 'Combat', RACKET: 'Racket' };
 
@@ -46,7 +48,7 @@ const ExplorePage = () => {
   const sports = all.filter((s) => s.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="min-h-screen bg-page">
+    <div className="min-h-screen scroll-smooth bg-page">
       <Seo
         title="Explore Sports"
         description="Explore every sport on the Rwanda National Sports Platform — pick a sport to see its leagues, fixtures and live scores."
@@ -59,39 +61,40 @@ const ExplorePage = () => {
         sources={[]}
         poster={HERO_BG}
         className="-mt-14 flex min-h-[72vh] items-end md:-mt-nav"
-        overlayClassName="bg-gradient-to-t from-black/90 via-black/55 to-black/40"
+        /* TWO gradient layers, because one cannot do both jobs. The text is
+           left-aligned over a stadium whose stands are bright, so the horizontal
+           layer carries its contrast; the vertical layer darkens the bottom edge so
+           the scroll cue stays legible. A single top-to-bottom scrim strong enough
+           for the copy would have flattened the whole photograph. */
+        overlayClassName="bg-[linear-gradient(to_right,rgb(0_0_0/0.88)_0%,rgb(0_0_0/0.6)_45%,rgb(0_0_0/0.15)_100%),linear-gradient(to_top,rgb(0_0_0/0.7)_0%,transparent_55%)]"
       >
-        <div className="mx-auto max-w-6xl px-5 pb-12 pt-24 sm:px-8 md:pt-nav lg:pb-16">
+        <div className="mx-auto max-w-6xl px-5 pb-24 pt-24 sm:px-8 md:pt-nav lg:pb-28">
           <p className="mb-5 inline-flex items-center gap-2 rounded-pill border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-sm">
             <Compass size={13} aria-hidden="true" />
             Rwanda · MINISPORTS
           </p>
 
+          {/* A claim, not an instruction. "Choose your sport" told people to do a
+              chore; this says what the product is and why it is worth their time. */}
           <h1 className="max-w-3xl text-4xl font-extrabold leading-[1.05] text-white sm:text-5xl lg:text-hero">
-            Choose your <span className="text-brand-bright">sport</span>
+            All of Rwandan sport,{' '}
+            <span className="text-brand-bright">in one place</span>
           </h1>
 
-          <p className="mt-4 max-w-lg text-base text-white/70">
-            Every league, every match, every athlete. Pick a sport to open its hub —
-            fixtures, live scores, standings and the match centre.
+          <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/85">
+            From the national leagues to the Amashuri school games — every fixture, every
+            result, every athlete. Follow your sport all season, and never miss a kick-off.
           </p>
 
-          <div className="relative mt-8 max-w-md">
-            <Search
-              size={18}
-              aria-hidden="true"
-              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-tertiary"
-            />
-            <label htmlFor="sport-search" className="sr-only">
-              Search a sport
-            </label>
-            <Input
-              id="sport-search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search a sport…"
-              className="h-[52px] rounded-pill pl-11 shadow-lg"
-            />
+          {/* Two ways in, both pointing DOWN the page rather than into a filter box.
+              The primary one scrolls; it does not navigate away. */}
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <Button href="#sports" size="lg" icon={ArrowDown} iconRight>
+              Find your sport
+            </Button>
+            <Button to="/fixtures" variant="onDark" size="lg" icon={Radio}>
+              Live scores
+            </Button>
           </div>
 
           {/* Three numbers, because a chooser should say how much there is to choose
@@ -117,6 +120,18 @@ const ExplorePage = () => {
             </dl>
           )}
         </div>
+
+        {/* Scroll cue. The single most direct way to tell someone there is more —
+            an explicit label plus a nudging chevron. Centred and low, where the eye
+            lands after reading the block above. CSS animation, so the global
+            prefers-reduced-motion rule stills it. */}
+        <a
+          href="#sports"
+          className="absolute inset-x-0 bottom-5 z-10 mx-auto flex w-fit flex-col items-center gap-1 text-xs font-bold uppercase tracking-wider text-white/60 transition-colors hover:text-white"
+        >
+          Scroll to explore
+          <ChevronDown size={18} aria-hidden="true" className="animate-bounce" />
+        </a>
       </HeroVideo>
 
       {/* Live scores, immediately under the hero — the fastest thing a returning
@@ -124,12 +139,39 @@ const ExplorePage = () => {
       <LiveTodayStrip />
 
       {/* ─── sport grid ─── */}
-      <section className="mx-auto max-w-6xl px-5 py-12 sm:px-8 lg:py-16">
-        <div className="mb-8 max-w-xl">
-          <h2 className="text-2xl font-extrabold text-primary">Browse by sport</h2>
-          <p className="mt-1.5 text-base text-secondary">
-            Each hub carries its own competitions, fixtures and standings.
-          </p>
+      {/* `scroll-mt-nav` so the fixed header never covers the heading when the hero's
+          links jump here. */}
+      <section id="sports" className="mx-auto max-w-6xl scroll-mt-nav px-5 py-12 sm:px-8 lg:py-16">
+        <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-xl">
+            <h2 className="text-2xl font-extrabold text-primary">Pick your sport</h2>
+            <p className="mt-1.5 text-base text-secondary">
+              Each hub carries its own competitions, fixtures, standings and match centre.
+            </p>
+          </div>
+
+          {/* Search lives here, not in the hero. In the hero it was a dead end — you
+              type, the list filters somewhere below, and you never scroll. Beside the
+              grid it filters what you can actually see. */}
+          {all.length > 4 && (
+            <div className="relative w-full md:w-72">
+              <Search
+                size={17}
+                aria-hidden="true"
+                className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-tertiary"
+              />
+              <label htmlFor="sport-search" className="sr-only">
+                Search a sport
+              </label>
+              <Input
+                id="sport-search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search a sport…"
+                className="rounded-pill pl-10"
+              />
+            </div>
+          )}
         </div>
 
         {isLoading ? (
