@@ -35,12 +35,16 @@ build/
 *.swo
 
 # Database
-/api/prisma/*.db
-/api/prisma/*.db-journal
+/apps/backend/prisma/*.db
+/apps/backend/prisma/*.db-journal
 
 # Sharp/Image processing
-/api/uploads/*
-!/api/uploads/.gitkeep
+/apps/backend/uploads/*
+!/apps/backend/uploads/.gitkeep
 
 # local QA/PDF scratch (playwright)
 .qa-harness/
+
+# Local DB reset helper (contains plaintext password) — never commit
+**/reset-local-pg.ps1
+Admin_Credentials.pdf
