@@ -1,7 +1,7 @@
-/* Self-hosted variable font. One file, two axes (wght 100–900, wdth 62–125%),
-   so body and display share a single download. Never load fonts from a CDN —
-   the extra RTT is felt on Rwandan mobile networks. */
-@import '@fontsource-variable/archivo/wdth.css';
+/* Montserrat, matching the reference design. Self-hosted variable file (wght
+   100–900) so every weight from 300 to 800 costs one download. Never load fonts
+   from a CDN — the extra RTT is felt on Rwandan mobile networks. */
+@import '@fontsource-variable/montserrat/wght.css';
 
 @import './styles/tokens.css';
 
@@ -22,10 +22,11 @@
     overscroll-behavior-y: contain;
   }
 
-  /* Headings default to the display face. Deliberately NOT uppercase: screens
-     that want caps say `uppercase` explicitly, and most already do. */
+  /* The reference sets headings heavy — 800 for hero and section titles, with
+     slightly negative tracking so large type stays tight. */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display font-semibold;
+    @apply font-display font-extrabold;
+    letter-spacing: -0.01em;
   }
 
   /* Every numeral in the product is tabular. Scores, minutes, standings columns

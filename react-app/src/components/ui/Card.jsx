@@ -3,27 +3,32 @@ import { Link } from 'react-router-dom';
 import cn from './cn';
 
 /**
- * Surface panel: one surface level, one hairline, 8px radius.
+ * Surface panel — 20px radius, soft shadow, lift on hover.
  *
- * NO SHADOW AND NO HOVER LIFT. Depth in this system comes from surface level and
- * a 1px border, nothing else — a translate-on-hover is decoration that encodes
- * nothing, and on a touch device it never fires at all. An interactive card gets
- * a surface change instead, which reads on both pointer and touch.
+ * DEPTH COMES FROM SHADOW, following the reference: a resting
+ * `0 10px 30px rgba(0,0,0,.06)` deepening to `0 20px 50px rgba(0,0,0,.1)` and a
+ * `translateY(-6px)` lift when the card is a link. The reference goes to -10px;
+ * this is pulled back because a data list of these would visibly shudder.
+ *
+ * Touch devices never fire hover, so an interactive card also darkens its border
+ * to brand — a state that reads on both pointer and touch.
  */
 const Card = ({
   as = 'div',
   to,
+  flat = false,
   className,
   children,
   // Swallowed, not forwarded. Un-swept screens still pass `hover` from the old
-  // lift-on-hover API; leaking it to the DOM makes React warn about a
-  // non-boolean attribute. Removed with the last of those screens.
+  // API; leaking it to the DOM makes React warn about a non-boolean attribute.
   hover: _deprecatedHover,
   ...props
 }) => {
   const classes = cn(
     'rounded-card border border-hairline bg-surface',
-    to && 'block transition-colors duration-150 ease-standard hover:bg-surface-2',
+    !flat && 'shadow-md',
+    to &&
+      'block transition-all duration-300 ease-standard hover:-translate-y-1.5 hover:border-brand/30 hover:shadow-lg',
     className
   );
 

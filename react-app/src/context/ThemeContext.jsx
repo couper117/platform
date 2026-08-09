@@ -6,10 +6,10 @@ export const ThemeProvider = ({ children }) => {
   const [dark, setDark] = useState(() => {
     const saved = localStorage.getItem('rnsp-theme');
     if (saved) return saved === 'dark';
-    // Dark is the product default, not a mirror of the OS setting: it is the
-    // theme the design system is authored against. A returning user's explicit
-    // choice still wins via the saved value above.
-    return true;
+    // Light is the product default — the design system is authored against it.
+    // Dark is retained and kept correct for outdoor and pitchside use, but it is
+    // opt-in. A returning user's explicit choice still wins via the saved value.
+    return false;
   });
 
   useEffect(() => {
