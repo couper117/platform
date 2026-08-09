@@ -6,9 +6,20 @@
 // which every phone downloaded in full).
 const U = (id) => `https://images.unsplash.com/${id}?auto=format&fit=crop&q=75`;
 
-// Sports-action backdrops per game (verified to load). These are DEFAULTS —
-// SportHubPage prefers a sport's `coverImage` from the DB, so MINISPORTS can
-// upload real Rwandan match photos that override these.
+/**
+ * Backdrops per sport. DEFAULTS ONLY — a sport's `coverImage` from the database
+ * always wins, so MINISPORTS can replace any of these with a real Rwandan photo.
+ *
+ * These were previously commented "verified to load", which is not the same as
+ * being the right subject, and two of them were not: `rugby` resolved to a
+ * photograph of a FISH AND CHIPS SHOP, and `handball` to a game of volleyball.
+ * Both were audited visually in a contact sheet and set to `null`.
+ *
+ * `bg: null` is a supported state, not a gap. A sport without a photograph renders
+ * as a brand-tinted panel with its icon, which is honest and looks deliberate — and
+ * it is the state EVERY newly added sport starts in, so the grid needs it regardless.
+ * A wrong photograph is far worse than no photograph.
+ */
 /**
  * ONE ACCENT FOR EVERY SPORT, and identity carried by the photograph instead.
  *
@@ -36,8 +47,10 @@ export const SPORT_THEMES = {
   volleyball: { bg: U('photo-1592656094267-764a45160876'), accent: BRAND, venue: 'Court' },
   cycling:    { bg: U('photo-1541625602330-2277a4c46182'), accent: BRAND, venue: 'Road' },
   cricket:    { bg: U('photo-1531415074968-036ba1b575da'), accent: BRAND, venue: 'Pitch' },
-  rugby:      { bg: U('photo-1574280363402-2f672940b871'), accent: BRAND, venue: 'Field' },
-  handball:   { bg: U('photo-1612872087720-bb876e2e67d1'), accent: BRAND, venue: 'Court' },
+  // bg null: the stock ID here was a fish and chips shop. Awaiting a real photo.
+  rugby:      { bg: null, accent: BRAND, venue: 'Field' },
+  // bg null: the stock ID here was volleyball, not handball. Awaiting a real photo.
+  handball:   { bg: null, accent: BRAND, venue: 'Court' },
   athletics:  { bg: U('photo-1461896836934-ffe607ba8211'), accent: BRAND, venue: 'Track' },
 };
 

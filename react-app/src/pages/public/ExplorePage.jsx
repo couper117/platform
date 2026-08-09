@@ -1,60 +1,161 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Search, ArrowRight, Compass } from 'lucide-react';
+import { Search, ArrowRight, Compass, Trophy, Users, CalendarDays } from 'lucide-react';
 import { getSports } from '../../api/endpoints/sports';
-import { sportTheme } from '../../config/sportThemes';
+import { sportTheme, HERO_BG } from '../../config/sportThemes';
 import SportIcon from '../../components/shared/SportIcon';
-import ResponsiveWrapper from '../../components/shared/ResponsiveWrapper';
+import HeroVideo from '../../components/shared/HeroVideo';
 import LiveTodayStrip from '../../components/public/LiveTodayStrip';
-import Skeleton from '../../components/shared/Skeleton';
+import responsiveImage from '../../utils/responsiveImage';
 import Seo from '../../components/shared/Seo';
+import { EmptyState, Input, Skeleton } from '../../components/ui';
 
 const TYPE_LABEL = { TEAM: 'Team sport', RACING: 'Racing', COMBAT: 'Combat', RACKET: 'Racket' };
 
+/**
+ * Landing page — choose a sport.
+ *
+ * HERO
+ * Cinematic, following the reference: full-bleed background, pill badge, a heavy
+ * display headline, one line of copy, and the search field. It sits BEHIND the fixed
+ * header (`-mt-nav pt-nav`), which is how the reference gets its edge-to-edge look —
+ * PublicLayout pushes content clear of the bar, and the hero deliberately undoes
+ * that for itself.
+ *
+ * It is 72vh, not 100vh. A full-viewport hero means a visitor scrolls before seeing
+ * a single sport, and the whole job of this page is to get them into one. 72vh keeps
+ * the top of the sport grid visible on a laptop, which is what makes the page read
+ * as a chooser rather than a poster.
+ *
+ * THE BACKGROUND VIDEO is wired but has no footage yet — see HeroVideo. Drop files
+ * into react-app/public/ and the hero lights up with no further changes; until then
+ * every visitor gets the poster with a slow zoom, which is also exactly what phones,
+ * data-saver users and reduced-motion users get permanently.
+ *
+ * CARDS
+ * The reference's category card: photograph on top, an icon circle overlapping it,
+ * then title and meta on white, with the whole card lifting and the image zooming on
+ * hover. Replaces a 4:5 photo tile with white text burned over the image, which was
+ * unreadable whenever the photo behind it was pale.
+ */
 const ExplorePage = () => {
   const [search, setSearch] = useState('');
   const { data, isLoading } = useQuery({ queryKey: ['explore-sports'], queryFn: getSports });
-  const sports = (data?.data || []).filter((s) => s.name.toLowerCase().includes(search.toLowerCase()));
+  const all = data?.data || [];
+  const sports = all.filter((s) => s.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="bg-surface-2 dark:bg-surface-dark min-h-screen pb-24">
-      <Seo title="Explore Sports" description="Explore every sport on the Rwanda National Sports Platform — pick a sport to see its leagues, fixtures and live scores." />
+    <div className="min-h-screen bg-page">
+      <Seo
+        title="Explore Sports"
+        description="Explore every sport on the Rwanda National Sports Platform — pick a sport to see its leagues, fixtures and live scores."
+      />
 
-      <section className="relative overflow-hidden bg-surface-dark text-white">
-        <div className="absolute inset-0 bg-gradient-to-br from-red/25 via-transparent to-rwanda-green/20" />
-        <ResponsiveWrapper className="relative z-10 py-16 sm:py-20">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.3em] bg-white/10 border border-white/15 mb-5">
-            <Compass size={13} /> Explore
-          </div>
-          <h1 className="text-5xl sm:text-7xl font-display uppercase tracking-tighter leading-none">
-            Choose your <span className="text-red">sport</span>
-          </h1>
-          <p className="text-white/50 mt-4 max-w-lg text-sm">
-            Pick a sport to open its dedicated hub — leagues, live scores, fixtures, standings and match centre.
+      {/* ─── hero ─── */}
+      <HeroVideo
+        // No footage in the repo yet. Add /hero.webm and /hero.mp4 to
+        // react-app/public/ and pass them here — nothing else needs to change.
+        sources={[]}
+        poster={HERO_BG}
+        className="-mt-14 flex min-h-[72vh] items-end md:-mt-nav"
+        overlayClassName="bg-gradient-to-t from-black/90 via-black/55 to-black/40"
+      >
+        <div className="mx-auto max-w-6xl px-5 pb-12 pt-24 sm:px-8 md:pt-nav lg:pb-16">
+          <p className="mb-5 inline-flex items-center gap-2 rounded-pill border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-sm">
+            <Compass size={13} aria-hidden="true" />
+            Rwanda · MINISPORTS
           </p>
-          <div className="mt-8 flex items-center bg-white/10 border border-white/15 rounded-2xl px-4 max-w-md backdrop-blur">
-            <Search size={18} className="text-white/40" />
-            <input
+
+          <h1 className="max-w-3xl text-4xl font-extrabold leading-[1.05] text-white sm:text-5xl lg:text-hero">
+            Choose your <span className="text-brand-bright">sport</span>
+          </h1>
+
+          <p className="mt-4 max-w-lg text-base text-white/70">
+            Every league, every match, every athlete. Pick a sport to open its hub —
+            fixtures, live scores, standings and the match centre.
+          </p>
+
+          <div className="relative mt-8 max-w-md">
+            <Search
+              size={18}
+              aria-hidden="true"
+              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-tertiary"
+            />
+            <label htmlFor="sport-search" className="sr-only">
+              Search a sport
+            </label>
+            <Input
+              id="sport-search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search a sport..."
-              className="bg-transparent text-white placeholder:text-white/30 p-4 w-full outline-none text-sm"
+              placeholder="Search a sport…"
+              className="h-[52px] rounded-pill pl-11 shadow-lg"
             />
           </div>
-        </ResponsiveWrapper>
-      </section>
 
-      {/* Slim live/today match strip — instant scores without leaving the chooser */}
+          {/* Three numbers, because a chooser should say how much there is to choose
+              from. Counts come from the same payload as the grid — no extra request. */}
+          {!isLoading && all.length > 0 && (
+            <dl className="mt-8 flex flex-wrap gap-x-8 gap-y-3">
+              {[
+                [Trophy, all.length, all.length === 1 ? 'Sport' : 'Sports'],
+                [Users, all.reduce((n, s) => n + (s._count?.teams ?? 0), 0), 'Teams'],
+                [CalendarDays, all.reduce((n, s) => n + (s._count?.leagues ?? 0), 0), 'Leagues'],
+              ].map(([Icon, value, label]) => (
+                <div key={label} className="flex items-center gap-2.5">
+                  <Icon size={16} className="text-brand-bright" aria-hidden="true" />
+                  <dt className="sr-only">{label}</dt>
+                  <dd className="flex items-baseline gap-1.5">
+                    <span className="font-display text-xl font-extrabold tabular-nums text-white">
+                      {value}
+                    </span>
+                    <span className="text-sm text-white/55">{label}</span>
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
+        </div>
+      </HeroVideo>
+
+      {/* Live scores, immediately under the hero — the fastest thing a returning
+          visitor wants, without making them choose a sport first. */}
       <LiveTodayStrip />
 
-      <ResponsiveWrapper className="mt-12">
+      {/* ─── sport grid ─── */}
+      <section className="mx-auto max-w-6xl px-5 py-12 sm:px-8 lg:py-16">
+        <div className="mb-8 max-w-xl">
+          <h2 className="text-2xl font-extrabold text-primary">Browse by sport</h2>
+          <p className="mt-1.5 text-base text-secondary">
+            Each hub carries its own competitions, fixtures and standings.
+          </p>
+        </div>
+
         {isLoading ? (
-          <Skeleton type="card" count={6} />
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="overflow-hidden rounded-card border border-hairline bg-surface">
+                <Skeleton className="h-44 rounded-none" />
+                <div className="space-y-2 p-5">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-3 w-32" />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : sports.length === 0 ? (
-          <p className="opacity-50 py-16 text-center">No sports match "{search}".</p>
+          <EmptyState
+            icon={Search}
+            title={search ? `No sports match “${search}”` : 'No sports published yet'}
+            hint={
+              search
+                ? 'Try a different spelling, or clear the search to see everything.'
+                : 'Competitions appear here as federations set them up.'
+            }
+          />
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {sports.map((s) => {
               const theme = sportTheme(s.slug);
               const bg = s.coverImage || theme.bg;
@@ -62,28 +163,72 @@ const ExplorePage = () => {
                 <Link
                   key={s.id}
                   to={`/sports/${s.slug}`}
-                  className="group relative aspect-[4/5] rounded-3xl overflow-hidden border border-surface-3 dark:border-white/10 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
+                  className="group flex flex-col overflow-hidden rounded-card border border-hairline bg-surface shadow-md transition-all duration-300 ease-standard hover:-translate-y-1.5 hover:border-brand/30 hover:shadow-lg"
                 >
-                  {bg && <img src={bg} alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy" />}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/10" />
-                  <div className="absolute inset-0" style={{ background: `radial-gradient(70% 60% at 50% 100%, ${theme.accent}44, transparent)` }} />
-
-                  <div className="relative z-10 h-full flex flex-col justify-between p-4 sm:p-5 text-white">
-                    <SportIcon slug={s.slug} className="text-3xl sm:text-4xl drop-shadow-lg" style={{ color: theme.accent }} />
-                    <div>
-                      <span className="text-[8px] font-bold uppercase tracking-[0.3em] text-white/60">{TYPE_LABEL[s.type] || 'Sport'}</span>
-                      <h3 className="font-display text-xl sm:text-2xl uppercase tracking-tight leading-none mt-1">{s.name}</h3>
-                      <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest mt-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity" style={{ color: theme.accent }}>
-                        Enter <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+                  <div className="relative h-44 overflow-hidden">
+                    {bg ? (
+                      <>
+                        <img
+                          {...responsiveImage(bg, { sizes: '(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw' })}
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                          className="h-full w-full object-cover transition-transform duration-500 ease-standard group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/45 to-transparent" />
+                      </>
+                    ) : (
+                      /* No photograph — a branded panel with the sport's mark rather
+                         than a broken frame or a wrong stock image. Every sport
+                         MINISPORTS adds starts here until a cover image is uploaded. */
+                      <div className="flex h-full w-full items-center justify-center bg-brand-tint">
+                        <SportIcon
+                          slug={s.slug}
+                          size={64}
+                          className="text-brand/25 transition-transform duration-500 ease-standard group-hover:scale-110"
+                        />
                       </div>
-                    </div>
+                    )}
+                  </div>
+
+                  {/* The reference's icon circle, straddling the image edge. */}
+                  <div className="relative -mt-7 px-5">
+                    <span className="flex h-14 w-14 items-center justify-center rounded-pill bg-brand text-white shadow-brand">
+                      <SportIcon slug={s.slug} size={22} />
+                    </span>
+                  </div>
+
+                  <div className="flex flex-1 flex-col p-5 pt-4">
+                    {/* Only when the API actually reports a type. It was falling back
+                        to the literal word "Sport", which printed on every card in the
+                        grid and said nothing. */}
+                    {TYPE_LABEL[s.type] && (
+                      <p className="text-xs font-bold uppercase tracking-wider text-tertiary">
+                        {TYPE_LABEL[s.type]}
+                      </p>
+                    )}
+                    <h3 className="text-lg font-extrabold text-primary">{s.name}</h3>
+                    <p className="mt-1 text-sm text-secondary">
+                      {s._count?.leagues ?? 0}{' '}
+                      {s._count?.leagues === 1 ? 'competition' : 'competitions'}
+                      {s._count?.teams ? ` · ${s._count.teams} teams` : ''}
+                    </p>
+
+                    <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-brand-text">
+                      Enter hub
+                      <ArrowRight
+                        size={14}
+                        aria-hidden="true"
+                        className="transition-transform duration-200 ease-standard group-hover:translate-x-1"
+                      />
+                    </span>
                   </div>
                 </Link>
               );
             })}
           </div>
         )}
-      </ResponsiveWrapper>
+      </section>
     </div>
   );
 };
