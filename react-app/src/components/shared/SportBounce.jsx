@@ -91,18 +91,26 @@ const SportBounce = ({ slugs = DEFAULT_SLUGS, size = 34, className }) => {
           }}
           style={{ transformOrigin: 'bottom center' }}
         >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={slug}
-              initial={{ opacity: 0, scale: 0.6, rotate: -40 }}
-              animate={{ opacity: 1, scale: 1, rotate: 0 }}
-              exit={{ opacity: 0, scale: 0.6, rotate: 40 }}
-              transition={{ duration: 0.22, ease: EASE }}
-              className="text-brand"
-            >
-              <SportIcon slug={slug} size={size} />
-            </motion.div>
-          </AnimatePresence>
+          {/* A fixed box with the glyphs stacked absolutely inside it.
+              `mode="wait"` was used here and it was wrong: it finishes the exit
+              before starting the enter, so for ~220ms every swap rendered NO ball
+              at all — just a shadow bouncing on its own. Overlapping them gives a
+              true cross-fade, and absolute positioning keeps the swap from
+              nudging the layout. */}
+          <div className="relative" style={{ width: size, height: size }}>
+            <AnimatePresence initial={false}>
+              <motion.div
+                key={slug}
+                initial={{ opacity: 0, scale: 0.6, rotate: -40 }}
+                animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                exit={{ opacity: 0, scale: 0.6, rotate: 40 }}
+                transition={{ duration: 0.22, ease: EASE }}
+                className="absolute inset-0 flex items-center justify-center text-brand"
+              >
+                <SportIcon slug={slug} size={size} />
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </motion.div>
       </motion.div>
     </div>

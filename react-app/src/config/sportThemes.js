@@ -41,7 +41,18 @@ export const SPORT_THEMES = {
   athletics:  { bg: U('photo-1461896836934-ffe607ba8211'), accent: BRAND, venue: 'Track' },
 };
 
-export const DEFAULT_SPORT_THEME = { bg: U('photo-1522778119026-d647f0596c20'), accent: BRAND, venue: 'Arena' };
+/**
+ * The fallback backdrop — used when no sport is known (a visitor with no chosen
+ * sport, or a sport with no entry above).
+ *
+ * It was the stadium frame, which measures mean luminance 102 but only 61 in its
+ * TOP half — and the top is exactly where an overlay scrim is lightest, so behind
+ * one it read as solid black and looked like a broken image. The cycling frame is
+ * the brightest of the set (mean 167, top half 189), survives a scrim, and is a
+ * fair default for Rwanda besides: the Tour du Rwanda is the country's most
+ * internationally recognised sporting event.
+ */
+export const DEFAULT_SPORT_THEME = { bg: U('photo-1541625602330-2277a4c46182'), accent: BRAND, venue: 'Arena' };
 
 // Shared home hero backdrop (a packed stadium).
 export const HERO_BG = U('photo-1522778119026-d647f0596c20');

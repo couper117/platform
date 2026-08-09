@@ -201,9 +201,13 @@ const LoginPage = () => {
           )}
         />
 
-        {/* Scrim: light enough to keep the photograph legible, heavy at the bottom
-            so the caption always has contrast whatever the image behind it. */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/40" />
+        {/* Scrim: heavy only where the caption sits, and clear above it.
+            This was `from-black/85 via-black/25 to-black/40`, which put 40% black
+            over the top of the frame. On a photo whose top half measures luminance
+            61 that crushed it to solid black and read as a failed image — the photo
+            had loaded fine all along. The caption needs contrast at the BOTTOM; the
+            rest of the frame should just be the photograph. */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 via-40% to-transparent" />
         {/* Green wash, so the photo reads as ours rather than as stock. */}
         <div className="absolute inset-0 bg-gradient-to-br from-brand-bright/15 via-transparent to-transparent" />
 
