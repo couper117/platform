@@ -27,6 +27,10 @@ const LegalPage = lazy(() => import('./pages/public/LegalPage'));
 const SportHubPage = lazy(() => import('./pages/public/SportHubPage'));
 const ExplorePage = lazy(() => import('./pages/public/ExplorePage'));
 
+// First-run sport preference. Eager, not lazy: it decides what the landing route
+// renders, so a lazy chunk would flash the landing page before redirecting.
+import FavouriteSportGate from './components/onboarding/FavouriteSportGate';
+
 // Auth Pages
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
 const RegisterTeamPage = lazy(() => import('./pages/auth/RegisterTeamPage'));
@@ -126,8 +130,17 @@ function App() {
           <Routes>
             {/* Public Routes */}
             <Route element={<PublicLayout />}>
-              {/* Landing page = Choose Your Sport */}
-              <Route path="/" element={<ExplorePage />} />
+              {/* Landing page = Choose Your Sport. The gate wraps the ELEMENT only
+                  — the path is unchanged — and sends a returning visitor straight to
+                  the sport they picked. */}
+              <Route
+                path="/"
+                element={
+                  <FavouriteSportGate>
+                    <ExplorePage />
+                  </FavouriteSportGate>
+                }
+              />
               <Route path="/explore" element={<Navigate to="/" replace />} />
               <Route path="/home" element={<HomePage />} />
               <Route path="/sports/:slug" element={<SportHubPage />} />

@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Link, NavLink, useLocation } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   Home, CalendarDays, Trophy, Newspaper, Compass, Search, Menu, X,
-  LogOut, UserPlus, Languages, GraduationCap, Mail, ChevronDown,
+  LogOut, UserPlus, Languages, GraduationCap, Mail, ChevronDown, Star, RefreshCw,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import useAuthStore from '../../store/authStore';
 import { roleHome } from '../../utils/roleHome';
 import { useCommandPalette } from '../../context/CommandPaletteContext';
 import { getSports } from '../../api/endpoints/sports';
+import useFavouriteSport from '../../hooks/useFavouriteSport';
 import Avatar from '../ui/Avatar';
 import Button from '../ui/Button';
 import IconButton from '../ui/IconButton';
@@ -104,6 +105,8 @@ const NavItem = ({ to, label, icon: Icon, end }) => (
 
 const SportsMenu = () => {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  const { slug: favourite, clear } = useFavouriteSport();
   // Query copied verbatim from the legacy Navbar — same key, so it shares cache.
   const { data: sportsRes } = useQuery({ queryKey: ['nav-sports'], queryFn: getSports, staleTime: 300000 });
   const sports = sportsRes?.data || [];
@@ -155,8 +158,37 @@ const SportsMenu = () => {
             >
               <SportIcon slug={s.slug} size={16} className="shrink-0 text-brand" />
               <span className="truncate">{s.name}</span>
+              {/* Marks which sport the site opens on, so the setting is visible
+                  where it takes effect rather than buried in a settings screen. */}
+              {s.slug === favourite && (
+                <Star
+                  size={12}
+                  aria-label="Your sport"
+                  className="ml-auto shrink-0 fill-brand text-brand"
+                />
+              )}
             </Link>
           ))}
+
+          {favourite && (
+            <>
+              <hr className="my-2 border-hairline" />
+              <button
+                type="button"
+                onClick={() => {
+                  // Clear first, then land on the chooser — otherwise the gate would
+                  // immediately redirect back to the sport being changed.
+                  clear();
+                  setOpen(false);
+                  navigate('/');
+                }}
+                className="flex w-full items-center gap-2.5 rounded-control px-3 py-2.5 text-sm font-medium text-secondary transition-all duration-200 ease-standard hover:bg-brand-tint hover:pl-5 hover:text-brand-text"
+              >
+                <RefreshCw size={14} className="shrink-0 text-brand" aria-hidden="true" />
+                Change my sport
+              </button>
+            </>
+          )}
         </div>
       )}
     </div>
