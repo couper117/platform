@@ -14,7 +14,13 @@
     "amashuri": "Imikino y'Amashuri",
     "login": "Injira",
     "logout": "Sohoka",
-    "dashboard": "Imbonerahamwe"
+    "dashboard": "Imbonerahamwe",
+    "explore": "Shakisha",
+    "all_sports": "Imikino Yose",
+    "register_team": "Iyandikishe Ikipe",
+    "menu": "Menu",
+    "browse": "Reba",
+    "account": "Konti"
   },
   "common": {
     "loading": "Birapakirwa…",
@@ -58,7 +64,11 @@
     "send_message": "Ohereza ubutumwa",
     "copyright": "© {{year}} Urubuga RwaSport. Uburenganzira bwose bwitabwaho.",
     "privacy": "Politiki y'ibanga",
-    "terms": "Amabwiriza y'imikoreshereze"
+    "terms": "Amabwiriza y'imikoreshereze",
+    "competitions": "Amarushanwa",
+    "championships": "Amarushanwa Akomeye",
+    "school_directory": "Urutonde rw’Amashuri",
+    "standings": "Imbonerahamwe"
   },
   "home": {
     "hero_title": "Duhesha Imbaraga Umwuka w'u Rwanda",
@@ -836,5 +846,15 @@
         "body": "Abahatanira igikombe bahanganye mu cyumweru gishimishije cy'imikino, bisiga ipiganwa ry'igikombe ritaramenyekana mbere y'imizenguruko ya nyuma."
       }
     }
+  },
+  "explore": {
+    "choose_pre": "Hitamo",
+    "choose_accent": "umukino",
+    "subtitle": "Hitamo umukino kugira ngo ubone ibirebana nawo — amarushanwa, amanota ariho, imikino, imbonerahamwe n’ahakurikiranirwa imikino.",
+    "search": "Shakisha umukino...",
+    "browse_kicker": "Reba",
+    "choose_a_sport": "Hitamo umukino",
+    "no_match": "Nta mukino uhuye na \"{{q}}\".",
+    "enter": "Injira"
   }
 }

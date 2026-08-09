@@ -14,7 +14,13 @@
     "amashuri": "Amashuri Games",
     "login": "Login",
     "logout": "Logout",
-    "dashboard": "Dashboard"
+    "dashboard": "Dashboard",
+    "explore": "Explore",
+    "all_sports": "All Sports",
+    "register_team": "Register Team",
+    "menu": "Menu",
+    "browse": "Browse",
+    "account": "Account"
   },
   "common": {
     "loading": "Loading…",
@@ -58,7 +64,11 @@
     "send_message": "Send a Message",
     "copyright": "© {{year}} RwaSport Platform. All rights reserved.",
     "privacy": "Privacy Policy",
-    "terms": "Terms of Service"
+    "terms": "Terms of Service",
+    "competitions": "Competitions",
+    "championships": "Championships",
+    "school_directory": "School Directory",
+    "standings": "Standings"
   },
   "home": {
     "hero_title": "Fueling the Spirit of Rwanda",
@@ -836,5 +846,15 @@
         "body": "Title contenders traded blows in a thrilling weekend of action, leaving the championship race finely poised heading into the final rounds."
       }
     }
+  },
+  "explore": {
+    "choose_pre": "Choose your",
+    "choose_accent": "sport",
+    "subtitle": "Pick a sport to open its dedicated hub — leagues, live scores, fixtures, standings and match centre.",
+    "search": "Search a sport...",
+    "browse_kicker": "Browse",
+    "choose_a_sport": "Choose a sport",
+    "no_match": "No sports match \"{{q}}\".",
+    "enter": "Enter"
   }
 }

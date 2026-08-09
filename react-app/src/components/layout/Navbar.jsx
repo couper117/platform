@@ -55,7 +55,7 @@ const Navbar = () => {
             end
             className={({ isActive }) => `relative whitespace-nowrap transition-all hover:text-red ${isActive ? 'text-red' : 'text-surface-dark/70 dark:text-white/70'}`}
           >
-            Explore
+            {t('nav.explore')}
           </NavLink>
           {topSports.map((s, i) => (
             <NavLink
@@ -73,7 +73,7 @@ const Navbar = () => {
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-surface-3 dark:border-white/15 text-surface-dark/60 dark:text-white/60 hover:text-red hover:border-red/40 dark:hover:text-white dark:hover:border-white/30 transition-all"
           >
             <LayoutGrid size={13} />
-            <span className="text-[10px] tracking-wider">All Sports</span>
+            <span className="text-[10px] tracking-wider">{t('nav.all_sports')}</span>
           </button>
         </div>
 
@@ -132,7 +132,7 @@ const Navbar = () => {
               <>
                 <Link to="/auth/login" className="text-[11px] font-bold uppercase tracking-widest text-surface-dark/70 dark:text-white/70 hover:text-red dark:hover:text-white transition-colors px-2">{t('nav.login')}</Link>
                 <Link to="/auth/team/register" className="flex items-center gap-2 bg-red text-white font-display text-sm uppercase tracking-widest px-5 py-2 rounded-lg hover:bg-red-dark transition-all hover:scale-105 active:scale-95 shadow-lg shadow-red/20">
-                  <UserPlus size={16} /><span>Register Team</span>
+                  <UserPlus size={16} /><span>{t('nav.register_team')}</span>
                 </Link>
               </>
             )}
@@ -155,7 +155,7 @@ const Navbar = () => {
           <div className="fixed inset-0 bg-black/50 z-[110] animate-in fade-in duration-200" onClick={closeDrawer} />
           <aside className="fixed top-0 right-0 h-full w-[88%] max-w-md bg-white text-surface-dark dark:bg-surface-dark dark:text-white z-[120] shadow-2xl overflow-y-auto animate-in slide-in-from-right duration-300">
             <div className="flex items-center justify-between px-6 py-5 border-b border-surface-3 dark:border-white/10 sticky top-0 bg-white dark:bg-surface-dark z-10">
-              <span className="font-display text-2xl uppercase tracking-tight flex items-center gap-2"><Menu size={20} className="text-red" /> Menu</span>
+              <span className="font-display text-2xl uppercase tracking-tight flex items-center gap-2"><Menu size={20} className="text-red" /> {t('nav.menu')}</span>
               <button onClick={closeDrawer} aria-label="Close" className="p-2 text-surface-dark/60 dark:text-white/60 hover:text-red"><X size={24} /></button>
             </div>
 
@@ -181,14 +181,14 @@ const Navbar = () => {
                     <ChevronRight size={16} className="text-red" /> {t('nav.login', 'Login')}
                   </Link>
                   <Link to="/auth/team/register" onClick={closeDrawer} className="flex items-center justify-center gap-2 bg-red text-white py-4 rounded-xl font-display uppercase tracking-widest shadow-lg shadow-red/20">
-                    <UserPlus size={16} /> Register
+                    <UserPlus size={16} /> {t('nav.register_team')}
                   </Link>
                 </div>
               )}
 
               {/* Browse */}
               <div className="space-y-1">
-                <h3 className="text-[10px] uppercase font-bold tracking-[0.3em] text-surface-dark/30 dark:text-white/30 mb-2">Browse</h3>
+                <h3 className="text-[10px] uppercase font-bold tracking-[0.3em] text-surface-dark/30 dark:text-white/30 mb-2">{t('nav.browse')}</h3>
                 {browseLinks.map((link) => (
                   <Link
                     key={link.to}
@@ -204,7 +204,7 @@ const Navbar = () => {
 
               {/* All sports */}
               <div className="space-y-3">
-                <h3 className="text-[10px] uppercase font-bold tracking-[0.3em] text-surface-dark/30 dark:text-white/30">All Sports</h3>
+                <h3 className="text-[10px] uppercase font-bold tracking-[0.3em] text-surface-dark/30 dark:text-white/30">{t('nav.all_sports')}</h3>
                 <div className="grid grid-cols-2 gap-3">
                   {sports.map((s) => (
                     <Link
@@ -225,11 +225,11 @@ const Navbar = () => {
 
               {/* Settings */}
               <div className="flex items-center justify-between p-4 bg-surface-2 dark:bg-white/5 rounded-xl border border-surface-3 dark:border-white/10">
-                <span className="text-[10px] uppercase font-bold tracking-[0.3em] text-surface-dark/40 dark:text-white/40">Appearance</span>
+                <span className="text-[10px] uppercase font-bold tracking-[0.3em] text-surface-dark/40 dark:text-white/40">{t('common.appearance')}</span>
                 <ThemeToggle />
               </div>
               <div className="space-y-3">
-                <h3 className="text-[10px] uppercase font-bold tracking-[0.3em] text-surface-dark/30 dark:text-white/30">Language</h3>
+                <h3 className="text-[10px] uppercase font-bold tracking-[0.3em] text-surface-dark/30 dark:text-white/30">{t('common.language')}</h3>
                 <div className="grid grid-cols-2 gap-2">
                   {languages.map((lang) => (
                     <button

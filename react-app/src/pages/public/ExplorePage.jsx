@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { Search, ArrowRight, Compass } from 'lucide-react';
 import { getSports } from '../../api/endpoints/sports';
 import { sportTheme } from '../../config/sportThemes';
@@ -13,6 +14,7 @@ import Seo from '../../components/shared/Seo';
 const TYPE_LABEL = { TEAM: 'Team sport', RACING: 'Racing', COMBAT: 'Combat', RACKET: 'Racket' };
 
 const ExplorePage = () => {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const { data, isLoading } = useQuery({ queryKey: ['explore-sports'], queryFn: getSports });
   const sports = (data?.data || []).filter((s) => s.name.toLowerCase().includes(search.toLowerCase()));
@@ -25,20 +27,20 @@ const ExplorePage = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-red/25 via-transparent to-rwanda-green/20" />
         <ResponsiveWrapper className="relative z-10 py-16 sm:py-20">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.3em] bg-white/10 border border-white/15 mb-5">
-            <Compass size={13} /> Explore
+            <Compass size={13} /> {t('nav.explore')}
           </div>
           <h1 className="text-5xl sm:text-7xl font-display uppercase tracking-tighter leading-none">
-            Choose your <span className="text-red">sport</span>
+            {t('explore.choose_pre')} <span className="text-red">{t('explore.choose_accent')}</span>
           </h1>
           <p className="text-white/50 mt-4 max-w-lg text-sm">
-            Pick a sport to open its dedicated hub — leagues, live scores, fixtures, standings and match centre.
+            {t('explore.subtitle')}
           </p>
           <div className="mt-8 flex items-center bg-white/10 border border-white/15 rounded-2xl px-4 max-w-md backdrop-blur">
             <Search size={18} className="text-white/40" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search a sport..."
+              placeholder={t('explore.search')}
               className="bg-transparent text-white placeholder:text-white/30 p-4 w-full outline-none text-sm"
             />
           </div>
@@ -52,7 +54,7 @@ const ExplorePage = () => {
         {isLoading ? (
           <Skeleton type="card" count={6} />
         ) : sports.length === 0 ? (
-          <p className="opacity-50 py-16 text-center">No sports match "{search}".</p>
+          <p className="opacity-50 py-16 text-center">{t('explore.no_match', { q: search })}</p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
             {sports.map((s) => {
@@ -74,7 +76,7 @@ const ExplorePage = () => {
                       <span className="text-[8px] font-bold uppercase tracking-[0.3em] text-white/60">{TYPE_LABEL[s.type] || 'Sport'}</span>
                       <h3 className="font-display text-xl sm:text-2xl uppercase tracking-tight leading-none mt-1">{s.name}</h3>
                       <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest mt-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity" style={{ color: theme.accent }}>
-                        Enter <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+                        {t('explore.enter')} <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
                       </div>
                     </div>
                   </div>

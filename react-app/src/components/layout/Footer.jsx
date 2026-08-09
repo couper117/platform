@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Facebook, Instagram, Youtube, Twitter, Mail, Phone, MapPin, ArrowRight } from 'lucide-react';
 
 const socials = [
@@ -10,17 +11,17 @@ const socials = [
 ];
 
 const quickLinks = [
-  { to: '/leagues', label: 'All Leagues' },
-  { to: '/fixtures', label: 'Upcoming Fixtures' },
-  { to: '/results', label: 'Match Results' },
-  { to: '/news', label: 'Latest News' },
+  { to: '/leagues', key: 'footer.all_leagues' },
+  { to: '/fixtures', key: 'footer.upcoming_fixtures' },
+  { to: '/results', key: 'footer.match_results' },
+  { to: '/news', key: 'footer.latest_news' },
 ];
 
 const competitions = [
-  { to: '/amashuri', label: 'Amashuri Games' },
-  { to: '/amashuri/championships', label: 'Championships' },
-  { to: '/amashuri/schools', label: 'School Directory' },
-  { to: '/amashuri/standings', label: 'Standings' },
+  { to: '/amashuri', key: 'nav.amashuri' },
+  { to: '/amashuri/championships', key: 'footer.championships' },
+  { to: '/amashuri/schools', key: 'footer.school_directory' },
+  { to: '/amashuri/standings', key: 'footer.standings' },
 ];
 
 const contact = [
@@ -37,6 +38,7 @@ const ColHeading = ({ children }) => (
 );
 
 const Footer = () => {
+  const { t } = useTranslation();
   return (
     <footer className="relative bg-white text-surface-dark dark:bg-surface-dark dark:text-white overflow-hidden border-t border-surface-3 dark:border-transparent">
       {/* Rwanda tri-colour top accent */}
@@ -63,7 +65,7 @@ const Footer = () => {
               </div>
             </Link>
             <p className="text-sm text-surface-dark/50 dark:text-white/50 leading-relaxed max-w-xs">
-              The heartbeat of Rwandan sport — managing leagues, teams, and athletes across the nation.
+              {t('footer.about')}
             </p>
             <div className="flex gap-3">
               {socials.map(({ icon: Icon, label, href }) => (
@@ -81,11 +83,11 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div>
-            <ColHeading>Quick Links</ColHeading>
+            <ColHeading>{t('footer.quick_links')}</ColHeading>
             <ul className="space-y-3 text-sm">
               {quickLinks.map((l) => (
                 <li key={l.to}>
-                  <Link to={l.to} className="text-surface-dark/60 dark:text-white/60 hover:text-red hover:translate-x-1 inline-block transition-all">{l.label}</Link>
+                  <Link to={l.to} className="text-surface-dark/60 dark:text-white/60 hover:text-red hover:translate-x-1 inline-block transition-all">{t(l.key)}</Link>
                 </li>
               ))}
             </ul>
@@ -93,11 +95,11 @@ const Footer = () => {
 
           {/* Competitions */}
           <div>
-            <ColHeading>Competitions</ColHeading>
+            <ColHeading>{t('footer.competitions')}</ColHeading>
             <ul className="space-y-3 text-sm">
               {competitions.map((l) => (
                 <li key={l.to}>
-                  <Link to={l.to} className="text-surface-dark/60 dark:text-white/60 hover:text-red hover:translate-x-1 inline-block transition-all">{l.label}</Link>
+                  <Link to={l.to} className="text-surface-dark/60 dark:text-white/60 hover:text-red hover:translate-x-1 inline-block transition-all">{t(l.key)}</Link>
                 </li>
               ))}
             </ul>
@@ -105,7 +107,7 @@ const Footer = () => {
 
           {/* Contact */}
           <div className="col-span-2 lg:col-span-1">
-            <ColHeading>Contact</ColHeading>
+            <ColHeading>{t('footer.contact_us')}</ColHeading>
             <ul className="space-y-4 text-sm">
               {contact.map(({ icon: Icon, text }) => (
                 <li key={text} className="flex items-center gap-3">
@@ -120,7 +122,7 @@ const Footer = () => {
                   to="/contact"
                   className="inline-flex items-center gap-2 bg-red text-white px-5 py-2.5 rounded-lg hover:bg-red-dark transition-all font-display text-xs uppercase tracking-widest shadow-lg shadow-red/20"
                 >
-                  Send a Message
+                  {t('footer.send_message')}
                   <ArrowRight size={14} />
                 </Link>
               </li>
@@ -142,10 +144,10 @@ const Footer = () => {
 
         {/* Bottom bar */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-3 sm:gap-4 text-center text-[10px] uppercase tracking-widest text-surface-dark/40 dark:text-white/40">
-          <p>&copy; 2026 RwaSport Platform. All rights reserved.</p>
+          <p>{t('footer.copyright', { year: 2026 })}</p>
           <div className="flex gap-5 sm:gap-6">
-            <Link to="/privacy" className="hover:text-red transition-colors">Privacy Policy</Link>
-            <Link to="/terms" className="hover:text-red transition-colors">Terms of Service</Link>
+            <Link to="/privacy" className="hover:text-red transition-colors">{t('footer.privacy')}</Link>
+            <Link to="/terms" className="hover:text-red transition-colors">{t('footer.terms')}</Link>
           </div>
         </div>
       </div>

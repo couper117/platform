@@ -14,7 +14,13 @@
     "amashuri": "Jeux Scolaires",
     "login": "Connexion",
     "logout": "Déconnexion",
-    "dashboard": "Tableau de bord"
+    "dashboard": "Tableau de bord",
+    "explore": "Explorer",
+    "all_sports": "Tous les sports",
+    "register_team": "Inscrire une équipe",
+    "menu": "Menu",
+    "browse": "Parcourir",
+    "account": "Compte"
   },
   "common": {
     "loading": "Chargement…",
@@ -58,7 +64,11 @@
     "send_message": "Envoyer un message",
     "copyright": "© {{year}} Plateforme RwaSport. Tous droits réservés.",
     "privacy": "Politique de confidentialité",
-    "terms": "Conditions d'utilisation"
+    "terms": "Conditions d'utilisation",
+    "competitions": "Compétitions",
+    "championships": "Championnats",
+    "school_directory": "Répertoire des écoles",
+    "standings": "Classement"
   },
   "home": {
     "hero_title": "Nourrir l'Esprit du Rwanda",
@@ -836,5 +846,15 @@
         "body": "Les prétendantes au titre se sont affrontées lors d'un week-end palpitant, laissant la course au championnat parfaitement indécise avant les dernières journées."
       }
     }
+  },
+  "explore": {
+    "choose_pre": "Choisissez votre",
+    "choose_accent": "sport",
+    "subtitle": "Choisissez un sport pour ouvrir son espace — ligues, scores en direct, matchs, classements et centre des matchs.",
+    "search": "Rechercher un sport...",
+    "browse_kicker": "Parcourir",
+    "choose_a_sport": "Choisissez un sport",
+    "no_match": "Aucun sport ne correspond à \"{{q}}\".",
+    "enter": "Entrer"
   }
 }
