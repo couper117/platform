@@ -4,43 +4,36 @@ import { useQuery } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import {
-  AlertCircle, ChevronLeft, ArrowRight, CalendarDays, UserPlus, GraduationCap, Compass,
-} from 'lucide-react';
+import { AlertCircle, ChevronLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import useAuthStore from '../../store/authStore';
 import apiClient from '../../api/client';
 import { roleHome } from '../../utils/roleHome';
 import { getSports } from '../../api/endpoints/sports';
-import { HERO_BG } from '../../config/sportThemes';
+import useFavouriteSport from '../../hooks/useFavouriteSport';
+import { sportTheme } from '../../config/sportThemes';
 import responsiveImage from '../../utils/responsiveImage';
 import SportBounce from '../../components/shared/SportBounce';
 import Seo from '../../components/shared/Seo';
-import { Button, Field, Input } from '../../components/ui';
+import { Button, Field, Input, cn } from '../../components/ui';
 
 const loginSchema = z.object({
   username: z.string().min(3, 'Enter your email or username'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
-/** Right-panel links. Everything a visitor might actually want instead of signing in. */
-const SIDE_LINKS = [
-  { to: '/fixtures', icon: CalendarDays, title: 'Live scores & fixtures', desc: 'Follow every match as it happens.' },
-  { to: '/auth/team/register', icon: UserPlus, title: 'Register your team', desc: 'Join an official league this season.' },
-  { to: '/amashuri', icon: GraduationCap, title: 'Amashuri Games', desc: 'Rwanda’s inter-school competitions.' },
-  { to: '/', icon: Compass, title: 'Explore all sports', desc: 'Browse every federation and league.' },
-];
-
 /**
  * Split-screen sign-in.
  *
  *   left   the form, on a white panel, in a narrow centred column
- *   right  a dark panel over a blurred stadium photo, carrying the links someone
- *          might want instead of signing in
+ *   right  a full-bleed sport photograph with a single caption
  *
  * THE RIGHT PANEL IS DESKTOP-ONLY. At 360px it would either push the form below
- * the fold or shrink it to nothing, and the form is the reason anyone is here. The
- * links it holds all live in the header and bottom nav anyway, so nothing is lost.
+ * the fold or shrink it to nothing, and the form is the reason anyone is here.
+ *
+ * The photograph follows the visitor's chosen sport, so someone who picked
+ * basketball is greeted by a court rather than a football pitch. It is the same
+ * preference the landing route uses, so the two never disagree.
  *
  * The bouncing ball sits directly above the inputs. An auth screen is the one place
  * in this product where decoration is the point — there is no data to show, and a
@@ -76,7 +69,15 @@ const LoginPage = () => {
   // Cycles the ball through the sports that actually exist on this platform.
   // Same key as the header, so it is usually already cached.
   const { data: sportsRes } = useQuery({ queryKey: ['nav-sports'], queryFn: getSports, staleTime: 300000 });
-  const slugs = (sportsRes?.data ?? []).map((s) => s.slug).filter(Boolean);
+  const sports = sportsRes?.data ?? [];
+  const slugs = sports.map((s) => s.slug).filter(Boolean);
+
+  // The panel shows the visitor's own sport. Prefers the DB cover image, so a real
+  // MINISPORTS photograph replaces the stock backdrop the moment one is uploaded.
+  const { slug: favourite } = useFavouriteSport();
+  const favSport = sports.find((s) => s.slug === favourite);
+  const panelImage = favSport?.coverImage || sportTheme(favourite).bg;
+  const panelLabel = favSport?.name ? `${favSport.name} · Rwanda` : 'Rwanda · MINISPORTS';
 
   return (
     <div className="min-h-screen bg-page lg:grid lg:grid-cols-2">
@@ -172,48 +173,54 @@ const LoginPage = () => {
         </div>
       </div>
 
-      {/* ─── side panel — desktop only ─── */}
+      {/* ─── side panel — a photograph, desktop only ───────────────────────
+          The four link cards that were here are gone. Every one of them already
+          existed in the header and the bottom nav, and on a sign-in screen they
+          pulled against the only thing the visitor came to do. A photograph sells
+          the product without competing with the form.
+
+          NOT A VIDEO, and the reason is bytes. A background loop is 1–5MB against
+          roughly 70KB for this still, and without real Rwandan match footage it
+          would only ever be generic stock. The reference gets its cinematic feel
+          from `slowZoom 20s` on a photo, which is what happens here — most of the
+          motion for a fraction of the payload. Worth revisiting the moment
+          MINISPORTS supplies actual footage. */}
       <div className="relative hidden overflow-hidden bg-[#0F0F0F] lg:block">
         <img
-          {...responsiveImage(HERO_BG, { sizes: '50vw' })}
+          {...responsiveImage(panelImage, { sizes: '50vw' })}
           alt=""
-          className="absolute inset-0 h-full w-full scale-110 object-cover opacity-35 blur-md"
+          loading="eager"
+          // lowercase: React 18 does not recognise the camelCase form
+          fetchpriority="low"
+          className={cn(
+            'absolute inset-0 h-full w-full object-cover',
+            // Ken Burns. Ambient, so exempt from the 240ms transition budget, and
+            // motion-safe because it is a CSS animation — the global
+            // prefers-reduced-motion rule in index.css neutralises it.
+            'animate-slow-zoom'
+          )}
         />
-        {/* The reference drops its hero photo to brightness(0.4). Without this much
-            darkening the link cards sit on mid-tone grass and stop being readable. */}
-        <div className="absolute inset-0 bg-black/60" />
-        {/* Green wash so the photo reads as ours rather than as stock. */}
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-bright/20 via-transparent to-black/70" />
 
-        <div className="relative flex h-full flex-col justify-center gap-3 p-10 xl:p-14">
-          <div className="mb-4 max-w-sm">
-            <h2 className="text-2xl font-extrabold text-white">The home of Rwandan sport</h2>
-            <p className="mt-2 text-sm text-white/60">
-              Every league, every match, every athlete — from the national leagues to the Amashuri
-              Games.
-            </p>
-          </div>
+        {/* Scrim: light enough to keep the photograph legible, heavy at the bottom
+            so the caption always has contrast whatever the image behind it. */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/40" />
+        {/* Green wash, so the photo reads as ours rather than as stock. */}
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-bright/15 via-transparent to-transparent" />
 
-          {SIDE_LINKS.map(({ to, icon: Icon, title, desc }) => (
-            <Link
-              key={to}
-              to={to}
-              className="group flex items-center gap-4 rounded-card border border-white/10 bg-white/5 p-4 backdrop-blur-sm transition-all duration-200 ease-standard hover:border-brand-bright/50 hover:bg-white/10"
-            >
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-control bg-brand-bright/15 text-brand-bright">
-                <Icon size={18} aria-hidden="true" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-bold text-white">{title}</span>
-                <span className="block text-sm text-white/55">{desc}</span>
-              </span>
-              <ArrowRight
-                size={16}
-                aria-hidden="true"
-                className="shrink-0 text-white/30 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-brand-bright"
-              />
-            </Link>
-          ))}
+        {/* One lockup, bottom-left. An empty photo panel looks unfinished; a single
+            caption anchors it without turning it back into a menu. */}
+        <div className="relative flex h-full flex-col justify-end p-10 xl:p-14">
+          <p className="mb-3 inline-flex w-fit items-center gap-2 rounded-pill border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-sm">
+            <span className="h-1.5 w-1.5 rounded-pill bg-brand-bright" />
+            {panelLabel}
+          </p>
+          <h2 className="max-w-md text-3xl font-extrabold leading-tight text-white">
+            The home of Rwandan sport
+          </h2>
+          <p className="mt-2 max-w-sm text-sm text-white/70">
+            Every league, every match, every athlete — from the national leagues to the Amashuri
+            Games.
+          </p>
         </div>
       </div>
     </div>
