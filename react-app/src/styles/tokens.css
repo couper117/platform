@@ -21,25 +21,31 @@
  */
 
 :root {
-  /* ─── Brand — Rwanda green ────────────────────────────────────────
-   * THREE GREENS, and the reason is contrast, not indecision.
+  /* ─── Brand — Rwanda green. ONE GREEN. ────────────────────────────
+   * #008848, and it does every job.
    *
-   * The reference uses #00A859 for everything: pill fills with white labels and
-   * green link text on white. Both measure 3.11:1, which fails AA. So the hue is
-   * kept and split by job:
+   * This was briefly three greens — a bright identity green, a darker one for
+   * fills, a darker one still for text — on the theory that each job needed its
+   * own contrast. That was wrong, and it showed: five different greens ended up
+   * painted on the landing page at once and nothing matched.
    *
-   *   --brand         #00A859  the identity. Fills that carry a DARK label
-   *                            (6.07:1), icon circles, borders, tints, glows.
-   *   --brand-strong  #008848  fills that carry a WHITE label (4.55:1). Two
-   *                            shades darker and all but indistinguishable.
-   *   --brand-text    #007A41  green as TEXT or a link on white (5.44:1).
+   * CONTRAST IS SYMMETRIC. A colour measured against white gives the same ratio
+   * whether it is the text or the background. #008848 is 4.55:1 against white, so
+   * the single value clears AA as green text on white AND as a fill under a white
+   * label. There was never a reason to split it.
+   *
+   * The reference's #00A859 is 3.11:1 and fails both ways, so it is not used
+   * directly. #008848 is two shades darker, all but indistinguishable, and correct.
+   *
+   * `--brand-strong` and `--brand-text` are kept as aliases so the ~40 places
+   * already referencing them keep working. Prefer `--brand` in new code.
    */
-  --brand: 0 168 89; /* #00A859 */
-  --brand-strong: 0 136 72; /* #008848 — white label passes */
-  --brand-text: 0 122 65; /* #007A41 — green type on white */
-  --brand-hover: 0 143 76; /* #008F4C */
+  --brand: 0 136 72; /* #008848 — 4.55:1 on white, both directions */
+  --brand-strong: 0 136 72; /* alias — see above */
+  --brand-text: 0 136 72; /* alias — see above */
+  --brand-hover: 0 112 59; /* #00703B — 6.2:1, a visible darkening on hover */
   --brand-tint: 240 249 244; /* #F0F9F4 — hover wash, selected rows */
-  --on-brand: 255 255 255; /* white, for --brand-strong fills */
+  --on-brand: 255 255 255; /* white label on a --brand fill */
 
   /* ─── Surfaces ────────────────────────────────────────────────── */
   --bg: 255 255 255; /* #FFFFFF — page */

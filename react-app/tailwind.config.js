@@ -46,10 +46,13 @@ export default {
         surface: {
           DEFAULT: 'rgb(var(--surface) / <alpha-value>)',
           2: 'rgb(var(--surface-2) / <alpha-value>)',
-          // DEPRECATED — legacy keys so un-swept screens still build.
-          3: '#EDEDEF',
-          dark: '#111120',
-          dark2: '#16162A',
+          // DEPRECATED — legacy keys so un-swept screens still build. Repointed at
+          // tokens rather than left as literals: `surface-3` was #EDEDEF, a grey
+          // almost-but-not-quite --hairline, and `surface-dark` was #111120, a
+          // blue-black that clashed with the footer's #0F0F0F. Both now match.
+          3: 'rgb(var(--hairline) / <alpha-value>)',
+          dark: '#0F0F0F',
+          dark2: '#17171A',
         },
         hairline: 'rgb(var(--hairline) / <alpha-value>)',
 
@@ -93,6 +96,19 @@ export default {
         green: { DEFAULT: 'rgb(var(--brand-strong) / <alpha-value>)' },
         cyan: { DEFAULT: '#00D4FF' },
         rwanda: { blue: '#00A1DE', yellow: '#FAD201', green: 'rgb(var(--brand) / <alpha-value>)' },
+      },
+
+      /**
+       * Tailwind's preflight paints EVERY element's border-color with
+       * `borderColor.DEFAULT`, which is gray-200 (#E5E7EB) out of the box. That was
+       * the single biggest source of mismatch — 725 instances on the landing page of
+       * a grey that is near --hairline but not it, so nothing quite lined up.
+       *
+       * It has to be set HERE and not as a colour named DEFAULT: `borderColor.DEFAULT`
+       * resolves from `colors.gray[200]` in the default config, not from `colors.DEFAULT`.
+       */
+      borderColor: {
+        DEFAULT: 'rgb(var(--hairline) / <alpha-value>)',
       },
 
       // The reference is generously rounded, with a distinct radius per role.
