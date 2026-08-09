@@ -11,7 +11,8 @@
     "prisma:studio": "prisma studio",
     "seed": "node prisma/seed.js",
     "seed:extra": "node prisma/seed-extra.js",
-    "seed:all": "node prisma/seed.js && node prisma/seed-extra.js",
+    "seed:federations": "node prisma/seed-federations.js",
+    "seed:all": "node prisma/seed.js && node prisma/seed-extra.js && node prisma/seed-federations.js",
     "vercel-build": "npx prisma generate && npx prisma migrate deploy"
   },
   "prisma": {

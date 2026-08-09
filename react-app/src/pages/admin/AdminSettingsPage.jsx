@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Settings, Save, RotateCcw, AlertCircle, Loader2, Globe, Shield, Mail } from 'lucide-react';
+import { Settings, Save, RotateCcw, AlertCircle, Loader2, Globe, Shield, Mail, Gavel } from 'lucide-react';
 import apiClient from '../../api/client';
 import Skeleton from '../../components/shared/Skeleton';
 
 const AdminSettingsPage = () => {
   const queryClient = useQueryClient();
   const [settingsData, setSettingsData] = useState({});
+  const [rules, setRules] = useState([]); // [{ skey, sval, label }]
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ['admin-settings'],
@@ -14,6 +15,17 @@ const AdminSettingsPage = () => {
       const { data } = await apiClient.get('/settings');
       setSettingsData(data.data);
       return data.data;
+    },
+  });
+
+  // Competition/eligibility rules (private settings, grp = 'rules').
+  useQuery({
+    queryKey: ['admin-rules'],
+    queryFn: async () => {
+      const { data } = await apiClient.get('/settings/all');
+      const ruleRows = (data.data || []).filter((s) => s.grp === 'rules');
+      setRules(ruleRows.map((r) => ({ skey: r.skey, sval: r.sval, label: r.label || r.skey })));
+      return ruleRows;
     },
   });
 
@@ -25,12 +37,22 @@ const AdminSettingsPage = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-settings'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-rules'] });
       alert('System settings updated successfully!');
     }
   });
 
   const handleChange = (key, val) => {
     setSettingsData(prev => ({ ...prev, [key]: val }));
+  };
+
+  const handleRuleChange = (skey, val) => {
+    setRules(prev => prev.map(r => r.skey === skey ? { ...r, sval: val } : r));
+  };
+
+  const saveAll = () => {
+    const ruleMap = Object.fromEntries(rules.map(r => [r.skey, r.sval]));
+    updateMutation.mutate({ ...settingsData, ...ruleMap });
   };
 
   const categories = [
@@ -48,8 +70,8 @@ const AdminSettingsPage = () => {
           <h1 className="text-4xl font-display uppercase tracking-tighter">System <span className="text-red">Configuration</span></h1>
           <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Manage global platform settings and branding</p>
         </div>
-        <button 
-          onClick={() => updateMutation.mutate(settingsData)}
+        <button
+          onClick={saveAll}
           disabled={updateMutation.isPending}
           className="bg-red text-white px-10 py-3 rounded-xl font-display text-lg uppercase tracking-widest hover:bg-red-dark transition-all shadow-xl shadow-red/20 flex items-center space-x-3 disabled:opacity-50"
         >
@@ -89,12 +111,36 @@ const AdminSettingsPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Official Email</label>
-                <input 
+                <input
                   className="w-full bg-white dark:bg-surface-dark2 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none focus:border-red"
                   value={settingsData.contact_email || ''}
                   onChange={(e) => handleChange('contact_email', e.target.value)}
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Competition Rules Section */}
+          <div className="space-y-6">
+            <h2 className="text-xl font-display uppercase tracking-tight border-b border-surface-3 dark:border-white/5 pb-2 flex items-center gap-2">
+              <Gavel size={18} className="text-red" /> Competition Rules
+            </h2>
+            <p className="text-[10px] uppercase font-bold tracking-widest opacity-40">
+              Eligibility, discipline and points rules applied across all federations. Changes take effect immediately.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {rules.map((r) => (
+                <div key={r.skey} className="space-y-2">
+                  <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">{r.label}</label>
+                  <input
+                    type="number"
+                    className="w-full bg-white dark:bg-surface-dark2 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none focus:border-red"
+                    value={r.sval ?? ''}
+                    onChange={(e) => handleRuleChange(r.skey, e.target.value)}
+                  />
+                </div>
+              ))}
+              {!rules.length && <p className="text-xs opacity-40 col-span-2">Loading rules…</p>}
             </div>
           </div>
         </div>

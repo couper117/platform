@@ -25,6 +25,7 @@ const NewsArticlePage = lazy(() => import('./pages/public/NewsArticlePage'));
 const ContactPage = lazy(() => import('./pages/public/ContactPage'));
 const LegalPage = lazy(() => import('./pages/public/LegalPage'));
 const SportHubPage = lazy(() => import('./pages/public/SportHubPage'));
+const ExplorePage = lazy(() => import('./pages/public/ExplorePage'));
 
 // Auth Pages
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
@@ -48,6 +49,7 @@ const LiveReportingPage = lazy(() => import('./pages/admin/LiveReportingPage'));
 
 // Team Pages
 const TeamDashboard = lazy(() => import('./pages/team/TeamDashboard'));
+const TeamLineupsPage = lazy(() => import('./pages/team/TeamLineupsPage'));
 
 // Amashuri Games (Rwanda Inter-School Sports) Pages
 const AkcHome = lazy(() => import('./pages/akc3/AkcHome'));
@@ -124,7 +126,10 @@ function App() {
           <Routes>
             {/* Public Routes */}
             <Route element={<PublicLayout />}>
-              <Route path="/" element={<HomePage />} />
+              {/* Landing page = Choose Your Sport */}
+              <Route path="/" element={<ExplorePage />} />
+              <Route path="/explore" element={<Navigate to="/" replace />} />
+              <Route path="/home" element={<HomePage />} />
               <Route path="/sports/:slug" element={<SportHubPage />} />
               <Route path="/leagues" element={<LeaguesPage />} />
               <Route path="/leagues/:id" element={<LeagueDetailsPage />} />
@@ -185,7 +190,7 @@ function App() {
               <Route path="dashboard" element={<TeamDashboard />} />
               <Route path="players" element={<div className="font-display text-3xl uppercase opacity-20 py-20 uppercase">Roster Management</div>} />
               <Route path="documents" element={<div className="font-display text-3xl uppercase opacity-20 py-20 uppercase">Document Uploads</div>} />
-              <Route path="fixtures" element={<div className="font-display text-3xl uppercase opacity-20 py-20 uppercase">Team Schedule</div>} />
+              <Route path="fixtures" element={<TeamLineupsPage />} />
               <Route path="profile" element={<div className="font-display text-3xl uppercase opacity-20 py-20 uppercase">Club Profile</div>} />
             </Route>
 

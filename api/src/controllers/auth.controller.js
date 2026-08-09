@@ -12,7 +12,7 @@ const withAdminSport = async (user) => {
   if (user?.role === 'FEDERATION_ADMIN') {
     const fa = await prisma.federationAdminAssignment.findFirst({
       where: { userId: user.id },
-      include: { federation: { include: { sport: { select: { id: true, name: true, slug: true } } } } },
+      include: { federation: { include: { sport: { select: { id: true, name: true, slug: true, type: true } } } } },
     });
     user.sportId = fa?.federation?.sportId ?? null;
     user.sport = fa?.federation?.sport ?? null;
@@ -24,7 +24,12 @@ const withAdminSport = async (user) => {
 // @route   POST /api/v1/auth/team/register
 // @access  Public
 const registerTeam = async (req, res, next) => {
-  const { username, password, fullName, email, phone, teamName, sportId, city, province } = req.body;
+  const {
+    username, password, fullName, email, phone,
+    teamName, shortName, sportId, city, district, province,
+    homeVenue, foundedYear, registrationNo, primaryColor, secondaryColor, description,
+    officials,
+  } = req.body;
 
   try {
     const userExists = await prisma.user.findFirst({
@@ -34,6 +39,12 @@ const registerTeam = async (req, res, next) => {
     if (userExists) {
       return res.status(400).json({ success: false, message: 'User with this username or email already exists' });
     }
+
+    // Officials arrive as an array of { role, fullName, phone, email }. Keep only
+    // the ones with a name so empty rows from the form are ignored.
+    const officialRows = Array.isArray(officials)
+      ? officials.filter((o) => o && o.fullName && String(o.fullName).trim())
+      : [];
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
@@ -52,11 +63,32 @@ const registerTeam = async (req, res, next) => {
       const team = await tx.team.create({
         data: {
           name: teamName,
+          shortName: shortName || null,
           sportId: parseInt(sportId),
           city,
+          district: district || null,
           province,
+          homeVenue: homeVenue || null,
+          foundedYear: foundedYear ? parseInt(foundedYear) : null,
+          registrationNo: registrationNo || null,
+          primaryColor: primaryColor || null,
+          secondaryColor: secondaryColor || null,
+          description: description || null,
+          email: email || null,
+          phone: phone || null,
           managerUserId: user.id,
           status: 'PENDING',
+          officials: officialRows.length
+            ? {
+                create: officialRows.map((o) => ({
+                  role: o.role || 'OTHER',
+                  fullName: String(o.fullName).trim(),
+                  phone: o.phone || null,
+                  email: o.email || null,
+                  idNumber: o.idNumber || null,
+                })),
+              }
+            : undefined,
         },
       });
 
@@ -84,11 +116,24 @@ const registerTeam = async (req, res, next) => {
 // @route   POST /api/v1/auth/login
 // @access  Public
 const login = async (req, res, next) => {
-  const { username, password } = req.body;
+  const { username, email, password } = req.body;
 
   try {
-    const user = await prisma.user.findUnique({
-      where: { username },
+    // Accept either a username or an email address as the identifier. Admins are
+    // invited by email, so they may sign in with it. Email match is
+    // case-insensitive; username match is exact.
+    const identifier = String(email || username || '').trim();
+    if (!identifier) {
+      return res.status(400).json({ success: false, message: 'Username or email is required' });
+    }
+
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { username: identifier },
+          { email: { equals: identifier, mode: 'insensitive' } },
+        ],
+      },
       include: { managedTeam: true },
     });
 

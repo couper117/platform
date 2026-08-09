@@ -2,6 +2,7 @@ const prisma = require('../config/db');
 const logActivity = require('../utils/activityLogger');
 const { uniqueSlug } = require('../utils/slug');
 const { enforceSportScope } = require('../utils/scope');
+const { getRules, validateTeamForLeague } = require('../services/eligibility.service');
 
 // @desc    Get all active leagues
 // @route   GET /api/v1/leagues
@@ -219,9 +220,26 @@ const addTeamToLeague = async (req, res, next) => {
     const league = await prisma.league.findUnique({ where: { id: leagueId } });
     if (!league) return res.status(404).json({ success: false, message: 'League not found' });
     if (!enforceSportScope(req, res, league.sportId)) return;
+
+    const team = await prisma.team.findUnique({ where: { id: teamId } });
+    if (!team) return res.status(404).json({ success: false, message: 'Team not found' });
+    if (team.sportId && team.sportId !== league.sportId) {
+      return res.status(400).json({ success: false, message: 'Team plays a different sport than this league' });
+    }
+
     const currentCount = await prisma.leagueTeam.count({ where: { leagueId } });
     if (currentCount >= league.maxTeams) {
       return res.status(400).json({ success: false, message: `League is full (max ${league.maxTeams} teams)` });
+    }
+
+    // Eligibility gate: verified team, minimum squad, foreign quota, per-player
+    // age/gender for the competition. A super/federation admin may override with
+    // ?force=true after reviewing the violations.
+    const rules = await getRules();
+    const issues = await validateTeamForLeague(team, league, rules);
+    const force = req.query.force === 'true' || req.body?.force === true;
+    if (issues.length && !force) {
+      return res.status(422).json({ success: false, message: 'Team is not eligible for this competition', issues });
     }
 
     const leagueTeam = await prisma.leagueTeam.create({

@@ -16,7 +16,9 @@ const wrap = (bodyShape) => z.object({
 module.exports = {
   // ── Auth ──
   login: wrap({
-    username: z.string().min(3, 'Username must be at least 3 characters'),
+    // Either a username or an email may be supplied as the identifier.
+    username: z.string().min(3, 'Enter your username or email').optional(),
+    email: z.string().optional(),
     password: z.string().min(1, 'Password is required'),
   }),
   registerTeam: wrap({

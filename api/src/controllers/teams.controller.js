@@ -45,6 +45,7 @@ const getTeam = async (req, res, next) => {
         where: { managerUserId: req.user.id, active: true },
         include: {
           sport: true,
+          officials: true,
           managerUser: {
             select: { id: true, fullName: true, email: true, phone: true },
           },
@@ -65,6 +66,7 @@ const getTeam = async (req, res, next) => {
         where: { id },
         include: {
           sport: true,
+          officials: true,
           managerUser: {
             select: { id: true, fullName: true, email: true, phone: true },
           },

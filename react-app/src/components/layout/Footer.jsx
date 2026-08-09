@@ -53,10 +53,10 @@ const Footer = () => {
         }}
       />
 
-      <div className="relative container mx-auto px-4 pt-16 pb-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8">
+      <div className="relative container mx-auto px-4 pt-12 sm:pt-16 pb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 lg:gap-8">
           {/* Brand */}
-          <div className="space-y-5">
+          <div className="col-span-2 lg:col-span-1 space-y-5">
             <Link to="/" className="inline-flex items-center gap-2 group">
               <div className="bg-red p-1.5 rounded-lg shadow-lg shadow-red/30 group-hover:rotate-6 transition-transform">
                 <span className="text-xl font-display leading-none text-white uppercase tracking-tighter">RwaSport</span>
@@ -104,7 +104,7 @@ const Footer = () => {
           </div>
 
           {/* Contact */}
-          <div>
+          <div className="col-span-2 lg:col-span-1">
             <ColHeading>Contact</ColHeading>
             <ul className="space-y-4 text-sm">
               {contact.map(({ icon: Icon, text }) => (
@@ -129,21 +129,21 @@ const Footer = () => {
         </div>
 
         {/* Decorative divider */}
-        <div className="flex items-center justify-center gap-5 my-12">
+        <div className="flex items-center justify-center gap-3 sm:gap-5 my-8 sm:my-12">
           <div className="h-px flex-1 bg-gradient-to-r from-transparent to-surface-3 dark:to-white/15" />
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <span className="w-1.5 h-1.5 rounded-full bg-rwanda-green" />
             <span className="w-1.5 h-1.5 rounded-full bg-rwanda-yellow" />
             <span className="w-1.5 h-1.5 rounded-full bg-rwanda-blue" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.35em] text-surface-dark/40 dark:text-white/40 ml-1">Umurage w'Imikino</span>
+            <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-[0.2em] sm:tracking-[0.35em] text-surface-dark/40 dark:text-white/40 ml-1 whitespace-nowrap">Umurage w'Imikino</span>
           </div>
           <div className="h-px flex-1 bg-gradient-to-l from-transparent to-surface-3 dark:to-white/15" />
         </div>
 
         {/* Bottom bar */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] uppercase tracking-widest text-surface-dark/40 dark:text-white/40">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-3 sm:gap-4 text-center text-[10px] uppercase tracking-widest text-surface-dark/40 dark:text-white/40">
           <p>&copy; 2026 RwaSport Platform. All rights reserved.</p>
-          <div className="flex gap-6">
+          <div className="flex gap-5 sm:gap-6">
             <Link to="/privacy" className="hover:text-red transition-colors">Privacy Policy</Link>
             <Link to="/terms" className="hover:text-red transition-colors">Terms of Service</Link>
           </div>

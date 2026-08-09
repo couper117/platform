@@ -1,7 +1,13 @@
 const prisma = require('../config/db');
+const { getRules } = require('./eligibility.service');
 
 const recalcStandings = async (leagueId) => {
   try {
+    const rules = await getRules();
+    const PW = rules['rules.pointsWin'];
+    const PD = rules['rules.pointsDraw'];
+    const PL = rules['rules.pointsLoss'];
+
     // Include every registered team so winless / unplayed teams still appear.
     const leagueTeams = await prisma.leagueTeam.findMany({
       where: { leagueId },
@@ -34,14 +40,14 @@ const recalcStandings = async (leagueId) => {
       a.goalsFor += as; a.goalsAgainst += hs;
 
       if (hs > as) {
-        h.won++; h.points += 3; h.results.push('W');
-        a.lost++; a.results.push('L');
+        h.won++; h.points += PW; h.results.push('W');
+        a.lost++; a.points += PL; a.results.push('L');
       } else if (hs < as) {
-        a.won++; a.points += 3; a.results.push('W');
-        h.lost++; h.results.push('L');
+        a.won++; a.points += PW; a.results.push('W');
+        h.lost++; h.points += PL; h.results.push('L');
       } else {
-        h.drawn++; h.points += 1; h.results.push('D');
-        a.drawn++; a.points += 1; a.results.push('D');
+        h.drawn++; h.points += PD; h.results.push('D');
+        a.drawn++; a.points += PD; a.results.push('D');
       }
     }
 

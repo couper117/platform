@@ -66,15 +66,7 @@ const LeagueStats = ({ standings = [], topScorers = [] }) => {
     For: s.goalsFor,
     Against: s.goalsAgainst,
   }));
-  const scorersData = [...topScorers]
-    .sort((a, b) => b.goals - a.goals)
-    .slice(0, 8)
-    .map((s) => ({
-      name: s.player?.fullName ? s.player.fullName.split(' ').slice(-1)[0] : 'Player',
-      full: s.player?.fullName,
-      goals: s.goals,
-      assists: s.assists || 0,
-    }));
+  const scorersTable = [...topScorers].sort((a, b) => b.goals - a.goals).slice(0, 10);
 
   const axisProps = {
     tick: { fill: axis, fontSize: 10, fontWeight: 700 },
@@ -104,19 +96,38 @@ const LeagueStats = ({ standings = [], topScorers = [] }) => {
         </ChartCard>
       )}
 
-      {/* Top scorers */}
-      {scorersData.length > 0 && (
+      {/* Top scorers — mobile-fit ranked table */}
+      {scorersTable.length > 0 && (
         <ChartCard icon={Goal} title="Top Scorers" subtitle="Goals & assists">
-          <ResponsiveContainer width="100%" height={Math.max(220, scorersData.length * 34)}>
-            <BarChart data={scorersData} layout="vertical" margin={{ left: 8, right: 24 }}>
-              <CartesianGrid horizontal={false} stroke={grid} />
-              <XAxis type="number" {...axisProps} />
-              <YAxis type="category" dataKey="name" width={64} {...axisProps} />
-              <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(232,0,45,0.06)' }} />
-              <Bar dataKey="goals" stackId="a" fill={RED} radius={[0, 0, 0, 0]} />
-              <Bar dataKey="assists" stackId="a" fill={GOLD} radius={[0, 6, 6, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="overflow-hidden rounded-xl border border-surface-3 dark:border-white/5">
+            <table className="w-full table-fixed border-collapse text-left">
+              <thead>
+                <tr className="bg-surface-2 dark:bg-white/5 text-[9px] sm:text-[10px] uppercase font-bold tracking-[0.1em] sm:tracking-[0.2em] text-surface-dark/40 dark:text-white/40">
+                  <th className="px-1 sm:px-3 py-2.5 text-center w-8 sm:w-12">#</th>
+                  <th className="px-2 sm:px-3 py-2.5">Player</th>
+                  <th className="px-1 sm:px-3 py-2.5 text-center w-10 sm:w-14 text-red">Gls</th>
+                  <th className="px-1 sm:px-3 py-2.5 text-center w-10 sm:w-14">Ast</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-surface-3 dark:divide-white/5">
+                {scorersTable.map((s, i) => (
+                  <tr key={s.id ?? i} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors">
+                    <td className="px-1 sm:px-3 py-2.5 text-center">
+                      <span className={`font-display text-sm sm:text-base ${i === 0 ? 'text-gold' : i === 1 ? 'text-surface-dark/60 dark:text-white/60' : i === 2 ? 'text-rwanda-green/60' : 'opacity-30'}`}>{i + 1}</span>
+                    </td>
+                    <td className="px-2 sm:px-3 py-2.5">
+                      <div className="min-w-0">
+                        <p className="text-xs sm:text-sm font-bold uppercase tracking-tight truncate">{s.player?.fullName || 'Player'}</p>
+                        <p className="text-[9px] sm:text-[10px] uppercase tracking-widest opacity-40 truncate">{s.team?.name || ''}</p>
+                      </div>
+                    </td>
+                    <td className="px-1 sm:px-3 py-2.5 text-center font-display text-base sm:text-lg text-red">{s.goals}</td>
+                    <td className="px-1 sm:px-3 py-2.5 text-center font-medium opacity-60">{s.assists || 0}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </ChartCard>
       )}
 
