@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -50,15 +50,56 @@ const STEPS = [
 ];
 
 /**
- * Step transition. Direction-aware, so going forward slides in from the right and
- * Back slides in from the left — which is the cheapest way to tell someone whether
- * they advanced or retreated without reading the indicator.
+ * Step transition.
+ *
+ * Direction-aware: forward enters from the right and leaves to the left, Back
+ * mirrors it. That says "you advanced" or "you went back" without anyone re-reading
+ * the indicator.
+ *
+ * The outgoing step leaves fast (100ms) and the incoming one arrives with its rows
+ * CASCADING rather than as a single block. That is what makes it read as a new page
+ * being dealt out instead of a div being repositioned — the cascade is doing most of
+ * the work here, not the slide. A slight scale on entry adds depth without the
+ * queasiness of a real 3D flip.
+ *
+ * The whole sequence is ~430ms, deliberately over the 240ms transition budget: that
+ * budget is for motion a user is WAITING on, and this fires from an explicit click
+ * where a beat is the point. Every individual tween is still under 240ms, and the
+ * lot collapses to nothing under prefers-reduced-motion.
  */
 const stepVariants = {
-  enter: (dir) => ({ x: dir > 0 ? 28 : -28, opacity: 0 }),
-  center: { x: 0, opacity: 1 },
-  exit: (dir) => ({ x: dir > 0 ? -28 : 28, opacity: 0 }),
+  enter: (dir) => ({ x: dir > 0 ? 56 : -56, opacity: 0, scale: 0.985 }),
+  center: {
+    x: 0,
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.2, ease: EASE, staggerChildren: 0.028, delayChildren: 0.03 },
+  },
+  exit: (dir) => ({
+    x: dir > 0 ? -40 : 40,
+    opacity: 0,
+    scale: 0.985,
+    transition: { duration: 0.1, ease: EASE },
+  }),
 };
+
+/** One row of a step. Inherits the stagger from stepVariants above. */
+const rowVariants = {
+  enter: { opacity: 0, y: 14 },
+  center: { opacity: 1, y: 0, transition: { duration: 0.16, ease: EASE } },
+  exit: { opacity: 0, transition: { duration: 0.08 } },
+};
+
+/**
+ * A row wrapper, so each block of the form can cascade independently. Variant
+ * propagation needs a real DOM node between the step container and the field — a
+ * fragment would break the chain.
+ */
+const Row = ({ className, children }) => (
+  <motion.div variants={rowVariants} className={className}>
+    {children}
+  </motion.div>
+);
 
 /** What registering actually gets a club — reassurance beside a long form. */
 const BENEFITS = [
@@ -91,6 +132,8 @@ const RegisterTeamPage = () => {
   // +1 forward, -1 back. Drives which way the step slides.
   const [dir, setDir] = useState(1);
   const safe = useMotionSafe();
+  const formTop = useRef(null);
+  const formRef = useRef(null);
 
   const { data: sports } = useQuery({ queryKey: ['sports-list-register'], queryFn: getSports });
 
@@ -114,6 +157,35 @@ const RegisterTeamPage = () => {
     setDir(-1);
     setStep(to);
   };
+
+  /**
+   * A step change is a page change, so it has to behave like one.
+   *
+   * SCROLL: step 2 is tall enough to scroll. Advancing from the bottom of it would
+   * otherwise drop you into the middle of step 3 with its heading off-screen.
+   *
+   * FOCUS: moving focus to the first control means keyboard users are not left at
+   * the button they just pressed, and a screen reader announces the new field
+   * instead of silently swapping the form underneath it.
+   *
+   * Both wait out the transition rather than fighting it — scrolling mid-slide looks
+   * broken. `behavior: 'auto'` under reduced motion, since a smooth scroll is itself
+   * motion.
+   */
+  useEffect(() => {
+    const t = setTimeout(() => {
+      formTop.current?.scrollIntoView({ behavior: safe ? 'smooth' : 'auto', block: 'start' });
+      formRef.current?.querySelector('input:not([type=hidden]), select')?.focus({ preventScroll: true });
+      // ONE delay for both cases, not a shorter one under reduced motion.
+      // AnimatePresence swaps asynchronously whether or not it animates, and a short
+      // timer raced that commit — reduced-motion users silently lost focus
+      // management, which is exactly who depends on it most. 340ms costs them
+      // nothing perceptible and makes the behaviour identical either way.
+    }, 340);
+    return () => clearTimeout(t);
+    // Deliberately only on `step` — refiring on `safe` would yank focus mid-typing.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
 
   const onSubmit = async (data) => {
     setIsLoading(true);
@@ -188,7 +260,9 @@ const RegisterTeamPage = () => {
             />
           </div>
 
-          <h1 className="mt-5 text-2xl font-extrabold text-primary">Register your club</h1>
+          <h1 ref={formTop} className="mt-5 scroll-mt-6 text-2xl font-extrabold text-primary">
+            Register your club
+          </h1>
           <p className="mt-1.5 text-sm text-secondary">
             Three short steps. The federation reviews every application before a club joins a
             league.
@@ -203,11 +277,17 @@ const RegisterTeamPage = () => {
               const current = step === n;
               return (
                 <React.Fragment key={n}>
+                  {/* The connector FILLS rather than flipping colour, so the
+                      indicator visibly tracks the same movement as the step. */}
                   {i > 0 && (
-                    <span
-                      aria-hidden="true"
-                      className={cn('h-0.5 flex-1 rounded-pill', step > i ? 'bg-brand' : 'bg-hairline')}
-                    />
+                    <span aria-hidden="true" className="relative h-0.5 flex-1 overflow-hidden rounded-pill bg-hairline">
+                      <motion.span
+                        className="absolute inset-y-0 left-0 rounded-pill bg-brand"
+                        initial={false}
+                        animate={{ width: step > i ? '100%' : '0%' }}
+                        transition={{ duration: safe ? 0.28 : 0, ease: EASE }}
+                      />
+                    </span>
                   )}
                   <li
                     aria-current={current ? 'step' : undefined}
@@ -247,7 +327,7 @@ const RegisterTeamPage = () => {
             </div>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="mt-6" noValidate>
+          <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="mt-6" noValidate>
             {/* `mode="wait"` because wizard steps must not overlap — two sets of form
                 fields on top of each other would be unusable mid-transition. That
                 makes the swap a sequence rather than a single tween, so each half is
@@ -266,47 +346,52 @@ const RegisterTeamPage = () => {
             {/* Step 1 — the manager's own account */}
             {step === 1 && (
               <>
-                <div className="grid gap-5 sm:grid-cols-2">
+                <Row className="grid gap-5 sm:grid-cols-2">
                   <Field label="Full name" error={errors.fullName?.message} required>
                     {(p) => <Input {...p} {...register('fullName')} autoComplete="name" placeholder="Jean Bosco Habimana" />}
                   </Field>
                   <Field label="Username" error={errors.username?.message} required>
                     {(p) => <Input {...p} {...register('username')} autoComplete="username" placeholder="jbosco" />}
                   </Field>
-                </div>
+                </Row>
 
-                <Field label="Email address" error={errors.email?.message} required>
-                  {(p) => <Input {...p} {...register('email')} type="email" autoComplete="email" placeholder="you@example.rw" />}
-                </Field>
+                <Row>
+                  <Field label="Email address" error={errors.email?.message} required>
+                    {(p) => <Input {...p} {...register('email')} type="email" autoComplete="email" placeholder="you@example.rw" />}
+                  </Field>
+                </Row>
 
-                <div className="grid gap-5 sm:grid-cols-2">
+                <Row className="grid gap-5 sm:grid-cols-2">
                   <Field label="Password" error={errors.password?.message} hint="At least 6 characters" required>
                     {(p) => <Input {...p} {...register('password')} type="password" autoComplete="new-password" placeholder="••••••••" />}
                   </Field>
                   <Field label="Phone number" error={errors.phone?.message}>
                     {(p) => <Input {...p} {...register('phone')} type="tel" autoComplete="tel" placeholder="+250 7…" />}
                   </Field>
-                </div>
+                </Row>
 
-                <Button type="button" onClick={nextStep} size="lg" block icon={ChevronRight} iconRight>
-                  Next: club details
-                </Button>
+                <Row>
+                  <Button type="button" onClick={nextStep} size="lg" block icon={ChevronRight} iconRight>
+                    Next: club details
+                  </Button>
+                </Row>
               </>
             )}
 
             {/* Step 2 — the club */}
             {step === 2 && (
               <>
-                <div className="grid gap-5 sm:grid-cols-3">
+                <Row className="grid gap-5 sm:grid-cols-3">
                   <Field label="Official club name" error={errors.teamName?.message} required className="sm:col-span-2">
                     {(p) => <Input {...p} {...register('teamName')} placeholder="e.g. Kigali Tigers FC" />}
                   </Field>
                   <Field label="Short name" error={errors.shortName?.message} hint="Max 10">
                     {(p) => <Input {...p} {...register('shortName')} maxLength={10} placeholder="KTG" />}
                   </Field>
-                </div>
+                </Row>
 
-                <Field label="Primary sport" error={errors.sportId?.message} required>
+                <Row>
+                  <Field label="Primary sport" error={errors.sportId?.message} required>
                   {(p) => (
                     <Select
                       {...p}
@@ -315,10 +400,11 @@ const RegisterTeamPage = () => {
                       placeholder="Select a sport"
                       options={(sports?.data ?? []).map((s) => ({ value: String(s.id), label: s.name }))}
                     />
-                  )}
-                </Field>
+                    )}
+                  </Field>
+                </Row>
 
-                <div className="grid gap-5 sm:grid-cols-3">
+                <Row className="grid gap-5 sm:grid-cols-3">
                   <Field label="City / town" error={errors.city?.message} required>
                     {(p) => <Input {...p} {...register('city')} placeholder="Kigali" />}
                   </Field>
@@ -328,18 +414,18 @@ const RegisterTeamPage = () => {
                   <Field label="Province" error={errors.province?.message} required>
                     {(p) => <Input {...p} {...register('province')} placeholder="Kigali City" />}
                   </Field>
-                </div>
+                </Row>
 
-                <div className="grid gap-5 sm:grid-cols-2">
+                <Row className="grid gap-5 sm:grid-cols-2">
                   <Field label="Home venue" error={errors.homeVenue?.message}>
                     {(p) => <Input {...p} {...register('homeVenue')} placeholder="Amahoro Stadium" />}
                   </Field>
                   <Field label="Year founded" error={errors.foundedYear?.message}>
                     {(p) => <Input {...p} {...register('foundedYear')} type="number" placeholder="1998" />}
                   </Field>
-                </div>
+                </Row>
 
-                <div className="grid gap-5 sm:grid-cols-3">
+                <Row className="grid gap-5 sm:grid-cols-3">
                   <Field label="Reg. number" error={errors.registrationNo?.message} hint="RGB / federation">
                     {(p) => <Input {...p} {...register('registrationNo')} placeholder="RGB/…" />}
                   </Field>
@@ -350,23 +436,24 @@ const RegisterTeamPage = () => {
                   <Field label="Secondary colour" error={errors.secondaryColor?.message}>
                     {(p) => <Input {...p} {...register('secondaryColor')} placeholder="White" />}
                   </Field>
-                </div>
+                </Row>
 
-                <div className="flex gap-3">
+                <Row className="flex gap-3">
                   <Button type="button" variant="secondary" size="lg" onClick={() => goBack(1)} className="flex-1">
                     Back
                   </Button>
                   <Button type="button" onClick={nextStep} size="lg" className="flex-[2]" icon={ChevronRight} iconRight>
                     Next: officials
                   </Button>
-                </div>
+                </Row>
               </>
             )}
 
             {/* Step 3 — officials */}
             {step === 3 && (
               <>
-                <fieldset className="rounded-card border border-hairline bg-surface-2 p-4">
+                <Row>
+                  <fieldset className="rounded-card border border-hairline bg-surface-2 p-4">
                   <legend className="px-1 text-sm font-bold text-primary">
                     President <span className="font-medium text-danger-text">· required</span>
                   </legend>
@@ -378,9 +465,11 @@ const RegisterTeamPage = () => {
                       {(p) => <Input {...p} {...register('presidentPhone')} type="tel" placeholder="+250 7…" />}
                     </Field>
                   </div>
-                </fieldset>
+                  </fieldset>
+                </Row>
 
-                <fieldset className="rounded-card border border-hairline bg-surface-2 p-4">
+                <Row>
+                  <fieldset className="rounded-card border border-hairline bg-surface-2 p-4">
                   <legend className="px-1 text-sm font-bold text-primary">
                     Secretary <span className="font-medium text-tertiary">· optional</span>
                   </legend>
@@ -392,16 +481,17 @@ const RegisterTeamPage = () => {
                       {(p) => <Input {...p} {...register('secretaryPhone')} type="tel" placeholder="+250 7…" />}
                     </Field>
                   </div>
-                </fieldset>
+                  </fieldset>
+                </Row>
 
-                <div className="flex gap-3">
+                <Row className="flex gap-3">
                   <Button type="button" variant="secondary" size="lg" onClick={() => goBack(2)} className="flex-1">
                     Back
                   </Button>
                   <Button type="submit" size="lg" loading={isLoading} className="flex-[2]">
                     {isLoading ? 'Submitting…' : 'Submit application'}
                   </Button>
-                </div>
+                </Row>
               </>
             )}
               </motion.div>
