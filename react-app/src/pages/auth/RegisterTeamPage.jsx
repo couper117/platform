@@ -5,9 +5,16 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { UserPlus, Loader2, AlertCircle, ChevronLeft, Building2, User, Trophy, Users } from 'lucide-react';
+import {
+  AlertCircle, ChevronLeft, ChevronRight, Check, Trophy, ShieldCheck, ListChecks, BarChart3,
+} from 'lucide-react';
 import { getSports } from '../../api/endpoints/sports';
 import apiClient from '../../api/client';
+import useFavouriteSport from '../../hooks/useFavouriteSport';
+import { sportTheme } from '../../config/sportThemes';
+import responsiveImage from '../../utils/responsiveImage';
+import Seo from '../../components/shared/Seo';
+import { Button, Field, Input, Select, cn } from '../../components/ui';
 
 const registerSchema = z.object({
   // Step 1 — manager
@@ -35,10 +42,33 @@ const registerSchema = z.object({
   secretaryPhone: z.string().optional(),
 });
 
-const field = 'w-full bg-white/5 border border-white/10 text-white p-4 rounded-xl focus:border-red outline-none transition-all';
-const lbl = 'text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1';
-const errCls = 'text-[10px] font-bold text-red uppercase tracking-widest ml-1';
+const STEPS = [
+  { n: 1, label: 'Your account' },
+  { n: 2, label: 'Club details' },
+  { n: 3, label: 'Officials' },
+];
 
+/** What registering actually gets a club — reassurance beside a long form. */
+const BENEFITS = [
+  { icon: ShieldCheck, text: 'Verified status in official federation leagues' },
+  { icon: ListChecks, text: 'Manage your roster and player documents' },
+  { icon: BarChart3, text: 'Appear in national standings and match centres' },
+];
+
+/**
+ * Club registration — the same split screen as sign-in.
+ *
+ *   left   a three-step form in a narrow column
+ *   right  the sport photograph, desktop only
+ *
+ * WHY THE WIZARD SURVIVES. Twenty-one fields on one page is a wall; three steps of
+ * seven is a task. The steps also gate validation — `trigger` checks only the
+ * current group, so someone is never told about a club field while filling in their
+ * own name.
+ *
+ * The left column scrolls and the panel is sticky at full height, so a long step
+ * never drags the photograph out of view.
+ */
 const RegisterTeamPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -81,216 +111,298 @@ const RegisterTeamPage = () => {
     }
   };
 
+  // Same panel photograph as sign-in, following the visitor's chosen sport.
+  const { slug: favourite } = useFavouriteSport();
+  const favSport = (sports?.data ?? []).find((s) => s.slug === favourite);
+  const panelImage = favSport?.coverImage || sportTheme(favourite).bg;
+
+  /* ─── success ─── */
   if (success) {
     return (
-      <div className="min-h-screen bg-surface-dark flex flex-col items-center justify-center p-6 text-center space-y-8">
-        <div className="w-24 h-24 bg-green rounded-full flex items-center justify-center animate-bounce shadow-2xl shadow-green/20">
-          <Trophy size={48} className="text-white" />
-        </div>
-        <div className="space-y-4">
-          <h1 className="text-5xl font-display text-white uppercase tracking-tighter">Application <span className="text-green">Submitted</span></h1>
-          <p className="text-white/60 max-w-md mx-auto leading-relaxed">
-            Your club registration has been received. The sport federation will review your application and documents. You will receive an email once approved.
+      <div className="flex min-h-screen items-center justify-center bg-page px-5 py-10">
+        <div className="w-full max-w-md text-center">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-pill bg-brand text-white shadow-brand">
+            <Check size={30} strokeWidth={3} aria-hidden="true" />
+          </div>
+          <h1 className="text-2xl font-extrabold text-primary">Application submitted</h1>
+          <p className="mt-3 text-base leading-relaxed text-secondary">
+            Your club registration has been received. The federation will review your application
+            and documents, and you’ll get an email once it’s approved.
           </p>
+          <div className="mt-7">
+            <Button to="/auth/login" size="lg" block>
+              Go to sign in
+            </Button>
+          </div>
+          <p className="mt-3 text-sm text-tertiary">Taking you there automatically…</p>
         </div>
-        <Link to="/auth/login" className="bg-white/10 text-white font-display text-xl uppercase tracking-widest px-10 py-4 rounded-xl hover:bg-white/20 transition-all">
-          Back to Login
-        </Link>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-surface-dark py-20 flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red via-rwanda-yellow to-rwanda-green" />
+    <div className="min-h-screen bg-page lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)]">
+      <Seo title="Register your club" description="Register your club with its federation on RwaSport." />
 
-      <Link to="/auth/login" className="absolute top-8 left-8 flex items-center space-x-2 text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-red transition-colors z-50">
-        <ChevronLeft size={14} />
-        <span>{t('common.back')}</span>
-      </Link>
+      {/* ─── form ─── */}
+      <div className="flex min-h-screen flex-col px-5 py-6 sm:px-8 lg:min-h-0">
+        <Link
+          to="/auth/login"
+          className="inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-secondary transition-colors hover:text-brand-text"
+        >
+          <ChevronLeft size={16} aria-hidden="true" />
+          {t('common.back', 'Back to sign in')}
+        </Link>
 
-      <div className="w-full max-w-xl space-y-12 relative z-10">
-        <div className="text-center space-y-4">
-          <div className="inline-flex p-4 bg-red/10 rounded-3xl border border-red/20 text-red mb-2">
-            <UserPlus size={32} />
-          </div>
-          <h1 className="text-4xl sm:text-6xl font-display text-white uppercase tracking-tighter leading-none">
-            Club <span className="text-red">Registration</span>
-          </h1>
-          <p className="text-white/40 text-[10px] font-bold uppercase tracking-[0.3em]">Register your club with the federation</p>
-        </div>
+        <div className="mx-auto w-full max-w-lg flex-1 py-8">
+          <p className="font-display text-xl font-extrabold tracking-tight text-primary">
+            Rwa<span className="text-brand-text">Sport</span>
+          </p>
 
-        {/* Step Indicator */}
-        <div className="flex items-center justify-center space-x-4">
-          {[1, 2, 3].map((s, i) => (
-            <React.Fragment key={s}>
-              {i > 0 && <div className="w-8 h-0.5 bg-white/10" />}
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-display text-lg border-2 transition-all ${step === s ? 'bg-red border-red text-white shadow-lg shadow-red/20' : 'border-white/20 text-white/40'}`}>{s}</div>
-            </React.Fragment>
-          ))}
-        </div>
+          <h1 className="mt-6 text-2xl font-extrabold text-primary">Register your club</h1>
+          <p className="mt-1.5 text-sm text-secondary">
+            Three short steps. The federation reviews every application before a club joins a
+            league.
+          </p>
 
-        <div className="bg-white/5 backdrop-blur-2xl p-8 sm:p-10 rounded-3xl border border-white/10 shadow-2xl">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-            {error && (
-              <div className="bg-red/10 border border-red/20 p-4 rounded-xl flex items-center space-x-3 text-red">
-                <AlertCircle size={18} />
-                <span className="text-xs font-bold uppercase tracking-wider">{error}</span>
-              </div>
-            )}
+          {/* Step indicator. Labelled, not just numbered — three bare circles do not
+              tell you what is still ahead. Completed steps carry a tick so progress
+              is legible at a glance. */}
+          <ol className="mt-7 flex items-center gap-2" aria-label="Progress">
+            {STEPS.map(({ n, label }, i) => {
+              const done = step > n;
+              const current = step === n;
+              return (
+                <React.Fragment key={n}>
+                  {i > 0 && (
+                    <span
+                      aria-hidden="true"
+                      className={cn('h-0.5 flex-1 rounded-pill', step > i ? 'bg-brand' : 'bg-hairline')}
+                    />
+                  )}
+                  <li
+                    aria-current={current ? 'step' : undefined}
+                    className="flex shrink-0 items-center gap-2"
+                  >
+                    <span
+                      className={cn(
+                        'flex h-7 w-7 items-center justify-center rounded-pill text-xs font-bold',
+                        done && 'bg-brand text-white',
+                        current && 'bg-brand text-white shadow-brand',
+                        !done && !current && 'border border-hairline text-tertiary'
+                      )}
+                    >
+                      {done ? <Check size={13} strokeWidth={3} aria-hidden="true" /> : n}
+                    </span>
+                    <span
+                      className={cn(
+                        'hidden text-sm font-semibold sm:block',
+                        current ? 'text-primary' : 'text-tertiary'
+                      )}
+                    >
+                      {label}
+                    </span>
+                  </li>
+                </React.Fragment>
+              );
+            })}
+          </ol>
 
+          {error && (
+            <div
+              role="alert"
+              className="mt-6 flex items-start gap-2.5 rounded-input border border-danger/30 bg-danger/5 p-3"
+            >
+              <AlertCircle size={16} className="mt-0.5 shrink-0 text-danger-text" aria-hidden="true" />
+              <p className="text-sm font-semibold text-danger-text">{error}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-5" noValidate>
+            {/* Step 1 — the manager's own account */}
             {step === 1 && (
-              <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-                <div className="flex items-center space-x-3 text-white/30 mb-2">
-                  <User size={18} />
-                  <h2 className="text-[10px] uppercase font-bold tracking-[0.3em]">Manager Information</h2>
+              <>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <Field label="Full name" error={errors.fullName?.message} required>
+                    {(p) => <Input {...p} {...register('fullName')} autoComplete="name" placeholder="Jean Bosco Habimana" />}
+                  </Field>
+                  <Field label="Username" error={errors.username?.message} required>
+                    {(p) => <Input {...p} {...register('username')} autoComplete="username" placeholder="jbosco" />}
+                  </Field>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className={lbl}>Full Name</label>
-                    <input {...register('fullName')} className={field} placeholder="Enter full name" />
-                    {errors.fullName && <p className={errCls}>{errors.fullName.message}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <label className={lbl}>Username</label>
-                    <input {...register('username')} className={field} placeholder="Choose username" />
-                    {errors.username && <p className={errCls}>{errors.username.message}</p>}
-                  </div>
+
+                <Field label="Email address" error={errors.email?.message} required>
+                  {(p) => <Input {...p} {...register('email')} type="email" autoComplete="email" placeholder="you@example.rw" />}
+                </Field>
+
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <Field label="Password" error={errors.password?.message} hint="At least 6 characters" required>
+                    {(p) => <Input {...p} {...register('password')} type="password" autoComplete="new-password" placeholder="••••••••" />}
+                  </Field>
+                  <Field label="Phone number" error={errors.phone?.message}>
+                    {(p) => <Input {...p} {...register('phone')} type="tel" autoComplete="tel" placeholder="+250 7…" />}
+                  </Field>
                 </div>
-                <div className="space-y-2">
-                  <label className={lbl}>Email Address</label>
-                  <input {...register('email')} className={field} placeholder="email@example.com" />
-                  {errors.email && <p className={errCls}>{errors.email.message}</p>}
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className={lbl}>Password</label>
-                    <input {...register('password')} type="password" className={field} placeholder="••••••••" />
-                    {errors.password && <p className={errCls}>{errors.password.message}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <label className={lbl}>Phone Number</label>
-                    <input {...register('phone')} className={field} placeholder="+250..." />
-                  </div>
-                </div>
-                <button type="button" onClick={nextStep} className="w-full bg-red text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all">Next: Club Details</button>
-              </div>
+
+                <Button type="button" onClick={nextStep} size="lg" block icon={ChevronRight} iconRight>
+                  Next: club details
+                </Button>
+              </>
             )}
 
+            {/* Step 2 — the club */}
             {step === 2 && (
-              <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-                <div className="flex items-center space-x-3 text-white/30 mb-2">
-                  <Building2 size={18} />
-                  <h2 className="text-[10px] uppercase font-bold tracking-[0.3em]">Club Information</h2>
+              <>
+                <div className="grid gap-5 sm:grid-cols-3">
+                  <Field label="Official club name" error={errors.teamName?.message} required className="sm:col-span-2">
+                    {(p) => <Input {...p} {...register('teamName')} placeholder="e.g. Kigali Tigers FC" />}
+                  </Field>
+                  <Field label="Short name" error={errors.shortName?.message} hint="Max 10">
+                    {(p) => <Input {...p} {...register('shortName')} maxLength={10} placeholder="KTG" />}
+                  </Field>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="space-y-2 sm:col-span-2">
-                    <label className={lbl}>Official Club Name</label>
-                    <input {...register('teamName')} className={field} placeholder="e.g. Kigali Tigers FC" />
-                    {errors.teamName && <p className={errCls}>{errors.teamName.message}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <label className={lbl}>Short Name</label>
-                    <input {...register('shortName')} className={field} placeholder="KTG" maxLength={10} />
-                  </div>
+
+                <Field label="Primary sport" error={errors.sportId?.message} required>
+                  {(p) => (
+                    <Select
+                      {...p}
+                      {...register('sportId')}
+                      size="md"
+                      placeholder="Select a sport"
+                      options={(sports?.data ?? []).map((s) => ({ value: String(s.id), label: s.name }))}
+                    />
+                  )}
+                </Field>
+
+                <div className="grid gap-5 sm:grid-cols-3">
+                  <Field label="City / town" error={errors.city?.message} required>
+                    {(p) => <Input {...p} {...register('city')} placeholder="Kigali" />}
+                  </Field>
+                  <Field label="District" error={errors.district?.message}>
+                    {(p) => <Input {...p} {...register('district')} placeholder="Nyarugenge" />}
+                  </Field>
+                  <Field label="Province" error={errors.province?.message} required>
+                    {(p) => <Input {...p} {...register('province')} placeholder="Kigali City" />}
+                  </Field>
                 </div>
-                <div className="space-y-2">
-                  <label className={lbl}>Primary Sport</label>
-                  <select {...register('sportId')} className={`${field} bg-surface-dark appearance-none cursor-pointer`}>
-                    <option value="">Select a sport</option>
-                    {sports?.data?.map(s => <option key={s.id} value={s.id}>{s.icon} {s.name}</option>)}
-                  </select>
-                  {errors.sportId && <p className={errCls}>{errors.sportId.message}</p>}
+
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <Field label="Home venue" error={errors.homeVenue?.message}>
+                    {(p) => <Input {...p} {...register('homeVenue')} placeholder="Amahoro Stadium" />}
+                  </Field>
+                  <Field label="Year founded" error={errors.foundedYear?.message}>
+                    {(p) => <Input {...p} {...register('foundedYear')} type="number" placeholder="1998" />}
+                  </Field>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <label className={lbl}>City / Town</label>
-                    <input {...register('city')} className={field} placeholder="e.g. Kigali" />
-                    {errors.city && <p className={errCls}>{errors.city.message}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <label className={lbl}>District</label>
-                    <input {...register('district')} className={field} placeholder="e.g. Nyarugenge" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className={lbl}>Province</label>
-                    <input {...register('province')} className={field} placeholder="e.g. Kigali City" />
-                    {errors.province && <p className={errCls}>{errors.province.message}</p>}
-                  </div>
+
+                <div className="grid gap-5 sm:grid-cols-3">
+                  <Field label="Reg. number" error={errors.registrationNo?.message} hint="RGB / federation">
+                    {(p) => <Input {...p} {...register('registrationNo')} placeholder="RGB/…" />}
+                  </Field>
+                  {/* These two feed the club colour shown on crests and match rows. */}
+                  <Field label="Primary colour" error={errors.primaryColor?.message} hint="Kit colour">
+                    {(p) => <Input {...p} {...register('primaryColor')} placeholder="Blue" />}
+                  </Field>
+                  <Field label="Secondary colour" error={errors.secondaryColor?.message}>
+                    {(p) => <Input {...p} {...register('secondaryColor')} placeholder="White" />}
+                  </Field>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className={lbl}>Home Venue / Stadium</label>
-                    <input {...register('homeVenue')} className={field} placeholder="e.g. Amahoro Stadium" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className={lbl}>Year Founded</label>
-                    <input {...register('foundedYear')} type="number" className={field} placeholder="e.g. 1998" />
-                  </div>
+
+                <div className="flex gap-3">
+                  <Button type="button" variant="secondary" size="lg" onClick={() => setStep(1)} className="flex-1">
+                    Back
+                  </Button>
+                  <Button type="button" onClick={nextStep} size="lg" className="flex-[2]" icon={ChevronRight} iconRight>
+                    Next: officials
+                  </Button>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <label className={lbl}>Reg. Number</label>
-                    <input {...register('registrationNo')} className={field} placeholder="RGB/…" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className={lbl}>Primary Colour</label>
-                    <input {...register('primaryColor')} className={field} placeholder="e.g. Blue" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className={lbl}>Secondary Colour</label>
-                    <input {...register('secondaryColor')} className={field} placeholder="e.g. White" />
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <button type="button" onClick={() => setStep(1)} className="flex-1 border border-white/20 text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-white/5 transition-all">Back</button>
-                  <button type="button" onClick={nextStep} className="flex-[2] bg-red text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all">Next: Officials</button>
-                </div>
-              </div>
+              </>
             )}
 
+            {/* Step 3 — officials */}
             {step === 3 && (
-              <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-                <div className="flex items-center space-x-3 text-white/30 mb-2">
-                  <Users size={18} />
-                  <h2 className="text-[10px] uppercase font-bold tracking-[0.3em]">Club Officials</h2>
-                </div>
-                <div className="space-y-4 p-4 rounded-2xl bg-white/5 border border-white/10">
-                  <p className="text-[10px] uppercase font-bold tracking-widest text-red/80">President <span className="text-white/30">(required)</span></p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className={lbl}>Full Name</label>
-                      <input {...register('presidentName')} className={field} placeholder="President name" />
-                      {errors.presidentName && <p className={errCls}>{errors.presidentName.message}</p>}
-                    </div>
-                    <div className="space-y-2">
-                      <label className={lbl}>Phone</label>
-                      <input {...register('presidentPhone')} className={field} placeholder="+250..." />
-                    </div>
+              <>
+                <fieldset className="rounded-card border border-hairline bg-surface-2 p-4">
+                  <legend className="px-1 text-sm font-bold text-primary">
+                    President <span className="font-medium text-danger-text">· required</span>
+                  </legend>
+                  <div className="mt-3 grid gap-5 sm:grid-cols-2">
+                    <Field label="Full name" error={errors.presidentName?.message} required>
+                      {(p) => <Input {...p} {...register('presidentName')} placeholder="President's name" />}
+                    </Field>
+                    <Field label="Phone" error={errors.presidentPhone?.message}>
+                      {(p) => <Input {...p} {...register('presidentPhone')} type="tel" placeholder="+250 7…" />}
+                    </Field>
                   </div>
-                </div>
-                <div className="space-y-4 p-4 rounded-2xl bg-white/5 border border-white/10">
-                  <p className="text-[10px] uppercase font-bold tracking-widest text-white/50">Secretary <span className="text-white/30">(optional)</span></p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className={lbl}>Full Name</label>
-                      <input {...register('secretaryName')} className={field} placeholder="Secretary name" />
-                    </div>
-                    <div className="space-y-2">
-                      <label className={lbl}>Phone</label>
-                      <input {...register('secretaryPhone')} className={field} placeholder="+250..." />
-                    </div>
+                </fieldset>
+
+                <fieldset className="rounded-card border border-hairline bg-surface-2 p-4">
+                  <legend className="px-1 text-sm font-bold text-primary">
+                    Secretary <span className="font-medium text-tertiary">· optional</span>
+                  </legend>
+                  <div className="mt-3 grid gap-5 sm:grid-cols-2">
+                    <Field label="Full name" error={errors.secretaryName?.message}>
+                      {(p) => <Input {...p} {...register('secretaryName')} placeholder="Secretary's name" />}
+                    </Field>
+                    <Field label="Phone" error={errors.secretaryPhone?.message}>
+                      {(p) => <Input {...p} {...register('secretaryPhone')} type="tel" placeholder="+250 7…" />}
+                    </Field>
                   </div>
+                </fieldset>
+
+                <div className="flex gap-3">
+                  <Button type="button" variant="secondary" size="lg" onClick={() => setStep(2)} className="flex-1">
+                    Back
+                  </Button>
+                  <Button type="submit" size="lg" loading={isLoading} className="flex-[2]">
+                    {isLoading ? 'Submitting…' : 'Submit application'}
+                  </Button>
                 </div>
-                <div className="flex gap-4">
-                  <button type="button" onClick={() => setStep(2)} className="flex-1 border border-white/20 text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-white/5 transition-all">Back</button>
-                  <button type="submit" disabled={isLoading} className="flex-[2] bg-red text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all flex items-center justify-center space-x-3 disabled:opacity-50">
-                    {isLoading ? <Loader2 className="animate-spin" size={24} /> : <span>Submit Application</span>}
-                  </button>
-                </div>
-              </div>
+              </>
             )}
           </form>
+
+          <p className="mt-6 text-center text-sm text-secondary">
+            Already registered?{' '}
+            <Link to="/auth/login" className="font-bold text-brand-text underline-offset-4 hover:underline">
+              Sign in
+            </Link>
+          </p>
+        </div>
+      </div>
+
+      {/* ─── side panel — desktop only ─── */}
+      <div className="relative hidden overflow-hidden bg-[#0F0F0F] lg:sticky lg:top-0 lg:block lg:h-screen">
+        <img
+          {...responsiveImage(panelImage, { sizes: '45vw' })}
+          alt=""
+          loading="eager"
+          // lowercase: React 18 does not recognise the camelCase form
+          fetchpriority="low"
+          className="absolute inset-0 h-full w-full animate-slow-zoom object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 via-40% to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-bright/15 via-transparent to-transparent" />
+
+        <div className="relative flex h-full flex-col justify-end p-10 xl:p-14">
+          <p className="mb-3 inline-flex w-fit items-center gap-2 rounded-pill border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-sm">
+            <Trophy size={12} aria-hidden="true" className="text-brand-bright" />
+            Official club registration
+          </p>
+          <h2 className="max-w-md text-3xl font-extrabold leading-tight text-white">
+            Join an official league
+          </h2>
+
+          {/* Three lines of reassurance. A twenty-one-field form is a big ask, and
+              this is the one place to answer "what do I actually get". */}
+          <ul className="mt-5 space-y-2.5">
+            {BENEFITS.map(({ icon: Icon, text }) => (
+              <li key={text} className="flex items-start gap-2.5 text-sm text-white/75">
+                <Icon size={16} className="mt-0.5 shrink-0 text-brand-bright" aria-hidden="true" />
+                {text}
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </div>

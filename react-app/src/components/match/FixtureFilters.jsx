@@ -63,7 +63,8 @@ const FixtureFilters = ({ status, leagueId, leagues = [], onStatus, onLeague }) 
             className="ml-auto hidden lg:inline-flex"
             label="Competition"
             value={leagueId}
-            onChange={onLeague}
+            // Select forwards the native event; unwrap it here.
+            onChange={(e) => onLeague(e.target.value)}
             placeholder="All leagues"
             options={leagues.map((l) => ({ value: String(l.id), label: l.name }))}
           />
