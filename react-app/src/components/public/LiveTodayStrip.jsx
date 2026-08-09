@@ -91,7 +91,7 @@ const LiveTodayStrip = () => {
         )}
       </div>
       <div className="flex gap-3 overflow-x-auto pb-2 snap-x scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
-        {items.map((f) => <Chip key={f.id} f={f} />)}
+        {items.map((f) => <Chip key={f.id} f={f} t={t} />)}
       </div>
     </ResponsiveWrapper>
   );
