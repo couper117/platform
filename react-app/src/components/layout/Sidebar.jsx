@@ -2,15 +2,31 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Trophy, Users, UserSquare2, FileText,
-  Newspaper, Settings, Activity, School, X, Megaphone, Eye, ShieldCheck
+  Newspaper, Settings, Activity, School, X, Megaphone, Eye, ShieldCheck, Radio, ClipboardList,
 } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
 import useSportScope from '../../hooks/useSportScope';
+import { ADMIN_PAGES } from '../../lib/adminAccess';
+
+const ADMIN_ICONS = {
+  '/admin/dashboard': <LayoutDashboard size={18} />,
+  '/admin/sport-admins': <ShieldCheck size={18} />,
+  '/admin/leagues': <Trophy size={18} />,
+  '/admin/fixtures': <Activity size={18} />,
+  '/admin/teams': <Users size={18} />,
+  '/admin/players': <UserSquare2 size={18} />,
+  '/admin/documents': <FileText size={18} />,
+  '/admin/news': <Newspaper size={18} />,
+  '/admin/ads': <Megaphone size={18} />,
+  '/admin/visitors': <Eye size={18} />,
+  '/admin/akc3': <School size={18} />,
+  '/admin/championships': <Trophy size={18} />,
+  '/admin/settings': <Settings size={18} />,
+};
 
 const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
   const { role } = useAuthStore();
   const { profile } = useSportScope();
-  const S = 'SUPERADMIN', F = 'FEDERATION_ADMIN', L = 'LEAGUE_ADMIN', A = 'AMASHURI_ADMIN';
 
   // For a sport-scoped federation admin, relabel nav to the sport's language
   // (a cycling admin sees "Races & Tours", a judo admin sees "Bouts", etc.).
@@ -23,39 +39,33 @@ const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
       '/admin/players': profile.rosterPlural,
     })[link.to] || link.label;
   };
-  const adminLinks = [
-    { to: '/admin/dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard', roles: [S, F, L] },
-    { to: '/admin/sport-admins', icon: <ShieldCheck size={18} />, label: 'Sport Admins', roles: [S] },
-    { to: '/admin/leagues', icon: <Trophy size={18} />, label: 'Leagues', roles: [S, F, L] },
-    { to: '/admin/fixtures', icon: <Activity size={18} />, label: 'Fixtures', roles: [S, F, L] },
-    { to: '/admin/teams', icon: <Users size={18} />, label: 'Teams', roles: [S, F] },
-    { to: '/admin/players', icon: <UserSquare2 size={18} />, label: 'Players', roles: [S, F] },
-    { to: '/admin/documents', icon: <FileText size={18} />, label: 'Documents', roles: [S, F] },
-    { to: '/admin/news', icon: <Newspaper size={18} />, label: 'News', roles: [S, F] },
-    { to: '/admin/ads', icon: <Megaphone size={18} />, label: 'Ads', roles: [S] },
-    { to: '/admin/visitors', icon: <Eye size={18} />, label: 'Visitors', roles: [S] },
-    { to: '/admin/akc3', icon: <School size={18} />, label: 'Amashuri Games', roles: [S, A] },
-    { to: '/admin/championships', icon: <Trophy size={18} />, label: 'Championships', roles: [S, A] },
-    { to: '/admin/settings', icon: <Settings size={18} />, label: 'Settings', roles: [S] },
-  ];
+
+  // Single source of truth for admin nav + access (mirrors backend authorize()).
+  const adminLinks = ADMIN_PAGES
+    .filter((page) => page.roles.includes(role))
+    .map((page) => ({ to: page.path, icon: ADMIN_ICONS[page.path], label: page.label }));
 
   const teamLinks = [
     { to: '/team/dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
     { to: '/team/players', icon: <UserSquare2 size={18} />, label: 'My Players' },
-    { to: '/team/documents', icon: <FileText size={18} />, label: 'Documents' },
     { to: '/team/fixtures', icon: <Activity size={18} />, label: 'Fixtures' },
+    { to: '/team/lineups', icon: <ClipboardList size={18} />, label: 'Lineups' },
+    { to: '/team/documents', icon: <FileText size={18} />, label: 'Documents' },
     { to: '/team/profile', icon: <Users size={18} />, label: 'Team Profile' },
   ];
 
-  const links = type === 'admin'
-    ? adminLinks.filter((l) => l.roles.includes(role))
-    : teamLinks;
+  const reporterLinks = [
+    { to: '/reporter/dashboard', icon: <Radio size={18} />, label: 'Live Reporting' },
+  ];
+
+  const links = type === 'admin' ? adminLinks : type === 'reporter' ? reporterLinks : teamLinks;
+  const portalLabel = type === 'admin' ? 'Admin Portal' : type === 'reporter' ? 'Reporter Portal' : 'Team Portal';
 
   const sidebarContent = (
     <>
       <div className="p-6 border-b border-surface-dark2 flex justify-between items-center">
         <h2 className="font-display text-xl text-red tracking-tighter uppercase">
-          {type === 'admin' ? 'Admin Portal' : 'Team Portal'}
+          {portalLabel}
         </h2>
         <button onClick={onClose} className="lg:hidden p-1 text-white/40 hover:text-white">
           <X size={20} />
@@ -67,7 +77,7 @@ const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
             key={link.to}
             to={link.to}
             onClick={() => { if (window.innerWidth < 1024) onClose(); }}
-            className={({ isActive }) => 
+            className={({ isActive }) =>
               `flex items-center space-x-3 px-4 py-2.5 rounded transition-all font-display text-[13px] uppercase tracking-widest ${
                 isActive ? 'bg-red text-white shadow-lg shadow-red-glow' : 'text-white/50 hover:bg-surface-dark2 hover:text-white'
               }`

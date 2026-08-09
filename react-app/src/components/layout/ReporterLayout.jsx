@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
+import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import useAuthStore from '../../store/authStore';
+import { Menu } from 'lucide-react';
 
 const ReporterLayout = () => {
   const { isAuthenticated, role } = useAuthStore();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   if (!isAuthenticated || role !== 'MATCH_REPORTER') {
     return <Navigate to="/auth/login" />;
@@ -13,9 +16,24 @@ const ReporterLayout = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      <main className="flex-grow bg-surface-2 dark:bg-surface-dark overflow-x-hidden">
-        <Outlet />
-      </main>
+
+      {/* Mobile Sidebar Trigger */}
+      <div className="lg:hidden bg-surface-dark border-b border-white/5 px-4 py-2 flex items-center justify-between">
+        <button
+          onClick={() => setIsSidebarOpen(true)}
+          className="flex items-center space-x-2 text-white/60 hover:text-red transition-colors"
+        >
+          <Menu size={20} />
+          <span className="text-[10px] uppercase font-bold tracking-widest">Reporter Menu</span>
+        </button>
+      </div>
+
+      <div className="flex flex-grow relative">
+        <Sidebar type="reporter" isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+        <main className="flex-grow bg-surface-2 dark:bg-surface-dark overflow-x-hidden">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 };

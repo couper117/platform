@@ -198,9 +198,46 @@ const updatePlayer = async (req, res, next) => {
   }
 };
 
+// @desc    Remove player from team
+// @route   DELETE /api/v1/players/:id
+// @access  Private (Team Manager or Admin)
+const deletePlayer = async (req, res, next) => {
+  try {
+    const playerId = parseInt(req.params.id);
+    const player = await prisma.player.findUnique({
+      where: { id: playerId },
+      include: { team: true },
+    });
+
+    if (!player) return res.status(404).json({ success: false, message: 'Player not found' });
+
+    if (req.user.role !== 'SUPERADMIN' && req.user.id !== player.team.managerUserId) {
+      return res.status(403).json({ success: false, message: 'Not authorized to remove this player' });
+    }
+
+    await prisma.player.update({
+      where: { id: playerId },
+      data: { active: false },
+    });
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Delete Player',
+      detail: `Removed player ${player.fullName} from team ${player.team.name}`,
+      module: 'players',
+      ip: req.ip,
+    });
+
+    res.status(200).json({ success: true, message: 'Player removed successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getPlayers,
   getPlayer,
   createPlayer,
   updatePlayer,
+  deletePlayer,
 };

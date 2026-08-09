@@ -1,24 +1,21 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FileText, CheckCircle, XCircle, Eye, AlertCircle, Loader2 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 import apiClient from '../../api/client';
-import { useEnumLabel } from '../../i18n/enums';
-import { useDateFormat } from '../../i18n/dateLocale';
 import AdminTable from '../../components/admin/AdminTable';
 import AdminModal from '../../components/admin/AdminModal';
 import Skeleton from '../../components/shared/Skeleton';
+import EmptyState from '../../components/ui/EmptyState';
+import useUiStore from '../../store/uiStore';
 
 const AdminDocumentsPage = () => {
-  const { t } = useTranslation();
-  const enumLabel = useEnumLabel();
-  const formatDate = useDateFormat();
   const queryClient = useQueryClient();
+  const pushToast = useUiStore((s) => s.pushToast);
   const [filter, setFilter] = useState('PENDING');
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [reviewNote, setReviewNote] = useState('');
 
-  const { data: docs, isLoading } = useQuery({
+  const { data: docs, isLoading, isError } = useQuery({
     queryKey: ['admin-documents', filter],
     queryFn: async () => {
       const { data } = await apiClient.get('/documents', { params: { status: filter } });
@@ -34,18 +31,17 @@ const AdminDocumentsPage = () => {
       queryClient.invalidateQueries({ queryKey: ['admin-documents'] });
       setSelectedDoc(null);
       setReviewNote('');
-      alert(t('admin.documents.review_success'));
-    }
+      pushToast('Document reviewed successfully!', 'success');
+    },
+    onError: (err) => pushToast(err.response?.data?.message || 'Failed to review document'),
   });
 
   return (
     <div className="space-y-10 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-4xl font-display uppercase tracking-tighter">
-            {t('admin.documents.title')} <span className="text-red">{t('admin.documents.title_accent')}</span>
-          </h1>
-          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">{t('admin.documents.subtitle')}</p>
+          <h1 className="text-4xl font-display uppercase tracking-tighter">Document <span className="text-red">Verification</span></h1>
+          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Review athlete IDs and certificates</p>
         </div>
         
         <div className="flex bg-surface-dark p-1 rounded-2xl border border-white/10">
@@ -55,7 +51,7 @@ const AdminDocumentsPage = () => {
               onClick={() => setFilter(s)}
               className={`px-6 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${filter === s ? 'bg-red text-white shadow-lg' : 'text-white/40 hover:text-white'}`}
             >
-              {enumLabel('document_status', s)}
+              {s}
             </button>
           ))}
         </div>
@@ -63,9 +59,13 @@ const AdminDocumentsPage = () => {
 
       {isLoading ? (
         <Skeleton type="table-row" count={5} />
+      ) : isError ? (
+        <EmptyState icon={FileText} title="Couldn't load documents" hint="Something went wrong fetching documents. Try refreshing the page." />
+      ) : !docs?.length ? (
+        <EmptyState icon={FileText} title={`No ${filter.toLowerCase()} documents`} hint="Documents will show up here as teams upload verification files." />
       ) : (
-        <AdminTable headers={[t('admin.players.col_player'), t('admin.documents.col_type'), t('admin.documents.col_filename'), t('admin.documents.col_uploaded'), t('admin.col_actions')]}>
-          {docs?.map(doc => (
+        <AdminTable headers={['Player', 'Doc Type', 'Filename', 'Uploaded At', 'Actions']}>
+          {docs.map(doc => (
             <tr key={doc.id} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors">
               <td className="px-6 py-5">
                 <div className="flex flex-col">
@@ -73,9 +73,9 @@ const AdminDocumentsPage = () => {
                   <span className="text-[8px] opacity-40 uppercase font-bold tracking-widest">{doc.player?.team?.name}</span>
                 </div>
               </td>
-              <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{enumLabel('doc_type', doc.docType)}</td>
-              <td className="px-6 py-5 text-xs opacity-40 italic">{doc.originalName || t('admin.documents.unnamed_file')}</td>
-              <td className="px-6 py-5 text-[10px] font-bold opacity-40">{formatDate(doc.uploadedAt, 'dd MMM yyyy')}</td>
+              <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{doc.docType.replace('_', ' ')}</td>
+              <td className="px-6 py-5 text-xs opacity-40 italic">{doc.originalName || 'document.pdf'}</td>
+              <td className="px-6 py-5 text-[10px] font-bold opacity-40">{new Date(doc.uploadedAt).toLocaleDateString()}</td>
               <td className="px-6 py-5">
                 <div className="flex items-center space-x-2">
                   <button 
@@ -83,7 +83,7 @@ const AdminDocumentsPage = () => {
                     className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors flex items-center space-x-2"
                   >
                     <Eye size={16} />
-                    <span className="text-[10px] font-bold uppercase">{t('admin.documents.review')}</span>
+                    <span className="text-[10px] font-bold uppercase">Review</span>
                   </button>
                 </div>
               </td>
@@ -93,14 +93,14 @@ const AdminDocumentsPage = () => {
       )}
 
       {/* Review Modal */}
-      <AdminModal isOpen={!!selectedDoc} onClose={() => setSelectedDoc(null)} title={t('admin.documents.modal_title')}>
+      <AdminModal isOpen={!!selectedDoc} onClose={() => setSelectedDoc(null)} title="Verify Document">
         <div className="space-y-8">
           <div className="aspect-[4/3] bg-surface-2 dark:bg-white/5 rounded-3xl border border-surface-3 dark:border-white/10 flex items-center justify-center overflow-hidden">
             {selectedDoc?.filename?.endsWith('.pdf') ? (
               <div className="flex flex-col items-center space-y-4 opacity-40">
                 <FileText size={64} />
-                <span className="text-[10px] uppercase font-bold tracking-widest">{t('admin.documents.pdf_no_preview')}</span>
-                <a href={selectedDoc.filename} target="_blank" className="text-red hover:underline text-xs uppercase font-bold tracking-widest">{t('admin.documents.download')}</a>
+                <span className="text-[10px] uppercase font-bold tracking-widest">PDF Document Preview Not Available</span>
+                <a href={selectedDoc.filename} target="_blank" className="text-red hover:underline text-xs uppercase font-bold tracking-widest">Download to View</a>
               </div>
             ) : (
               <img src={selectedDoc?.filename} className="w-full h-full object-contain" />
@@ -109,10 +109,10 @@ const AdminDocumentsPage = () => {
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40 ml-1">{t('admin.documents.review_note')}</label>
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40 ml-1">Review Note (Optional)</label>
               <textarea 
                 className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl focus:border-red outline-none transition-all placeholder:opacity-20 min-h-[100px]"
-                placeholder={t('admin.documents.review_note_placeholder')}
+                placeholder="Reason for rejection or verification notes..."
                 value={reviewNote}
                 onChange={(e) => setReviewNote(e.target.value)}
               />
@@ -125,7 +125,7 @@ const AdminDocumentsPage = () => {
                 className="bg-white dark:bg-white/5 border border-red/20 text-red font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red/5 transition-all flex items-center justify-center space-x-2"
               >
                 <XCircle size={20} />
-                <span>{t('admin.documents.reject')}</span>
+                <span>Reject</span>
               </button>
               <button 
                 onClick={() => reviewMutation.mutate({ id: selectedDoc.id, status: 'APPROVED', note: reviewNote })}
@@ -133,7 +133,7 @@ const AdminDocumentsPage = () => {
                 className="bg-green text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-green-600 transition-all flex items-center justify-center space-x-2 shadow-xl shadow-green/20"
               >
                 <CheckCircle size={20} />
-                <span>{t('admin.documents.approve')}</span>
+                <span>Approve</span>
               </button>
             </div>
           </div>

@@ -4,16 +4,12 @@ import { Users, Eye, Globe, Clock, Filter, Search, User } from 'lucide-react';
 import apiClient from '../../api/client';
 import AdminTable from '../../components/admin/AdminTable';
 import Skeleton from '../../components/shared/Skeleton';
-import { useTranslation } from 'react-i18next';
-import { useEnumLabel } from '../../i18n/enums';
-import { useDateFormat } from '../../i18n/dateLocale';
+import EmptyState from '../../components/ui/EmptyState';
+import { format } from 'date-fns';
 
 const AdminVisitorsPage = () => {
-  const { t } = useTranslation();
-  const enumLabel = useEnumLabel();
-  const formatDate = useDateFormat();
   const [page, setPage] = useState(1);
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['admin-activity-logs', page],
     queryFn: async () => {
       const { data } = await apiClient.get('/activity', { params: { page, limit: 20 } });
@@ -25,14 +21,12 @@ const AdminVisitorsPage = () => {
     <div className="space-y-10 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-4xl font-display uppercase tracking-tighter">
-            {t('admin.visitors.title')} <span className="text-red">{t('admin.visitors.title_accent')}</span>
-          </h1>
-          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">{t('admin.visitors.subtitle')}</p>
+          <h1 className="text-4xl font-display uppercase tracking-tighter">Visitor <span className="text-red">Analytics</span></h1>
+          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Live tracking of platform traffic and user actions</p>
         </div>
         <div className="flex items-center space-x-4 bg-white dark:bg-surface-dark2 p-4 rounded-2xl border border-surface-3 dark:border-white/5 shadow-sm">
           <div className="flex flex-col">
-            <span className="text-[8px] uppercase font-bold tracking-widest opacity-40">{t('admin.visitors.total_events')}</span>
+            <span className="text-[8px] uppercase font-bold tracking-widest opacity-40">Total Events</span>
             <span className="text-2xl font-display leading-none">{data?.total || 0}</span>
           </div>
           <div className="w-px h-8 bg-surface-3 dark:bg-white/10" />
@@ -42,14 +36,18 @@ const AdminVisitorsPage = () => {
 
       {isLoading ? (
         <Skeleton type="card" count={3} />
+      ) : isError ? (
+        <EmptyState icon={Eye} title="Couldn't load activity" hint="Something went wrong fetching visitor analytics. Try refreshing the page." />
+      ) : !data?.data?.length ? (
+        <EmptyState icon={Eye} title="No activity yet" hint="Visitor and admin actions will show up here as they happen." />
       ) : (
-        <AdminTable headers={[t('admin.visitors.col_time'), t('admin.visitors.col_user'), t('admin.visitors.col_action'), t('admin.visitors.col_device'), t('admin.visitors.col_path')]}>
-          {data?.data?.map(log => (
+        <AdminTable headers={['Time', 'User', 'Action', 'IP / Device', 'Path']}>
+          {data.data.map(log => (
             <tr key={log.id} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors text-[11px]">
               <td className="px-6 py-4 font-mono opacity-60">
-                {formatDate(log.createdAt, 'HH:mm:ss')}
+                {format(new Date(log.createdAt), 'HH:mm:ss')}
                 <br />
-                {formatDate(log.createdAt, 'dd MMM')}
+                {format(new Date(log.createdAt), 'dd MMM')}
               </td>
               <td className="px-6 py-4">
                 {log.user ? (
@@ -60,14 +58,14 @@ const AdminVisitorsPage = () => {
                     <span className="font-bold">{log.user.fullName}</span>
                   </div>
                 ) : (
-                  <span className="opacity-30 italic">{t('admin.visitors.guest')}</span>
+                  <span className="opacity-30 italic">Guest</span>
                 )}
               </td>
               <td className="px-6 py-4">
                 <span className={`px-2 py-0.5 rounded border ${
                   log.action === 'PAGE_VIEW' ? 'bg-blue-500/5 text-blue-500 border-blue-500/10' : 'bg-red/5 text-red border-red/10'
                 } font-bold uppercase`}>
-                  {enumLabel('activity_action', log.action)}
+                  {log.action}
                 </span>
               </td>
               <td className="px-6 py-4">
@@ -89,7 +87,7 @@ const AdminVisitorsPage = () => {
           disabled={page === 1}
           className="px-6 py-2 bg-surface-2 dark:bg-white/5 rounded-xl font-bold uppercase tracking-widest text-[10px] disabled:opacity-20"
         >
-          {t('common.previous')}
+          Previous
         </button>
         <span className="flex items-center font-display text-xl">{page}</span>
         <button 
@@ -97,7 +95,7 @@ const AdminVisitorsPage = () => {
           disabled={data?.pages <= page}
           className="px-6 py-2 bg-surface-2 dark:bg-white/5 rounded-xl font-bold uppercase tracking-widest text-[10px] disabled:opacity-20"
         >
-          {t('common.next')}
+          Next
         </button>
       </div>
     </div>
