@@ -294,7 +294,8 @@
       "team_name_min": "Le nom de l'équipe doit contenir au moins 2 caractères",
       "sport_required": "Veuillez sélectionner un sport",
       "city_required": "La ville est obligatoire",
-      "province_required": "La province est obligatoire"
+      "province_required": "La province est obligatoire",
+      "president_required": "Le président du club est requis"
     }
   },
   "amashuri": {

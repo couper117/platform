@@ -294,7 +294,8 @@
       "team_name_min": "Team name must be at least 2 characters",
       "sport_required": "Please select a sport",
       "city_required": "City is required",
-      "province_required": "Province is required"
+      "province_required": "Province is required",
+      "president_required": "Club president is required"
     }
   },
   "amashuri": {
