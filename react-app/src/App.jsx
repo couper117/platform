@@ -80,41 +80,47 @@ const queryClient = new QueryClient({
   },
 });
 
+/**
+ * Resets scroll on navigation.
+ *
+ * This used to also hold a full-screen loader over Home and /admin for a FIXED 600ms
+ * on every visit — a delay the app manufactured rather than needed, which made those
+ * two routes feel 600ms slower than they were. Suspense already covers the only real
+ * wait (fetching a lazy chunk) and shows PageLoader for exactly as long as that takes,
+ * so the timer is gone and only the scroll reset remains.
+ */
 const RouteWatcher = ({ children }) => {
-  const location = useLocation();
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const { pathname } = useLocation();
 
   useEffect(() => {
-    // Only show loader for Home and Admin pages
-    const isTargetPage = location.pathname === '/' || location.pathname.startsWith('/admin');
-    
-    if (isTargetPage) {
-      setIsTransitioning(true);
-      const timer = setTimeout(() => {
-        setIsTransitioning(false);
-        window.scrollTo(0, 0);
-      }, 600);
-      return () => clearTimeout(timer);
-    } else {
-      setIsTransitioning(false);
-      window.scrollTo(0, 0);
-    }
-  }, [location.pathname]);
+    window.scrollTo(0, 0);
+  }, [pathname]);
 
-  return (
-    <>
-      {isTransitioning && <PageLoader />}
-      {children}
-    </>
-  );
+  return children;
 };
 
 function App() {
   const [showSplash, setShowSplash] = useState(true);
 
+  /**
+   * Dismiss the splash when the app is actually ready, not on a stopwatch.
+   *
+   * It waits for webfonts, because that is the one thing whose arrival visibly
+   * reflows the whole page — showing the UI in a fallback face and then snapping to
+   * Montserrat is worse than half a second of splash. The 1500ms cap is a safety net
+   * so a failed font request can never strand someone on the splash forever.
+   */
   useEffect(() => {
-    const timer = setTimeout(() => setShowSplash(false), 1200);
-    return () => clearTimeout(timer);
+    let done = false;
+    const finish = () => {
+      if (!done) {
+        done = true;
+        setShowSplash(false);
+      }
+    };
+    document.fonts?.ready.then(finish).catch(finish);
+    const cap = setTimeout(finish, 1500);
+    return () => clearTimeout(cap);
   }, []);
 
   return (

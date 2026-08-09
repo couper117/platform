@@ -152,6 +152,9 @@ export default {
       animation: {
         'live-pulse': 'livePulse 2s cubic-bezier(0.2,0,0.2,1) infinite',
         shimmer: 'shimmer 1.4s linear infinite',
+        // Indeterminate progress: a segment crossing the track. Deliberately not a
+        // fill — we never know how far along a lazy chunk actually is.
+        indeterminate: 'indeterminate 1.15s cubic-bezier(0.4,0,0.2,1) infinite',
         'fade-up': 'fadeUp 0.3s cubic-bezier(0.2,0,0.2,1) forwards',
         // Ambient hero zoom, straight from the reference. Long by design: it is
         // a background, not a transition, so the 240ms budget does not apply.
@@ -167,6 +170,10 @@ export default {
         shimmer: {
           '0%': { transform: 'translateX(-100%)' },
           '100%': { transform: 'translateX(100%)' },
+        },
+        indeterminate: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(250%)' },
         },
         fadeUp: {
           from: { opacity: '0', transform: 'translateY(10px)' },

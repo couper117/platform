@@ -18,6 +18,7 @@ import {
 } from '../../components/ui';
 import MatchRow from '../../components/match/MatchRow';
 import MatchCard from '../../components/match/MatchCard';
+import Loader from '../../components/shared/Loader';
 
 /**
  * Living styleguide at /design-system.
@@ -740,6 +741,35 @@ const DesignSystemPage = () => {
               <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                 <MatchCard.Skeleton />
                 <MatchCard.Skeleton />
+              </div>
+            </div>
+          </Section>
+        )}
+
+        {ready && (
+          <Section
+            title="Loader"
+            note="One loading gesture for the whole product, reusing the bouncing ball from the auth
+                  screens rather than inventing a second mark. The bar is honestly indeterminate — a
+                  segment crossing a track, never a fill, because we never know how far along a lazy
+                  chunk actually is. Faking progress is how loaders lie."
+          >
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="rounded-card border border-hairline bg-surface">
+                {/* delay={0} to render immediately here; in the app it waits 180ms so a
+                    fast navigation never flashes a loader that vanishes. */}
+                <Loader delay={0} label="Loading page" />
+                <p className="border-t border-hairline p-3 text-sm text-secondary">
+                  Route / Suspense — no wordmark. It appears between two screens of an app you are
+                  already inside; re-introducing the brand mid-navigation is noise.
+                </p>
+              </div>
+              <div className="rounded-card border border-hairline bg-surface">
+                <Loader delay={0} brand label="Starting RwaSport" />
+                <p className="border-t border-hairline p-3 text-sm text-secondary">
+                  Cold start — carries the wordmark. Dismissed when webfonts are ready rather than on
+                  a timer, capped at 1500ms so a failed font request cannot strand anyone.
+                </p>
               </div>
             </div>
           </Section>
