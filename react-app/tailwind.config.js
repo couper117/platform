@@ -38,6 +38,9 @@ export default {
           hover: 'rgb(var(--brand-hover) / <alpha-value>)',
           tint: 'rgb(var(--brand-tint) / <alpha-value>)', // hover wash
           on: 'rgb(var(--on-brand) / <alpha-value>)',
+          // For surfaces dark in BOTH themes (footer slab, auth panel, photo
+          // overlays). Theme-independent by design — see tokens.css.
+          bright: 'rgb(var(--brand-bright) / <alpha-value>)',
         },
 
         // ─── Surfaces ────────────────────────────────────────────────

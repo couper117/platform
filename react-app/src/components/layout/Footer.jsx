@@ -45,7 +45,7 @@ const FooterLink = ({ to, children }) => (
   <li>
     <Link
       to={to}
-      className="inline-block text-sm text-white/60 transition-all duration-200 ease-standard hover:translate-x-1 hover:text-brand"
+      className="inline-block text-sm text-white/60 transition-all duration-200 ease-standard hover:translate-x-1 hover:text-brand-bright"
     >
       {children}
     </Link>
@@ -75,7 +75,7 @@ const Footer = () => (
             to="/"
             className="mb-5 inline-block font-display text-2xl font-extrabold tracking-tight text-white"
           >
-            Rwa<span className="text-brand">Sport</span>
+            Rwa<span className="text-brand-bright">Sport</span>
           </Link>
           <p className="mb-6 max-w-xs text-sm leading-relaxed">
             The digital home of Rwandan sport — every league, every match, every athlete, from the
@@ -91,7 +91,7 @@ const Footer = () => (
                 aria-label={label}
                 className={cn(
                   'flex h-tap w-tap items-center justify-center rounded-control border border-white/15 bg-white/5 text-white',
-                  'transition-all duration-200 ease-standard hover:-translate-y-0.5 hover:border-brand hover:bg-brand'
+                  'transition-all duration-200 ease-standard hover:-translate-y-0.5 hover:border-brand-bright hover:bg-brand-bright'
                 )}
               >
                 <Icon size={16} aria-hidden="true" />
@@ -123,7 +123,7 @@ const Footer = () => (
               placeholder="you@example.com"
               className={cn(
                 'min-h-tap flex-1 rounded-control border border-white/15 bg-white/5 px-4 text-white',
-                'placeholder:text-white/35 focus:border-brand focus:bg-white/10 focus:outline-none'
+                'placeholder:text-white/35 focus:border-brand-bright focus:bg-white/10 focus:outline-none'
               )}
             />
             <button
@@ -141,13 +141,13 @@ const Footer = () => (
 
           <ul className="mt-6 space-y-2 text-sm">
             <li className="flex items-center gap-2">
-              <MapPin size={13} className="shrink-0 text-brand" aria-hidden="true" /> Kigali, Rwanda
+              <MapPin size={13} className="shrink-0 text-brand-bright" aria-hidden="true" /> Kigali, Rwanda
             </li>
             <li className="flex items-center gap-2">
-              <Mail size={13} className="shrink-0 text-brand" aria-hidden="true" /> info@rwasport.rw
+              <Mail size={13} className="shrink-0 text-brand-bright" aria-hidden="true" /> info@rwasport.rw
             </li>
             <li className="flex items-center gap-2">
-              <Phone size={13} className="shrink-0 text-brand" aria-hidden="true" /> +250 788 000 000
+              <Phone size={13} className="shrink-0 text-brand-bright" aria-hidden="true" /> +250 788 000 000
             </li>
           </ul>
         </div>
@@ -158,10 +158,10 @@ const Footer = () => (
       <div className="flex flex-wrap items-center justify-between gap-4 text-xs">
         <p>© {new Date().getFullYear()} RwaSport. In partnership with MINISPORTS Rwanda.</p>
         <div className="flex gap-5">
-          <Link to="/privacy" className="transition-colors hover:text-brand">
+          <Link to="/privacy" className="transition-colors hover:text-brand-bright">
             Privacy
           </Link>
-          <Link to="/terms" className="transition-colors hover:text-brand">
+          <Link to="/terms" className="transition-colors hover:text-brand-bright">
             Terms
           </Link>
         </div>

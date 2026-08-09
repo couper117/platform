@@ -14,6 +14,12 @@
 export { default as Button } from './Button';
 export { default as IconButton } from './IconButton';
 
+// Forms
+export { default as Field } from './Field';
+export { default as Input } from './Input';
+export { default as Select } from './Select';
+export { default as Modal } from './Modal';
+
 // Status & metadata
 export { default as Badge } from './Badge';
 export { default as StatusPill } from './StatusPill';

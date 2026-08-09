@@ -47,6 +47,13 @@
   --brand-tint: 240 249 244; /* #F0F9F4 — hover wash, selected rows */
   --on-brand: 255 255 255; /* white label on a --brand fill */
 
+  /* Brand green for surfaces that are dark in BOTH themes — the footer slab, the
+   * auth side panel, a photo overlay. Those cannot use --brand: in light mode it
+   * resolves to #008848, which on near-black is a muddy 4.3:1. This is deliberately
+   * NOT overridden in the dark block below, because it is already the dark-theme
+   * green and its whole job is to be theme-independent. 8.4:1 on #0F0F0F. */
+  --brand-bright: 15 191 106; /* #0FBF6A */
+
   /* ─── Surfaces ────────────────────────────────────────────────── */
   --bg: 255 255 255; /* #FFFFFF — page */
   --bg-alt: 250 250 250; /* #FAFAFA — alternating sections */
