@@ -1,5 +1,6 @@
 import React from 'react';
 import { Sun, Moon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../context/ThemeContext';
 import cn from './cn';
 
@@ -7,6 +8,7 @@ import cn from './cn';
  * Light/Dark theme switch. Reads from ThemeContext (must be inside ThemeProvider).
  */
 const ThemeToggle = ({ className }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   if (!theme) return null;
   const { dark, toggle } = theme;
@@ -15,8 +17,8 @@ const ThemeToggle = ({ className }) => {
     <button
       type="button"
       onClick={toggle}
-      aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
-      title={dark ? 'Light mode' : 'Dark mode'}
+      aria-label={dark ? t('theme.switch_to_light') : t('theme.switch_to_dark')}
+      title={dark ? t('theme.light_mode') : t('theme.dark_mode')}
       className={cn(
         'relative p-2 rounded-full cursor-pointer transition-colors',
         // Theme-aware so it stays visible on both the light and dark navbar.

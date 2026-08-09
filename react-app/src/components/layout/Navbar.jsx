@@ -43,7 +43,6 @@ const Navbar = () => {
     { code: 'en', label: 'English' },
     { code: 'fr', label: 'Français' },
     { code: 'rw', label: 'Kinyarwanda' },
-    { code: 'sw', label: 'Kiswahili' },
   ];
 
   return (

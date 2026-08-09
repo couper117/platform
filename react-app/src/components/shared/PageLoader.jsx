@@ -1,6 +1,9 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 const PageLoader = () => {
+  const { t } = useTranslation();
+
   return (
     <div className="fixed inset-0 z-[150] bg-surface-dark/95 backdrop-blur-md flex flex-col items-center justify-center space-y-6 animate-in fade-in duration-300">
       <div className="relative">
@@ -11,9 +14,9 @@ const PageLoader = () => {
       </div>
       
       <div className="text-center space-y-1">
-        <p className="text-red font-display text-lg uppercase tracking-[0.3em] mb-1">Murakaza Neza</p>
+        <p className="text-red font-display text-lg uppercase tracking-[0.3em] mb-1">{t('brand.welcome')}</p>
         <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/40 animate-pulse">
-          Synchronizing Data
+          {t('common.synchronizing')}
         </p>
       </div>
 

@@ -4,8 +4,10 @@ import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import useAuthStore from '../../store/authStore';
 import { Menu } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const TeamLayout = () => {
+  const { t } = useTranslation();
   const { isAuthenticated, role } = useAuthStore();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -24,7 +26,7 @@ const TeamLayout = () => {
           className="flex items-center space-x-2 text-white/60 hover:text-red transition-colors"
         >
           <Menu size={20} />
-          <span className="text-[10px] uppercase font-bold tracking-widest">Team Menu</span>
+          <span className="text-[10px] uppercase font-bold tracking-widest">{t('team.menu')}</span>
         </button>
       </div>
 

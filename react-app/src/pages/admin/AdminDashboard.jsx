@@ -1,6 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Trophy, Users, UserSquare2, FileText, Activity, ArrowUpRight, Clock, Settings } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { getLeagues } from '../../api/endpoints/leagues';
 import { getFixtures } from '../../api/endpoints/fixtures';
 import Skeleton from '../../components/shared/Skeleton';
@@ -35,6 +36,8 @@ const StatCard = ({ icon, label, value, trend, color = "red" }) => (
 );
 
 const AdminDashboard = () => {
+  const { t } = useTranslation();
+
   const { data: leagues, isLoading: leaguesLoading } = useQuery({
     queryKey: ['admin-stats-leagues'],
     queryFn: () => getLeagues(),
@@ -49,11 +52,13 @@ const AdminDashboard = () => {
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-4xl font-display uppercase tracking-tighter">System <span className="text-red">Overview</span></h1>
-          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Live platform performance and metrics</p>
+          <h1 className="text-4xl font-display uppercase tracking-tighter">
+            {t('admin.dashboard.title')} <span className="text-red">{t('admin.dashboard.title_accent')}</span>
+          </h1>
+          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">{t('admin.dashboard.subtitle')}</p>
         </div>
         <div className="text-[10px] font-bold uppercase tracking-widest opacity-30 italic">
-          Last updated: Just now
+          {t('admin.dashboard.last_updated')}
         </div>
       </div>
 
@@ -63,10 +68,10 @@ const AdminDashboard = () => {
           <Skeleton type="stat" count={4} />
         ) : (
           <>
-            <StatCard icon={<Trophy size={20} />} label="Active Leagues" value={leagues?.count || 0} trend={12} color="red" />
-            <StatCard icon={<Users size={20} />} label="Total Teams" value="842" trend={5} color="rwanda-yellow" />
-            <StatCard icon={<UserSquare2 size={20} />} label="Elite Athletes" value="12,402" trend={8} color="rwanda-green" />
-            <StatCard icon={<FileText size={20} />} label="Pending Docs" value="124" color="red" />
+            <StatCard icon={<Trophy size={20} />} label={t('admin.dashboard.active_leagues')} value={leagues?.count || 0} trend={12} color="red" />
+            <StatCard icon={<Users size={20} />} label={t('admin.dashboard.total_teams')} value="842" trend={5} color="rwanda-yellow" />
+            <StatCard icon={<UserSquare2 size={20} />} label={t('admin.dashboard.elite_athletes')} value="12,402" trend={8} color="rwanda-green" />
+            <StatCard icon={<FileText size={20} />} label={t('admin.dashboard.pending_docs')} value="124" color="red" />
           </>
         )}
       </div>
@@ -75,15 +80,15 @@ const AdminDashboard = () => {
         {/* Activity Feed Placeholder */}
         <div className="lg:col-span-2 space-y-6">
           <div className="flex items-center justify-between border-b border-surface-3 dark:border-white/5 pb-4">
-            <h2 className="text-xl font-display uppercase tracking-tight">Recent Activity</h2>
-            <button className="text-[10px] font-bold uppercase tracking-widest text-red hover:underline">View All Logs</button>
+            <h2 className="text-xl font-display uppercase tracking-tight">{t('admin.dashboard.recent_activity')}</h2>
+            <button className="text-[10px] font-bold uppercase tracking-widest text-red hover:underline">{t('admin.dashboard.view_all_logs')}</button>
           </div>
           <div className="space-y-4">
             {[
-              { action: 'Team Verified', user: 'Admin', time: '2m ago', detail: 'Rayon Sports FC' },
-              { action: 'Match Result', user: 'System', time: '15m ago', detail: 'APR FC vs AS Kigali (2-1)' },
-              { action: 'New Article', user: 'K. Jean', time: '1h ago', detail: 'National Team Selection Announced' },
-              { action: 'Player Registered', user: 'Manager', time: '2h ago', detail: 'M. Mugisha in Gorilla FC' },
+              { action: t('admin.activity.team_verified'), user: t('enums.role.SUPERADMIN'), time: t('admin.activity.minutes_ago', { count: 2 }), detail: 'Rayon Sports FC' },
+              { action: t('admin.activity.match_result'), user: t('admin.activity.system'), time: t('admin.activity.minutes_ago', { count: 15 }), detail: 'APR FC vs AS Kigali (2-1)' },
+              { action: t('admin.activity.new_article'), user: 'K. Jean', time: t('admin.activity.hours_ago', { count: 1 }), detail: t('admin.activity.article_detail') },
+              { action: t('admin.activity.player_registered'), user: t('enums.role.TEAM_MANAGER'), time: t('admin.activity.hours_ago', { count: 2 }), detail: 'M. Mugisha — Gorilla FC' },
             ].map((log, i) => (
               <div key={i} className="flex items-center justify-between p-4 bg-white dark:bg-surface-dark2 rounded-2xl border border-surface-3 dark:border-white/5">
                 <div className="flex items-center space-x-4">
@@ -107,14 +112,14 @@ const AdminDashboard = () => {
         {/* Quick Links / Tasks */}
         <div className="space-y-6">
           <div className="border-b border-surface-3 dark:border-white/5 pb-4">
-            <h2 className="text-xl font-display uppercase tracking-tight">Quick Actions</h2>
+            <h2 className="text-xl font-display uppercase tracking-tight">{t('admin.dashboard.quick_actions')}</h2>
           </div>
           <div className="grid grid-cols-1 gap-3">
             {[
-              { label: 'Create New League', icon: <Trophy size={16} /> },
-              { label: 'Verify Pending Teams', icon: <Users size={16} /> },
-              { label: 'Input Match Results', icon: <Activity size={16} /> },
-              { label: 'System Settings', icon: <Settings size={16} /> },
+              { label: t('admin.dashboard.action_create_league'), icon: <Trophy size={16} /> },
+              { label: t('admin.dashboard.action_verify_teams'), icon: <Users size={16} /> },
+              { label: t('admin.dashboard.action_input_results'), icon: <Activity size={16} /> },
+              { label: t('admin.dashboard.action_settings'), icon: <Settings size={16} /> },
             ].map((link, i) => (
               <button key={i} className="flex items-center space-x-3 p-4 bg-red text-white rounded-2xl hover:bg-red-dark transition-all shadow-lg shadow-red/20 text-[11px] font-bold uppercase tracking-widest">
                 {link.icon}

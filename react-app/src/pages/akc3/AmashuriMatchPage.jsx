@@ -75,7 +75,10 @@ const AmashuriMatchPage = () => {
 
   return (
     <div className="bg-surface-2 dark:bg-surface-dark min-h-screen pb-24">
-      <Seo title={`${homeName} vs ${awayName} — Amashuri Games`} description={`School fixture: ${homeName} vs ${awayName}.`} />
+      <Seo
+        title={t('seo.amashuri_match_title', { home: homeName, away: awayName })}
+        description={t('seo.amashuri_match_desc', { home: homeName, away: awayName })}
+      />
 
       <div className="bg-red/95 py-4">
         <ResponsiveWrapper>

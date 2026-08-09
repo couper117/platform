@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Trophy, Calendar, Users, Info, ChevronLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { useEnumLabel } from '../../i18n/enums';
 import { getLeague } from '../../api/endpoints/leagues';
 import { getFixtures } from '../../api/endpoints/fixtures';
 import ResponsiveWrapper from '../../components/shared/ResponsiveWrapper';
@@ -11,6 +13,8 @@ import FixtureCard from '../../components/shared/FixtureCard';
 import Skeleton from '../../components/shared/Skeleton';
 
 const LeagueDetailsPage = () => {
+  const { t } = useTranslation();
+  const enumLabel = useEnumLabel();
   const { id } = useParams();
   const [activeTab, setActiveTab] = useState('standings');
 
@@ -26,10 +30,10 @@ const LeagueDetailsPage = () => {
   });
 
   const tabs = [
-    { id: 'standings', label: 'Standings' },
-    { id: 'stats', label: 'Stats' },
-    { id: 'fixtures', label: 'Fixtures' },
-    { id: 'teams', label: 'Teams' },
+    { id: 'standings', label: t('league.tab_standings') },
+    { id: 'stats', label: t('league.tab_stats') },
+    { id: 'fixtures', label: t('nav.fixtures') },
+    { id: 'teams', label: t('admin.nav.teams') },
   ];
 
   if (leagueLoading) return (
@@ -47,7 +51,7 @@ const LeagueDetailsPage = () => {
         <ResponsiveWrapper>
           <Link to="/leagues" className="inline-flex items-center space-x-2 text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-red transition-colors">
             <ChevronLeft size={14} />
-            <span>Back to all leagues</span>
+            <span>{t('league.back_to_leagues')}</span>
           </Link>
         </ResponsiveWrapper>
       </div>
@@ -65,7 +69,7 @@ const LeagueDetailsPage = () => {
                 <div>
                   <div className="flex items-center space-x-2 text-[10px] font-bold uppercase tracking-[0.3em] text-red mb-1">
                     <span className="w-1.5 h-1.5 bg-red rounded-full animate-pulse" />
-                    <span>{leagueData?.sport?.name}</span>
+                    <span>{enumLabel('sport', leagueData?.sport?.name)}</span>
                   </div>
                   <h1 className="text-4xl sm:text-6xl font-display text-white uppercase tracking-tighter leading-none">
                     {leagueData?.name}
@@ -76,15 +80,15 @@ const LeagueDetailsPage = () => {
               <div className="flex flex-wrap items-center gap-6 text-[10px] font-bold uppercase tracking-widest text-white/50">
                 <div className="flex items-center space-x-2">
                   <Calendar size={14} className="text-red" />
-                  <span>Season {leagueData?.season}</span>
+                  <span>{t('leagues.season', { season: leagueData?.season })}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Users size={14} className="text-red" />
-                  <span>{leagueData?.teams?.length || 0} Participants</span>
+                  <span>{t('league.participant_count', { count: leagueData?.teams?.length || 0 })}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Info size={14} className="text-red" />
-                  <span>{leagueData?.level} Level</span>
+                  <span>{t('league.level_label', { level: enumLabel('level', leagueData?.level) })}</span>
                 </div>
               </div>
             </div>
@@ -124,8 +128,8 @@ const LeagueDetailsPage = () => {
           {activeTab === 'standings' && (
             <div className="space-y-8">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-display uppercase tracking-tight">Current Standings</h2>
-                <span className="text-[10px] font-bold uppercase tracking-widest opacity-40 italic">Last updated: Today</span>
+                <h2 className="text-2xl font-display uppercase tracking-tight">{t('league.current_standings')}</h2>
+                <span className="text-[10px] font-bold uppercase tracking-widest opacity-40 italic">{t('league.last_updated_today')}</span>
               </div>
               <StandingsTable standings={leagueData?.standings || []} />
             </div>
@@ -134,8 +138,8 @@ const LeagueDetailsPage = () => {
           {activeTab === 'stats' && (
             <div className="space-y-8">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-display uppercase tracking-tight">Season Statistics</h2>
-                <span className="text-[10px] font-bold uppercase tracking-widest opacity-40 italic">Visual insights</span>
+                <h2 className="text-2xl font-display uppercase tracking-tight">{t('league.season_statistics')}</h2>
+                <span className="text-[10px] font-bold uppercase tracking-widest opacity-40 italic">{t('league.visual_insights')}</span>
               </div>
               <LeagueStats standings={leagueData?.standings || []} topScorers={leagueData?.topScorers || []} />
             </div>
@@ -144,7 +148,7 @@ const LeagueDetailsPage = () => {
           {activeTab === 'fixtures' && (
             <div className="space-y-8">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-display uppercase tracking-tight">Fixtures & Results</h2>
+                <h2 className="text-2xl font-display uppercase tracking-tight">{t('league.fixtures_and_results')}</h2>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {fixturesLoading ? (
@@ -153,7 +157,7 @@ const LeagueDetailsPage = () => {
                   fixtures.data.map(f => <FixtureCard key={f.id} fixture={f} showLeague={false} />)
                 ) : (
                   <div className="col-span-2 py-20 text-center opacity-30 font-display text-2xl uppercase tracking-widest">
-                    No fixtures scheduled
+                    {t('league.no_fixtures')}
                   </div>
                 )}
               </div>
@@ -163,7 +167,7 @@ const LeagueDetailsPage = () => {
           {activeTab === 'teams' && (
             <div className="space-y-8">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-display uppercase tracking-tight">Participating Teams</h2>
+                <h2 className="text-2xl font-display uppercase tracking-tight">{t('league.participating_teams')}</h2>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
                 {leagueData?.teams?.filter(({ team }) => team).map(({ team }) => (

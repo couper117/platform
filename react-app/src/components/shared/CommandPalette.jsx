@@ -155,7 +155,7 @@ const CommandPalette = () => {
       className="fixed inset-0 z-[200] flex items-start justify-center p-4 sm:pt-[12vh]"
       role="dialog"
       aria-modal="true"
-      aria-label="Search RwaSport"
+      aria-label={t('search.label')}
     >
       {/* Backdrop */}
       <div
@@ -184,7 +184,7 @@ const CommandPalette = () => {
           <button
             onClick={closePalette}
             className="p-1.5 rounded-lg text-surface-dark/30 dark:text-white/30 hover:text-red hover:bg-red/5 transition-colors cursor-pointer"
-            aria-label="Close search"
+            aria-label={t('common.close')}
           >
             <X size={16} />
           </button>
@@ -258,7 +258,7 @@ const CommandPalette = () => {
           <span className="flex items-center gap-2">
             <kbd className="px-1.5 py-0.5 rounded bg-surface-2 dark:bg-white/10 font-sans">↑↓</kbd>
             <kbd className="px-1.5 py-0.5 rounded bg-surface-2 dark:bg-white/10 font-sans">↵</kbd>
-            <kbd className="px-1.5 py-0.5 rounded bg-surface-2 dark:bg-white/10 font-sans">esc</kbd>
+            <kbd className="px-1.5 py-0.5 rounded bg-surface-2 dark:bg-white/10 font-sans">{t('search.esc')}</kbd>
           </span>
         </div>
       </div>

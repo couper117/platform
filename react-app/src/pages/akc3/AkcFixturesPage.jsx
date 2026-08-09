@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Activity } from 'lucide-react';
@@ -20,9 +19,7 @@ const TABS = [
 
 const AkcFixturesPage = () => {
   const { t } = useTranslation();
-  const location = useLocation();
-  // /amashuri/results opens on the Results tab; /amashuri/fixtures on Upcoming.
-  const [status, setStatus] = useState(location.pathname.endsWith('/results') ? 'COMPLETED' : 'SCHEDULED');
+  const [status, setStatus] = useState('SCHEDULED');
 
   const { data: fixtures, isLoading } = useQuery({
     queryKey: ['amashuri-fixtures', status],
@@ -34,7 +31,7 @@ const AkcFixturesPage = () => {
 
   return (
     <div className="bg-surface-2 dark:bg-surface-dark min-h-screen pb-24">
-      <Seo title="Schedule — Amashuri Games" description="Fixtures, live matches and results across Rwanda's inter-school championships." />
+      <Seo title={t('seo.amashuri_fixtures_title')} description={t('seo.amashuri_fixtures_desc')} />
 
       <AmashuriHero
         eyebrow={t('amashuri.schedule.eyebrow')}
@@ -54,7 +51,7 @@ const AkcFixturesPage = () => {
                 onClick={() => setStatus(tab.status)}
                 className={`text-[11px] font-bold uppercase tracking-widest transition-all whitespace-nowrap cursor-pointer ${
                   status === tab.status
-                    ? 'text-red underline underline-offset-8 decoration-2'
+                    ? 'text-rwanda-blue underline underline-offset-8 decoration-2'
                     : 'opacity-40 hover:opacity-100'
                 }`}
               >
