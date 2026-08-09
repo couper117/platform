@@ -100,11 +100,11 @@ const MatchDetailsPage = () => {
   const awayStat = (m?.stats || []).find((s) => s.teamId === m?.awayTeamId);
   const hasStats = !!(homeStat || awayStat);
   const STAT_ROWS = [
-    ['possession', 'Possession %'], ['shots', 'Shots'], ['shotsOnTarget', 'Shots on Target'],
-    ['shotsInsideBox', 'Shots Inside Box'], ['shotsOutsideBox', 'Shots Outside Box'],
-    ['corners', 'Corners'], ['offsides', 'Offsides'], ['fouls', 'Fouls'],
-    ['yellowCards', 'Yellow Cards'], ['redCards', 'Red Cards'], ['gkSaves', 'GK Saves'],
-    ['passAccuracy', 'Pass Accuracy %'], ['xg', 'Expected Goals (xG)'],
+    ['possession', t('matchstat.possession')], ['shots', t('matchstat.shots')], ['shotsOnTarget', t('matchstat.shots_on_target')],
+    ['shotsInsideBox', t('matchstat.shots_inside_box')], ['shotsOutsideBox', t('matchstat.shots_outside_box')],
+    ['corners', t('matchstat.corners')], ['offsides', t('matchstat.offsides')], ['fouls', t('matchstat.fouls')],
+    ['yellowCards', t('match.yellow_cards')], ['redCards', t('match.red_cards')], ['gkSaves', t('matchstat.gk_saves')],
+    ['passAccuracy', t('matchstat.pass_accuracy')], ['xg', t('matchstat.xg')],
   ];
   // Newest-first timeline while the match is live.
   const orderedEvents = isLive
@@ -126,10 +126,10 @@ const MatchDetailsPage = () => {
   }
 
   const tabs = [
-    { key: 'overview', label: 'Overview' },
-    { key: 'stats', label: 'Stats' },
-    { key: 'lineups', label: 'Lineups' },
-    { key: 'summary', label: 'Summary' },
+    { key: 'overview', label: t('match.overview') },
+    { key: 'stats', label: t('match.stats') },
+    { key: 'lineups', label: t('match.lineups') },
+    { key: 'summary', label: t('match.summary_accent') },
   ];
 
   return (
@@ -166,7 +166,7 @@ const MatchDetailsPage = () => {
                 </div>
               ) : (
                 <span className="text-xs font-bold uppercase tracking-widest opacity-40">
-                  {isCompleted ? 'Full Time' : live.status}
+                  {isCompleted ? t('match.full_time') : live.status}
                 </span>
               )}
             </div>
@@ -205,11 +205,11 @@ const MatchDetailsPage = () => {
                 rel="noreferrer"
                 className="inline-flex items-center gap-2.5 bg-red text-white font-display text-lg uppercase tracking-widest px-8 py-3.5 rounded-xl hover:bg-red-dark transition-all shadow-xl shadow-red/30 hover:scale-[1.03]"
               >
-                <Play size={20} fill="currentColor" /> Watch Live
+                <Play size={20} fill="currentColor" /> {t('match.watch_live')}
               </a>
             ) : (
               <span className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-white/30 border border-white/10 rounded-xl px-5 py-3">
-                <Play size={14} /> Live streaming is unavailable
+                <Play size={14} /> {t('match.stream_unavailable')}
               </span>
             )}
           </div>
@@ -239,17 +239,17 @@ const MatchDetailsPage = () => {
         {tab === 'overview' && (
           <div className="grid gap-6 lg:grid-cols-3 max-w-5xl mx-auto">
             <Card className="p-6 lg:col-span-2 space-y-4">
-              <h3 className="font-display text-lg uppercase tracking-tight">Match Info</h3>
+              <h3 className="font-display text-lg uppercase tracking-tight">{t('match.match_info')}</h3>
               <dl className="grid grid-cols-2 gap-y-4 gap-x-6 text-sm">
                 {[
-                  ['Competition', m.league?.name],
-                  ['Status', isCompleted ? 'Full Time' : live.status],
-                  ['Date', m.matchDate ? format(new Date(m.matchDate), 'EEEE, dd MMM yyyy') : 'TBD'],
-                  ['Kick-off', m.matchDate ? `${format(new Date(m.matchDate), 'HH:mm')} CAT` : 'TBD'],
-                  ['Venue', m.venue || 'TBD'],
-                  ['Referee', m.referee || '—'],
-                  ['Matchday', m.matchday ? `Round ${m.matchday}` : '—'],
-                  ['Attendance', m.attendance ? m.attendance.toLocaleString() : '—'],
+                  [t('match.competition'), m.league?.name],
+                  [t('match.status'), isCompleted ? t('match.full_time') : live.status],
+                  [t('match.date'), m.matchDate ? format(new Date(m.matchDate), 'EEEE, dd MMM yyyy') : t('common.tbd')],
+                  [t('match.kick_off'), m.matchDate ? `${format(new Date(m.matchDate), 'HH:mm')} CAT` : t('common.tbd')],
+                  [t('match.venue'), m.venue || t('common.tbd')],
+                  [t('match.referee'), m.referee || '—'],
+                  [t('match.matchday'), m.matchday ? `${t('match.round')} ${m.matchday}` : '—'],
+                  [t('match.attendance'), m.attendance ? m.attendance.toLocaleString() : '—'],
                 ].map(([k, v]) => (
                   <div key={k}>
                     <dt className="text-[10px] uppercase font-bold tracking-widest opacity-40">{k}</dt>
@@ -259,7 +259,7 @@ const MatchDetailsPage = () => {
               </dl>
             </Card>
             <Card className="p-6 flex flex-col items-center justify-center text-center gap-4">
-              <span className="text-[10px] uppercase font-bold tracking-widest opacity-40">Result</span>
+              <span className="text-[10px] uppercase font-bold tracking-widest opacity-40">{t('match.result')}</span>
               <div className="flex items-center gap-4">
                 <TeamBadge team={m.homeTeam} size="sm" />
                 <span className="font-display text-4xl tabular-nums">{live.homeScore ?? 0}<span className="opacity-20 mx-1">:</span>{live.awayScore ?? 0}</span>
@@ -292,7 +292,7 @@ const MatchDetailsPage = () => {
                 <StatBar label="Yellow Cards" home={stats.yellow[0]} away={stats.yellow[1]} />
                 <StatBar label="Red Cards" home={stats.red[0]} away={stats.red[1]} />
                 <p className="mt-6 text-[10px] uppercase tracking-widest opacity-30 text-center">
-                  Detailed statistics not published yet — derived live from match events
+                  {t('match.stats_unpublished')}
                 </p>
               </div>
             )}
@@ -321,17 +321,17 @@ const MatchDetailsPage = () => {
                         <TeamBadge team={side.team} size="sm" />
                         <div>
                           <h3 className="font-display text-lg uppercase tracking-tight leading-none">{side.team?.name}</h3>
-                          {side.sheet?.coachName && <p className="text-[10px] uppercase tracking-widest opacity-40 mt-1">Coach: {side.sheet.coachName}</p>}
+                          {side.sheet?.coachName && <p className="text-[10px] uppercase tracking-widest opacity-40 mt-1">{t('match.coach')}: {side.sheet.coachName}</p>}
                         </div>
                       </div>
                       {side.sheet?.formation && <span className="text-xs font-display px-3 py-1 rounded-lg bg-red/10 text-red">{side.sheet.formation}</span>}
                     </div>
                     {starters.length > 0 && <>
-                      <p className="text-[10px] uppercase font-bold tracking-widest opacity-40 mb-1">Starting XI</p>
+                      <p className="text-[10px] uppercase font-bold tracking-widest opacity-40 mb-1">{t('match.starting_xi')}</p>
                       <ul className="space-y-1 mb-4">{starters.map(Row)}</ul>
                     </>}
                     {bench.length > 0 && <>
-                      <p className="text-[10px] uppercase font-bold tracking-widest opacity-40 mb-1">Substitutes</p>
+                      <p className="text-[10px] uppercase font-bold tracking-widest opacity-40 mb-1">{t('match.substitutes')}</p>
                       <ul className="space-y-1 opacity-80">{bench.map(Row)}</ul>
                     </>}
                   </Card>
@@ -339,7 +339,7 @@ const MatchDetailsPage = () => {
               })}
             </div>
           ) : (
-            <EmptyState icon={Users} title="Lineups not available yet" hint="Team sheets have not been published for this match." className="py-16" />
+            <EmptyState icon={Users} title={t('match.lineups_unavailable')} hint={t('match.lineups_unavailable_hint')} className="py-16" />
           )
         )}
 
@@ -349,7 +349,7 @@ const MatchDetailsPage = () => {
             {orderedEvents.length ? (
               <MatchEventTimeline events={orderedEvents} homeTeamId={m.homeTeamId} />
             ) : (
-              <EmptyState icon={Clock} title="No events yet" hint="Match events will appear here as they happen." className="py-16" />
+              <EmptyState icon={Clock} title={t('match.no_events')} hint={t('match.no_events_hint')} className="py-16" />
             )}
           </div>
         )}

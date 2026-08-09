@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { startOfDay, endOfDay, format } from 'date-fns';
 import { Radio } from 'lucide-react';
 import { getFixtures } from '../../api/endpoints/fixtures';
@@ -20,7 +21,7 @@ const TeamLine = ({ team, score, showScore, lead }) => (
   </div>
 );
 
-const Chip = ({ f }) => {
+const Chip = ({ f, t }) => {
   const live = f.status === 'LIVE';
   const done = f.status === 'COMPLETED';
   const showScore = live || done;
@@ -34,11 +35,11 @@ const Chip = ({ f }) => {
       <div className="flex items-center justify-between mb-2 text-[9px] font-bold uppercase tracking-widest">
         <span className="truncate opacity-40 max-w-[60%]">{f.league?.name || 'Match'}</span>
         {live ? (
-          <span className="flex items-center gap-1 text-red"><span className="w-1.5 h-1.5 bg-red rounded-full animate-pulse" />LIVE</span>
+          <span className="flex items-center gap-1 text-red"><span className="w-1.5 h-1.5 bg-red rounded-full animate-pulse" />{t('match.live')}</span>
         ) : done ? (
-          <span className="opacity-40">FT</span>
+          <span className="opacity-40">{t('browser.ft')}</span>
         ) : (
-          <span className="opacity-60">{f.matchDate ? format(new Date(f.matchDate), 'HH:mm') : 'TBD'}</span>
+          <span className="opacity-60">{f.matchDate ? format(new Date(f.matchDate), 'HH:mm') : t('common.tbd')}</span>
         )}
       </div>
       <TeamLine team={f.homeTeam} score={hs} showScore={showScore} lead={showScore && hs >= as} />
@@ -48,6 +49,7 @@ const Chip = ({ f }) => {
 };
 
 const LiveTodayStrip = () => {
+  const { t } = useTranslation();
   const from = startOfDay(new Date()).toISOString();
   const to = endOfDay(new Date()).toISOString();
 
@@ -81,10 +83,10 @@ const LiveTodayStrip = () => {
     <ResponsiveWrapper className="mt-10">
       <div className="flex items-center gap-2 mb-3">
         <Radio size={15} className="text-red" />
-        <h2 className="text-[10px] uppercase font-bold tracking-[0.4em]">Live &amp; Today</h2>
+        <h2 className="text-[10px] uppercase font-bold tracking-[0.4em]">{t('browser.live_today')}</h2>
         {liveCount > 0 && (
           <span className="text-[9px] font-bold uppercase tracking-widest text-red bg-red/10 border border-red/20 rounded-full px-2 py-0.5">
-            {liveCount} live
+            {t('browser.live_count', { count: liveCount })}
           </span>
         )}
       </div>

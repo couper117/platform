@@ -169,7 +169,26 @@
     "round": "Umuzenguruko",
     "competition": "Irushanwa",
     "status": "Uko bimeze",
-    "view": "Reba"
+    "view": "Reba",
+    "overview": "Incamake",
+    "watch_live": "Reba kuri Live",
+    "stream_unavailable": "Nta kwerekana kuri live bihari",
+    "match_info": "Amakuru y’umukino",
+    "date": "Itariki",
+    "venue": "Ikibuga",
+    "referee": "Umusifuzi",
+    "matchday": "Umunsi w’umukino",
+    "attendance": "Abari aho",
+    "result": "Igisubizo",
+    "starting_xi": "Abatangira",
+    "substitutes": "Abasimbura",
+    "coach": "Umutoza",
+    "formation": "Imitunganyirize",
+    "lineups_unavailable": "Amakipe ntararatangazwa",
+    "lineups_unavailable_hint": "Amakipe y’uyu mukino ntararatangazwa.",
+    "no_events": "Nta bintu biraba",
+    "no_events_hint": "Ibiba mu mukino bizagaragara hano.",
+    "stats_unpublished": "Imibare irambuye ntararatangazwa — iva ku bintu byabaye mu mukino"
   },
   "standings": {
     "col_pos": "Umw.",
@@ -856,5 +875,31 @@
     "choose_a_sport": "Hitamo umukino",
     "no_match": "Nta mukino uhuye na \"{{q}}\".",
     "enter": "Injira"
+  },
+  "matchstat": {
+    "possession": "Umwanya w’umupira %",
+    "shots": "Ibitego byagerageje",
+    "shots_on_target": "Ibigeze ku muryango",
+    "shots_inside_box": "Ibyo mu gasanduku",
+    "shots_outside_box": "Ibyo hanze y’agasanduku",
+    "corners": "Koni",
+    "offsides": "Offside",
+    "fouls": "Amakosa",
+    "gk_saves": "Ibyo umurinzi yakijije",
+    "pass_accuracy": "Ukuri kwo gutanga %",
+    "xg": "Ibitego biteganijwe (xG)"
+  },
+  "browser": {
+    "search_leagues": "Shakisha amarushanwa...",
+    "all": "Byose",
+    "no_matches": "Nta mikino kuri {{day}}",
+    "no_matches_hint": "Gerageza undi munsi cyangwa irushanwa.",
+    "ft": "FT",
+    "live_today": "Live n’Uyu munsi",
+    "live_count": "{{count}} kuri live",
+    "today": "Uyu munsi",
+    "yesterday": "Ejo hashize",
+    "tomorrow": "Ejo hazaza",
+    "fixtures_results": "Imikino n’Ibisubizo"
   }
 }

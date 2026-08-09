@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { Search, Trophy, CalendarDays } from 'lucide-react';
 import { startOfDay, endOfDay, addDays, format, isToday, isTomorrow, isYesterday } from 'date-fns';
 import { getFixtures } from '../../api/endpoints/fixtures';
@@ -8,19 +9,19 @@ import Skeleton from '../shared/Skeleton';
 
 const initials = (name = '') => (name || '?').split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
 
-const dayLabel = (d) => {
-  if (isYesterday(d)) return 'Yesterday';
-  if (isToday(d)) return 'Today';
-  if (isTomorrow(d)) return 'Tomorrow';
+const dayLabel = (d, t) => {
+  if (isYesterday(d)) return t('browser.yesterday');
+  if (isToday(d)) return t('browser.today');
+  if (isTomorrow(d)) return t('browser.tomorrow');
   return format(d, 'EEE');
 };
 
-const StatusCell = ({ f }) => {
+const StatusCell = ({ f, t }) => {
   if (f.status === 'LIVE') {
     return (
       <div className="flex flex-col items-center min-w-[54px]">
         <span className="text-[9px] font-bold text-red uppercase tracking-tighter italic flex items-center gap-1">
-          <span className="w-1.5 h-1.5 bg-red rounded-full animate-pulse" /> Live
+          <span className="w-1.5 h-1.5 bg-red rounded-full animate-pulse" /> {t('match.live')}
         </span>
         <span className="font-display text-lg leading-none mt-1">{f.homeScore ?? 0}-{f.awayScore ?? 0}</span>
       </div>
@@ -29,7 +30,7 @@ const StatusCell = ({ f }) => {
   if (f.status === 'COMPLETED') {
     return (
       <div className="flex flex-col items-center min-w-[54px]">
-        <span className="text-[9px] font-bold opacity-40 uppercase tracking-widest">FT</span>
+        <span className="text-[9px] font-bold opacity-40 uppercase tracking-widest">{t('browser.ft')}</span>
         <span className="font-display text-lg leading-none mt-1">{f.homeScore ?? 0}-{f.awayScore ?? 0}</span>
       </div>
     );
@@ -39,7 +40,7 @@ const StatusCell = ({ f }) => {
   }
   return (
     <span className="min-w-[54px] text-center font-display text-base opacity-70">
-      {f.matchDate ? format(new Date(f.matchDate), 'HH:mm') : 'TBD'}
+      {f.matchDate ? format(new Date(f.matchDate), 'HH:mm') : t('common.tbd')}
     </span>
   );
 };
@@ -54,6 +55,7 @@ const TeamRow = ({ team, score, bold }) => (
 );
 
 const MatchDayBrowser = ({ sportId, accent = '#E8002D', leagues = [], showSidebar = true }) => {
+  const { t } = useTranslation();
   const [leagueId, setLeagueId] = useState(null);
   const [search, setSearch] = useState('');
   const [offset, setOffset] = useState(0); // 0 = today
@@ -95,7 +97,7 @@ const MatchDayBrowser = ({ sportId, accent = '#E8002D', leagues = [], showSideba
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search leagues..."
+            placeholder={t('browser.search_leagues')}
             className="bg-transparent text-sm p-2.5 w-full outline-none"
           />
         </div>
@@ -105,7 +107,7 @@ const MatchDayBrowser = ({ sportId, accent = '#E8002D', leagues = [], showSideba
             className={`shrink-0 flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all text-left ${leagueId === null ? 'text-white' : 'bg-white dark:bg-white/5 border border-surface-3 dark:border-white/10 hover:border-red/40'}`}
             style={leagueId === null ? { background: accent } : undefined}
           >
-            <Trophy size={14} /> All {leagues.length ? `(${leagues.length})` : ''}
+            <Trophy size={14} /> {t('browser.all')} {leagues.length ? `(${leagues.length})` : ''}
           </button>
           {filteredLeagues.map((l) => (
             <button
@@ -138,7 +140,7 @@ const MatchDayBrowser = ({ sportId, accent = '#E8002D', leagues = [], showSideba
                   className={`shrink-0 flex flex-col items-center px-4 py-2 rounded-xl border transition-all ${active ? 'text-white border-transparent' : 'bg-white dark:bg-white/5 border-surface-3 dark:border-white/10 hover:border-red/40'}`}
                   style={active ? { background: accent } : undefined}
                 >
-                  <span className="text-[10px] font-bold uppercase tracking-widest">{dayLabel(d)}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest">{dayLabel(d, t)}</span>
                   <span className="text-[9px] opacity-70">{format(d, 'd MMM')}</span>
                 </button>
               );
@@ -151,8 +153,8 @@ const MatchDayBrowser = ({ sportId, accent = '#E8002D', leagues = [], showSideba
         ) : matches.length === 0 ? (
           <div className="rounded-2xl border border-surface-3 dark:border-white/10 bg-white dark:bg-surface-dark2 p-12 text-center">
             <CalendarDays size={34} className="mx-auto opacity-25 mb-3" />
-            <p className="font-display text-xl uppercase tracking-widest opacity-60">No matches on {dayLabel(activeDay)}</p>
-            <p className="text-xs opacity-40 mt-1">Try another day or league.</p>
+            <p className="font-display text-xl uppercase tracking-widest opacity-60">{t('browser.no_matches', { day: dayLabel(activeDay, t) })}</p>
+            <p className="text-xs opacity-40 mt-1">{t('browser.no_matches_hint')}</p>
           </div>
         ) : (
           <div className="space-y-6">
@@ -164,7 +166,7 @@ const MatchDayBrowser = ({ sportId, accent = '#E8002D', leagues = [], showSideba
                 <div className="rounded-2xl border border-surface-3 dark:border-white/10 bg-white dark:bg-surface-dark2 divide-y divide-surface-3 dark:divide-white/5 overflow-hidden">
                   {list.map((f) => (
                     <Link key={f.id} to={`/matches/${f.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-surface-2 dark:hover:bg-white/5 transition-colors">
-                      <StatusCell f={f} />
+                      <StatusCell f={f} t={t} />
                       <div className="flex-1 min-w-0 space-y-1.5">
                         <TeamRow team={f.homeTeam} bold={f.status !== 'SCHEDULED' && (f.homeScore ?? 0) >= (f.awayScore ?? 0)} />
                         <TeamRow team={f.awayTeam} bold={f.status !== 'SCHEDULED' && (f.awayScore ?? 0) >= (f.homeScore ?? 0)} />

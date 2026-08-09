@@ -4,6 +4,7 @@ import {
   CartesianGrid, LabelList,
 } from 'recharts';
 import { Goal, TrendingUp, Shield } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../context/ThemeContext';
 import Card from '../ui/Card';
 import EmptyState from '../ui/EmptyState';
@@ -46,12 +47,13 @@ const shortName = (name = '') =>
   name.length > 12 ? name.split(' ').map((w) => w[0]).join('').slice(0, 4).toUpperCase() : name;
 
 const LeagueStats = ({ standings = [], topScorers = [] }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const grid = theme?.dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
   const axis = theme?.dark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)';
 
   if (!standings.length && !topScorers.length) {
-    return <EmptyState icon={TrendingUp} title="No statistics yet" hint="Stats appear once matches are played." />;
+    return <EmptyState icon={TrendingUp} title={t('stats.none')} hint={t('stats.none_hint')} />;
   }
 
   const sortedStandings = [...standings].sort((a, b) => b.points - a.points);
@@ -78,7 +80,7 @@ const LeagueStats = ({ standings = [], topScorers = [] }) => {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Points */}
       {pointsData.length > 0 && (
-        <ChartCard icon={TrendingUp} title="Points" subtitle="Table by points">
+        <ChartCard icon={TrendingUp} title={t('stats.points')} subtitle={t('stats.points_subtitle')}>
           <ResponsiveContainer width="100%" height={Math.max(220, pointsData.length * 34)}>
             <BarChart data={pointsData} layout="vertical" margin={{ left: 8, right: 24 }}>
               <CartesianGrid horizontal={false} stroke={grid} />
@@ -98,13 +100,13 @@ const LeagueStats = ({ standings = [], topScorers = [] }) => {
 
       {/* Top scorers — mobile-fit ranked table */}
       {scorersTable.length > 0 && (
-        <ChartCard icon={Goal} title="Top Scorers" subtitle="Goals & assists">
+        <ChartCard icon={Goal} title={t('stats.top_scorers')} subtitle={t('stats.top_scorers_subtitle')}>
           <div className="overflow-hidden rounded-xl border border-surface-3 dark:border-white/5">
             <table className="w-full table-fixed border-collapse text-left">
               <thead>
                 <tr className="bg-surface-2 dark:bg-white/5 text-[9px] sm:text-[10px] uppercase font-bold tracking-[0.1em] sm:tracking-[0.2em] text-surface-dark/40 dark:text-white/40">
                   <th className="px-1 sm:px-3 py-2.5 text-center w-8 sm:w-12">#</th>
-                  <th className="px-2 sm:px-3 py-2.5">Player</th>
+                  <th className="px-2 sm:px-3 py-2.5">{t('stats.player')}</th>
                   <th className="px-1 sm:px-3 py-2.5 text-center w-10 sm:w-14 text-red">Gls</th>
                   <th className="px-1 sm:px-3 py-2.5 text-center w-10 sm:w-14">Ast</th>
                 </tr>
@@ -133,7 +135,7 @@ const LeagueStats = ({ standings = [], topScorers = [] }) => {
 
       {/* Goals for / against */}
       {goalsData.length > 0 && (
-        <ChartCard icon={Shield} title="Goals For / Against" subtitle="Attack vs defence">
+        <ChartCard icon={Shield} title={t('stats.goals_for_against')} subtitle={t('stats.attack_vs_defence')}>
           <ResponsiveContainer width="100%" height={Math.max(240, goalsData.length * 38)}>
             <BarChart data={goalsData} margin={{ left: 0, right: 8, top: 8 }}>
               <CartesianGrid vertical={false} stroke={grid} />

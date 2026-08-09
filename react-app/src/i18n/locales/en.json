@@ -169,7 +169,26 @@
     "round": "Round",
     "competition": "Competition",
     "status": "Status",
-    "view": "View"
+    "view": "View",
+    "overview": "Overview",
+    "watch_live": "Watch Live",
+    "stream_unavailable": "Live streaming is unavailable",
+    "match_info": "Match Info",
+    "date": "Date",
+    "venue": "Venue",
+    "referee": "Referee",
+    "matchday": "Matchday",
+    "attendance": "Attendance",
+    "result": "Result",
+    "starting_xi": "Starting XI",
+    "substitutes": "Substitutes",
+    "coach": "Coach",
+    "formation": "Formation",
+    "lineups_unavailable": "Lineups not available yet",
+    "lineups_unavailable_hint": "Team sheets have not been published for this match.",
+    "no_events": "No events yet",
+    "no_events_hint": "Match events will appear here as they happen.",
+    "stats_unpublished": "Detailed statistics not published yet — derived live from match events"
   },
   "standings": {
     "col_pos": "Pos",
@@ -856,5 +875,31 @@
     "choose_a_sport": "Choose a sport",
     "no_match": "No sports match \"{{q}}\".",
     "enter": "Enter"
+  },
+  "matchstat": {
+    "possession": "Possession %",
+    "shots": "Shots",
+    "shots_on_target": "Shots on Target",
+    "shots_inside_box": "Shots Inside Box",
+    "shots_outside_box": "Shots Outside Box",
+    "corners": "Corners",
+    "offsides": "Offsides",
+    "fouls": "Fouls",
+    "gk_saves": "GK Saves",
+    "pass_accuracy": "Pass Accuracy %",
+    "xg": "Expected Goals (xG)"
+  },
+  "browser": {
+    "search_leagues": "Search leagues...",
+    "all": "All",
+    "no_matches": "No matches on {{day}}",
+    "no_matches_hint": "Try another day or league.",
+    "ft": "FT",
+    "live_today": "Live & Today",
+    "live_count": "{{count}} live",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "tomorrow": "Tomorrow",
+    "fixtures_results": "Fixtures & Results"
   }
 }

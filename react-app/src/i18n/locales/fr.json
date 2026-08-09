@@ -169,7 +169,26 @@
     "round": "Journée",
     "competition": "Compétition",
     "status": "Statut",
-    "view": "Voir"
+    "view": "Voir",
+    "overview": "Aperçu",
+    "watch_live": "Regarder en direct",
+    "stream_unavailable": "Diffusion en direct indisponible",
+    "match_info": "Infos du match",
+    "date": "Date",
+    "venue": "Lieu",
+    "referee": "Arbitre",
+    "matchday": "Journée",
+    "attendance": "Affluence",
+    "result": "Résultat",
+    "starting_xi": "Onze de départ",
+    "substitutes": "Remplaçants",
+    "coach": "Entraîneur",
+    "formation": "Formation",
+    "lineups_unavailable": "Compositions indisponibles",
+    "lineups_unavailable_hint": "Les compositions n’ont pas encore été publiées.",
+    "no_events": "Aucun événement",
+    "no_events_hint": "Les événements du match apparaîtront ici.",
+    "stats_unpublished": "Statistiques détaillées non publiées — dérivées des événements du match"
   },
   "standings": {
     "col_pos": "Pos",
@@ -856,5 +875,31 @@
     "choose_a_sport": "Choisissez un sport",
     "no_match": "Aucun sport ne correspond à \"{{q}}\".",
     "enter": "Entrer"
+  },
+  "matchstat": {
+    "possession": "Possession %",
+    "shots": "Tirs",
+    "shots_on_target": "Tirs cadrés",
+    "shots_inside_box": "Tirs dans la surface",
+    "shots_outside_box": "Tirs hors surface",
+    "corners": "Corners",
+    "offsides": "Hors-jeu",
+    "fouls": "Fautes",
+    "gk_saves": "Arrêts du gardien",
+    "pass_accuracy": "Précision passes %",
+    "xg": "Buts attendus (xG)"
+  },
+  "browser": {
+    "search_leagues": "Rechercher des ligues...",
+    "all": "Tout",
+    "no_matches": "Aucun match {{day}}",
+    "no_matches_hint": "Essayez un autre jour ou ligue.",
+    "ft": "FT",
+    "live_today": "En direct & Aujourd’hui",
+    "live_count": "{{count}} en direct",
+    "today": "Aujourd’hui",
+    "yesterday": "Hier",
+    "tomorrow": "Demain",
+    "fixtures_results": "Matchs & Résultats"
   }
 }
