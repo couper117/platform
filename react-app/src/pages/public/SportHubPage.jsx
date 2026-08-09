@@ -1,6 +1,7 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { Trophy, Users, Calendar, ChevronLeft, ArrowRight, Newspaper, LayoutGrid, AlertCircle } from 'lucide-react';
 import { getSport } from '../../api/endpoints/sports';
 import { getLeagues } from '../../api/endpoints/leagues';
@@ -25,6 +26,7 @@ const statusPill = (status) => {
 };
 
 const SportHubPage = () => {
+  const { t } = useTranslation();
   const { slug } = useParams();
   const theme = sportTheme(slug);
 
@@ -75,7 +77,7 @@ const SportHubPage = () => {
 
         <ResponsiveWrapper className="relative z-20 py-14">
           <Link to="/" className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white/50 hover:text-white mb-6">
-            <ChevronLeft size={14} /> All Sports
+            <ChevronLeft size={14} /> {t('nav.all_sports')}
           </Link>
           <div className="flex items-end gap-5 flex-wrap">
             <SportIcon slug={slug} className="text-6xl sm:text-8xl drop-shadow-2xl" style={{ color: theme.accent }} />
@@ -88,9 +90,9 @@ const SportHubPage = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-6 mt-6 text-[11px] font-bold uppercase tracking-widest text-white/60">
-            <span className="flex items-center gap-2"><Trophy size={14} style={{ color: theme.accent }} /> {leagues.length} {leagues.length === 1 ? 'League' : 'Leagues'}</span>
-            <span className="flex items-center gap-2"><Users size={14} style={{ color: theme.accent }} /> {teamCount} Teams</span>
-            <span className="flex items-center gap-2"><Calendar size={14} style={{ color: theme.accent }} /> {fixtures.length} Upcoming</span>
+            <span className="flex items-center gap-2"><Trophy size={14} style={{ color: theme.accent }} /> {leagues.length} {leagues.length === 1 ? t('sporthub.league') : t('sporthub.leagues')}</span>
+            <span className="flex items-center gap-2"><Users size={14} style={{ color: theme.accent }} /> {teamCount} {t('sporthub.teams')}</span>
+            <span className="flex items-center gap-2"><Calendar size={14} style={{ color: theme.accent }} /> {fixtures.length} {t('sporthub.upcoming')}</span>
           </div>
         </ResponsiveWrapper>
       </section>
@@ -99,9 +101,9 @@ const SportHubPage = () => {
         <ResponsiveWrapper className="mt-16">
           <div className="rounded-3xl border border-surface-3 dark:border-white/10 bg-white dark:bg-surface-dark2 p-12 text-center space-y-4">
             <LayoutGrid size={40} className="mx-auto opacity-30" />
-            <h3 className="font-display text-2xl uppercase tracking-widest">{sport.name} is coming soon</h3>
-            <p className="opacity-60 max-w-md mx-auto">No leagues have been set up for {sport.name} yet. Be part of it — register your team and we'll get the competition rolling.</p>
-            <Link to="/auth/team/register" className="inline-flex items-center gap-2 bg-red text-white px-6 py-3 rounded-xl font-display uppercase tracking-widest text-sm">Register a Team <ArrowRight size={16} /></Link>
+            <h3 className="font-display text-2xl uppercase tracking-widest">{t('sporthub.coming_soon', { sport: sport.name })}</h3>
+            <p className="opacity-60 max-w-md mx-auto">{t('sporthub.coming_soon_hint', { sport: sport.name })}</p>
+            <Link to="/auth/team/register" className="inline-flex items-center gap-2 bg-red text-white px-6 py-3 rounded-xl font-display uppercase tracking-widest text-sm">{t('sporthub.register_team')} <ArrowRight size={16} /></Link>
           </div>
         </ResponsiveWrapper>
       )}
@@ -109,8 +111,8 @@ const SportHubPage = () => {
       {/* MATCH CENTRE — LiveScore-style browser (comes before competitions) */}
       <ResponsiveWrapper className="mt-8 sm:mt-12" id="matches">
         <div className="mb-6">
-          <h2 className="text-[10px] uppercase font-bold tracking-[0.4em]" style={{ color: theme.accent }}>Match Centre</h2>
-          <h3 className="text-3xl sm:text-4xl font-display uppercase tracking-tight">Fixtures &amp; Results</h3>
+          <h2 className="text-[10px] uppercase font-bold tracking-[0.4em]" style={{ color: theme.accent }}>{t('sporthub.match_centre')}</h2>
+          <h3 className="text-3xl sm:text-4xl font-display uppercase tracking-tight">{t('browser.fixtures_results')}</h3>
         </div>
         <MatchDayBrowser sportId={sportId} accent={theme.accent} leagues={leagues} />
       </ResponsiveWrapper>
@@ -120,8 +122,8 @@ const SportHubPage = () => {
         <ResponsiveWrapper className="mt-16">
           <div className="flex items-end justify-between mb-6">
             <div>
-              <h2 className="text-[10px] uppercase font-bold tracking-[0.4em]" style={{ color: theme.accent }}>Competitions</h2>
-              <h3 className="text-3xl sm:text-4xl font-display uppercase tracking-tight">{sport.name} Leagues</h3>
+              <h2 className="text-[10px] uppercase font-bold tracking-[0.4em]" style={{ color: theme.accent }}>{t('footer.competitions')}</h2>
+              <h3 className="text-3xl sm:text-4xl font-display uppercase tracking-tight">{t('sporthub.sport_leagues', { sport: sport.name })}</h3>
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -134,7 +136,7 @@ const SportHubPage = () => {
                 <h4 className="font-display text-xl uppercase tracking-tight leading-tight group-hover:text-red transition-colors">{l.name}</h4>
                 <p className="text-[10px] uppercase font-bold tracking-widest opacity-40 mt-2">Season {l.season} · {l._count?.teams ?? 0} teams</p>
                 <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest mt-4" style={{ color: theme.accent }}>
-                  View standings <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+                  {t('sporthub.view_standings')} <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
                 </div>
               </Link>
             ))}
@@ -147,8 +149,8 @@ const SportHubPage = () => {
         <ResponsiveWrapper className="mt-16">
           <div className="flex items-end justify-between mb-6">
             <div>
-              <h2 className="text-[10px] uppercase font-bold tracking-[0.4em]" style={{ color: theme.accent }}>Bulletin</h2>
-              <h3 className="text-3xl sm:text-4xl font-display uppercase tracking-tight flex items-center gap-3"><Newspaper size={26} /> {sport.name} News</h3>
+              <h2 className="text-[10px] uppercase font-bold tracking-[0.4em]" style={{ color: theme.accent }}>{t('sporthub.bulletin')}</h2>
+              <h3 className="text-3xl sm:text-4xl font-display uppercase tracking-tight flex items-center gap-3"><Newspaper size={26} /> {t('sporthub.sport_news', { sport: sport.name })}</h3>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

@@ -10,8 +10,8 @@ import apiClient from '../../api/client';
 import { roleHome } from '../../utils/roleHome';
 
 const loginSchema = z.object({
-  username: z.string().min(3, 'Enter your email or username'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  username: z.string().min(3, 'authx.identifier_min'),
+  password: z.string().min(6, 'auth.validation.password_min'),
 });
 
 const LoginPage = () => {
@@ -35,7 +35,7 @@ const LoginPage = () => {
 
       navigate(roleHome(user.role));
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid credentials');
+      setError(err.response?.data?.message || t('authx.invalid_credentials'));
     } finally {
       setIsLoading(false);
     }
@@ -74,13 +74,13 @@ const LoginPage = () => {
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">Email or Username</label>
+                <label className="text-[10px] uppercase font-bold tracking-widest text-white/40 ml-1">{t('authx.email_or_username')}</label>
                 <input
                   {...register('username')}
                   className={`w-full bg-white/5 border ${errors.username ? 'border-red/50' : 'border-white/10'} text-white p-4 rounded-xl focus:border-red focus:bg-white/10 outline-none transition-all placeholder:text-white/10`}
-                  placeholder="you@email.rw or username"
+                  placeholder={t('authx.identifier_placeholder')}
                 />
-                {errors.username && <p className="text-[10px] font-bold text-red uppercase tracking-widest ml-1">{errors.username.message}</p>}
+                {errors.username && <p className="text-[10px] font-bold text-red uppercase tracking-widest ml-1">{t(errors.username.message)}</p>}
               </div>
 
               <div className="space-y-2">
@@ -91,7 +91,7 @@ const LoginPage = () => {
                   className={`w-full bg-white/5 border ${errors.password ? 'border-red/50' : 'border-white/10'} text-white p-4 rounded-xl focus:border-red focus:bg-white/10 outline-none transition-all placeholder:text-white/10`}
                   placeholder="••••••••"
                 />
-                {errors.password && <p className="text-[10px] font-bold text-red uppercase tracking-widest ml-1">{errors.password.message}</p>}
+                {errors.password && <p className="text-[10px] font-bold text-red uppercase tracking-widest ml-1">{t(errors.password.message)}</p>}
               </div>
             </div>
 
