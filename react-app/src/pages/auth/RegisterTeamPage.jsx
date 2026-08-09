@@ -8,12 +8,13 @@ import { useTranslation } from 'react-i18next';
 import {
   AlertCircle, ChevronLeft, ChevronRight, Check, Trophy, ShieldCheck, ListChecks, BarChart3,
 } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { getSports } from '../../api/endpoints/sports';
 import apiClient from '../../api/client';
-import useFavouriteSport from '../../hooks/useFavouriteSport';
-import { sportTheme } from '../../config/sportThemes';
-import responsiveImage from '../../utils/responsiveImage';
+import SportBounce from '../../components/shared/SportBounce';
+import SportSlideshow from '../../components/shared/SportSlideshow';
 import Seo from '../../components/shared/Seo';
+import { useMotionSafe, DUR, EASE } from '../../lib/motion';
 import { Button, Field, Input, Select, cn } from '../../components/ui';
 
 const registerSchema = z.object({
@@ -48,6 +49,17 @@ const STEPS = [
   { n: 3, label: 'Officials' },
 ];
 
+/**
+ * Step transition. Direction-aware, so going forward slides in from the right and
+ * Back slides in from the left — which is the cheapest way to tell someone whether
+ * they advanced or retreated without reading the indicator.
+ */
+const stepVariants = {
+  enter: (dir) => ({ x: dir > 0 ? 28 : -28, opacity: 0 }),
+  center: { x: 0, opacity: 1 },
+  exit: (dir) => ({ x: dir > 0 ? -28 : 28, opacity: 0 }),
+};
+
 /** What registering actually gets a club — reassurance beside a long form. */
 const BENEFITS = [
   { icon: ShieldCheck, text: 'Verified status in official federation leagues' },
@@ -76,6 +88,9 @@ const RegisterTeamPage = () => {
   const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState(1);
+  // +1 forward, -1 back. Drives which way the step slides.
+  const [dir, setDir] = useState(1);
+  const safe = useMotionSafe();
 
   const { data: sports } = useQuery({ queryKey: ['sports-list-register'], queryFn: getSports });
 
@@ -89,7 +104,15 @@ const RegisterTeamPage = () => {
       2: ['teamName', 'sportId', 'city', 'province'],
     };
     const isValid = await trigger(groups[step] || []);
-    if (isValid) setStep(step + 1);
+    if (isValid) {
+      setDir(1);
+      setStep(step + 1);
+    }
+  };
+
+  const goBack = (to) => {
+    setDir(-1);
+    setStep(to);
   };
 
   const onSubmit = async (data) => {
@@ -110,11 +133,6 @@ const RegisterTeamPage = () => {
       setIsLoading(false);
     }
   };
-
-  // Same panel photograph as sign-in, following the visitor's chosen sport.
-  const { slug: favourite } = useFavouriteSport();
-  const favSport = (sports?.data ?? []).find((s) => s.slug === favourite);
-  const panelImage = favSport?.coverImage || sportTheme(favourite).bg;
 
   /* ─── success ─── */
   if (success) {
@@ -155,11 +173,22 @@ const RegisterTeamPage = () => {
         </Link>
 
         <div className="mx-auto w-full max-w-lg flex-1 py-8">
-          <p className="font-display text-xl font-extrabold tracking-tight text-primary">
-            Rwa<span className="text-brand-text">Sport</span>
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="font-display text-xl font-extrabold tracking-tight text-primary">
+              Rwa<span className="text-brand-text">Sport</span>
+            </p>
+            {/* The same bouncing mark as sign-in, so the two front doors feel like one
+                product. Sized down and set beside the wordmark rather than above the
+                fields: this form is long, and 80px of decoration between the heading
+                and the first input would push the work further down the page. */}
+            <SportBounce
+              slugs={(sports?.data ?? []).map((s) => s.slug).filter(Boolean)}
+              size={20}
+              className="h-8"
+            />
+          </div>
 
-          <h1 className="mt-6 text-2xl font-extrabold text-primary">Register your club</h1>
+          <h1 className="mt-5 text-2xl font-extrabold text-primary">Register your club</h1>
           <p className="mt-1.5 text-sm text-secondary">
             Three short steps. The federation reviews every application before a club joins a
             league.
@@ -218,7 +247,22 @@ const RegisterTeamPage = () => {
             </div>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-5" noValidate>
+          <form onSubmit={handleSubmit(onSubmit)} className="mt-6" noValidate>
+            {/* `mode="wait"` because wizard steps must not overlap — two sets of form
+                fields on top of each other would be unusable mid-transition. That
+                makes the swap a sequence rather than a single tween, so each half is
+                held short. */}
+            <AnimatePresence mode="wait" custom={dir} initial={false}>
+              <motion.div
+                key={step}
+                custom={dir}
+                variants={safe ? stepVariants : undefined}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: DUR.base, ease: EASE }}
+                className="space-y-5"
+              >
             {/* Step 1 — the manager's own account */}
             {step === 1 && (
               <>
@@ -309,7 +353,7 @@ const RegisterTeamPage = () => {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button type="button" variant="secondary" size="lg" onClick={() => setStep(1)} className="flex-1">
+                  <Button type="button" variant="secondary" size="lg" onClick={() => goBack(1)} className="flex-1">
                     Back
                   </Button>
                   <Button type="button" onClick={nextStep} size="lg" className="flex-[2]" icon={ChevronRight} iconRight>
@@ -351,7 +395,7 @@ const RegisterTeamPage = () => {
                 </fieldset>
 
                 <div className="flex gap-3">
-                  <Button type="button" variant="secondary" size="lg" onClick={() => setStep(2)} className="flex-1">
+                  <Button type="button" variant="secondary" size="lg" onClick={() => goBack(2)} className="flex-1">
                     Back
                   </Button>
                   <Button type="submit" size="lg" loading={isLoading} className="flex-[2]">
@@ -360,6 +404,8 @@ const RegisterTeamPage = () => {
                 </div>
               </>
             )}
+              </motion.div>
+            </AnimatePresence>
           </form>
 
           <p className="mt-6 text-center text-sm text-secondary">
@@ -371,39 +417,38 @@ const RegisterTeamPage = () => {
         </div>
       </div>
 
-      {/* ─── side panel — desktop only ─── */}
-      <div className="relative hidden overflow-hidden bg-[#0F0F0F] lg:sticky lg:top-0 lg:block lg:h-screen">
-        <img
-          {...responsiveImage(panelImage, { sizes: '45vw' })}
-          alt=""
-          loading="eager"
-          // lowercase: React 18 does not recognise the camelCase form
-          fetchpriority="low"
-          className="absolute inset-0 h-full w-full animate-slow-zoom object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 via-40% to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-bright/15 via-transparent to-transparent" />
+      {/* ─── side panel — desktop only ───────────────────────────────────
+          A SLIDESHOW here rather than the single photograph sign-in uses. Someone
+          registering a new club has no chosen sport yet — there is no "their" sport
+          to show — so the panel cycles every sport on the platform instead, and the
+          caption names each one as it passes. It doubles as a quiet inventory of what
+          they are joining. */}
+      <div className="hidden lg:sticky lg:top-0 lg:block lg:h-screen">
+        <SportSlideshow sports={sports?.data ?? []} className="h-full bg-[#0F0F0F]">
+          {(slide) => (
+            <div className="flex h-full flex-col justify-end p-10 xl:p-14">
+              <p className="mb-3 inline-flex w-fit items-center gap-2 rounded-pill border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-sm">
+                <Trophy size={12} aria-hidden="true" className="text-brand-bright" />
+                {/* Follows the slide, so the label and the picture can never disagree. */}
+                {slide.name} · Rwanda
+              </p>
+              <h2 className="max-w-md text-3xl font-extrabold leading-tight text-white">
+                Join an official league
+              </h2>
 
-        <div className="relative flex h-full flex-col justify-end p-10 xl:p-14">
-          <p className="mb-3 inline-flex w-fit items-center gap-2 rounded-pill border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-sm">
-            <Trophy size={12} aria-hidden="true" className="text-brand-bright" />
-            Official club registration
-          </p>
-          <h2 className="max-w-md text-3xl font-extrabold leading-tight text-white">
-            Join an official league
-          </h2>
-
-          {/* Three lines of reassurance. A twenty-one-field form is a big ask, and
-              this is the one place to answer "what do I actually get". */}
-          <ul className="mt-5 space-y-2.5">
-            {BENEFITS.map(({ icon: Icon, text }) => (
-              <li key={text} className="flex items-start gap-2.5 text-sm text-white/75">
-                <Icon size={16} className="mt-0.5 shrink-0 text-brand-bright" aria-hidden="true" />
-                {text}
-              </li>
-            ))}
-          </ul>
-        </div>
+              {/* Three lines of reassurance. A twenty-one-field form is a big ask, and
+                  this is the one place to answer "what do I actually get". */}
+              <ul className="mt-5 space-y-2.5">
+                {BENEFITS.map(({ icon: Icon, text }) => (
+                  <li key={text} className="flex items-start gap-2.5 text-sm text-white/75">
+                    <Icon size={16} className="mt-0.5 shrink-0 text-brand-bright" aria-hidden="true" />
+                    {text}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </SportSlideshow>
       </div>
     </div>
   );
