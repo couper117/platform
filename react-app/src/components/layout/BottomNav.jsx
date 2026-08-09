@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Home, CalendarDays, Trophy, Newspaper } from 'lucide-react';
+import { Compass, CalendarDays, Trophy, Newspaper } from 'lucide-react';
 import { useMotionSafe, DUR, EASE } from '../../lib/motion';
 import cn from '../ui/cn';
 
@@ -27,7 +27,7 @@ import cn from '../ui/cn';
  */
 
 const TABS = [
-  { to: '/', label: 'Home', icon: Home, end: true },
+  { to: '/', label: 'Explore', icon: Compass, end: true },
   { to: '/fixtures', label: 'Matches', icon: CalendarDays },
   { to: '/leagues', label: 'Leagues', icon: Trophy },
   { to: '/news', label: 'News', icon: Newspaper },
@@ -40,7 +40,7 @@ const BottomNav = () => {
     aria-label="Main"
     className={cn(
       'fixed inset-x-0 bottom-0 z-50 md:hidden',
-      'border-t border-hairline bg-surface',
+      'border-t border-hairline bg-surface/95 shadow-nav backdrop-blur-nav',
       // The safe-area inset is padding, so the 56px row is never squeezed by it.
       'pb-[env(safe-area-inset-bottom)]'
     )}
@@ -55,7 +55,7 @@ const BottomNav = () => {
               cn(
                 'relative flex h-full flex-col items-center justify-center gap-0.5',
                 'transition-colors duration-150 ease-standard',
-                isActive ? 'text-primary' : 'text-tertiary'
+                isActive ? 'text-brand-text' : 'text-tertiary'
               )
             }
           >
@@ -69,7 +69,7 @@ const BottomNav = () => {
                     layoutId={safe ? 'bottom-nav-indicator' : undefined}
                     aria-hidden="true"
                     transition={{ duration: DUR.base, ease: EASE }}
-                    className="absolute inset-x-0 top-0 h-0.5 bg-primary"
+                    className="absolute inset-x-0 top-0 h-0.5 bg-brand"
                   />
                 )}
                 <motion.span

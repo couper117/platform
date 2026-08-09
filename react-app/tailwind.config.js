@@ -73,12 +73,26 @@ export default {
         club: 'rgb(var(--club) / <alpha-value>)',
 
         // ─── DEPRECATED legacy palette ───────────────────────────────
-        // Still referenced by un-swept screens. Deleted in the final cleanup.
-        red: { DEFAULT: '#E8002D', dark: '#C40024', glow: 'rgba(232,0,45,0.12)' },
+        // Still referenced by ~57 un-swept screens. Deleted in the final cleanup.
+        //
+        // `red` IS DELIBERATELY REMAPPED TO THE BRAND GREEN. It was the old accent
+        // and it appears in hundreds of places (`text-red`, `bg-red`, `border-red`).
+        // Pointing it at --brand-strong turns every un-swept screen green in one
+        // line, so the product reads as one design while the screen-by-screen
+        // rewrite continues — instead of looking half-migrated for days.
+        //
+        // --brand-strong specifically, because it is the one green that works BOTH
+        // as text on white (4.55:1) and as a fill under a white label (4.55:1), and
+        // the legacy classes use it for both. The raw --brand would fail at 3.11:1.
+        red: {
+          DEFAULT: 'rgb(var(--brand-strong) / <alpha-value>)',
+          dark: 'rgb(var(--brand-hover) / <alpha-value>)',
+          glow: 'rgb(var(--brand) / 0.12)',
+        },
         gold: { DEFAULT: '#F5A623' },
-        green: { DEFAULT: '#00C853' },
+        green: { DEFAULT: 'rgb(var(--brand-strong) / <alpha-value>)' },
         cyan: { DEFAULT: '#00D4FF' },
-        rwanda: { blue: '#00A1DE', yellow: '#FAD201', green: '#20603D' },
+        rwanda: { blue: '#00A1DE', yellow: '#FAD201', green: 'rgb(var(--brand) / <alpha-value>)' },
       },
 
       // The reference is generously rounded, with a distinct radius per role.

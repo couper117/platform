@@ -62,7 +62,7 @@ const SportSwitcher = ({ activeSlug }) => {
               className={cn(
                 'shrink-0 rounded-pill border px-3 py-1.5 text-sm',
                 !activeSlug
-                  ? 'border-primary bg-primary text-page'
+                  ? 'border-brand-strong bg-brand-strong text-brand-on'
                   : 'border-hairline text-secondary'
               )}
             >
@@ -76,7 +76,7 @@ const SportSwitcher = ({ activeSlug }) => {
                 className={cn(
                   'shrink-0 rounded-pill border px-3 py-1.5 text-sm',
                   s.slug === activeSlug
-                    ? 'border-primary bg-primary text-page'
+                    ? 'border-brand-strong bg-brand-strong text-brand-on'
                     : 'border-hairline text-secondary'
                 )}
               >

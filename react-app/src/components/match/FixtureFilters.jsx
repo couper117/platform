@@ -27,7 +27,7 @@ const Chip = ({ active, children, ...props }) => (
     className={cn(
       'h-9 shrink-0 rounded-pill border px-3 text-sm transition-colors duration-150 ease-standard',
       active
-        ? 'border-primary bg-primary font-semibold text-page'
+        ? 'border-brand-strong bg-brand-strong font-bold text-brand-on shadow-brand'
         : 'border-hairline text-secondary hover:bg-surface-2 hover:text-primary'
     )}
     {...props}
