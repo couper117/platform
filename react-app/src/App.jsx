@@ -1,6 +1,7 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
+import { AnimatePresence } from 'framer-motion';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { ThemeProvider } from './context/ThemeContext';
@@ -102,32 +103,18 @@ const RouteWatcher = ({ children }) => {
 function App() {
   const [showSplash, setShowSplash] = useState(true);
 
-  /**
-   * Dismiss the splash when the app is actually ready, not on a stopwatch.
-   *
-   * It waits for webfonts, because that is the one thing whose arrival visibly
-   * reflows the whole page — showing the UI in a fallback face and then snapping to
-   * Montserrat is worse than half a second of splash. The 1500ms cap is a safety net
-   * so a failed font request can never strand someone on the splash forever.
-   */
-  useEffect(() => {
-    let done = false;
-    const finish = () => {
-      if (!done) {
-        done = true;
-        setShowSplash(false);
-      }
-    };
-    document.fonts?.ready.then(finish).catch(finish);
-    const cap = setTimeout(finish, 1500);
-    return () => clearTimeout(cap);
-  }, []);
+  // SplashScreen owns its own timing now — it waits for webfonts, holds long enough
+  // for its fill animation to be seen, caps itself, then slides away and calls back.
+  // App only needs to know when it has finished leaving so it can unmount it.
 
   return (
     <HelmetProvider>
       <ThemeProvider>
       <QueryClientProvider client={queryClient}>
-        {showSplash && <SplashScreen />}
+        {/* AnimatePresence so the curtain's exit actually plays before it unmounts. */}
+        <AnimatePresence>
+          {showSplash && <SplashScreen onReady={() => setShowSplash(false)} />}
+        </AnimatePresence>
         <BrowserRouter>
         <CommandPaletteProvider>
         <CommandPalette />
