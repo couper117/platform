@@ -58,10 +58,7 @@ const ExplorePage = () => {
 
   return (
     <div className="min-h-screen scroll-smooth bg-page">
-      <Seo
-        title="Explore Sports"
-        description="Explore every sport on the Rwanda National Sports Platform — pick a sport to see its leagues, fixtures and live scores."
-      />
+      <Seo title={t('seo.explore_title')} description={t('seo.explore_desc')} />
 
       {/* ─── hero ─── */}
       <HeroVideo
