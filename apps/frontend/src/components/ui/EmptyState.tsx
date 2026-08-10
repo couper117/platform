@@ -1,7 +1,16 @@
 import React from 'react';
-import { Inbox } from 'lucide-react';
+import { Inbox, type LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import cn from './cn';
+
+type EmptyStateProps = {
+  icon?: LucideIcon;
+  title?: React.ReactNode;
+  hint?: React.ReactNode;
+  /** Optional CTA — a Button, usually one that clears whatever filter emptied the list. */
+  action?: React.ReactNode;
+  className?: string;
+};
 
 /**
  * "Nothing here yet" placeholder for a list or panel.
@@ -17,8 +26,12 @@ import cn from './cn';
  *
  * `title` falls back to the translated common.no_data rather than a literal, so a
  * caller that has nothing specific to say still speaks the visitor's language.
+ *
+ * Props are declared rather than inferred: without the type, TypeScript reads the
+ * destructuring as "every prop required" and every caller that omits `className`
+ * or `action` fails to compile.
  */
-const EmptyState = ({ icon: Icon = Inbox, title, hint, action, className }) => {
+const EmptyState = ({ icon: Icon = Inbox, title, hint, action, className }: EmptyStateProps) => {
   const { t } = useTranslation();
 
   return (

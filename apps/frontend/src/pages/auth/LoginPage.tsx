@@ -121,7 +121,7 @@ const LoginPage = () => {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
             <Field
               label={t('authx.email_or_username')}
-              error={errors.username?.message && t(errors.username.message)}
+              error={errors.username?.message && t(errors.username.message as string)}
               required
             >
               {(p) => (
@@ -137,7 +137,7 @@ const LoginPage = () => {
 
             <Field
               label={t('auth.password', 'Password')}
-              error={errors.password?.message && t(errors.password.message)}
+              error={errors.password?.message && t(errors.password.message as string)}
               required
             >
               {(p) => (

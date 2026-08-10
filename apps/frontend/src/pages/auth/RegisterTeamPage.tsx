@@ -96,7 +96,7 @@ const rowVariants = {
  * propagation needs a real DOM node between the step container and the field — a
  * fragment would break the chain.
  */
-const Row = ({ className, children }) => (
+const Row = ({ className, children }: { className?: string; children: React.ReactNode }) => (
   <motion.div variants={rowVariants} className={className}>
     {children}
   </motion.div>
@@ -344,25 +344,25 @@ const RegisterTeamPage = () => {
             {step === 1 && (
               <>
                 <Row className="grid gap-5 sm:grid-cols-2">
-                  <Field label={t('auth.full_name')} error={errors.fullName?.message && t(errors.fullName.message)} required>
+                  <Field label={t('auth.full_name')} error={errors.fullName?.message && t(errors.fullName.message as string)} required>
                     {(p) => <Input {...p} {...register('fullName')} autoComplete="name" placeholder={t('register.ph_full_name')} />}
                   </Field>
-                  <Field label={t('auth.username')} error={errors.username?.message && t(errors.username.message)} required>
+                  <Field label={t('auth.username')} error={errors.username?.message && t(errors.username.message as string)} required>
                     {(p) => <Input {...p} {...register('username')} autoComplete="username" placeholder={t('register.ph_username')} />}
                   </Field>
                 </Row>
 
                 <Row>
-                  <Field label={t('auth.email_address')} error={errors.email?.message && t(errors.email.message)} required>
+                  <Field label={t('auth.email_address')} error={errors.email?.message && t(errors.email.message as string)} required>
                     {(p) => <Input {...p} {...register('email')} type="email" autoComplete="email" placeholder={t('register.ph_email')} />}
                   </Field>
                 </Row>
 
                 <Row className="grid gap-5 sm:grid-cols-2">
-                  <Field label={t('auth.password')} error={errors.password?.message && t(errors.password.message)} hint={t('register.hint_password')} required>
+                  <Field label={t('auth.password')} error={errors.password?.message && t(errors.password.message as string)} hint={t('register.hint_password')} required>
                     {(p) => <Input {...p} {...register('password')} type="password" autoComplete="new-password" placeholder="••••••••" />}
                   </Field>
-                  <Field label={t('auth.phone_number')} error={errors.phone?.message && t(errors.phone.message)}>
+                  <Field label={t('auth.phone_number')} error={errors.phone?.message && t(errors.phone.message as string)}>
                     {(p) => <Input {...p} {...register('phone')} type="tel" autoComplete="tel" placeholder={t('register.ph_phone')} />}
                   </Field>
                 </Row>
@@ -379,16 +379,16 @@ const RegisterTeamPage = () => {
             {step === 2 && (
               <>
                 <Row className="grid gap-5 sm:grid-cols-3">
-                  <Field label={t('register.official_club_name')} error={errors.teamName?.message && t(errors.teamName.message)} required className="sm:col-span-2">
+                  <Field label={t('register.official_club_name')} error={errors.teamName?.message && t(errors.teamName.message as string)} required className="sm:col-span-2">
                     {(p) => <Input {...p} {...register('teamName')} placeholder={t('register.ph_club_name')} />}
                   </Field>
-                  <Field label={t('register.short_name')} error={errors.shortName?.message && t(errors.shortName.message)} hint={t('register.hint_short_name')}>
+                  <Field label={t('register.short_name')} error={errors.shortName?.message && t(errors.shortName.message as string)} hint={t('register.hint_short_name')}>
                     {(p) => <Input {...p} {...register('shortName')} maxLength={10} placeholder={t('register.ph_short_name')} />}
                   </Field>
                 </Row>
 
                 <Row>
-                  <Field label={t('auth.primary_sport')} error={errors.sportId?.message && t(errors.sportId.message)} required>
+                  <Field label={t('auth.primary_sport')} error={errors.sportId?.message && t(errors.sportId.message as string)} required>
                   {(p) => (
                     <Select
                       {...p}
@@ -402,35 +402,35 @@ const RegisterTeamPage = () => {
                 </Row>
 
                 <Row className="grid gap-5 sm:grid-cols-3">
-                  <Field label={t('register.city_town')} error={errors.city?.message && t(errors.city.message)} required>
+                  <Field label={t('register.city_town')} error={errors.city?.message && t(errors.city.message as string)} required>
                     {(p) => <Input {...p} {...register('city')} placeholder={t('register.ph_city')} />}
                   </Field>
-                  <Field label={t('register.district')} error={errors.district?.message && t(errors.district.message)}>
+                  <Field label={t('register.district')} error={errors.district?.message && t(errors.district.message as string)}>
                     {(p) => <Input {...p} {...register('district')} placeholder={t('register.ph_district')} />}
                   </Field>
-                  <Field label={t('auth.province')} error={errors.province?.message && t(errors.province.message)} required>
+                  <Field label={t('auth.province')} error={errors.province?.message && t(errors.province.message as string)} required>
                     {(p) => <Input {...p} {...register('province')} placeholder={t('register.ph_province')} />}
                   </Field>
                 </Row>
 
                 <Row className="grid gap-5 sm:grid-cols-2">
-                  <Field label={t('register.home_venue')} error={errors.homeVenue?.message && t(errors.homeVenue.message)}>
+                  <Field label={t('register.home_venue')} error={errors.homeVenue?.message && t(errors.homeVenue.message as string)}>
                     {(p) => <Input {...p} {...register('homeVenue')} placeholder={t('register.ph_venue')} />}
                   </Field>
-                  <Field label={t('register.founded_year')} error={errors.foundedYear?.message && t(errors.foundedYear.message)}>
+                  <Field label={t('register.founded_year')} error={errors.foundedYear?.message && t(errors.foundedYear.message as string)}>
                     {(p) => <Input {...p} {...register('foundedYear')} type="number" placeholder={t('register.ph_founded')} />}
                   </Field>
                 </Row>
 
                 <Row className="grid gap-5 sm:grid-cols-3">
-                  <Field label={t('register.reg_number')} error={errors.registrationNo?.message && t(errors.registrationNo.message)} hint={t('register.hint_reg_no')}>
+                  <Field label={t('register.reg_number')} error={errors.registrationNo?.message && t(errors.registrationNo.message as string)} hint={t('register.hint_reg_no')}>
                     {(p) => <Input {...p} {...register('registrationNo')} placeholder={t('register.ph_reg_no')} />}
                   </Field>
                   {/* These two feed the club colour shown on crests and match rows. */}
-                  <Field label={t('register.primary_colour')} error={errors.primaryColor?.message && t(errors.primaryColor.message)} hint={t('register.hint_kit_colour')}>
+                  <Field label={t('register.primary_colour')} error={errors.primaryColor?.message && t(errors.primaryColor.message as string)} hint={t('register.hint_kit_colour')}>
                     {(p) => <Input {...p} {...register('primaryColor')} placeholder={t('register.ph_primary_colour')} />}
                   </Field>
-                  <Field label={t('register.secondary_colour')} error={errors.secondaryColor?.message && t(errors.secondaryColor.message)}>
+                  <Field label={t('register.secondary_colour')} error={errors.secondaryColor?.message && t(errors.secondaryColor.message as string)}>
                     {(p) => <Input {...p} {...register('secondaryColor')} placeholder={t('register.ph_secondary_colour')} />}
                   </Field>
                 </Row>
@@ -455,10 +455,10 @@ const RegisterTeamPage = () => {
                     {t('register.president')} <span className="font-medium text-danger-text">{t('register.required_suffix')}</span>
                   </legend>
                   <div className="mt-3 grid gap-5 sm:grid-cols-2">
-                    <Field label={t('auth.full_name')} error={errors.presidentName?.message && t(errors.presidentName.message)} required>
+                    <Field label={t('auth.full_name')} error={errors.presidentName?.message && t(errors.presidentName.message as string)} required>
                       {(p) => <Input {...p} {...register('presidentName')} placeholder={t('register.ph_president_name')} />}
                     </Field>
-                    <Field label={t('register.phone')} error={errors.presidentPhone?.message && t(errors.presidentPhone.message)}>
+                    <Field label={t('register.phone')} error={errors.presidentPhone?.message && t(errors.presidentPhone.message as string)}>
                       {(p) => <Input {...p} {...register('presidentPhone')} type="tel" placeholder="+250 7…" />}
                     </Field>
                   </div>
@@ -471,10 +471,10 @@ const RegisterTeamPage = () => {
                     {t('register.secretary')} <span className="font-medium text-tertiary">{t('register.optional_suffix')}</span>
                   </legend>
                   <div className="mt-3 grid gap-5 sm:grid-cols-2">
-                    <Field label={t('auth.full_name')} error={errors.secretaryName?.message && t(errors.secretaryName.message)}>
+                    <Field label={t('auth.full_name')} error={errors.secretaryName?.message && t(errors.secretaryName.message as string)}>
                       {(p) => <Input {...p} {...register('secretaryName')} placeholder={t('register.ph_secretary_name')} />}
                     </Field>
-                    <Field label={t('register.phone')} error={errors.secretaryPhone?.message && t(errors.secretaryPhone.message)}>
+                    <Field label={t('register.phone')} error={errors.secretaryPhone?.message && t(errors.secretaryPhone.message as string)}>
                       {(p) => <Input {...p} {...register('secretaryPhone')} type="tel" placeholder="+250 7…" />}
                     </Field>
                   </div>
