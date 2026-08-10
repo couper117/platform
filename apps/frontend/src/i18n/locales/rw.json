@@ -721,7 +721,9 @@
     "amashuri_match_title": "{{home}} na {{away}} — Imikino y'Amashuri",
     "amashuri_match_desc": "Umukino w'amashuri: {{home}} na {{away}}.",
     "school_profile_title": "{{school}} — Imikino y'Amashuri",
-    "school_profile_desc": "Amakipe, imikino n'iyarangiye bya {{school}} mu marushanwa y'amashuri mu Rwanda."
+    "school_profile_desc": "Amakipe, imikino n'iyarangiye bya {{school}} mu marushanwa y'amashuri mu Rwanda.",
+    "explore_title": "Reba Siporo",
+    "explore_desc": "Reba siporo zose ziri ku rubuga rw’igihugu rwa siporo mu Rwanda — hitamo siporo urebe shampiyona zayo, imikino n’amanota ariho."
   },
   "enums": {
     "sport": {

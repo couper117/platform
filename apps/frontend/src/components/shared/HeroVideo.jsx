@@ -33,7 +33,7 @@ import cn from '../ui/cn';
  * more than five seconds, and a looping background runs forever. The pause button
  * is real, labelled, and remembers nothing — it is a moment-to-moment control.
  *
- * TO ADD FOOTAGE: drop the files in react-app/public/ and pass their paths, e.g.
+ * TO ADD FOOTAGE: drop the files in apps/frontend/public/ and pass their paths, e.g.
  *   <HeroVideo sources={[{ src: '/hero.webm', type: 'video/webm' },
  *                        { src: '/hero.mp4',  type: 'video/mp4' }]} poster={...} />
  * WebM first — browsers pick the first type they support, and VP9/AV1 is typically

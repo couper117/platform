@@ -721,7 +721,9 @@
     "amashuri_match_title": "{{home}} vs {{away}} — Amashuri Games",
     "amashuri_match_desc": "School fixture: {{home}} vs {{away}}.",
     "school_profile_title": "{{school}} — Amashuri Games",
-    "school_profile_desc": "{{school}} teams, fixtures and results in Rwanda's inter-school championships."
+    "school_profile_desc": "{{school}} teams, fixtures and results in Rwanda's inter-school championships.",
+    "explore_title": "Explore Sports",
+    "explore_desc": "Explore every sport on the Rwanda National Sports Platform — pick a sport to see its leagues, fixtures and live scores."
   },
   "enums": {
     "sport": {

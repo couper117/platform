@@ -39,7 +39,7 @@ const TYPE_LABEL = {
  * as a chooser rather than a poster.
  *
  * THE BACKGROUND VIDEO is wired but has no footage yet — see HeroVideo. Drop files
- * into react-app/public/ and the hero lights up with no further changes; until then
+ * into apps/frontend/public/ and the hero lights up with no further changes; until then
  * every visitor gets the poster with a slow zoom, which is also exactly what phones,
  * data-saver users and reduced-motion users get permanently.
  *
@@ -66,7 +66,7 @@ const ExplorePage = () => {
       {/* ─── hero ─── */}
       <HeroVideo
         // No footage in the repo yet. Add /hero.webm and /hero.mp4 to
-        // react-app/public/ and pass them here — nothing else needs to change.
+        // apps/frontend/public/ and pass them here — nothing else needs to change.
         sources={[]}
         poster={HERO_BG}
         className="-mt-14 flex min-h-[72vh] items-end md:-mt-nav"

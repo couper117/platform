@@ -12,7 +12,7 @@ components in Phase 3.
 
 ## Colour
 
-All colour lives in `react-app/src/styles/tokens.css` and is exposed through
+All colour lives in `apps/frontend/src/styles/tokens.css` and is exposed through
 `tailwind.config.js`. **No hex values anywhere else** — not in JSX, not as
 arbitrary Tailwind values like `bg-[#17171A]`.
 
