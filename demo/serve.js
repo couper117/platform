@@ -51,11 +51,20 @@ const server = http.createServer((req, res) => {
   const filePath = path.normalize(path.join(ROOT, urlPath));
   if (!filePath.startsWith(ROOT)) return send(res, 403, 'Forbidden');
 
+  const ext = path.extname(filePath).toLowerCase();
+
   fs.readFile(filePath, (err, data) => {
     if (!err) {
-      return send(res, 200, data, MIME[path.extname(filePath).toLowerCase()] || 'application/octet-stream');
+      return send(res, 200, data, MIME[ext] || 'application/octet-stream');
     }
-    // SPA fallback: serve index.html for any non-file route.
+
+    // A missing asset must 404, not fall through to the shell. Returning
+    // index.html for a stale /assets/*.js URL (e.g. a cached service worker
+    // asking for a hash from a previous build) hands the browser HTML where it
+    // expects a module, which fails silently as a blank page.
+    if (ext && ext !== '.html') return send(res, 404, 'Not found');
+
+    // SPA fallback: serve index.html for client-side routes only.
     fs.readFile(path.join(ROOT, 'index.html'), (e2, html) => {
       if (e2) return send(res, 404, 'Not found');
       send(res, 200, html, MIME['.html']);

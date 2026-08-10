@@ -1,0 +1,27 @@
+{
+  "name": "rnsp-platform",
+  "version": "1.0.0",
+  "description": "Rwanda National Sports Platform (RNSP / RwaSport) — monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/frontend",
+    "apps/backend"
+  ],
+  "scripts": {
+    "dev": "concurrently -n backend,frontend -c green,cyan \"npm run dev --workspace=apps/backend\" \"npm run dev --workspace=apps/frontend\"",
+    "build": "npm run build --workspace=apps/frontend",
+    "start": "concurrently -n backend,frontend -c green,cyan \"npm run start --workspace=apps/backend\" \"npm run start --workspace=apps/frontend\"",
+    "dev:frontend": "npm run dev --workspace=apps/frontend",
+    "dev:backend": "npm run dev --workspace=apps/backend",
+    "seed": "npm run seed --workspace=apps/backend",
+    "seed:all": "npm run seed:all --workspace=apps/backend",
+    "typecheck": "npm run typecheck --workspace=apps/frontend && npm run typecheck --workspace=apps/backend",
+    "install:all": "npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

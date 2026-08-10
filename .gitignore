@@ -23,7 +23,7 @@ build/
 
 # ...except the self-contained showcase build, which is committed on purpose so
 # a fresh clone can run `node demo/serve.js` with no toolchain.
-# Regenerate with: cd react-app && npm run build:demo
+# Regenerate with: cd apps/frontend && npm run build:demo
 !demo/dist/
 !demo/dist/**
 
@@ -35,15 +35,19 @@ build/
 *.swo
 
 # Database
-/api/prisma/*.db
-/api/prisma/*.db-journal
+/apps/backend/prisma/*.db
+/apps/backend/prisma/*.db-journal
 
 # Sharp/Image processing
-/api/uploads/*
-!/api/uploads/.gitkeep
+/apps/backend/uploads/*
+!/apps/backend/uploads/.gitkeep
 
 # local QA/PDF scratch (playwright)
 .qa-harness/
+
+# Local DB reset helper (contains plaintext password) — never commit
+**/reset-local-pg.ps1
+Admin_Credentials.pdf
 
 # Redesign before/after acceptance captures (360x800). Local evidence only.
 design-refs/captures/

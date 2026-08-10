@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2021",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "lib": ["ES2021"],
+    "types": ["node"],
+    "outDir": "dist",
+    "rootDir": ".",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+
+    /* Gradual TypeScript adoption — the codebase is CommonJS (require/
+       module.exports) and runs via tsx. Relaxed so the JS→TS rename loses
+       nothing; tighten per-module later. */
+    "allowJs": true,
+    "checkJs": false,
+    "strict": false,
+    "noImplicitAny": false,
+    "noEmit": true
+  },
+  "include": ["src", "server.ts", "prisma", "check-db.ts"],
+  "exclude": ["node_modules", "dist"]
+}
