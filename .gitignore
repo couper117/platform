@@ -47,3 +47,7 @@ build/
 
 # Redesign before/after acceptance captures (360x800). Local evidence only.
 design-refs/captures/
+
+# Stray local scratch: ad-hoc screenshots and an unrelated project checked out here
+Screenshot *.png
+nga-tourism-project-main/
