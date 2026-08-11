@@ -7,6 +7,7 @@ import { Mail, Phone, MapPin, Send, Loader2, CheckCircle, AlertCircle } from 'lu
 import apiClient from '../../api/client';
 import ResponsiveWrapper from '../../components/shared/ResponsiveWrapper';
 import Seo from '../../components/shared/Seo';
+import { useTranslation } from 'react-i18next';
 import { useMotionSafe, listStack, listItem, pressable, DUR, EASE } from '../../lib/motion';
 
 /**
@@ -33,21 +34,27 @@ import { useMotionSafe, listStack, listItem, pressable, DUR, EASE } from '../../
  * drives transforms in JS and sails straight past it.
  */
 
+// Messages are KEYS, not copy: the schema is built once at module scope where no
+// `t` exists, so they are resolved where they are rendered instead.
 const schema = z.object({
-  name: z.string().min(2, 'Please enter your name'),
-  email: z.string().email('Enter a valid email').optional().or(z.literal('')),
+  name: z.string().min(2, 'contact.v_name'),
+  email: z.string().email('contact.v_email').optional().or(z.literal('')),
   phone: z.string().optional(),
   subject: z.string().optional(),
-  message: z.string().min(10, 'Message must be at least 10 characters'),
+  message: z.string().min(10, 'contact.v_message'),
 });
 
+// Labels are keys; the values are contact details, which stay literal in every
+// language. Reuses the footer's Email/Phone/Address strings rather than adding
+// three more that would say exactly the same thing.
 const info = [
-  { icon: Mail, label: 'Email', value: 'info@rwasport.rw' },
-  { icon: Phone, label: 'Phone', value: '+250 123 456 789' },
-  { icon: MapPin, label: 'Address', value: 'Kigali, Rwanda' },
+  { icon: Mail, labelKey: 'footer.email', value: 'info@rwasport.rw' },
+  { icon: Phone, labelKey: 'footer.phone', value: '+250 123 456 789' },
+  { icon: MapPin, labelKey: 'footer.address', value: 'Kigali, Rwanda' },
 ];
 
 const ContactPage = () => {
+  const { t } = useTranslation();
   const safe = useMotionSafe();
   const [sent, setSent] = useState(false);
   const [serverError, setServerError] = useState('');
@@ -60,13 +67,13 @@ const ContactPage = () => {
       setSent(true);
       reset();
     } catch (err) {
-      setServerError(err.response?.data?.message || 'Something went wrong. Please try again.');
+      setServerError(err.response?.data?.message || t('contact.error_generic'));
     }
   };
 
   return (
     <div className="bg-surface-2 dark:bg-surface-dark min-h-screen pb-24">
-      <Seo title="Contact" description="Get in touch with the RwaSport team." />
+      <Seo title={t('contact.seo_title')} description={t('contact.seo_desc')} />
 
       <section className="bg-surface-dark py-16 sm:py-24 relative overflow-hidden">
         {/* The ambient one. A slow drift, so the header has some life in it without
@@ -85,7 +92,7 @@ const ContactPage = () => {
             transition={{ duration: DUR.slow, ease: EASE }}
             className="text-5xl sm:text-7xl font-display text-white uppercase tracking-tighter"
           >
-            Get In <span className="text-red">Touch</span>
+            {t('contact.title_pre')} <span className="text-red">{t('contact.title_accent')}</span>
           </motion.h1>
           <motion.p
             initial={safe ? { opacity: 0, y: 10 } : false}
@@ -93,7 +100,7 @@ const ContactPage = () => {
             transition={{ duration: DUR.base, ease: EASE, delay: 0.08 }}
             className="text-white/40 text-[10px] font-bold uppercase tracking-[0.3em]"
           >
-            We'd love to hear from you
+            {t('contact.subtitle')}
           </motion.p>
         </ResponsiveWrapper>
       </section>
@@ -108,9 +115,9 @@ const ContactPage = () => {
           viewport={{ once: true, amount: 0.3 }}
           className="space-y-4"
         >
-          {info.map(({ icon: Icon, label, value }) => (
+          {info.map(({ icon: Icon, labelKey, value }) => (
             <motion.div
-              key={label}
+              key={labelKey}
               variants={listItem(safe)}
               {...(safe ? { whileHover: { y: -3 } } : {})}
               transition={{ duration: DUR.base, ease: EASE }}
@@ -118,7 +125,7 @@ const ContactPage = () => {
             >
               <span className="w-11 h-11 rounded-full bg-red/10 text-red flex items-center justify-center shrink-0"><Icon size={18} /></span>
               <div>
-                <div className="text-[10px] font-bold uppercase tracking-widest opacity-40">{label}</div>
+                <div className="text-[10px] font-bold uppercase tracking-widest opacity-40">{t(labelKey)}</div>
                 <div className="font-medium">{value}</div>
               </div>
             </motion.div>
@@ -154,9 +161,9 @@ const ContactPage = () => {
               >
                 <CheckCircle size={48} className="text-rwanda-green" />
               </motion.div>
-              <h3 className="font-display text-2xl uppercase tracking-widest">Message sent</h3>
-              <p className="opacity-60 max-w-sm">Thank you for reaching out — our team will get back to you shortly.</p>
-              <button onClick={() => setSent(false)} className="mt-2 text-red font-display uppercase tracking-widest text-sm">Send another</button>
+              <h3 className="font-display text-2xl uppercase tracking-widest">{t('contact.sent_title')}</h3>
+              <p className="opacity-60 max-w-sm">{t('contact.sent_body')}</p>
+              <button onClick={() => setSent(false)} className="mt-2 text-red font-display uppercase tracking-widest text-sm">{t('contact.send_another')}</button>
             </motion.div>
           ) : (
             <motion.form
@@ -197,27 +204,27 @@ const ContactPage = () => {
                     its ref to the input for react-hook-form, and making it a motion
                     component would put the ref on the wrong element. */}
                 <motion.div variants={listItem(safe)}>
-                  <Field label="Name" error={errors.name} {...register('name')} placeholder="Your name" />
+                  <Field label={t('contact.label_name')} error={errors.name} {...register('name')} placeholder={t('contact.ph_name')} />
                 </motion.div>
                 <motion.div variants={listItem(safe)}>
-                  <Field label="Email" error={errors.email} {...register('email')} placeholder="you@email.com" />
+                  <Field label={t('footer.email')} error={errors.email} {...register('email')} placeholder={t('contact.ph_email')} />
                 </motion.div>
                 <motion.div variants={listItem(safe)}>
-                  <Field label="Phone" error={errors.phone} {...register('phone')} placeholder="+250 ..." />
+                  <Field label={t('footer.phone')} error={errors.phone} {...register('phone')} placeholder={t('contact.ph_phone')} />
                 </motion.div>
                 <motion.div variants={listItem(safe)}>
-                  <Field label="Subject" error={errors.subject} {...register('subject')} placeholder="How can we help?" />
+                  <Field label={t('contact.label_subject')} error={errors.subject} {...register('subject')} placeholder={t('contact.ph_subject')} />
                 </motion.div>
               </motion.div>
               <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold tracking-widest opacity-40 ml-1">Message</label>
+                <label className="text-[10px] uppercase font-bold tracking-widest opacity-40 ml-1">{t('contact.label_message')}</label>
                 <textarea
                   {...register('message')}
                   rows={5}
-                  placeholder="Write your message..."
+                  placeholder={t('contact.ph_message')}
                   className={`w-full bg-surface-2 dark:bg-white/5 border ${errors.message ? 'border-red/50' : 'border-surface-3 dark:border-white/10'} p-4 rounded-xl focus:border-red outline-none transition-all`}
                 />
-                {errors.message && <p className="text-[10px] font-bold text-red uppercase tracking-widest ml-1">{String(errors.message.message ?? '')}</p>}
+                {errors.message && <p className="text-[10px] font-bold text-red uppercase tracking-widest ml-1">{t(String(errors.message.message ?? ''))}</p>}
               </div>
               <motion.button
                 type="submit"
@@ -225,7 +232,7 @@ const ContactPage = () => {
                 {...pressable(safe)}
                 className="w-full bg-red text-white font-display text-lg uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all flex items-center justify-center gap-3 disabled:opacity-50"
               >
-                {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <><Send size={16} /> Send Message</>}
+                {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <><Send size={16} /> {t('contact.send')}</>}
               </motion.button>
             </motion.form>
           )}
@@ -252,6 +259,7 @@ type FieldProps = React.InputHTMLAttributes<HTMLInputElement> & {
 };
 
 const Field = React.forwardRef<HTMLInputElement, FieldProps>(({ label, error, ...props }, ref) => {
+  const { t } = useTranslation();
   const safe = useMotionSafe();
 
   return (
@@ -272,7 +280,7 @@ const Field = React.forwardRef<HTMLInputElement, FieldProps>(({ label, error, ..
             transition={{ duration: DUR.fast, ease: EASE }}
             className="overflow-hidden text-[10px] font-bold text-red uppercase tracking-widest ml-1"
           >
-            {String(error.message ?? '')}
+            {t(String(error.message ?? ''))}
           </motion.p>
         )}
       </AnimatePresence>

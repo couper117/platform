@@ -1055,5 +1055,28 @@
     "err_save": "Failed to save lineup",
     "no_players": "No players on your roster yet.",
     "no_team": "No team found for your account."
+  },
+  "contact": {
+    "seo_title": "Contact",
+    "seo_desc": "Get in touch with the RwaSport team.",
+    "title_pre": "Get In",
+    "title_accent": "Touch",
+    "subtitle": "We'd love to hear from you",
+    "label_name": "Name",
+    "label_subject": "Subject",
+    "label_message": "Message",
+    "ph_name": "Your name",
+    "ph_email": "you@email.com",
+    "ph_phone": "+250 ...",
+    "ph_subject": "How can we help?",
+    "ph_message": "Write your message...",
+    "send": "Send Message",
+    "sent_title": "Message sent",
+    "sent_body": "Thank you for reaching out — our team will get back to you shortly.",
+    "send_another": "Send another",
+    "error_generic": "Something went wrong. Please try again.",
+    "v_name": "Please enter your name",
+    "v_email": "Enter a valid email",
+    "v_message": "Message must be at least 10 characters"
   }
 }
