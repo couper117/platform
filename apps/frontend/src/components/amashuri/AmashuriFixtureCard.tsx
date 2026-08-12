@@ -4,6 +4,8 @@ import { MapPin, Calendar, School } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useDateFormat } from '../../i18n/dateLocale';
 import { useEnumLabel } from '../../i18n/enums';
+import useSportLookup from '../../hooks/useSportLookup';
+import SportIcon from '../shared/SportIcon';
 import { LiveBadge } from '../ui/Badge';
 
 const initials = (name = '') =>
@@ -40,8 +42,10 @@ const AmashuriFixtureCard = ({ fixture, showCompetition = true }) => {
   const { t } = useTranslation();
   const formatDate = useDateFormat();
   const enumLabel = useEnumLabel();
+  const { forFixture } = useSportLookup();
   const isLive = fixture.status === 'ONGOING';
   const isCompleted = fixture.status === 'COMPLETED';
+  const sport = forFixture(fixture);
 
   return (
     <Link
@@ -50,9 +54,16 @@ const AmashuriFixtureCard = ({ fixture, showCompetition = true }) => {
     >
       {showCompetition && (
         <div className="px-4 py-2 bg-surface-2 dark:bg-white/5 border-b border-surface-3 dark:border-white/5 flex justify-between items-center">
-          <span className="text-[10px] uppercase font-bold tracking-widest text-rwanda-blue line-clamp-1">
-            <School size={11} className="inline mr-1 -mt-0.5" />
-            {fixture.competition?.name || (fixture.stage ? enumLabel('stage', fixture.stage) : t('amashuri.schools_championship'))}
+          {/* Sport first: two schools and a scoreline are meaningless without the discipline. */}
+          <span className="text-[10px] uppercase font-bold tracking-widest text-rwanda-blue min-w-0 flex items-center gap-1.5">
+            {sport
+              ? <SportIcon slug={sport.slug} size={11} className="shrink-0" />
+              : <School size={11} className="shrink-0" />}
+            {sport && <span className="shrink-0">{sport.name}</span>}
+            {sport && <span className="opacity-30 shrink-0">·</span>}
+            <span className="line-clamp-1">
+              {fixture.competition?.name || (fixture.stage ? enumLabel('stage', fixture.stage) : t('amashuri.schools_championship'))}
+            </span>
           </span>
           {isLive && <LiveBadge />}
         </div>
