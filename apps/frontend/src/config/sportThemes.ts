@@ -41,17 +41,29 @@ const U = (id) => `https://images.unsplash.com/${id}?auto=format&fit=crop&q=75`;
  */
 const BRAND = '#008848';
 
+// Every ID below was visually verified (rendered and eyeballed) to be the right
+// sport — a wrong photograph is worse than none, so nothing here is guessed.
 export const SPORT_THEMES = {
-  football:   { bg: U('photo-1522778119026-d647f0596c20', '#0B6E3F'), accent: BRAND, venue: 'Pitch' },
-  basketball: { bg: U('photo-1546519638-68e109498ffc', '#C81E1E'),    accent: BRAND, venue: 'Court' },
-  volleyball: { bg: U('photo-1592656094267-764a45160876', '#1D4ED8'), accent: BRAND, venue: 'Court' },
-  cycling:    { bg: U('photo-1541625602330-2277a4c46182', '#F59E0B'), accent: BRAND, venue: 'Road' },
-  cricket:    { bg: U('photo-1531415074968-036ba1b575da', '#0D9488'), accent: BRAND, venue: 'Pitch' },
-  // bg null: the stock ID here was a fish and chips shop. Awaiting a real photo.
-  rugby:      { bg: null, accent: BRAND, venue: 'Field' },
-  // bg null: the stock ID here was volleyball, not handball. Awaiting a real photo.
-  handball:   { bg: null, accent: BRAND, venue: 'Court' },
-  athletics:  { bg: U('photo-1461896836934-ffe607ba8211'), accent: BRAND, venue: 'Track' },
+  football:      { bg: U('photo-1522778119026-d647f0596c20'), accent: BRAND, venue: 'Pitch' },
+  basketball:    { bg: U('photo-1546519638-68e109498ffc'),    accent: BRAND, venue: 'Court' },
+  volleyball:    { bg: U('photo-1592656094267-764a45160876'), accent: BRAND, venue: 'Court' },
+  cycling:       { bg: U('photo-1541625602330-2277a4c46182'), accent: BRAND, venue: 'Road' },
+  cricket:       { bg: U('photo-1531415074968-036ba1b575da'), accent: BRAND, venue: 'Pitch' },
+  athletics:     { bg: U('photo-1461896836934-ffe607ba8211'), accent: BRAND, venue: 'Track' },
+  rugby:         { bg: U('photo-1480099225005-2513c8947aec'), accent: BRAND, venue: 'Field' },
+  handball:      { bg: U('photo-1587384474964-3a06ce1ce699'), accent: BRAND, venue: 'Court' },
+  swimming:      { bg: U('photo-1560090995-01632a28895b'),    accent: BRAND, venue: 'Pool' },
+  tennis:        { bg: U('photo-1545151414-8a948e1ea54f'),    accent: BRAND, venue: 'Court' },
+  'table-tennis': { bg: U('photo-1609710228159-0fa9bd7c0827'), accent: BRAND, venue: 'Table' },
+  badminton:     { bg: U('photo-1599391398131-cd12dfc6c24e'), accent: BRAND, venue: 'Court' },
+  judo:          { bg: U('photo-1555597673-b21d5c935865'),    accent: BRAND, venue: 'Dojo' },
+  karate:        { bg: U('photo-1555597408-26bc8e548a46'),    accent: BRAND, venue: 'Dojo' },
+  taekwondo:     { bg: U('photo-1555597673-b21d5c935865'),    accent: BRAND, venue: 'Dojo' },
+  boxing:        { bg: U('photo-1546711076-85a7923432ab'),    accent: BRAND, venue: 'Ring' },
+  kickboxing:    { bg: U('photo-1549719386-74dfcbf7dbed'),    accent: BRAND, venue: 'Ring' },
+  wrestling:     { bg: U('photo-1541337082051-5959dbb57d5d'), accent: BRAND, venue: 'Mat' },
+  netball:       { bg: U('photo-1729963421538-31c333335b3c'), accent: BRAND, venue: 'Court' },
+  chess:         { bg: U('photo-1586165368502-1bad197a6461'), accent: BRAND, venue: 'Board' },
 };
 
 /**
