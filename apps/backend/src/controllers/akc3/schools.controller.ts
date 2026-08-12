@@ -49,4 +49,32 @@ const createSchool = async (req, res, next) => {
   }
 };
 
-module.exports = { getSchools, getSchool, createSchool };
+// Editable fields only — never trust the client with relations/ids it shouldn't set.
+const SCHOOL_FIELDS = ['name', 'shortName', 'code', 'category', 'sector', 'address', 'headTeacher', 'coordinator', 'coordPhone', 'coordEmail', 'phone', 'email', 'logo'];
+
+const updateSchool = async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id);
+    const data = {};
+    for (const k of SCHOOL_FIELDS) if (k in req.body) data[k] = req.body[k];
+    const school = await prisma.akcSchool.update({ where: { id }, data });
+    await logActivity({ userId: req.user.id, action: 'Update AKC School', detail: `Updated school ${school.name}`, module: 'akc3', ip: req.ip });
+    res.status(200).json({ success: true, data: school });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Hide / restore — soft state so historical fixtures/standings keep their reference.
+const setSchoolActive = async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id);
+    const school = await prisma.akcSchool.update({ where: { id }, data: { active: req.body.active !== false } });
+    await logActivity({ userId: req.user.id, action: school.active ? 'Restore AKC School' : 'Hide AKC School', detail: `${school.active ? 'Restored' : 'Hid'} school ${school.name}`, module: 'akc3', ip: req.ip });
+    res.status(200).json({ success: true, data: school });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getSchools, getSchool, createSchool, updateSchool, setSchoolActive };

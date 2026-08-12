@@ -6,7 +6,6 @@
     "dev": "vite",
     "build": "vite build",
     "build:mobile": "vite build && cap sync",
-    "build:demo": "vite build --mode demo --outDir ../../demo/dist --emptyOutDir --target esnext",
     "lint": "eslint . --ext js,jsx,ts,tsx --report-unused-disable-directives --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview"

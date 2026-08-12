@@ -1,0 +1,36 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
+import cn from './cn';
+
+/**
+ * Section header for a list or panel.
+ *
+ * The old version was a 48px uppercase display title with a red all-caps eyebrow
+ * above it and 40px of bottom margin — roughly 130px of vertical space to label a
+ * list, on a screen with a ~500px budget. This is one 18px line. On a 360px
+ * viewport, a heading's job is to label the content, not to be the content.
+ *
+ * `accent` and `eyebrow` are accepted for the two un-swept call sites and folded
+ * into the title / a Badge rather than getting their own treatment.
+ */
+const SectionHeading = ({ title, accent, eyebrow, action, actionTo, className }) => (
+  <div className={cn('flex items-baseline justify-between gap-3', className)}>
+    <h2 className="min-w-0 truncate font-display text-lg font-semibold text-primary">
+      {eyebrow && <span className="text-secondary">{eyebrow} </span>}
+      {title}
+      {accent && <span className="text-secondary"> {accent}</span>}
+    </h2>
+    {action && actionTo && (
+      <Link
+        to={actionTo}
+        className="flex shrink-0 items-center gap-1 text-sm text-secondary transition-colors duration-150 ease-standard hover:text-primary"
+      >
+        {action}
+        <ArrowRight size={14} aria-hidden="true" />
+      </Link>
+    )}
+  </div>
+);
+
+export default SectionHeading;

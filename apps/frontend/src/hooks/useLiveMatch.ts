@@ -132,5 +132,55 @@ export default function useLiveMatch(fixtureId, initial, onReconnect) {
     };
   }, [fixtureId]);
 
+  // SSE fallback — the zero-config transport used when Pusher isn't configured
+  // (e.g. local/offline). Same merge semantics as the Pusher path above; the
+  // backend fans every emit to both, so exactly one of the two effects is active.
+  useEffect(() => {
+    const key = import.meta.env.VITE_PUSHER_KEY;
+    if (!fixtureId || key) return undefined;
+    if (typeof EventSource === 'undefined') return undefined;
+
+    const base = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+    let es;
+    try {
+      es = new EventSource(`${base}/fixtures/${fixtureId}/stream`);
+    } catch {
+      return undefined;
+    }
+
+    // EventSource fires 'open' on the first connect AND after each auto-reconnect;
+    // only the reconnects need a REST refetch to catch missed events.
+    let opened = false;
+
+    const mergeScore = (u = {}) => setLive((prev) => ({
+      ...prev,
+      homeScore: u.homeScore ?? prev.homeScore,
+      awayScore: u.awayScore ?? prev.awayScore,
+      minute: u.minute ?? prev.minute,
+      status: u.status ?? prev.status,
+      lastUpdate: Date.now(),
+    }));
+    const addEvent = (evt) => {
+      if (!evt) return;
+      if (evt.id != null && seenEventIds.current.has(evt.id)) return;
+      if (evt.id != null) seenEventIds.current.add(evt.id);
+      setLive((prev) => ({ ...prev, events: [evt, ...(prev.events || [])], minute: evt.minute ?? prev.minute, lastUpdate: Date.now() }));
+    };
+
+    es.addEventListener('open', () => {
+      setConnected(true);
+      if (opened) onReconnectRef.current?.();
+      opened = true;
+    });
+    es.addEventListener('error', () => setConnected(false));
+    es.addEventListener('matchUpdate', (e) => { try { mergeScore(JSON.parse(e.data)); } catch { /* noop */ } });
+    es.addEventListener('matchEvent', (e) => { try { addEvent(JSON.parse(e.data)); } catch { /* noop */ } });
+    es.addEventListener('liveUpdate', (e) => {
+      try { const u = JSON.parse(e.data); if (String(u.fixtureId) === String(fixtureId)) mergeScore(u); } catch { /* noop */ }
+    });
+
+    return () => { try { es.close(); } catch { /* noop */ } };
+  }, [fixtureId]);
+
   return { live, connected };
 }

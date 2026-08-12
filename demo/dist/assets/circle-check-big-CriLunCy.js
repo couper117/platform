@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:demo/dist/assets/circle-check-big-CriLunCy.js
 import{d as e}from"./index-BZtUpP6a.js";/**
+========
+import{d as e}from"./index-DTaURGnf.js";/**
+>>>>>>>> origin/main:demo/dist/assets/circle-check-big-ChSDSwW1.js
  * @license lucide-react v0.363.0 - ISC
  *
  * This source code is licensed under the ISC license.

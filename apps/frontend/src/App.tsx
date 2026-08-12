@@ -21,6 +21,7 @@ const HomePage = lazy(() => import('./pages/public/HomePage'));
 const LeaguesPage = lazy(() => import('./pages/public/LeaguesPage'));
 const LeagueDetailsPage = lazy(() => import('./pages/public/LeagueDetailsPage'));
 const FixturesPage = lazy(() => import('./pages/public/FixturesPage'));
+const TeamsIndexPage = lazy(() => import('./pages/public/TeamsIndexPage'));
 const MatchDetailsPage = lazy(() => import('./pages/public/MatchDetailsPage'));
 const NewsListPage = lazy(() => import('./pages/public/NewsListPage'));
 const NewsArticlePage = lazy(() => import('./pages/public/NewsArticlePage'));
@@ -51,6 +52,31 @@ const AdminSportAdminsPage = lazy(() => import('./pages/admin/AdminSportAdminsPa
 const AdminAdsPage = lazy(() => import('./pages/admin/AdminAdsPage'));
 const AdminVisitorsPage = lazy(() => import('./pages/admin/AdminVisitorsPage'));
 const AdminChampionshipsPage = lazy(() => import('./pages/admin/AdminChampionshipsPage'));
+const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage'));
+const AdminRolesPage = lazy(() => import('./pages/admin/AdminRolesPage'));
+const AdminSystemHealthPage = lazy(() => import('./pages/admin/AdminSystemHealthPage'));
+const AdminContentPage = lazy(() => import('./pages/admin/AdminContentPage'));
+const AdminMediaPage = lazy(() => import('./pages/admin/AdminMediaPage'));
+// League Admin sub-sections
+const LeagueMatchReportsPage = lazy(() => import('./pages/admin/LeagueMatchReportsPage'));
+const LeagueStandingsPage = lazy(() => import('./pages/admin/LeagueStandingsPage'));
+const LeagueScorersPage = lazy(() => import('./pages/admin/LeagueScorersPage'));
+const LeagueStatisticsPage = lazy(() => import('./pages/admin/LeagueStatisticsPage'));
+const LeagueOfficialsPage = lazy(() => import('./pages/admin/LeagueOfficialsPage'));
+const LeagueReportersPage = lazy(() => import('./pages/admin/LeagueReportersPage'));
+// Amashuri Admin sub-sections
+const AmashuriAdminFixtures = lazy(() => import('./pages/admin/AmashuriAdminFixtures'));
+const AmashuriAdminLive = lazy(() => import('./pages/admin/AmashuriAdminLive'));
+const AmashuriAdminResults = lazy(() => import('./pages/admin/AmashuriAdminResults'));
+const AmashuriAdminStandings = lazy(() => import('./pages/admin/AmashuriAdminStandings'));
+const AmashuriAdminSchools = lazy(() => import('./pages/admin/AmashuriAdminSchools'));
+const AmashuriAdminTeams = lazy(() => import('./pages/admin/AmashuriAdminTeams'));
+const AmashuriAdminAthletes = lazy(() => import('./pages/admin/AmashuriAdminAthletes'));
+const AmashuriAdminApprovals = lazy(() => import('./pages/admin/AmashuriAdminApprovals'));
+const AmashuriAdminSeasons = lazy(() => import('./pages/admin/AmashuriAdminSeasons'));
+const AmashuriAdminStages = lazy(() => import('./pages/admin/AmashuriAdminStages'));
+const AmashuriAdminSports = lazy(() => import('./pages/admin/AmashuriAdminSports'));
+const AmashuriAdminOfficials = lazy(() => import('./pages/admin/AmashuriAdminOfficials'));
 const LiveReportingPage = lazy(() => import('./pages/admin/LiveReportingPage'));
 
 // Team Pages
@@ -145,7 +171,9 @@ function App() {
               <Route path="/leagues" element={<LeaguesPage />} />
               <Route path="/leagues/:id" element={<LeagueDetailsPage />} />
               <Route path="/fixtures" element={<FixturesPage />} />
+              <Route path="/live" element={<FixturesPage />} />
               <Route path="/results" element={<FixturesPage />} />
+              <Route path="/teams" element={<TeamsIndexPage />} />
               <Route path="/news" element={<NewsListPage />} />
               <Route path="/news/:slug" element={<NewsArticlePage />} />
               <Route path="/matches/:id" element={<MatchDetailsPage />} />
@@ -188,11 +216,38 @@ function App() {
               <Route path="documents" element={<AdminDocumentsPage />} />
               <Route path="news" element={<AdminNewsPage />} />
               <Route path="ads" element={<AdminAdsPage />} />
+              <Route path="content" element={<AdminContentPage />} />
+              <Route path="media" element={<AdminMediaPage />} />
+              <Route path="users" element={<AdminUsersPage />} />
+              <Route path="roles" element={<AdminRolesPage />} />
+              <Route path="system-health" element={<AdminSystemHealthPage />} />
               <Route path="visitors" element={<AdminVisitorsPage />} />
               <Route path="akc3" element={<AkcAdminDashboard />} />
               <Route path="championships" element={<AdminChampionshipsPage />} />
               <Route path="sport-admins" element={<AdminSportAdminsPage />} />
               <Route path="settings" element={<AdminSettingsPage />} />
+
+              {/* League Admin sub-sections */}
+              <Route path="league/match-reports" element={<LeagueMatchReportsPage />} />
+              <Route path="league/standings" element={<LeagueStandingsPage />} />
+              <Route path="league/top-scorers" element={<LeagueScorersPage />} />
+              <Route path="league/statistics" element={<LeagueStatisticsPage />} />
+              <Route path="league/officials" element={<LeagueOfficialsPage />} />
+              <Route path="league/reporters" element={<LeagueReportersPage />} />
+
+              {/* Amashuri Admin sub-sections */}
+              <Route path="amashuri/fixtures" element={<AmashuriAdminFixtures />} />
+              <Route path="amashuri/live" element={<AmashuriAdminLive />} />
+              <Route path="amashuri/results" element={<AmashuriAdminResults />} />
+              <Route path="amashuri/standings" element={<AmashuriAdminStandings />} />
+              <Route path="amashuri/schools" element={<AmashuriAdminSchools />} />
+              <Route path="amashuri/teams" element={<AmashuriAdminTeams />} />
+              <Route path="amashuri/athletes" element={<AmashuriAdminAthletes />} />
+              <Route path="amashuri/approvals" element={<AmashuriAdminApprovals />} />
+              <Route path="amashuri/seasons" element={<AmashuriAdminSeasons />} />
+              <Route path="amashuri/stages" element={<AmashuriAdminStages />} />
+              <Route path="amashuri/sports" element={<AmashuriAdminSports />} />
+              <Route path="amashuri/officials" element={<AmashuriAdminOfficials />} />
             </Route>
 
             {/* Team Manager Routes */}

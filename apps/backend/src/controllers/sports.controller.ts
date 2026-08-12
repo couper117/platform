@@ -18,7 +18,17 @@ const getSports = async (req, res, next) => {
       },
     });
 
-    res.status(200).json({ success: true, count: sports.length, data: sports });
+    // Fixtures belong to leagues, which belong to a sport — so a sport's match
+    // count is derived (the landing's sport cards show "N matches"). Small N of
+    // sports, so a count per sport is fine.
+    const withMatches = await Promise.all(
+      sports.map(async (s) => ({
+        ...s,
+        _count: { ...s._count, matches: await prisma.fixture.count({ where: { league: { sportId: s.id } } }) },
+      }))
+    );
+
+    res.status(200).json({ success: true, count: withMatches.length, data: withMatches });
   } catch (error) {
     next(error);
   }

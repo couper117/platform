@@ -5,6 +5,9 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().default('5000'),
   DATABASE_URL: z.string().url(),
+  // Direct (non-pooled) connection used only by prisma migrate/db push. Optional
+  // — in dev it falls back to DATABASE_URL (both hit the same local cluster).
+  DIRECT_DATABASE_URL: z.string().url().optional(),
   JWT_SECRET: z.string().min(32),
   JWT_ACCESS_EXPIRY: z.string().default('15m'),
   JWT_REFRESH_EXPIRY: z.string().default('7d'),

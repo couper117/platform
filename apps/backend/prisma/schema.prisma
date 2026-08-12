@@ -6,7 +6,13 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // App connects through the connection POOLER (Supabase Supavisor, port 6543,
+  // pgbouncer=true). directUrl is the DIRECT/session connection (port 5432) that
+  // `prisma migrate`/`db push` use — a transaction pooler can't run migrations.
+  // In local dev both point at the same cluster (DIRECT_DATABASE_URL falls back
+  // to DATABASE_URL when unset — see config/env.ts).
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
 }
 
 model Setting {
@@ -129,6 +135,7 @@ model Sport {
   leagues     League[]
   teams       Team[]
   federations Federation[]
+  races       Race[]
 }
 
 enum SportCategory {
@@ -199,6 +206,9 @@ model League {
   
   admins           LeagueAdminAssignment[]
   assignedReporters ReporterAssignment[]
+
+  races          Race[]
+  classification Classification?
 }
 
 enum Gender {
@@ -935,6 +945,49 @@ enum AkcAnnouncementCategory {
   COMPETITION
   RESULTS
   URGENT
+}
+
+// ─── RACING (cycling, athletics — SportType.RACING) ──────────────
+// A racing sport is not a ball game: no home/away, no score. A race produces a
+// RANKED FINISH (time or mark per athlete); a series produces a CLASSIFICATION
+// (riders by cumulative time, or clubs by a medal table). Results/rows are stored
+// as Json because their shape is inherently heterogeneous (a GC row and a medal
+// row carry different columns) — one flexible table renders either in the hub.
+model Race {
+  id            Int      @id @default(autoincrement())
+  sportId       Int
+  sport         Sport    @relation(fields: [sportId], references: [id], onDelete: Cascade)
+  competitionId Int?
+  competition   League?  @relation(fields: [competitionId], references: [id], onDelete: SetNull)
+  name          String   @db.VarChar(200)
+  discipline    String?  @db.VarChar(80)   // "Mountain", "100m", "Long Jump"
+  distanceKm    Float?                     // set for cycling stages
+  unit          String?  @db.VarChar(10)   // "s" | "m" for athletics marks
+  date          DateTime?
+  status        RaceStatus @default(SCHEDULED)
+  results       Json     @default("[]")    // [{ position, athlete{fullName,photo}, club{name,logo}, time?/mark?, gap?, points }]
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  @@index([sportId])
+}
+
+enum RaceStatus {
+  SCHEDULED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+model Classification {
+  id            Int      @id @default(autoincrement())
+  competitionId Int      @unique
+  competition   League   @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  title         String   @db.VarChar(120)  // "General Classification" | "Medal Table"
+  identityLabel String?  @db.VarChar(60)   // "Rider" | "Club"
+  valueColumns  Json     @default("[]")    // ["Time","Gap"] | ["G","S","B","Pts"]
+  rows          Json     @default("[]")    // [{ rank, name, image, sub?, values:[...] }]
+  updatedAt     DateTime @updatedAt
 }
 
 // ─── TRANSACTIONS (subscriptions / payments) ─────────────────────

@@ -57,6 +57,26 @@ module.exports = {
   createNews: wrap({ title: z.string().min(3) }),
   createSport: wrap({ name: z.string().min(2) }),
   submitContact: wrap({ name: z.string().min(2), message: z.string().min(5) }),
+
+  // ── Ads ──
+  createAd: wrap({ title: z.string().min(2), imageUrl: z.string().min(1), position: z.string().min(1) }),
+  updateAd: wrap({}),
+
+  // ── Amashuri (school sports) ──
+  akcCreateSchool: wrap({ name: z.string().min(2, 'School name is required') }),
+  akcUpdateSchool: wrap({}),
+  akcCreateTeam: wrap({ schoolId: idish, sportId: idish }),
+  akcUpdateTeam: wrap({}),
+  akcCreateFixture: wrap({ homeTeamId: idish, awayTeamId: idish }),
+  akcCreateAthlete: wrap({ teamId: idish, fullName: z.string().min(2, 'Athlete name is required') }),
+  akcCreateCompetition: wrap({ name: z.string().min(2) }),
+
+  // ── Users (admin) ──
+  updateUser: wrap({
+    role: z.enum(['SUPERADMIN', 'FEDERATION_ADMIN', 'LEAGUE_ADMIN', 'AMASHURI_ADMIN', 'MATCH_REPORTER', 'TEAM_MANAGER', 'PUBLIC']).optional(),
+    active: z.boolean().optional(),
+  }),
+
   idish,
   optIdish,
 };

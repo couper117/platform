@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:demo/dist/assets/goal-BfFAtiou.js
 import{d as a}from"./index-BZtUpP6a.js";/**
+========
+import{d as a}from"./index-DTaURGnf.js";/**
+>>>>>>>> origin/main:demo/dist/assets/goal-B8RHJ2eV.js
  * @license lucide-react v0.363.0 - ISC
  *
  * This source code is licensed under the ISC license.

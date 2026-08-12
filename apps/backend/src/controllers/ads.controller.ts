@@ -44,6 +44,29 @@ const createAd = async (req, res, next) => {
   }
 };
 
+// @desc    Update ad banner (edit / restore)
+// @route   PUT /api/v1/ads/:id
+// @access  Private/Admin
+const updateAd = async (req, res, next) => {
+  try {
+    const { title, imageUrl, targetUrl, position, active } = req.body;
+    const ad = await prisma.ad.update({
+      where: { id: parseInt(req.params.id) },
+      data: {
+        title: title ?? undefined,
+        imageUrl: imageUrl ?? undefined,
+        targetUrl: targetUrl !== undefined ? (targetUrl || null) : undefined,
+        position: position ?? undefined,
+        active: active !== undefined ? !!active : undefined,
+      },
+    });
+    await logActivity({ userId: req.user.id, action: 'Update Ad', detail: `Updated ad banner: ${ad.title}`, module: 'ads', ip: req.ip });
+    res.status(200).json({ success: true, data: ad });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Delete (deactivate) ad banner
 // @route   DELETE /api/v1/ads/:id
 // @access  Private/Admin
@@ -68,4 +91,4 @@ const deleteAd = async (req, res, next) => {
   }
 };
 
-module.exports = { getAds, createAd, deleteAd };
+module.exports = { getAds, createAd, updateAd, deleteAd };

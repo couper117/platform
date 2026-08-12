@@ -53,7 +53,10 @@ const FavouriteSportGate = ({ children }) => {
     <>
       {children}
       <SportChooser
-        open={!hasAnswered}
+        // The redesigned landing is the front door — show it directly rather than
+        // popping the chooser over it. The favourite-sport preference still drives
+        // the redirect above when one is already set.
+        open={false}
         onSkip={skip}
         onChoose={(chosen) => {
           choose(chosen);
