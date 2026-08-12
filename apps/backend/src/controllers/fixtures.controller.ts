@@ -1,6 +1,7 @@
 const prisma = require('../config/db');
 const { recalcStandings } = require('../services/standings.service');
 const { emitMatchUpdate, emitMatchEvent } = require('../services/realtime.service');
+const sse = require('../services/sse.service');
 const { handleCardEvent, serveSuspensions } = require('../services/discipline.service');
 const { getPagination } = require('../utils/paginate');
 const { enforceSportScope, leagueSportId } = require('../utils/scope');
@@ -583,6 +584,41 @@ const updateFixtureMeta = async (req, res, next) => {
   }
 };
 
+// @desc    Live updates for a fixture over Server-Sent Events (public, read-only)
+// @route   GET /api/v1/fixtures/:id/stream
+// @access  Public
+//
+// Opens a long-lived text/event-stream. realtime.service pushes `matchUpdate` and
+// `matchEvent` frames as the reporter logs the match; a 25s comment keeps proxies
+// from timing the connection out. Cleaned up on client disconnect.
+const streamFixture = (req, res) => {
+  const fixtureId = parseInt(req.params.id);
+  if (isNaN(fixtureId)) return res.status(400).end();
+
+  res.set({
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache, no-transform',
+    Connection: 'keep-alive',
+    'X-Accel-Buffering': 'no',
+  });
+  if (typeof res.flushHeaders === 'function') res.flushHeaders();
+  res.write(': connected\n\n');
+
+  const matchChannel = `fixture-${fixtureId}`;
+  sse.addClient(matchChannel, res);
+  sse.addClient('live-scores', res);
+
+  const keepAlive = setInterval(() => {
+    try { res.write(': ping\n\n'); } catch { /* closed */ }
+  }, 25000);
+
+  req.on('close', () => {
+    clearInterval(keepAlive);
+    sse.removeClient(matchChannel, res);
+    sse.removeClient('live-scores', res);
+  });
+};
+
 module.exports = {
   getFixtures,
   getFixture,
@@ -593,4 +629,5 @@ module.exports = {
   saveLineup,
   saveStats,
   updateFixtureMeta,
+  streamFixture,
 };

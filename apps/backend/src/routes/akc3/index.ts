@@ -1,10 +1,12 @@
 const express = require('express');
 const prisma = require('../../config/db');
-const { getSchools, createSchool } = require('../../controllers/akc3/schools.controller');
-const { getTeams, createTeam } = require('../../controllers/akc3/akc3Teams.controller');
+const { getSchools, createSchool, updateSchool, setSchoolActive } = require('../../controllers/akc3/schools.controller');
+const { getTeams, createTeam, updateTeam, setTeamActive } = require('../../controllers/akc3/akc3Teams.controller');
 const { getFixtures, createFixture, enterResult } = require('../../controllers/akc3/fixtures.controller');
 const { importPlayersFromCSV } = require('../../services/akc3/import.service');
 const { protect, authorize } = require('../../middleware/auth');
+const validate = require('../../middleware/validate');
+const schemas = require('../../validators/schemas');
 
 const router = express.Router();
 
@@ -65,11 +67,118 @@ router.get('/competitions', async (req, res, next) => {
   }
 });
 
-// Admin Routes (SUPERADMIN only for AKC3 management)
-router.post('/admin/schools', protect, authorize('SUPERADMIN', 'AMASHURI_ADMIN'), createSchool);
-router.post('/admin/teams', protect, authorize('SUPERADMIN', 'AMASHURI_ADMIN'), createTeam);
-router.post('/admin/fixtures', protect, authorize('SUPERADMIN', 'AMASHURI_ADMIN'), createFixture);
-router.post('/admin/results/:fixtureId', protect, authorize('SUPERADMIN', 'AMASHURI_ADMIN'), enterResult);
+// Sport tiles for the school hub — the sports that actually have school
+// competitions, each with a live competition count (derived, never hardcoded).
+router.get('/sports', async (req, res, next) => {
+  try {
+    const grouped = await prisma.akcCompetition.groupBy({
+      by: ['sportId'],
+      where: { sportId: { not: null } },
+      _count: { _all: true },
+    });
+    const sportIds = grouped.map((g) => g.sportId).filter((id) => id != null);
+    const sports = await prisma.sport.findMany({ where: { id: { in: sportIds } } });
+    const byId = Object.fromEntries(sports.map((s) => [s.id, s]));
+    const data = grouped
+      .filter((g) => byId[g.sportId])
+      .map((g) => {
+        const s = byId[g.sportId];
+        return { slug: s.slug, name: s.name, icon: s.icon, competitions: g._count._all };
+      })
+      .sort((a, b) => b.competitions - a.competitions);
+    res.status(200).json({ success: true, count: data.length, data });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// School-sports news feed — pinned first, then newest.
+router.get('/announcements', async (req, res, next) => {
+  try {
+    const data = await prisma.akcAnnouncement.findMany({
+      where: { published: true },
+      orderBy: [{ pinned: 'desc' }, { createdAt: 'desc' }],
+    });
+    res.status(200).json({ success: true, count: data.length, data });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Athletes (AkcPlayer) across all school teams — the Amashuri "Athletes" admin
+// view. `verified=false` narrows to those pending document approval.
+router.get('/athletes', async (req, res, next) => {
+  try {
+    const { verified, schoolId } = req.query;
+    const where = {};
+    if (verified === 'true') where.docVerified = true;
+    if (verified === 'false') where.docVerified = false;
+    if (schoolId) where.team = { schoolId: parseInt(schoolId) };
+    const athletes = await prisma.akcPlayer.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      take: 500,
+      include: { team: { include: { school: { select: { id: true, name: true, logo: true } } } } },
+    });
+    res.status(200).json({ success: true, count: athletes.length, data: athletes });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Approve an athlete's documents (the Amashuri "Pending Approvals" action).
+router.patch('/admin/athletes/:id/verify', protect, authorize('SUPERADMIN', 'AMASHURI_ADMIN'), async (req, res, next) => {
+  try {
+    const athlete = await prisma.akcPlayer.update({
+      where: { id: parseInt(req.params.id) },
+      data: { docVerified: req.body.docVerified !== false },
+    });
+    res.status(200).json({ success: true, data: athlete });
+  } catch (error) {
+    next(error);
+  }
+});
+
+const amashuri = authorize('SUPERADMIN', 'AMASHURI_ADMIN');
+
+// Create a single athlete (the per-athlete alternative to the CSV import).
+router.post('/admin/athletes', protect, amashuri, validate(schemas.akcCreateAthlete), async (req, res, next) => {
+  try {
+    const { teamId, fullName, gender, ageCategory, position, jersey, idNumber, idType, hasDisability, disabilityType } = req.body;
+    if (!teamId || !fullName) return res.status(400).json({ success: false, message: 'teamId and fullName are required' });
+    const athlete = await prisma.akcPlayer.create({
+      data: {
+        teamId: parseInt(teamId), fullName,
+        gender: gender || undefined, ageCategory: ageCategory || undefined,
+        position: position || null, jersey: jersey ? parseInt(jersey) : null,
+        idNumber: idNumber || null, idType: idType || undefined,
+        hasDisability: !!hasDisability, disabilityType: disabilityType || null,
+      },
+    });
+    res.status(201).json({ success: true, data: athlete });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.patch('/admin/athletes/:id/active', protect, amashuri, async (req, res, next) => {
+  try {
+    const athlete = await prisma.akcPlayer.update({ where: { id: parseInt(req.params.id) }, data: { active: req.body.active !== false } });
+    res.status(200).json({ success: true, data: athlete });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Admin Routes (SUPERADMIN / AMASHURI_ADMIN)
+router.post('/admin/schools', protect, amashuri, validate(schemas.akcCreateSchool), createSchool);
+router.put('/admin/schools/:id', protect, amashuri, validate(schemas.akcUpdateSchool), updateSchool);
+router.patch('/admin/schools/:id/active', protect, amashuri, setSchoolActive);
+router.post('/admin/teams', protect, amashuri, validate(schemas.akcCreateTeam), createTeam);
+router.put('/admin/teams/:id', protect, amashuri, validate(schemas.akcUpdateTeam), updateTeam);
+router.patch('/admin/teams/:id/active', protect, amashuri, setTeamActive);
+router.post('/admin/fixtures', protect, amashuri, validate(schemas.akcCreateFixture), createFixture);
+router.post('/admin/results/:fixtureId', protect, amashuri, enterResult);
 
 router.post('/admin/import/players', protect, authorize('SUPERADMIN', 'AMASHURI_ADMIN'), async (req, res, next) => {
   try {
@@ -100,7 +209,7 @@ const buildCompetitionData = (body = {}) => {
   return data;
 };
 
-router.post('/admin/competitions', protect, authorize('SUPERADMIN', 'AMASHURI_ADMIN'), async (req, res, next) => {
+router.post('/admin/competitions', protect, authorize('SUPERADMIN', 'AMASHURI_ADMIN'), validate(schemas.akcCreateCompetition), async (req, res, next) => {
   try {
     if (!req.body?.name) {
       return res.status(400).json({ success: false, message: 'Championship name is required' });
