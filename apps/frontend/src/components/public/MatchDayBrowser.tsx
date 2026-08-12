@@ -88,10 +88,15 @@ const MatchDayBrowser = ({ sportId, accent = '#E8002D', leagues = [], showSideba
   }, [matches]);
 
   return (
-    <div className={showSidebar ? 'grid lg:grid-cols-[260px_1fr] gap-6' : ''}>
+    <div className={showSidebar ? 'grid grid-cols-1 gap-6 lg:grid-cols-[260px_minmax(0,1fr)]' : ''}>
       {/* Left: league sidebar */}
       {showSidebar && (
-      <aside className="lg:sticky lg:top-20 lg:self-start space-y-3">
+      // min-w-0 is load-bearing: without it this grid item keeps its default
+      // min-width:auto and the horizontal league rail below (a row of shrink-0
+      // chips) forces the whole column to its content width — ~958px — which
+      // dragged the entire sport page sideways on phones. min-w-0 lets the item
+      // shrink to the track so the rail scrolls inside it instead.
+      <aside className="min-w-0 lg:sticky lg:top-20 lg:self-start space-y-3">
         <div className="flex items-center bg-white dark:bg-white/5 rounded-xl border border-surface-3 dark:border-white/10 px-3">
           <Search size={15} className="opacity-30" />
           <input

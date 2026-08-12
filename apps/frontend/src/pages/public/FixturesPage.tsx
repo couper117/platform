@@ -49,11 +49,15 @@ const FixturesPage = () => {
   const { t } = useTranslation();
   const location = useLocation();
   const isResultsPage = location.pathname === '/results';
+  const isLivePage = location.pathname === '/live';
+  // The route sets which status this screen opens on: /live → LIVE, /results →
+  // COMPLETED, /fixtures → SCHEDULED. The filter chips still switch freely after.
+  const defaultStatus = isLivePage ? 'LIVE' : isResultsPage ? 'COMPLETED' : 'SCHEDULED';
   const isDesktop = useIsDesktop();
   const safe = useMotionSafe();
 
   const [filters, setFilters] = useState({
-    status: isResultsPage ? 'COMPLETED' : 'SCHEDULED',
+    status: defaultStatus,
     leagueId: '',
     from: '',
     to: '',
@@ -70,8 +74,8 @@ const FixturesPage = () => {
   });
 
   useEffect(() => {
-    setFilters(prev => ({ ...prev, status: isResultsPage ? 'COMPLETED' : 'SCHEDULED' }));
-  }, [isResultsPage]);
+    setFilters(prev => ({ ...prev, status: defaultStatus }));
+  }, [defaultStatus]);
 
   const list = fixtures?.data ?? [];
   const featured = pickFeatured(list);

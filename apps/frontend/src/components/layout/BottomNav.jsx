@@ -1,7 +1,8 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Compass, CalendarDays, Trophy, Newspaper } from 'lucide-react';
+import { Compass, CalendarDays, Trophy, Newspaper, Radio } from 'lucide-react';
 import { useMotionSafe, DUR, EASE } from '../../lib/motion';
 import cn from '../ui/cn';
 
@@ -26,15 +27,19 @@ import cn from '../ui/cn';
  * specifies at radius 0 — plus a colour change. No pill, no background blob.
  */
 
+// Five destinations — Live is promoted here because live sport is a core purpose
+// of the platform and must be one thumb-tap away.
 const TABS = [
-  { to: '/', label: 'Explore', icon: Compass, end: true },
-  { to: '/fixtures', label: 'Matches', icon: CalendarDays },
-  { to: '/leagues', label: 'Leagues', icon: Trophy },
-  { to: '/news', label: 'News', icon: Newspaper },
+  { to: '/', labelKey: 'nav.explore', icon: Compass, end: true },
+  { to: '/live', labelKey: 'nav.live', icon: Radio },
+  { to: '/fixtures', labelKey: 'nav.matches', icon: CalendarDays },
+  { to: '/leagues', labelKey: 'nav.leagues', icon: Trophy },
+  { to: '/news', labelKey: 'nav.news', icon: Newspaper },
 ];
 
 const BottomNav = () => {
   const safe = useMotionSafe();
+  const { t } = useTranslation();
   return (
   <nav
     aria-label="Main"
@@ -46,7 +51,7 @@ const BottomNav = () => {
     )}
   >
     <ul className="flex h-rail items-stretch">
-      {TABS.map(({ to, label, icon: Icon, end }) => (
+      {TABS.map(({ to, labelKey, icon: Icon, end }) => (
         <li key={to} className="flex-1">
           <NavLink
             to={to}
@@ -78,7 +83,7 @@ const BottomNav = () => {
                   className="flex flex-col items-center gap-0.5"
                 >
                   <Icon size={20} aria-hidden="true" />
-                  <span className="text-xs leading-none">{label}</span>
+                  <span className="text-xs leading-none">{t(labelKey)}</span>
                 </motion.span>
               </>
             )}

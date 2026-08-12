@@ -42,11 +42,11 @@ const U = (id) => `https://images.unsplash.com/${id}?auto=format&fit=crop&q=75`;
 const BRAND = '#008848';
 
 export const SPORT_THEMES = {
-  football:   { bg: U('photo-1522778119026-d647f0596c20'), accent: BRAND, venue: 'Pitch' },
-  basketball: { bg: U('photo-1546519638-68e109498ffc'),    accent: BRAND, venue: 'Court' },
-  volleyball: { bg: U('photo-1592656094267-764a45160876'), accent: BRAND, venue: 'Court' },
-  cycling:    { bg: U('photo-1541625602330-2277a4c46182'), accent: BRAND, venue: 'Road' },
-  cricket:    { bg: U('photo-1531415074968-036ba1b575da'), accent: BRAND, venue: 'Pitch' },
+  football:   { bg: U('photo-1522778119026-d647f0596c20', '#0B6E3F'), accent: BRAND, venue: 'Pitch' },
+  basketball: { bg: U('photo-1546519638-68e109498ffc', '#C81E1E'),    accent: BRAND, venue: 'Court' },
+  volleyball: { bg: U('photo-1592656094267-764a45160876', '#1D4ED8'), accent: BRAND, venue: 'Court' },
+  cycling:    { bg: U('photo-1541625602330-2277a4c46182', '#F59E0B'), accent: BRAND, venue: 'Road' },
+  cricket:    { bg: U('photo-1531415074968-036ba1b575da', '#0D9488'), accent: BRAND, venue: 'Pitch' },
   // bg null: the stock ID here was a fish and chips shop. Awaiting a real photo.
   rugby:      { bg: null, accent: BRAND, venue: 'Field' },
   // bg null: the stock ID here was volleyball, not handball. Awaiting a real photo.

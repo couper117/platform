@@ -1,171 +1,379 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Trophy, Users, Calendar, ChevronLeft, ArrowRight, Newspaper, LayoutGrid, AlertCircle } from 'lucide-react';
+import { format } from 'date-fns';
+import {
+  Trophy, Users, Calendar, Radio, ChevronLeft, ArrowRight, Newspaper, AlertCircle,
+} from 'lucide-react';
 import { getSport } from '../../api/endpoints/sports';
-import { getLeagues } from '../../api/endpoints/leagues';
+import { getLeagues, getLeague } from '../../api/endpoints/leagues';
 import { getFixtures } from '../../api/endpoints/fixtures';
 import { getNews } from '../../api/endpoints/news';
 import { sportTheme } from '../../config/sportThemes';
 import responsiveImage from '../../utils/responsiveImage';
+import { profileFor } from '../../config/sportProfiles';
+import apiClient from '../../api/client';
 import SportIcon from '../../components/shared/SportIcon';
+import ClubCrest from '../../components/ui/ClubCrest';
 import ResponsiveWrapper from '../../components/shared/ResponsiveWrapper';
-import FixtureCard from '../../components/shared/FixtureCard';
 import MatchDayBrowser from '../../components/public/MatchDayBrowser';
-import NewsCard from '../../components/shared/NewsCard';
+import RaceCalendar from '../../components/public/RaceCalendar';
+import ClassificationTable from '../../components/public/ClassificationTable';
 import Skeleton from '../../components/shared/Skeleton';
 import Seo from '../../components/shared/Seo';
 
-const statusPill = (status) => {
-  const map = {
-    ACTIVE: 'bg-green/10 text-green border-green/20',
-    UPCOMING: 'bg-gold/10 text-gold border-gold/20',
-    COMPLETED: 'bg-white/10 text-white/50 border-white/10',
-  };
-  return map[status] || 'bg-white/10 text-white/50 border-white/10';
+/**
+ * SportPage — "everything happening in this sport", not just fixtures.
+ *
+ * ONE generic architecture for every sport. The sections are the same
+ * (hero → nav → live → match centre → standings → news); only the DATA and a few
+ * type-driven choices differ. A RACING sport (cycling, athletics) swaps the
+ * fixture Match Centre + league table for a race calendar + classification.
+ *
+ * Live on the real backend and fully translated (EN/FR/RW) — every label goes
+ * through t(); only data (team, league, sport names) stays as data.
+ */
+
+const SECTION_HEADING = 'text-[10px] font-bold uppercase tracking-[0.35em] text-brand-text';
+
+/* ── compact stat ─────────────────────────────────────────────────────────── */
+const Stat = ({ icon: Icon, value, label, accent }) => (
+  <div className="flex items-center gap-2">
+    <Icon size={15} style={{ color: accent }} aria-hidden="true" />
+    <div className="leading-tight">
+      <span className="font-display text-lg font-bold tabular-nums text-white">{value}</span>
+      <span className="ml-1.5 text-[11px] font-semibold uppercase tracking-wide text-white/55">{label}</span>
+    </div>
+  </div>
+);
+
+/* ── sport navigation tabs ─────────────────────────────────────────────────── */
+const SportNav = ({ active, onSelect }) => {
+  const { t } = useTranslation();
+  const TABS = [
+    ['overview', t('sporthub.nav_overview')], ['matches', t('sporthub.nav_matches')], ['leagues', t('sporthub.nav_leagues')],
+    ['teams', t('sporthub.nav_teams')], ['standings', t('sporthub.nav_standings')], ['news', t('sporthub.nav_news')],
+  ];
+  return (
+    <div className="sticky top-14 z-30 border-b border-hairline bg-surface/95 backdrop-blur-nav md:top-nav">
+      <ResponsiveWrapper>
+        <nav aria-label="Sport sections" className="scroll-contain flex gap-1 overflow-x-auto">
+          {TABS.map(([id, label]) => (
+            <a
+              key={id}
+              href={`#${id}`}
+              onClick={() => onSelect(id)}
+              aria-current={active === id ? 'true' : undefined}
+              className={`relative shrink-0 px-3 py-3.5 text-sm font-semibold transition-colors ${active === id ? 'text-primary' : 'text-secondary hover:text-primary'}`}
+            >
+              {label}
+              {active === id && <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-brand" />}
+            </a>
+          ))}
+        </nav>
+      </ResponsiveWrapper>
+    </div>
+  );
 };
+
+/* ── one LIVE NOW card (sport-aware status via statusLabel) ─────────────────── */
+const LiveMatchCard = ({ fx, t }) => (
+  <Link
+    to={`/matches/${fx.id}`}
+    className="group block rounded-2xl border border-hairline bg-surface p-4 transition-colors hover:border-brand/40"
+  >
+    <div className="mb-3 flex items-center justify-between gap-2">
+      <span className="truncate text-[10px] font-bold uppercase tracking-wider text-tertiary">{fx.league?.name}</span>
+      <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-red/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red">
+        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red" /> {fx.statusLabel || t('match.live', 'Live')}
+      </span>
+    </div>
+    <div className="flex items-center gap-3">
+      <div className="flex min-w-0 flex-1 flex-col items-center gap-1.5 text-center">
+        <ClubCrest team={fx.homeTeam} size="md" />
+        <span className="w-full truncate text-xs font-semibold text-primary">{fx.homeTeam?.name}</span>
+      </div>
+      <div className="shrink-0 font-display text-2xl font-bold tabular-nums text-primary">
+        {fx.homeScore ?? 0} <span className="text-tertiary">-</span> {fx.awayScore ?? 0}
+      </div>
+      <div className="flex min-w-0 flex-1 flex-col items-center gap-1.5 text-center">
+        <ClubCrest team={fx.awayTeam} size="md" />
+        <span className="w-full truncate text-xs font-semibold text-primary">{fx.awayTeam?.name}</span>
+      </div>
+    </div>
+    {fx.venue && <p className="mt-2.5 truncate text-center text-[11px] text-tertiary">{fx.venue}</p>}
+  </Link>
+);
+
+/* ── standings preview (top rows + link to full table) ──────────────────────── */
+const StandingsPreview = ({ league }) => {
+  const { t } = useTranslation();
+  const { data } = useQuery({
+    queryKey: ['sport-standings', league?.id],
+    queryFn: () => getLeague(league.id),
+    enabled: !!league?.id,
+  });
+  const rows = (data?.data?.standings || []).slice(0, 5);
+  if (!league) return null;
+  return (
+    <section id="standings" className="scroll-mt-28 rounded-2xl border border-hairline bg-surface p-5">
+      <h2 className={SECTION_HEADING}>{t('sporthub.standings')}</h2>
+      <p className="mb-4 mt-1 font-display text-lg uppercase tracking-tight text-primary">{league.name}</p>
+      {rows.length === 0 ? (
+        <p className="py-4 text-sm text-tertiary">{t('sporthub.standings_empty')}</p>
+      ) : (
+        <table className="w-full text-left">
+          <thead>
+            <tr className="text-[9px] font-bold uppercase tracking-widest text-tertiary">
+              <th className="pb-2 pr-2 font-bold">#</th>
+              <th className="pb-2 font-bold">{t('sporthub.col_team')}</th>
+              <th className="pb-2 text-right font-bold">{t('sporthub.col_p')}</th>
+              <th className="pb-2 text-right font-bold">{t('sporthub.col_gd')}</th>
+              <th className="pb-2 pl-2 text-right font-bold">{t('sporthub.col_pts')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((s, i) => {
+              const gd = (s.goalsFor ?? 0) - (s.goalsAgainst ?? 0);
+              return (
+                <tr key={s.id ?? i} className="border-t border-hairline/60">
+                  <td className="py-2 pr-2 text-sm tabular-nums text-tertiary">{i + 1}</td>
+                  <td className="py-2">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <ClubCrest team={s.team} size="sm" />
+                      <span className="truncate text-sm font-medium text-primary">{s.team?.name}</span>
+                    </div>
+                  </td>
+                  <td className="py-2 text-right text-sm tabular-nums text-secondary">{s.played}</td>
+                  <td className="py-2 text-right text-sm tabular-nums text-secondary">{gd > 0 ? `+${gd}` : gd}</td>
+                  <td className="py-2 pl-2 text-right text-sm font-bold tabular-nums text-primary">{s.points}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
+      <Link to={`/leagues/${league.id}`} className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-brand-text hover:gap-2.5" style={{ transition: 'gap .15s' }}>
+        {t('sporthub.view_full_standings')} <ArrowRight size={13} />
+      </Link>
+    </section>
+  );
+};
+
+/* ── latest news (compact list) ─────────────────────────────────────────────── */
+const NewsRow = ({ a }) => (
+  <Link to={`/news/${a.slug || a.id}`} className="group flex gap-3">
+    <div className="h-16 w-20 shrink-0 overflow-hidden rounded-lg bg-surface-2">
+      {a.coverImage && <img src={a.coverImage} alt="" className="h-full w-full object-cover transition-transform group-hover:scale-105" />}
+    </div>
+    <div className="min-w-0 flex-1">
+      {a.category && <p className="text-[9px] font-bold uppercase tracking-wider text-brand-text">{String(a.category).replace(/_/g, ' ')}</p>}
+      <p className="line-clamp-2 text-sm font-semibold leading-snug text-primary group-hover:text-brand-text">{a.title}</p>
+      {a.createdAt && <p className="mt-0.5 text-[11px] text-tertiary">{format(new Date(a.createdAt), 'd MMM yyyy')}</p>}
+    </div>
+  </Link>
+);
 
 const SportHubPage = () => {
   const { t } = useTranslation();
   const { slug } = useParams();
   const theme = sportTheme(slug);
+  const [active, setActive] = useState('overview');
 
-  const { data: sportRes, isLoading, isError } = useQuery({
-    queryKey: ['sport', slug],
-    queryFn: () => getSport(slug),
-    retry: 1,
-  });
+  const { data: sportRes, isLoading, isError } = useQuery({ queryKey: ['sport', slug], queryFn: () => getSport(slug), retry: 1 });
   const sport = sportRes?.data;
   const sportId = sport?.id;
 
   const { data: leaguesRes } = useQuery({ queryKey: ['sport-leagues', sportId], queryFn: () => getLeagues({ sportId }), enabled: !!sportId });
   const { data: fixturesRes } = useQuery({ queryKey: ['sport-fixtures', sportId], queryFn: () => getFixtures({ sportId }), enabled: !!sportId });
   const { data: newsRes } = useQuery({ queryKey: ['sport-news', sportId], queryFn: () => getNews({ sportId }), enabled: !!sportId });
+  const { data: teamsRes } = useQuery({ queryKey: ['sport-teams', sportId], queryFn: async () => (await apiClient.get('/teams', { params: { sportId } })).data, enabled: !!sportId });
+
+  const profile = profileFor(sport?.type);
+  const isRacing = sport?.type === 'RACING';
+  const { data: racingRes } = useQuery({
+    queryKey: ['sport-racing', sportId],
+    queryFn: async () => (await apiClient.get('/races', { params: { sportId } })).data,
+    enabled: isRacing && !!sportId,
+    retry: 0,
+  });
+  const racing = racingRes?.data || { races: [], classification: null, competition: null };
 
   const leagues = leaguesRes?.data || [];
-  const fixtures = (fixturesRes?.data || []).filter((f) => f.status === 'SCHEDULED' || f.status === 'LIVE').slice(0, 6);
-  const news = (newsRes?.data || []).slice(0, 3);
-  const teamCount = sport?._count?.teams ?? leagues.reduce((n, l) => n + (l._count?.teams || 0), 0);
+  const allFixtures = fixturesRes?.data || [];
+  const liveFixtures = allFixtures.filter((f) => f.status === 'LIVE');
+  const upcomingCount = allFixtures.filter((f) => f.status === 'SCHEDULED').length;
+  const news = (newsRes?.data || []).slice(0, 4);
+  const teams = teamsRes?.data || [];
+  const teamCount = sport?._count?.teams ?? teams.length;
+  const primaryLeague = leagues[0] || null;
 
   if (isLoading) {
     return <div className="py-24"><ResponsiveWrapper><Skeleton type="stat" count={3} className="mb-8" /><Skeleton type="card" count={2} /></ResponsiveWrapper></div>;
   }
-
   if (isError || !sport) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 text-center px-4">
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-4 text-center">
         <AlertCircle size={40} className="text-red" />
-        <p className="font-display text-3xl uppercase tracking-widest opacity-60">Sport not found</p>
-        <Link to="/" className="bg-red text-white px-6 py-2 rounded-lg font-display uppercase tracking-widest text-sm">Back home</Link>
+        <p className="font-display text-3xl uppercase tracking-widest opacity-60">{t('sporthub.not_found')}</p>
+        <Link to="/" className="rounded-lg bg-brand-strong px-6 py-2 font-display text-sm uppercase tracking-widest text-white">{t('sporthub.back_home')}</Link>
       </div>
     );
   }
 
-  const hasContent = leagues.length > 0 || fixtures.length > 0 || news.length > 0;
-
   return (
-    <div className="bg-surface-2 dark:bg-surface-dark min-h-screen pb-24">
-      <Seo title={sport.name} description={`${sport.name} in Rwanda — leagues, fixtures, standings and news.`} image={theme.bg} />
+    <div className="min-h-screen bg-page">
+      <Seo title={sport.name} description={t('sporthub.seo_desc', { sport: sport.name })} image={theme.bg} />
 
-      {/* HERO — full-bleed sport pitch background */}
-      <section className="relative min-h-[60vh] flex items-end overflow-hidden bg-surface-dark">
+      {/* ─── COMPACT HERO ─── */}
+      <section className="relative overflow-hidden bg-surface-dark">
         <div className="absolute inset-0 z-0">
-          <img
-            {...responsiveImage(sport.coverImage || theme.bg)}
-            alt=""
-            loading="eager"
-            // lowercase: React 18 does not recognise the camelCase form
-            fetchpriority="high"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-surface-dark via-surface-dark/60 to-surface-dark/10" />
-          <div className="absolute inset-0" style={{ background: `radial-gradient(60% 60% at 20% 100%, ${theme.accent}33, transparent)` }} />
+          {(sport.coverImage || theme.bg) && (
+            <img {...responsiveImage(sport.coverImage || theme.bg)} alt="" loading="eager" fetchpriority="high" className="h-full w-full object-cover opacity-90" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-r from-surface-dark via-surface-dark/85 to-surface-dark/30" />
+          <div className="absolute inset-0 bg-gradient-to-t from-surface-dark to-transparent" />
         </div>
 
-        <ResponsiveWrapper className="relative z-20 py-14">
-          <Link to="/" className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white/50 hover:text-white mb-6">
-            <ChevronLeft size={14} /> {t('nav.all_sports')}
+        <ResponsiveWrapper className="relative z-20 py-5 lg:py-7">
+          <Link to="/" className="mb-4 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-white/50 hover:text-white">
+            <ChevronLeft size={13} /> {t('sporthub.all_sports')}
           </Link>
-          <div className="flex items-end gap-5 flex-wrap">
-            <SportIcon slug={slug} className="text-6xl sm:text-8xl drop-shadow-2xl" style={{ color: theme.accent }} />
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.3em]" style={{ background: `${theme.accent}22`, color: theme.accent, border: `1px solid ${theme.accent}44` }}>
-                Rwanda · {theme.venue}
-              </div>
-              <h1 className="text-5xl sm:text-7xl font-display text-white uppercase tracking-tighter leading-none">{sport.name}</h1>
+          <div className="flex items-center gap-4 lg:gap-5">
+            <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border-2 lg:h-20 lg:w-20" style={{ borderColor: `${theme.accent}66`, background: `${theme.accent}1a` }}>
+              <SportIcon slug={slug} size={34} style={{ color: theme.accent }} />
+            </span>
+            <div className="min-w-0">
+              <span className="inline-block rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.3em]" style={{ background: `${theme.accent}22`, color: theme.accent }}>
+                {t('sporthub.rwanda')}
+              </span>
+              <h1 className="mt-1 break-words font-display text-4xl uppercase leading-none tracking-tighter text-white sm:text-6xl">{sport.name}</h1>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-6 mt-6 text-[11px] font-bold uppercase tracking-widest text-white/60">
-            <span className="flex items-center gap-2"><Trophy size={14} style={{ color: theme.accent }} /> {leagues.length} {leagues.length === 1 ? t('sporthub.league') : t('sporthub.leagues')}</span>
-            <span className="flex items-center gap-2"><Users size={14} style={{ color: theme.accent }} /> {teamCount} {t('sporthub.teams')}</span>
-            <span className="flex items-center gap-2"><Calendar size={14} style={{ color: theme.accent }} /> {fixtures.length} {t('sporthub.upcoming')}</span>
+          {/* Four dynamic stats: leagues / teams / upcoming / live now. */}
+          <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2">
+            <Stat icon={Trophy} value={leagues.length} label={t('sporthub.leagues')} accent={theme.accent} />
+            <Stat icon={Users} value={teamCount} label={t('sporthub.teams')} accent={theme.accent} />
+            <Stat icon={Calendar} value={upcomingCount} label={t('sporthub.upcoming')} accent={theme.accent} />
+            <Stat icon={Radio} value={liveFixtures.length} label={t('sporthub.live_now')} accent={theme.accent} />
           </div>
         </ResponsiveWrapper>
       </section>
 
-      {!hasContent && (
-        <ResponsiveWrapper className="mt-16">
-          <div className="rounded-3xl border border-surface-3 dark:border-white/10 bg-white dark:bg-surface-dark2 p-12 text-center space-y-4">
-            <LayoutGrid size={40} className="mx-auto opacity-30" />
-            <h3 className="font-display text-2xl uppercase tracking-widest">{t('sporthub.coming_soon', { sport: sport.name })}</h3>
-            <p className="opacity-60 max-w-md mx-auto">{t('sporthub.coming_soon_hint', { sport: sport.name })}</p>
-            <Link to="/auth/team/register" className="inline-flex items-center gap-2 bg-red text-white px-6 py-3 rounded-xl font-display uppercase tracking-widest text-sm">{t('sporthub.register_team')} <ArrowRight size={16} /></Link>
-          </div>
-        </ResponsiveWrapper>
-      )}
+      {/* ─── SPORT NAVIGATION ─── */}
+      <SportNav active={active} onSelect={setActive} />
 
-      {/* MATCH CENTRE — LiveScore-style browser (comes before competitions) */}
-      <ResponsiveWrapper className="mt-8 sm:mt-12" id="matches">
-        <div className="mb-6">
-          <h2 className="text-[10px] uppercase font-bold tracking-[0.4em]" style={{ color: theme.accent }}>{t('sporthub.match_centre')}</h2>
-          <h3 className="text-3xl sm:text-4xl font-display uppercase tracking-tight">{t('browser.fixtures_results')}</h3>
+      {/* ─── CONTENT: two columns on desktop ─── */}
+      <ResponsiveWrapper className="py-6 lg:py-9">
+        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start lg:gap-8">
+          {/* MAIN */}
+          <main className="min-w-0 space-y-8">
+            {isRacing ? (
+              <section id="matches" className="scroll-mt-28">
+                <h2 className={SECTION_HEADING}>{racing.competition?.name || profile.competition}</h2>
+                <h3 className="mb-4 mt-1 font-display text-2xl uppercase tracking-tight text-primary">{profile.eventPlural}</h3>
+                <RaceCalendar races={racing.races} accent={theme.accent} />
+              </section>
+            ) : (
+              <>
+                {/* LIVE NOW */}
+                {liveFixtures.length > 0 && (
+                  <section id="live" className="scroll-mt-28">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <Radio size={15} className="text-red" />
+                        <h2 className={SECTION_HEADING}>{t('sporthub.live_now')}</h2>
+                        <span className="rounded-full bg-red/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red">{t('sporthub.live_count', { count: liveFixtures.length })}</span>
+                      </div>
+                      <Link to="/live" className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-brand-text">
+                        <span className="hidden sm:inline">{t('sporthub.view_all_live')}</span><span className="sm:hidden">{t('sporthub.view_all')}</span> <ArrowRight size={12} />
+                      </Link>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {liveFixtures.slice(0, 4).map((fx) => <LiveMatchCard key={fx.id} fx={fx} t={t} />)}
+                    </div>
+                  </section>
+                )}
+
+                {/* MATCH CENTRE */}
+                <section id="matches" className="scroll-mt-28">
+                  <h2 className={SECTION_HEADING}>{t('sporthub.match_centre')}</h2>
+                  <h3 className="mb-4 mt-1 font-display text-2xl uppercase tracking-tight text-primary">{t('browser.fixtures_results')}</h3>
+                  <MatchDayBrowser sportId={sportId} accent={theme.accent} leagues={leagues} showSidebar={false} />
+                </section>
+
+                {/* LEAGUES */}
+                {leagues.length > 0 && (
+                  <section id="leagues" className="scroll-mt-28">
+                    <h2 className={SECTION_HEADING}>{t('footer.competitions')}</h2>
+                    <h3 className="mb-4 mt-1 font-display text-2xl uppercase tracking-tight text-primary">{t('sporthub.competitions')}</h3>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {leagues.map((l) => (
+                        <Link key={l.id} to={`/leagues/${l.id}`} className="group flex items-center gap-3 rounded-2xl border border-hairline bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-brand/40">
+                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white" style={{ background: theme.accent }}><Trophy size={16} /></span>
+                          <div className="min-w-0">
+                            <p className="truncate font-bold text-primary group-hover:text-brand-text">{l.name}</p>
+                            <p className="truncate text-[11px] text-tertiary">{t('sporthub.season_teams', { season: l.season, count: l._count?.teams ?? 0 })}</p>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {/* TEAMS */}
+                {teams.length > 0 && (
+                  <section id="teams" className="scroll-mt-28">
+                    <h2 className={SECTION_HEADING}>{t('sporthub.clubs')}</h2>
+                    <h3 className="mb-4 mt-1 font-display text-2xl uppercase tracking-tight text-primary">{t('sporthub.teams')}</h3>
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                      {teams.slice(0, 12).map((tm) => (
+                        <Link key={tm.id} to="/teams" className="flex items-center gap-2.5 rounded-xl border border-hairline bg-surface p-3 transition-colors hover:border-brand/40">
+                          <ClubCrest team={tm} size="md" />
+                          <span className="min-w-0 truncate text-sm font-semibold text-primary">{tm.name}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </>
+            )}
+          </main>
+
+          {/* RAIL */}
+          <aside className="mt-8 space-y-6 lg:mt-0">
+            {isRacing
+              ? racing.classification && (
+                  <section id="standings" className="scroll-mt-28">
+                    <h2 className={SECTION_HEADING}>{profile.result}</h2>
+                    <h3 className="mb-3 mt-1 font-display text-lg uppercase tracking-tight text-primary">{racing.classification.title}</h3>
+                    <ClassificationTable classification={racing.classification} accent={theme.accent} />
+                  </section>
+                )
+              : <StandingsPreview league={primaryLeague} />}
+
+            {/* LATEST NEWS */}
+            <section id="news" className="scroll-mt-28 rounded-2xl border border-hairline bg-surface p-5">
+              <div className="mb-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Newspaper size={15} className="text-brand" />
+                  <h2 className={SECTION_HEADING}>{t('sporthub.latest_news')}</h2>
+                </div>
+                <Link to="/news" className="text-xs font-bold uppercase tracking-wider text-brand-text">{t('sporthub.view_all')}</Link>
+              </div>
+              {news.length === 0 ? (
+                <p className="py-4 text-sm text-tertiary">{t('sporthub.no_news', { sport: sport.name })}</p>
+              ) : (
+                <div className="space-y-4">
+                  {news.map((a) => <NewsRow key={a.id} a={a} />)}
+                </div>
+              )}
+            </section>
+          </aside>
         </div>
-        <MatchDayBrowser sportId={sportId} accent={theme.accent} leagues={leagues} />
       </ResponsiveWrapper>
-
-      {/* LEAGUES / COMPETITIONS */}
-      {leagues.length > 0 && (
-        <ResponsiveWrapper className="mt-16">
-          <div className="flex items-end justify-between mb-6">
-            <div>
-              <h2 className="text-[10px] uppercase font-bold tracking-[0.4em]" style={{ color: theme.accent }}>{t('footer.competitions')}</h2>
-              <h3 className="text-3xl sm:text-4xl font-display uppercase tracking-tight">{t('sporthub.sport_leagues', { sport: sport.name })}</h3>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {leagues.map((l) => (
-              <Link key={l.id} to={`/leagues/${l.id}`} className="group bg-white dark:bg-surface-dark2 rounded-2xl border border-surface-3 dark:border-white/5 p-6 hover:shadow-xl hover:-translate-y-1 transition-all">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-11 h-11 rounded-xl flex items-center justify-center text-white" style={{ background: theme.accent }}><Trophy size={18} /></div>
-                  <span className={`text-[9px] font-bold px-2 py-1 rounded border uppercase ${statusPill(l.status)}`}>{l.status}</span>
-                </div>
-                <h4 className="font-display text-xl uppercase tracking-tight leading-tight group-hover:text-red transition-colors">{l.name}</h4>
-                <p className="text-[10px] uppercase font-bold tracking-widest opacity-40 mt-2">Season {l.season} · {l._count?.teams ?? 0} teams</p>
-                <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest mt-4" style={{ color: theme.accent }}>
-                  {t('sporthub.view_standings')} <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
-                </div>
-              </Link>
-            ))}
-          </div>
-        </ResponsiveWrapper>
-      )}
-
-      {/* NEWS */}
-      {news.length > 0 && (
-        <ResponsiveWrapper className="mt-16">
-          <div className="flex items-end justify-between mb-6">
-            <div>
-              <h2 className="text-[10px] uppercase font-bold tracking-[0.4em]" style={{ color: theme.accent }}>{t('sporthub.bulletin')}</h2>
-              <h3 className="text-3xl sm:text-4xl font-display uppercase tracking-tight flex items-center gap-3"><Newspaper size={26} /> {t('sporthub.sport_news', { sport: sport.name })}</h3>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {news.map((a) => <NewsCard key={a.id} article={a} />)}
-          </div>
-        </ResponsiveWrapper>
-      )}
     </div>
   );
 };

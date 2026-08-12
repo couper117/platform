@@ -2,6 +2,7 @@ import React from 'react';
 import cn from './cn';
 import clubColor from '../../config/clubColors';
 import responsiveImage from '../../utils/responsiveImage';
+import { crest } from '../../utils/crest';
 
 /**
  * A club, school or team.
@@ -46,7 +47,9 @@ const shortName = (team = {}) => {
 const ClubCrest = ({ team, color, size = 'md', className, ...props }) => {
   const px = PX[size] ?? 32;
   const resolved = color ?? clubColor(team);
-  const logo = team?.logo;
+  // Real uploaded logo wins; otherwise a generated crest in the club's colour so
+  // a squad list is legible before anyone uploads artwork (see utils/crest).
+  const logo = team?.logo || (team?.name ? crest(team.name, team.primaryColor || resolved, team.secondaryColor || '#F4B400', team.foundedYear) : null);
 
   return (
     <span

@@ -22,6 +22,29 @@
     overscroll-behavior-y: contain;
   }
 
+  /* No page should scroll sideways. A single stray-wide child (a long unbroken
+     word, a full-bleed image, a wide table) used to drag the whole viewport
+     right on phones — the public shell had no containment where the admin
+     shells did. `clip`, not `hidden`, on purpose: it contains the overflow
+     WITHOUT becoming a scroll container, so the `position: sticky` filter bars
+     and match rails keep sticking to the viewport. (Safari <16 lacks `clip`
+     and simply falls back to no clipping — a graceful, non-breaking degrade.) */
+  html,
+  body {
+    overflow-x: clip;
+    max-width: 100%;
+  }
+
+  /* Media never forces the page wider than the screen. Small fixed-size icons
+     (lucide sets explicit width/height) are unaffected — max-width only bites
+     when the element would exceed its container. */
+  img,
+  video,
+  canvas,
+  iframe {
+    max-width: 100%;
+  }
+
   /* The reference sets headings heavy — 800 for hero and section titles, with
      slightly negative tracking so large type stays tight. */
   h1, h2, h3, h4, h5, h6 {
