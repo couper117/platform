@@ -5,7 +5,8 @@
   "private": true,
   "workspaces": [
     "apps/frontend",
-    "apps/backend"
+    "apps/backend",
+    "demo/app"
   ],
   "scripts": {
     "dev": "concurrently -n backend,frontend -c green,cyan \"npm run dev --workspace=apps/backend\" \"npm run dev --workspace=apps/frontend\"",
@@ -13,6 +14,9 @@
     "start": "concurrently -n backend,frontend -c green,cyan \"npm run start --workspace=apps/backend\" \"npm run start --workspace=apps/frontend\"",
     "dev:frontend": "npm run dev --workspace=apps/frontend",
     "dev:backend": "npm run dev --workspace=apps/backend",
+    "demo:dev": "npm run dev --workspace=demo/app",
+    "demo:build": "npm run build --workspace=demo/app",
+    "demo:serve": "node demo/serve.js",
     "seed": "npm run seed --workspace=apps/backend",
     "seed:all": "npm run seed:all --workspace=apps/backend",
     "typecheck": "npm run typecheck --workspace=apps/frontend && npm run typecheck --workspace=apps/backend",
