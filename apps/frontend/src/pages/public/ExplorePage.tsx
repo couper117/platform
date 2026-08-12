@@ -6,6 +6,7 @@ import { Trophy, Users, CalendarDays, Radio, ArrowDown, ArrowRight, Compass, Lay
 import { getSports } from '../../api/endpoints/sports';
 import { getFixtures } from '../../api/endpoints/fixtures';
 import { cover } from '../../utils/crest';
+import { SPORT_THEMES } from '../../config/sportThemes';
 import ClubCrest from '../../components/ui/ClubCrest';
 import Button from '../../components/ui/Button';
 import Seo from '../../components/shared/Seo';
@@ -14,27 +15,6 @@ import Seo from '../../components/shared/Seo';
    (EN/FR/RW) via t(), and live on the real backend (/sports, /fixtures). */
 
 const ACCENT = 'text-emerald-600 dark:text-[#2FD778]';
-
-const HeroArt = () => {
-  const [ok, setOk] = React.useState(true);
-  return (
-    <div className="relative mx-auto aspect-square w-full max-w-[520px] lg:aspect-[5/4]">
-      <div className="absolute inset-0 opacity-70 dark:opacity-100" style={{ background: 'radial-gradient(55% 55% at 62% 42%, rgba(34,197,94,0.25), transparent 72%)' }} />
-      <svg viewBox="0 0 400 360" className="absolute inset-0 h-full w-full opacity-40" aria-hidden="true">
-        <path d="M40 300 C140 260 150 120 250 90 C300 75 330 140 360 120" fill="none" stroke="#2FD778" strokeWidth="2" opacity="0.5" />
-      </svg>
-      {ok ? (
-        <img src="/hero.png" alt="" onError={() => setOk(false)} className="relative z-10 h-full w-full object-contain" />
-      ) : (
-        <div className="relative z-10 flex h-full items-center justify-center gap-4 sm:gap-7">
-          {['⚽', '🏀', '🏐'].map((b, i) => (
-            <span key={b} className="text-6xl drop-shadow-[0_0_28px_rgba(47,215,120,0.4)] sm:text-7xl" style={{ transform: `translateY(${i === 1 ? -26 : i === 0 ? 8 : -6}px)` }}>{b}</span>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
 
 const LiveCard = ({ fx, t }) => {
   const rows = [{ team: fx.homeTeam, score: fx.homeScore }, { team: fx.awayTeam, score: fx.awayScore }];
@@ -64,10 +44,14 @@ const LiveCard = ({ fx, t }) => {
 const SportCard = ({ s, t }) => {
   const isRacing = s.type === 'RACING';
   const count = s._count?.matches ?? 0;
+  // Real uploaded cover wins; else the curated per-sport photograph (only for
+  // sports with a real one — never the generic default); else a generated cover.
+  const themeBg = SPORT_THEMES[s.slug]?.bg;
+  const img = s.coverImage || (themeBg ? `${themeBg}&w=600` : cover(s.slug));
   return (
     <Link to={`/sports/${s.slug}`} className="group flex w-[44vw] shrink-0 flex-col overflow-hidden rounded-xl border border-hairline bg-surface transition-all hover:-translate-y-1 hover:border-brand/40 hover:shadow-md sm:w-52 lg:w-auto">
       <div className="relative h-28 overflow-hidden">
-        <img src={s.coverImage || cover(s.slug)} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+        <img src={img} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
       </div>
       <div className="p-3.5">
@@ -108,35 +92,43 @@ const ExplorePage = () => {
 
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 opacity-60 dark:opacity-100" style={{ background: 'radial-gradient(80% 60% at 70% 10%, rgba(16,110,60,0.22), transparent 60%)' }} />
-        <div className="relative mx-auto grid max-w-6xl items-center gap-6 px-5 pb-8 pt-8 sm:px-8 lg:grid-cols-2 lg:gap-8 lg:pb-12 lg:pt-14">
-          <div>
-            <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-hairline bg-surface px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-secondary">
+        {/* Real photo background. Swap /public/landing-hero.jpg for a higher-res
+            image any time — the overlays keep the copy legible in light & dark. */}
+        <div className="absolute inset-0">
+          <img src="/landing-hero.jpg" alt="" className="h-full w-full object-cover object-center" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/65 to-black/40" />
+          <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(90% 80% at 78% 12%, rgba(16,110,60,0.35), transparent 62%)' }} />
+          {/* Seamless fade into the page background below the hero. */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-page to-transparent" />
+        </div>
+
+        <div className="relative mx-auto max-w-6xl px-5 pb-14 pt-16 sm:px-8 lg:pb-20 lg:pt-28">
+          <div className="max-w-2xl">
+            <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur-sm">
               <Compass size={13} aria-hidden="true" /> Rwanda · MINISPORTS
             </p>
-            <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
-              {t('explore.hero_title_pre')} <span className={ACCENT}>{t('explore.hero_title_accent')}</span>
+            <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight text-white drop-shadow-lg sm:text-5xl lg:text-6xl">
+              {t('explore.hero_title_pre')} <span className="text-[#2FD778]">{t('explore.hero_title_accent')}</span>
             </h1>
-            <p className="mt-5 max-w-lg text-base leading-relaxed text-secondary sm:text-lg">{t('explore.hero_subtitle')}</p>
+            <p className="mt-5 max-w-lg text-base leading-relaxed text-white/80 sm:text-lg">{t('explore.hero_subtitle')}</p>
 
             <div className="mt-7 flex items-center gap-3">
               <Button href="#pick" size="lg" icon={ArrowDown} iconRight className="flex-1 whitespace-nowrap px-4 text-sm sm:flex-none sm:px-10 sm:text-base">{t('explore.find_your_sport')}</Button>
-              <Button to="/fixtures" variant="secondary" size="lg" icon={Radio} className="flex-1 whitespace-nowrap px-4 text-sm sm:flex-none sm:px-10 sm:text-base">{t('explore.live_scores')}</Button>
+              <Button to="/fixtures" variant="secondary" size="lg" icon={Radio} className="flex-1 whitespace-nowrap border-white/30 !bg-white/10 !text-white backdrop-blur-sm hover:!bg-white/20 px-4 text-sm sm:flex-none sm:px-10 sm:text-base">{t('explore.live_scores')}</Button>
             </div>
 
             <dl className="mt-8 grid grid-cols-4 gap-3 sm:flex sm:flex-wrap sm:gap-x-7 sm:gap-y-4">
               {stats.map(({ icon: Icon, value, label }) => (
                 <div key={label} className="flex items-start gap-2 sm:gap-2.5">
-                  <Icon size={17} className={`mt-1 shrink-0 ${ACCENT}`} aria-hidden="true" />
+                  <Icon size={17} className="mt-1 shrink-0 text-[#2FD778]" aria-hidden="true" />
                   <div>
-                    <dd className="font-display text-2xl font-extrabold leading-none tabular-nums">{value}</dd>
-                    <dt className="mt-1 text-xs text-tertiary">{label}</dt>
+                    <dd className="font-display text-2xl font-extrabold leading-none tabular-nums text-white">{value}</dd>
+                    <dt className="mt-1 text-xs text-white/60">{label}</dt>
                   </div>
                 </div>
               ))}
             </dl>
           </div>
-          <div className="hidden lg:order-last lg:block"><HeroArt /></div>
         </div>
       </section>
 
