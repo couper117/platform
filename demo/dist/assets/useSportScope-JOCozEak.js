@@ -1,1 +1,0 @@
-import{o as e}from"./index-Dr3QdgEb.js";function u(){const t=e(s=>s.user),r=e(s=>s.role),o=r==="FEDERATION_ADMIN"?t?.sportId??null:null;return{sportId:o,sport:r==="FEDERATION_ADMIN"?t?.sport??null:null,isScoped:r==="FEDERATION_ADMIN",params:o?{sportId:o}:{},key:o?`sport-${o}`:"all"}}export{u};

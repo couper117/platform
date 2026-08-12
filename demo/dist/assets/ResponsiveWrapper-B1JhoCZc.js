@@ -1,1 +1,0 @@
-import{j as r}from"./vendor-data-BZk15FLM.js";import"./vendor-react-CFkgp3IJ.js";const t=({children:s,className:p=""})=>r.jsx("div",{className:`container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl ${p}`,children:s});export{t as R};

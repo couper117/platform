@@ -1,0 +1,219 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { format } from 'date-fns';
+import {
+  Trophy, ShieldCheck, Users, UserSquare2, Medal, CalendarDays, Clock, ArrowRight, Eye, Lock,
+  PlusCircle, UserPlus, Newspaper, LayoutTemplate, ChevronDown,
+} from 'lucide-react';
+import { getLeagues } from '../../api/endpoints/leagues';
+import { getFixtures } from '../../api/endpoints/fixtures';
+import apiClient from '../../api/client';
+
+/**
+ * FEDERATION DASHBOARD — a national federation managing ONE sport.
+ *
+ * Everything here is scoped to the federation's sport (Football in the demo).
+ * The federation governs leagues/admins/teams/players/news for its sport but
+ * FIXTURES ARE READ-ONLY — managed by League Admins. The quick actions omit any
+ * fixture creation, and the boundary must also be enforced by the backend.
+ */
+
+// Demo federation identity. In the real app this comes from the authenticated
+// user's FederationAdminAssignment (federation + sport), never from the client.
+const FED = { abbr: 'FERWAFA', name: 'Football Federation of Rwanda', sportId: 1, season: '2025/2026' };
+const PIE = ['#16a34a', '#7c3aed', '#f5b301', '#2563eb', '#0d9488', '#dc2626'];
+
+const StatCard = ({ icon: Icon, value, label, sub }) => (
+  <div className="rounded-2xl border border-hairline bg-surface p-4 transition-shadow hover:shadow-md">
+    <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-brand/10 text-brand"><Icon size={17} /></div>
+    <p className="font-display text-2xl font-bold tabular-nums text-primary">{value}</p>
+    <p className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-tertiary">{label}</p>
+    {sub && <p className="mt-0.5 text-[11px] text-tertiary">{sub}</p>}
+  </div>
+);
+
+const QUICK = [
+  { label: 'Create League', sub: 'Start a new league', icon: PlusCircle, to: '/admin/leagues' },
+  { label: 'Assign League Admin', sub: 'Delegate admin access', icon: ShieldCheck, to: '/admin/users' },
+  { label: 'Register Team', sub: 'Add new team', icon: UserPlus, to: '/admin/teams' },
+  { label: 'Register Player', sub: 'Add new player', icon: UserSquare2, to: '/admin/players' },
+  { label: 'Create News', sub: 'Publish news article', icon: Newspaper, to: '/admin/news' },
+  { label: 'Manage Content', sub: 'Update sport content', icon: LayoutTemplate, to: '/admin/content' },
+];
+
+const GROWTH = ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'].map((m, i) => ({ m, v: [14, 34, 40, 45, 48, 55][i] }));
+const ADMINS = ['John Nshimiyimana', 'Aline Uwase', 'Jean Bosco', 'Grace Habimana', 'Patrick Niyonshuti'];
+
+const FederationDashboard = () => {
+  const { data: leaguesRes } = useQuery({ queryKey: ['fed-leagues'], queryFn: () => getLeagues({ sportId: FED.sportId }) });
+  const { data: teamsRes } = useQuery({ queryKey: ['fed-teams'], queryFn: async () => (await apiClient.get('/teams', { params: { sportId: FED.sportId } })).data });
+  const { data: fixturesRes } = useQuery({ queryKey: ['fed-fixtures'], queryFn: () => getFixtures({ sportId: FED.sportId }) });
+  const { data: newsRes } = useQuery({ queryKey: ['fed-news'], queryFn: async () => (await apiClient.get('/news')).data });
+  const { data: champRes } = useQuery({ queryKey: ['fed-champs'], queryFn: async () => (await apiClient.get('/akc3/competitions')).data });
+  const { data: activityRes } = useQuery({ queryKey: ['fed-activity'], queryFn: async () => (await apiClient.get('/activity', { params: { limit: 6 } })).data });
+
+  const leagues = leaguesRes?.data || [];
+  const teams = teamsRes?.data || [];
+  const fixtures = fixturesRes?.data || [];
+  const news = newsRes?.data || [];
+  const champs = champRes?.data || [];
+  const activity = activityRes?.data || [];
+
+  const players = teams.reduce((n, t) => n + (t._count?.players ?? 0), 0);
+  const upcoming = fixtures.filter((f) => f.status === 'SCHEDULED');
+  const dist = leagues.map((l) => ({ name: l.name, value: l._count?.teams ?? 0 }));
+
+  const cards = [
+    { icon: Trophy, value: leagues.length, label: 'Total Leagues', sub: 'Active leagues' },
+    { icon: ShieldCheck, value: leagues.length, label: 'League Admins', sub: 'Active administrators' },
+    { icon: Users, value: teams.length, label: 'Total Teams', sub: 'Registered teams' },
+    { icon: UserSquare2, value: players, label: 'Registered Players', sub: 'Across all leagues' },
+    { icon: Medal, value: champs.length, label: 'Championships', sub: 'Active competitions' },
+    { icon: CalendarDays, value: upcoming.length, label: 'Upcoming Fixtures', sub: 'Read-only' },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="font-display text-2xl uppercase tracking-tight text-primary sm:text-3xl">Welcome back, {FED.abbr} Admin! <span aria-hidden="true">👋</span></h1>
+          <p className="mt-1 text-sm text-tertiary">{FED.name}</p>
+        </div>
+        <button className="inline-flex w-fit items-center gap-2 rounded-xl border border-hairline bg-surface px-3 py-2 text-sm font-semibold text-secondary">
+          <CalendarDays size={15} /> Season {FED.season} <ChevronDown size={14} className="opacity-50" />
+        </button>
+      </div>
+
+      {/* Stat cards */}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+        {cards.map((c) => <StatCard key={c.label} {...c} />)}
+      </div>
+
+      {/* Growth + distribution + activity */}
+      <div className="grid gap-4 lg:grid-cols-[1fr_320px_320px]">
+        <div className="rounded-2xl border border-hairline bg-surface p-5">
+          <div className="mb-3"><h2 className="font-display text-lg uppercase tracking-tight text-primary">League Growth Over Time</h2><p className="text-xs text-tertiary">Teams registered — last 6 months</p></div>
+          <div className="h-52">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={GROWTH} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                <defs><linearGradient id="fg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#16a34a" stopOpacity={0.35} /><stop offset="100%" stopColor="#16a34a" stopOpacity={0} /></linearGradient></defs>
+                <XAxis dataKey="m" tick={{ fontSize: 11, fill: 'currentColor' }} className="text-tertiary" axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12 }} />
+                <Area type="monotone" dataKey="v" stroke="#16a34a" strokeWidth={2} fill="url(#fg)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-hairline bg-surface p-5">
+          <h2 className="mb-2 font-display text-lg uppercase tracking-tight text-primary">Team Distribution</h2>
+          <div className="flex items-center gap-3">
+            <div className="relative h-32 w-32 shrink-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={dist} dataKey="value" innerRadius={40} outerRadius={60} paddingAngle={2} stroke="none">
+                    {dist.map((_, i) => <Cell key={i} fill={PIE[i % PIE.length]} />)}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                <span className="font-display text-xl font-bold text-primary">{teams.length}</span>
+                <span className="text-[9px] uppercase tracking-wider text-tertiary">Teams</span>
+              </div>
+            </div>
+            <ul className="min-w-0 flex-1 space-y-1.5">
+              {dist.slice(0, 5).map((d, i) => (
+                <li key={d.name} className="flex items-center gap-2 text-xs">
+                  <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: PIE[i % PIE.length] }} />
+                  <span className="min-w-0 flex-1 truncate text-secondary">{d.name}</span>
+                  <span className="shrink-0 font-bold tabular-nums text-primary">{d.value}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-hairline bg-surface p-5">
+          <div className="mb-3 flex items-center justify-between"><h2 className="font-display text-lg uppercase tracking-tight text-primary">Recent Activity</h2><Link to="/admin/visitors" className="text-[11px] font-bold uppercase tracking-wider text-brand-text">View all</Link></div>
+          <div className="space-y-3">
+            {activity.slice(0, 5).map((log) => (
+              <div key={log.id} className="flex items-start gap-3">
+                <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-surface-2 text-tertiary"><Clock size={13} /></span>
+                <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-primary">{String(log.action || '').replace(/_/g, ' ')}</p><p className="truncate text-[11px] text-tertiary">{log.detail || log.pagePath}</p></div>
+                <span className="shrink-0 text-[10px] text-tertiary">{log.createdAt ? format(new Date(log.createdAt), 'HH:mm') : ''}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Recent leagues + upcoming fixtures */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="rounded-2xl border border-hairline bg-surface p-5">
+          <div className="mb-4 flex items-center justify-between"><h2 className="font-display text-lg uppercase tracking-tight text-primary">Recent Leagues</h2><Link to="/admin/leagues" className="text-[11px] font-bold uppercase tracking-wider text-brand-text">View all</Link></div>
+          <div className="overflow-x-auto scrollbar-hide">
+            <table className="w-full min-w-[440px] text-left">
+              <thead><tr className="text-[9px] font-bold uppercase tracking-widest text-tertiary"><th className="pb-2 pr-2">League</th><th className="pb-2 px-2">Season</th><th className="pb-2 px-2">Teams</th><th className="pb-2 px-2">Admin</th><th className="pb-2 px-2">Status</th><th className="pb-2 pl-2 text-right">View</th></tr></thead>
+              <tbody>
+                {leagues.map((l, i) => (
+                  <tr key={l.id} className="border-t border-hairline/60">
+                    <td className="py-2.5 pr-2 text-sm font-medium text-primary">{l.name}</td>
+                    <td className="py-2.5 px-2 text-sm tabular-nums text-secondary">{l.season}</td>
+                    <td className="py-2.5 px-2 text-sm tabular-nums text-secondary">{l._count?.teams ?? 0}</td>
+                    <td className="py-2.5 px-2 text-sm text-secondary">{ADMINS[i % ADMINS.length]}</td>
+                    <td className="py-2.5 px-2"><span className="rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand-text">{l.status}</span></td>
+                    <td className="py-2.5 pl-2 text-right"><Link to={`/leagues/${l.id}`} aria-label="View"><Eye size={15} className="ml-auto text-tertiary hover:text-primary" /></Link></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-hairline bg-surface p-5">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="flex items-center gap-2 font-display text-lg uppercase tracking-tight text-primary">Upcoming Fixtures <span className="inline-flex items-center gap-1 rounded-md bg-surface-2 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-tertiary"><Lock size={10} /> Read Only</span></h2>
+            <Link to="/admin/fixtures" className="text-[11px] font-bold uppercase tracking-wider text-brand-text">View all</Link>
+          </div>
+          {upcoming.length === 0 ? (
+            <p className="py-4 text-sm text-tertiary">No upcoming fixtures.</p>
+          ) : (
+            <div className="space-y-2">
+              {upcoming.slice(0, 4).map((f) => (
+                <Link key={f.id} to={`/matches/${f.id}`} className="flex items-center gap-3 rounded-xl border border-hairline bg-surface-2 p-3 hover:border-brand/40">
+                  <div className="w-16 shrink-0 text-[11px] tabular-nums text-tertiary">{f.matchDate ? format(new Date(f.matchDate), 'd MMM') : 'TBD'}<br /><span className="opacity-70">{f.matchDate ? format(new Date(f.matchDate), 'HH:mm') : ''}</span></div>
+                  <div className="min-w-0 flex-1 text-center text-sm">
+                    <span className="truncate font-semibold text-primary">{f.homeTeam?.name}</span>
+                    <span className="mx-2 text-tertiary">vs</span>
+                    <span className="truncate font-semibold text-primary">{f.awayTeam?.name}</span>
+                    <p className="truncate text-[10px] uppercase tracking-wider text-tertiary">{f.league?.name}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+          <p className="mt-3 flex items-center justify-center gap-1.5 rounded-xl bg-surface-2 py-2 text-[11px] text-tertiary"><Lock size={11} /> Read-only view. Managed by league administrators.</p>
+        </div>
+      </div>
+
+      {/* Quick actions (no fixture creation) */}
+      <div>
+        <h2 className="mb-3 font-display text-lg uppercase tracking-tight text-primary">Quick Actions</h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {QUICK.map((a) => (
+            <Link key={a.label} to={a.to} className="group rounded-2xl border border-hairline bg-surface p-4 transition-colors hover:border-brand/40">
+              <span className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-brand/10 text-brand"><a.icon size={16} /></span>
+              <p className="text-sm font-semibold text-primary">{a.label}</p>
+              <p className="text-[11px] text-tertiary">{a.sub}</p>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default FederationDashboard;

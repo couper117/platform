@@ -1,0 +1,134 @@
+/* Montserrat, matching the reference design. Self-hosted variable file (wght
+   100–900) so every weight from 300 to 800 costs one download. Never load fonts
+   from a CDN — the extra RTT is felt on Rwandan mobile networks. */
+@import '@fontsource-variable/montserrat/wght.css';
+
+@import './styles/tokens.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    /* Keep the installed-PWA viewport clear of the notch/home indicator. */
+    padding-top: env(safe-area-inset-top);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-page text-primary font-sans text-base antialiased;
+    /* Stop pull-to-refresh from fighting live-updating lists. */
+    overscroll-behavior-y: contain;
+  }
+
+  /* No page should scroll sideways. A single stray-wide child (a long unbroken
+     word, a full-bleed image, a wide table) used to drag the whole viewport
+     right on phones — the public shell had no containment where the admin
+     shells did. `clip`, not `hidden`, on purpose: it contains the overflow
+     WITHOUT becoming a scroll container, so the `position: sticky` filter bars
+     and match rails keep sticking to the viewport. (Safari <16 lacks `clip`
+     and simply falls back to no clipping — a graceful, non-breaking degrade.) */
+  html,
+  body {
+    overflow-x: clip;
+    max-width: 100%;
+  }
+
+  /* Media never forces the page wider than the screen. Small fixed-size icons
+     (lucide sets explicit width/height) are unaffected — max-width only bites
+     when the element would exceed its container. */
+  img,
+  video,
+  canvas,
+  iframe {
+    max-width: 100%;
+  }
+
+  /* The reference sets headings heavy — 800 for hero and section titles, with
+     slightly negative tracking so large type stays tight. */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-extrabold;
+    letter-spacing: -0.01em;
+  }
+
+  /* Every numeral in the product is tabular. Scores, minutes, standings columns
+     and stats must never shift width as digits change — this is the single most
+     visible correctness issue in the old UI, so it is a base rule, not opt-in.
+     `.tnum` stays available for spans that need it explicitly. */
+  th, td, time, output, [data-numeric] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* iOS zooms the viewport when a focused input is under 16px. The body scale is
+     15px, so form controls are pinned one notch up on purpose. */
+  input, select, textarea {
+    font-size: 16px;
+  }
+
+  /* A visible, consistent focus ring everywhere — never remove the outline. */
+  :focus-visible {
+    outline: 2px solid rgb(var(--focus));
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Scores and other display numerals: expanded width + semibold + tabular. */
+  .numerals {
+    @apply font-display font-semibold;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Scroll containers: contain overscroll so a nested list can't trigger the
+     browser's pull-to-refresh mid-match. */
+  .scroll-contain {
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Bottom-nav and sticky-footer clearance in installed mode. */
+  .pb-safe {
+    padding-bottom: calc(var(--nav-h, 0px) + env(safe-area-inset-bottom));
+  }
+}
+
+/* Motion is functional only — score changes, live pulse, route transitions.
+   When the user asks for less, honour it globally rather than per-component. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ─── DEPRECATED ─────────────────────────────────────────────────────
+   Keyframes for un-swept components (PageLoader, SplashScreen, the legacy
+   ticker markup). Removed when those are rebuilt. */
+@keyframes progress {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-progress {
+  animation: progress 2s infinite ease-in-out;
+}
+
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-ticker {
+  display: inline-block;
+  white-space: nowrap;
+  animation: ticker 60s linear infinite;
+}
