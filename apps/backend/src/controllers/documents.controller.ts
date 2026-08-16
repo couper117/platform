@@ -1,7 +1,7 @@
 const prisma = require('../config/db');
 const { uploadImage } = require('../services/storage.service');
 const logActivity = require('../utils/activityLogger');
-const { REQUIRED_DOC_TYPES } = require('../constants/documentRequirements');
+const { REQUIRED_DOC_TYPES, isPlayerVerifiable } = require('../constants/documentRequirements');
 
 // @desc    Get which document types are required for player verification
 // @route   GET /api/v1/documents/requirements
@@ -108,12 +108,9 @@ const reviewDocument = async (req, res, next) => {
         where: { playerId: document.playerId, status: 'APPROVED' },
       });
 
-      const types = allDocs.map(d => d.docType);
-      // A player is verified with a birth certificate PLUS one photo ID
-      // (passport OR national ID) — not both, which was previously unreachable.
-      const hasBirthCert = types.includes('BIRTH_CERTIFICATE');
-      const hasPhotoId = types.includes('PASSPORT') || types.includes('NATIONAL_ID');
-      const hasAllRequired = hasBirthCert && hasPhotoId;
+      // Birth certificate + one photo ID (passport OR national ID). The rule is
+      // isolated + unit-tested in constants/documentRequirements.
+      const hasAllRequired = isPlayerVerifiable(allDocs.map((d) => d.docType));
 
       if (hasAllRequired) {
         await prisma.player.update({
