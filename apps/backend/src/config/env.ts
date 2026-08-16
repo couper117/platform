@@ -23,6 +23,14 @@ const envSchema = z.object({
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
   SMTP_FROM: z.string().optional(),
+  // Flutterwave (payments). All optional: without them the payment provider runs
+  // in a safe "sandbox" mode (no live charges, no real links). Set all three to
+  // go live — see src/services/payments/flutterwave.service.ts.
+  FLW_SECRET_KEY: z.string().optional(),
+  FLW_PUBLIC_KEY: z.string().optional(),
+  FLW_WEBHOOK_HASH: z.string().optional(),   // the dashboard "secret hash" sent back in the verif-hash header
+  FLW_BASE_URL: z.string().url().default('https://api.flutterwave.com/v3'),
+  PAYMENT_CURRENCY: z.string().default('RWF'),
   FRONTEND_URL: z.string().url().default('http://localhost:5173'),
 });
 
