@@ -6,7 +6,7 @@ import cn from '../ui/cn';
  * The two headers that give a flat fixture list structure.
  *
  * A list of 40 matches across six leagues and two weeks is unreadable without
- * grouping, and grouping headers are the cheapest structure available — a date
+ * grouping, and grouping headers are the cheapest structure available Ã¢â‚¬â€ a date
  * divider is 28px and buys the whole list an axis.
  *
  * ORDER IS DATE FIRST, THEN COMPETITION. A fan opens this screen asking "what is
@@ -20,7 +20,7 @@ import cn from '../ui/cn';
  * NOT STICKY, deliberately. It was, and it collided twice: the filter bar is
  * already sticky at the same offset, so a pinned divider slid underneath it; and
  * on desktop the list sits in an `overflow-hidden` card, which becomes the sticky
- * containing block and parked the divider 44px down from the card's top edge —
+ * containing block and parked the divider 44px down from the card's top edge Ã¢â‚¬â€
  * directly on top of the first row.
  *
  * Both were fixable with a measured offset, but a pinned divider earns its keep
@@ -29,7 +29,8 @@ import cn from '../ui/cn';
  * pinned is worth more: it lets you switch Upcoming/Live/Results at any scroll
  * position.
  */
-export const MatchdayDivider = ({ date, competition, className }) => {
+/** @param {{ date?: any, competition?: any, className?: string }} props */
+export const MatchdayDivider = ({ date, competition, className = '' }) => {
   const d = date ? new Date(date) : null;
 
   const label = !d
@@ -64,10 +65,11 @@ export const MatchdayDivider = ({ date, competition, className }) => {
 };
 
 /**
- * Competition label within a date group. Deliberately quiet — it qualifies the
+ * Competition label within a date group. Deliberately quiet Ã¢â‚¬â€ it qualifies the
  * rows beneath it and must not compete with them for attention.
  */
-export const CompetitionHeader = ({ name, meta, className }) => (
+/** @param {{ name?: any, meta?: any, className?: string }} props */
+export const CompetitionHeader = ({ name, meta, className = '' }) => (
   <div className={cn('flex h-5 items-center justify-between gap-2 px-3', className)}>
     <span className="truncate text-xs text-tertiary">{name}</span>
     {meta && <span className="shrink-0 text-xs text-tertiary">{meta}</span>}

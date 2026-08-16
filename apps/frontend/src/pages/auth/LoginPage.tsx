@@ -46,9 +46,10 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { register, handleSubmit, formState } = useForm({
     resolver: zodResolver(loginSchema),
   });
+  const errors: any = formState.errors;
 
   const onSubmit = async (data) => {
     setIsLoading(true);

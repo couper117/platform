@@ -32,6 +32,7 @@ export const initials = (name = '') =>
     .join('')
     .toUpperCase() || '?';
 
+/** @param {{ src?: string, name?: string, size?: string, className?: string } & Record<string, any>} props */
 const Avatar = ({ src, name, size = 'md', className, ...props }) => {
   const px = PX[size] ?? 32;
   const classes = cn(

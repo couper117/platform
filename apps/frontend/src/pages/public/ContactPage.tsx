@@ -24,7 +24,9 @@ const info = [
 const ContactPage = () => {
   const [sent, setSent] = useState(false);
   const [serverError, setServerError] = useState('');
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm({ resolver: zodResolver(schema) });
+  const { register, handleSubmit, reset, formState } = useForm({ resolver: zodResolver(schema) });
+  const errors: any = formState.errors;
+  const { isSubmitting } = formState;
 
   const onSubmit = async (values) => {
     setServerError('');
@@ -110,7 +112,7 @@ const ContactPage = () => {
   );
 };
 
-const Field = React.forwardRef(({ label, error, ...props }, ref) => (
+const Field = React.forwardRef<any, any>(({ label, error, ...props }, ref) => (
   <div className="space-y-2">
     <label className="text-[10px] uppercase font-bold tracking-widest opacity-40 ml-1">{label}</label>
     <input

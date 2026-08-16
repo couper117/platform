@@ -17,7 +17,7 @@ const canManageTeam = (user, team) =>
 const getPlayers = async (req, res, next) => {
   try {
     const { teamId, status, sportId, search } = req.query;
-    const where = { active: true };
+    const where: any = { active: true };
     if (teamId) where.teamId = parseInt(teamId);
     if (status) where.status = status;
     if (sportId) where.team = { sportId: parseInt(sportId) };

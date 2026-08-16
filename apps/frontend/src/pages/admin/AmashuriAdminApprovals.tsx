@@ -7,7 +7,7 @@ import Avatar from '../../components/ui/Avatar';
 import AdminTable from '../../components/admin/AdminTable';
 import { Skeleton, EmptyState } from '../../components/ui';
 
-/** Amashuri Admin → Pending Approvals: athletes awaiting document verification. */
+/** Amashuri Admin â†’ Pending Approvals: athletes awaiting document verification. */
 const AmashuriAdminApprovals = () => {
   const { t } = useTranslation();
   const qc = useQueryClient();
@@ -18,7 +18,7 @@ const AmashuriAdminApprovals = () => {
   const pending = data?.data || [];
 
   const approve = useMutation({
-    mutationFn: (id) => verifyAkcAthlete(id),
+    mutationFn: (id: any) => verifyAkcAthlete(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['aa-approvals'] }),
   });
 
@@ -36,7 +36,7 @@ const AmashuriAdminApprovals = () => {
               <tr key={a.id} className="transition-colors hover:bg-surface-2 dark:hover:bg-white/5">
                 <td className="px-6 py-4"><div className="flex items-center gap-3"><Avatar name={a.fullName} size="sm" /><span className="text-sm font-semibold text-primary">{a.fullName}</span></div></td>
                 <td className="px-6 py-4 text-sm text-secondary">{a.team?.school?.name}</td>
-                <td className="px-6 py-4 text-sm tabular-nums text-tertiary">{a.idNumber || '—'}</td>
+                <td className="px-6 py-4 text-sm tabular-nums text-tertiary">{a.idNumber || 'â€”'}</td>
                 <td className="px-6 py-4">
                   <button
                     onClick={() => approve.mutate(a.id)}

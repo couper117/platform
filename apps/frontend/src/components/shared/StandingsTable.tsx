@@ -75,7 +75,7 @@ const StandingsTable = ({ standings = [] }) => {
             </tr>
           )) : (
             <tr>
-              <td colSpan="11" className="px-4 py-20 text-center opacity-30 uppercase tracking-widest font-display text-xl">
+              <td colSpan={11} className="px-4 py-20 text-center opacity-30 uppercase tracking-widest font-display text-xl">
                 {t('standings.empty')}
               </td>
             </tr>

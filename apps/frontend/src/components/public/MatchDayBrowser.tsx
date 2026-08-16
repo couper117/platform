@@ -45,7 +45,7 @@ const StatusCell = ({ f, t }) => {
   );
 };
 
-const TeamRow = ({ team, score, bold }) => (
+const TeamRow = ({ team, score, bold }: { team?: any; score?: any; bold?: boolean }) => (
   <div className="flex items-center gap-2.5 flex-1 min-w-0">
     <div className="w-7 h-7 rounded-full bg-surface-3 dark:bg-white/10 flex items-center justify-center overflow-hidden shrink-0 text-[9px] font-bold">
       {team?.logo ? <img src={team.logo} alt="" className="w-full h-full object-cover" /> : initials(team?.name)}

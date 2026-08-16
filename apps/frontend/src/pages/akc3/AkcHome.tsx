@@ -105,7 +105,7 @@ const CompetitionCard = ({ c, t }) => {
   );
 };
 
-const SectionHead = ({ icon: Icon, title, to, viewLabel }) => (
+const SectionHead = ({ icon: Icon, title, to, viewLabel }: any) => (
   <div className="mb-4 flex items-center justify-between gap-3">
     <h2 className="flex items-center gap-2 text-lg font-extrabold uppercase tracking-tight text-primary sm:text-xl">
       {Icon && <Icon size={18} style={{ color: GOLD }} />} {title}

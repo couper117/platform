@@ -53,9 +53,11 @@ const STATUS = {
 };
 
 /**
- * @param {string}  status   backend enum, case-insensitive
- * @param {string}  [label]  override the mapped label (e.g. "Live 67’")
- * @param {boolean} [dot]    show the leading dot (default true)
+ * props.status  — backend enum, case-insensitive
+ * props.label   — override the mapped label (e.g. "Live 67’")
+ * props.dot     — show the leading dot (default true)
+ * props.className, plus any span attributes, pass through.
+ * @param {any} props
  */
 const StatusPill = ({ status, label, dot = true, className, ...props }) => {
   const key = String(status || '').toUpperCase();

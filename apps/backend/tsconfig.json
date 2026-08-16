@@ -3,6 +3,12 @@
     "target": "ES2021",
     "module": "CommonJS",
     "moduleResolution": "node",
+    /* The codebase is CommonJS (require/module.exports) written in .ts files.
+       Without this, tsc treats each file as a global script, so every top-level
+       `const x = require(...)` collides across files (hundreds of spurious
+       TS2451 "cannot redeclare" errors). Forcing module detection scopes each
+       file, which is what tsx does at runtime. */
+    "moduleDetection": "force",
     "lib": ["ES2021"],
     "types": ["node"],
     "outDir": "dist",

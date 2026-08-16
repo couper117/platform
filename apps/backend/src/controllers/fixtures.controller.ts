@@ -46,7 +46,7 @@ const isValidHttpUrl = (u) => {
 const getFixtures = async (req, res, next) => {
   try {
     const { leagueId, sportId, status, from, to, teamId, reporterId } = req.query;
-    const where = {};
+    const where: any = {};
     const andClauses = [];
     if (leagueId) where.leagueId = parseInt(leagueId);
     if (sportId) where.league = { sportId: parseInt(sportId) };

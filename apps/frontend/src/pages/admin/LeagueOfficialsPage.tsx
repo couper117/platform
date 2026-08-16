@@ -22,7 +22,7 @@ const LeagueOfficialsPage = () => {
     const r = (f.referee || '').trim();
     if (r) counts[r] = (counts[r] || 0) + 1;
   }
-  const officials = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  const officials = Object.entries(counts).sort((a: any, b: any) => b[1] - a[1]);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -36,7 +36,7 @@ const LeagueOfficialsPage = () => {
         <EmptyState icon={Users2} title={t('ladmin.none_officials')} hint={t('ladmin.none_officials_hint')} />
       ) : (
         <AdminTable headers={[t('ladmin.col_referee'), t('ladmin.col_appearances')]}>
-          {officials.map(([name, n]) => (
+          {officials.map(([name, n]: any) => (
             <tr key={name} className="transition-colors hover:bg-surface-2 dark:hover:bg-white/5">
               <td className="px-6 py-4"><div className="flex items-center gap-3"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-2 text-tertiary"><Users2 size={15} /></span><span className="text-sm font-semibold text-primary">{name}</span></div></td>
               <td className="px-6 py-4 text-sm font-bold tabular-nums text-primary">{n}</td>

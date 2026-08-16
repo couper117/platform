@@ -51,17 +51,22 @@ const AdminDashboard = () => {
   const [tab, setTab] = useState('admins');
 
   // A federation admin governs one sport; a league admin runs one league —
-  // different dashboards entirely.
-  if (role === 'FEDERATION_ADMIN') return <FederationDashboard />;
-  if (role === 'LEAGUE_ADMIN') return <LeagueDashboard />;
+  // different dashboards entirely. The Rules of Hooks require every hook below
+  // to run unconditionally, so the redirect happens *after* them and the
+  // super-admin queries are gated with `enabled` instead of an early return
+  // (so those roles never fire the requests).
+  const isSuperAdmin = role !== 'FEDERATION_ADMIN' && role !== 'LEAGUE_ADMIN';
   const trend = useTrend();
 
-  const { data: statsRes } = useQuery({ queryKey: ['admin-stats'], queryFn: async () => (await apiClient.get('/admin/stats')).data });
-  const { data: rosterRes } = useQuery({ queryKey: ['admin-roster'], queryFn: async () => (await apiClient.get('/admin/roster')).data });
-  const { data: activityRes } = useQuery({ queryKey: ['admin-activity'], queryFn: async () => (await apiClient.get('/activity', { params: { limit: 6 } })).data });
-  const { data: newsRes } = useQuery({ queryKey: ['admin-news-count'], queryFn: async () => (await apiClient.get('/news')).data });
-  const { data: adsRes } = useQuery({ queryKey: ['admin-ads-count'], queryFn: async () => (await apiClient.get('/ads')).data });
-  const { data: champRes } = useQuery({ queryKey: ['admin-champ-count'], queryFn: async () => (await apiClient.get('/akc3/competitions')).data });
+  const { data: statsRes } = useQuery({ queryKey: ['admin-stats'], enabled: isSuperAdmin, queryFn: async () => (await apiClient.get('/admin/stats')).data });
+  const { data: rosterRes } = useQuery({ queryKey: ['admin-roster'], enabled: isSuperAdmin, queryFn: async () => (await apiClient.get('/admin/roster')).data });
+  const { data: activityRes } = useQuery({ queryKey: ['admin-activity'], enabled: isSuperAdmin, queryFn: async () => (await apiClient.get('/activity', { params: { limit: 6 } })).data });
+  const { data: newsRes } = useQuery({ queryKey: ['admin-news-count'], enabled: isSuperAdmin, queryFn: async () => (await apiClient.get('/news')).data });
+  const { data: adsRes } = useQuery({ queryKey: ['admin-ads-count'], enabled: isSuperAdmin, queryFn: async () => (await apiClient.get('/ads')).data });
+  const { data: champRes } = useQuery({ queryKey: ['admin-champ-count'], enabled: isSuperAdmin, queryFn: async () => (await apiClient.get('/akc3/competitions')).data });
+
+  if (role === 'FEDERATION_ADMIN') return <FederationDashboard />;
+  if (role === 'LEAGUE_ADMIN') return <LeagueDashboard />;
 
   const stats = statsRes?.data || {};
   const roster = rosterRes?.data || { federations: [], amashuriAdmins: [] };

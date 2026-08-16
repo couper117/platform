@@ -71,7 +71,7 @@ const AdminMediaPage = () => {
                 </div>
                 <div className="p-2">
                   <p className="truncate text-[11px] font-semibold text-primary">{m.label}</p>
-                  <p className="text-[9px] font-bold uppercase tracking-wider text-tertiary">{t(`admin.media.src_${m.source}`, m.source)}</p>
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-tertiary">{String(t(`admin.media.src_${m.source}`, m.source))}</p>
                 </div>
               </div>
             ))}

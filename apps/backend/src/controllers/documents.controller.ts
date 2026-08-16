@@ -16,7 +16,7 @@ const getRequirements = async (req, res) => {
 const getDocuments = async (req, res, next) => {
   try {
     const { status, playerId, teamId } = req.query;
-    const where = {};
+    const where: any = {};
     if (status) where.status = status;
     if (playerId) where.playerId = parseInt(playerId);
     if (teamId) where.player = { teamId: parseInt(teamId) };

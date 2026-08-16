@@ -16,7 +16,7 @@ const MAP = {
   athletics: FaPersonRunning,
 };
 
-const SportIcon = ({ slug, className, size, style }) => {
+const SportIcon = ({ slug, className, size, style }: { slug?: string; className?: string; size?: number; style?: React.CSSProperties }) => {
   const Icon = MAP[slug] || FaTrophy;
   return <Icon className={className} size={size} style={style} aria-hidden="true" />;
 };

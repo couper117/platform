@@ -11,7 +11,7 @@ import { Skeleton, EmptyState } from '../../components/ui';
 const ROLES = ['SUPERADMIN', 'FEDERATION_ADMIN', 'LEAGUE_ADMIN', 'AMASHURI_ADMIN', 'MATCH_REPORTER', 'TEAM_MANAGER', 'PUBLIC'];
 
 /**
- * Super Admin → Users. Every platform account with its role and active flag, both
+ * Super Admin â†’ Users. Every platform account with its role and active flag, both
  * editable inline. Wired to GET /admin/users and PATCH /admin/users/:id; the
  * backend guards the last active super admin from being locked out.
  */
@@ -27,7 +27,7 @@ const AdminUsersPage = () => {
   });
 
   const mutate = useMutation({
-    mutationFn: ({ id, patch }) => apiClient.patch(`/admin/users/${id}`, patch),
+    mutationFn: ({ id, patch }: any) => apiClient.patch(`/admin/users/${id}`, patch),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-users'] }),
   });
 
@@ -93,7 +93,7 @@ const AdminUsersPage = () => {
                     {u.active ? <><Check size={11} /> {t('admin.users.active')}</> : <><X size={11} /> {t('admin.users.inactive')}</>}
                   </button>
                 </td>
-                <td className="px-6 py-4 text-sm tabular-nums text-tertiary">{u.createdAt ? format(new Date(u.createdAt), 'd MMM yyyy') : '—'}</td>
+                <td className="px-6 py-4 text-sm tabular-nums text-tertiary">{u.createdAt ? format(new Date(u.createdAt), 'd MMM yyyy') : 'â€”'}</td>
               </tr>
             );
           })}

@@ -43,7 +43,7 @@ const AkcAdminDashboard = () => {
   });
 
   const createSchoolMutation = useMutation({
-    mutationFn: async (data) => {
+    mutationFn: async (data: any) => {
       await apiClient.post('/akc3/admin/schools', data);
     },
     onSuccess: () => {
@@ -52,20 +52,20 @@ const AkcAdminDashboard = () => {
       setSchoolForm(emptySchoolForm);
       pushToast('School added!', 'success');
     },
-    onError: (err) => pushToast(err.response?.data?.message || 'Failed to add school'),
+    onError: (err: any) => pushToast(err.response?.data?.message || 'Failed to add school'),
   });
 
   const importMutation = useMutation({
-    mutationFn: async (rows) => {
+    mutationFn: async (rows: any) => {
       const { data } = await apiClient.post('/akc3/admin/import/players', { rows });
       return data;
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       setImportResults(data.data);
       queryClient.invalidateQueries({ queryKey: ['admin-akc-schools'] });
-      pushToast(`Import finished — ${data.data.created} created, ${data.data.skipped} skipped.`, data.data.skipped ? 'info' : 'success');
+      pushToast(`Import finished â€” ${data.data.created} created, ${data.data.skipped} skipped.`, data.data.skipped ? 'info' : 'success');
     },
-    onError: (err) => pushToast(err.response?.data?.message || 'Failed to import CSV'),
+    onError: (err: any) => pushToast(err.response?.data?.message || 'Failed to import CSV'),
   });
 
   const handleCsvChange = async (e) => {
@@ -193,7 +193,7 @@ const AkcAdminDashboard = () => {
                   </div>
                   <div className="space-y-1">
                     <p className="font-bold uppercase text-[10px] tracking-[0.3em]">
-                      {importMutation.isPending ? 'Importing…' : csvFileName || 'Drop your CSV here or click to browse'}
+                      {importMutation.isPending ? 'Importingâ€¦' : csvFileName || 'Drop your CSV here or click to browse'}
                     </p>
                     <p className="text-[10px] opacity-40 uppercase tracking-widest italic">Supports up to 5,000 rows per upload</p>
                   </div>
@@ -244,7 +244,7 @@ const AkcAdminDashboard = () => {
             <div className="space-y-3">
               <h2 className="text-3xl font-display uppercase tracking-tight">Manage Championships</h2>
               <p className="text-sm opacity-60 max-w-lg mx-auto">
-                Create and manage every inter-school championship — including the Kagame Cup — set their level, status and dates, and track fixtures.
+                Create and manage every inter-school championship â€” including the Kagame Cup â€” set their level, status and dates, and track fixtures.
               </p>
             </div>
             <Link

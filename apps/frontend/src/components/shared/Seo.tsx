@@ -2,7 +2,7 @@ import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
 
-const Seo = ({ title, description }) => {
+const Seo = ({ title, description }: any) => {
   const { t, i18n } = useTranslation();
 
   return (

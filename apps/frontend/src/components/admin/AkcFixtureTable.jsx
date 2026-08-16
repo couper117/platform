@@ -9,7 +9,7 @@ const STATUS_STYLE = {
 };
 
 /** Shared table for Amashuri admin fixtures / live / results views. */
-const AkcFixtureTable = ({ fixtures, showScore }) => {
+const AkcFixtureTable = ({ fixtures, showScore = false }) => {
   const { t } = useTranslation();
   return (
     <AdminTable headers={[t('aadmin.col_match'), t('aadmin.col_date'), showScore ? t('aadmin.col_score') : t('aadmin.col_venue'), t('aadmin.col_stage'), t('aadmin.col_status')]}>

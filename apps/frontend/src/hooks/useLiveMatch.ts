@@ -87,7 +87,7 @@ export default function useLiveMatch(fixtureId, initial, onReconnect) {
     pusher.connection.bind('failed', onDrop);
     pusher.connection.bind('error', () => setConnected(false));
 
-    const mergeScore = (u = {}) => {
+    const mergeScore = (u: any = {}) => {
       setLive((prev) => ({
         ...prev,
         homeScore: u.homeScore ?? prev.homeScore,
@@ -152,7 +152,7 @@ export default function useLiveMatch(fixtureId, initial, onReconnect) {
     // only the reconnects need a REST refetch to catch missed events.
     let opened = false;
 
-    const mergeScore = (u = {}) => setLive((prev) => ({
+    const mergeScore = (u: any = {}) => setLive((prev) => ({
       ...prev,
       homeScore: u.homeScore ?? prev.homeScore,
       awayScore: u.awayScore ?? prev.awayScore,

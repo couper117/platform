@@ -18,7 +18,15 @@ import cn from './cn';
  * `title` falls back to the translated common.no_data rather than a literal, so a
  * caller that has nothing specific to say still speaks the visitor's language.
  */
-const EmptyState = ({ icon: Icon = Inbox, title, hint, action, className }) => {
+type EmptyStateProps = {
+  icon?: React.ComponentType<any>;
+  title?: React.ReactNode;
+  hint?: React.ReactNode;
+  action?: React.ReactNode;
+  className?: string;
+} & Record<string, any>;
+
+const EmptyState = ({ icon: Icon = Inbox, title, hint, action, className }: EmptyStateProps) => {
   const { t } = useTranslation();
 
   return (

@@ -8,7 +8,7 @@ import useAdminLeague from '../../hooks/useAdminLeague';
 import AdminTable from '../../components/admin/AdminTable';
 import { Skeleton, EmptyState } from '../../components/ui';
 
-/** League Admin → Reporter Assignment: who covers this league, plus assign-by-email. */
+/** League Admin â†’ Reporter Assignment: who covers this league, plus assign-by-email. */
 const LeagueReportersPage = () => {
   const { t } = useTranslation();
   const qc = useQueryClient();
@@ -24,9 +24,9 @@ const LeagueReportersPage = () => {
   const reporters = data || [];
 
   const assign = useMutation({
-    mutationFn: (mail) => apiClient.post(`/leagues/${leagueId}/assign-reporter`, { email: mail }),
+    mutationFn: (mail: any) => apiClient.post(`/leagues/${leagueId}/assign-reporter`, { email: mail }),
     onSuccess: () => { setEmail(''); setError(''); qc.invalidateQueries({ queryKey: ['la-reporters', leagueId] }); },
-    onError: (e) => setError(e.response?.data?.message || 'Failed'),
+    onError: (e: any) => setError(e.response?.data?.message || 'Failed'),
   });
 
   return (
@@ -66,7 +66,7 @@ const LeagueReportersPage = () => {
                 <p className="text-[11px] text-tertiary">{r.user?.email}</p>
               </td>
               <td className="px-6 py-4 text-sm text-secondary">{r.fixture ? `${r.fixture.homeTeam?.name} v ${r.fixture.awayTeam?.name}` : t('ladmin.league_wide')}</td>
-              <td className="px-6 py-4 text-sm tabular-nums text-tertiary">{r.assignedAt ? format(new Date(r.assignedAt), 'd MMM yyyy') : '—'}</td>
+              <td className="px-6 py-4 text-sm tabular-nums text-tertiary">{r.assignedAt ? format(new Date(r.assignedAt), 'd MMM yyyy') : 'â€”'}</td>
             </tr>
           ))}
         </AdminTable>

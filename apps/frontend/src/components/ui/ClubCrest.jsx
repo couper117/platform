@@ -44,6 +44,7 @@ const shortName = (team = {}) => {
   );
 };
 
+/** @param {{ team?: any, color?: string, size?: string, className?: string } & Record<string, any>} props */
 const ClubCrest = ({ team, color, size = 'md', className, ...props }) => {
   const px = PX[size] ?? 32;
   const resolved = color ?? clubColor(team);

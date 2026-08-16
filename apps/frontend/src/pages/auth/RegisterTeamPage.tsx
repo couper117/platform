@@ -96,7 +96,7 @@ const rowVariants = {
  * propagation needs a real DOM node between the step container and the field — a
  * fragment would break the chain.
  */
-const Row = ({ className, children }) => (
+const Row = ({ className = '', children }: { className?: string; children?: React.ReactNode }) => (
   <motion.div variants={rowVariants} className={className}>
     {children}
   </motion.div>
@@ -138,9 +138,13 @@ const RegisterTeamPage = () => {
 
   const { data: sports } = useQuery({ queryKey: ['sports-list-register'], queryFn: getSports });
 
-  const { register, handleSubmit, trigger, formState: { errors } } = useForm({
+  const { register, handleSubmit, trigger, formState } = useForm({
     resolver: zodResolver(registerSchema),
   });
+  // react-hook-form types `errors.<field>.message` as a union (string | FieldError |
+  // Merge<...>) because the form isn't generically typed; `t()` wants a string. The
+  // values are always strings from the zod resolver, so alias to `any` at the boundary.
+  const errors: any = formState.errors;
 
   const nextStep = async () => {
     const groups = {

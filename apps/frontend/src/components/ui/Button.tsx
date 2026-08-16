@@ -47,7 +47,23 @@ const SIZES = {
 
 const ICON_SIZE = { sm: 14, md: 16, lg: 18 };
 
-const Button = React.forwardRef(
+type IconComponent = React.ComponentType<any>;
+
+export type ButtonProps = {
+  to?: string;
+  href?: string;
+  variant?: keyof typeof VARIANTS;
+  size?: keyof typeof SIZES;
+  block?: boolean;
+  loading?: boolean;
+  disabled?: boolean;
+  icon?: IconComponent;
+  iconRight?: boolean;
+  className?: string;
+  children?: React.ReactNode;
+} & Record<string, any>;
+
+const Button = React.forwardRef<any, ButtonProps>(
   (
     {
       to,

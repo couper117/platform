@@ -6,7 +6,7 @@ import Skeleton from '../../components/shared/Skeleton';
 
 const AdminSettingsPage = () => {
   const queryClient = useQueryClient();
-  const [settingsData, setSettingsData] = useState({});
+  const [settingsData, setSettingsData] = useState<any>({});
   const [rules, setRules] = useState([]); // [{ skey, sval, label }]
 
   const { data: settings, isLoading } = useQuery({
@@ -30,7 +30,7 @@ const AdminSettingsPage = () => {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (updates) => {
+    mutationFn: async (updates: any) => {
       // Backend expects array of { skey, sval }
       const payload = Object.entries(updates).map(([skey, sval]) => ({ skey, sval }));
       await apiClient.put('/settings', payload);
@@ -140,7 +140,7 @@ const AdminSettingsPage = () => {
                   />
                 </div>
               ))}
-              {!rules.length && <p className="text-xs opacity-40 col-span-2">Loading rules…</p>}
+              {!rules.length && <p className="text-xs opacity-40 col-span-2">Loading rulesâ€¦</p>}
             </div>
           </div>
         </div>

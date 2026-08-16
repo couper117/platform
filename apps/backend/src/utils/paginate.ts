@@ -4,7 +4,7 @@
  * full-list consumers keep working. When either is supplied, paginates
  * (default limit 20, max 100).
  */
-const getPagination = (query = {}, defaultLimit = 20, maxLimit = 100) => {
+const getPagination = (query: any = {}, defaultLimit = 20, maxLimit = 100) => {
   const wants = query.page != null || query.limit != null;
   if (!wants) return { skip: 0, take: undefined, page: 1, limit: null, active: false };
   const page = Math.max(1, parseInt(query.page, 10) || 1);
