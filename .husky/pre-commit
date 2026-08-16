@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+# Fast local gate before a commit lands: the same type and lint checks CI runs.
+# Bypass in a genuine emergency with `git commit --no-verify`.
+npm run typecheck && npm run lint

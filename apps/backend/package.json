@@ -13,9 +13,12 @@
     "seed": "tsx prisma/seed.ts",
     "seed:extra": "tsx prisma/seed-extra.ts",
     "seed:federations": "tsx prisma/seed-federations.ts",
-    "seed:all": "tsx prisma/seed.ts && tsx prisma/seed-extra.ts && tsx prisma/seed-federations.ts",
+    "seed:colors": "tsx prisma/seed-colors.ts",
+    "seed:all": "tsx prisma/seed.ts && tsx prisma/seed-extra.ts && tsx prisma/seed-federations.ts && tsx prisma/seed-colors.ts",
     "vercel-build": "npx prisma generate && npx prisma migrate deploy",
-    "test": "node --test test/*.test.mjs"
+    "test": "node --import tsx --test \"test/unit/**/*.test.ts\"",
+    "test:unit": "node --import tsx --test \"test/unit/**/*.test.ts\"",
+    "test:smoke": "node --test test/smoke.test.mjs"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts && tsx prisma/seed-extra.ts && tsx prisma/seed-federations.ts"
