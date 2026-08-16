@@ -125,6 +125,34 @@ const B = [
 ];
 for (const [id,sev,title,file,problem,fix,status] of B) I('Brian', { id, sev, title, file, problem, fix, status });
 
+// ─── RECONCILIATION 2026-08-17 (see RECONCILIATION.md) ───
+// This register was authored against the pre-monorepo layout (react-app/, api/).
+// The repo has since been restructured (apps/frontend, apps/backend) and the
+// "demo parity" + hardening milestones resolved most of the frontend items. The
+// statuses below are updated from a re-audit of the CURRENT code; item file
+// paths above are historical. Items not listed here are unchanged and may still
+// need a fresh audit against apps/frontend (see RECONCILIATION.md).
+const RECONCILED = {
+  A2: 'fixed',   // AdminDashboard now fetches /admin/stats + /activity (no literals)
+  A4: 'fixed',   // authStore.refresh calls /auth/me to rehydrate user/role
+  A5: 'fixed',   // AdminNewsPage create modal wired to a mutation
+  A8: 'fixed',   // assignReporter/assignAdmin hit real backend routes with onError
+  A9: 'fixed',   // LiveReportingPage guards the user (covered by an e2e test)
+  A16: 'fixed',  // Team portal pages built (dashboard/players/documents/fixtures/profile)
+  M3: 'fixed',   // legacy seed.js gone; apps/backend seeds are upsert-based (idempotent)
+  M4: 'fixed',   // (same — legacy seed removed)
+  M13: 'fixed',  // PWA shipped (vite-plugin-pwa + PNG icons)
+  M14: 'fixed',  // .gitignore now allowlists demo/dist (committed intentionally)
+  M15: 'partial',// documented + rotation recommended; repo still under OneDrive
+  B1: 'fixed', B2: 'fixed', B3: 'fixed', B4: 'fixed',
+  B5: 'fixed', B6: 'fixed', B7: 'fixed', B8: 'fixed', // full EN/RW/FR i18n shipped
+};
+for (const d of Object.values(devs)) {
+  for (const issue of d.issues) {
+    if (RECONCILED[issue.id]) issue.status = RECONCILED[issue.id];
+  }
+}
+
 // ─── RENDER ───
 const sevColor = { critical:'#b91c1c', high:'#c2410c', medium:'#a16207', low:'#4d7c0f' };
 const statusMeta = {
