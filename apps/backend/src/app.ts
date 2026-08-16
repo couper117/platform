@@ -27,6 +27,10 @@ const akc3Routes = require('./routes/akc3/index');
 const adminRoutes = require('./routes/admin.routes');
 const adRoutes = require('./routes/ads.routes');
 const paymentRoutes = require('./routes/payments.routes');
+const transferRoutes = require('./routes/transfers.routes');
+const officialRoutes = require('./routes/officials.routes');
+const suspensionRoutes = require('./routes/suspensions.routes');
+const registrationRoutes = require('./routes/registrations.routes');
 
 const app = express();
 
@@ -107,6 +111,10 @@ app.use('/api/v1/akc3', akc3Routes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/ads', adRoutes);
 app.use('/api/v1/payments', paymentRoutes);
+app.use('/api/v1/transfers', transferRoutes);
+app.use('/api/v1/officials', officialRoutes);
+app.use('/api/v1/suspensions', suspensionRoutes);
+app.use('/api/v1/registrations', registrationRoutes);
 
 // Health check
 app.get('/api/v1/health', (req, res) => {
