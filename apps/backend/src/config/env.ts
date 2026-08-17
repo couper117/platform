@@ -14,6 +14,10 @@ const envSchema = z.object({
   CLOUDINARY_CLOUD_NAME: z.string().optional(),
   CLOUDINARY_API_KEY: z.string().optional(),
   CLOUDINARY_API_SECRET: z.string().optional(),
+  // Media storage driver. 'cloudinary' (default) or 'local' — local writes to
+  // the served /uploads dir and needs no third-party account (self-hosting /
+  // data-sovereignty). NOTE: local disk is ephemeral on serverless hosts.
+  STORAGE_DRIVER: z.enum(['cloudinary', 'local']).default('cloudinary'),
   PUSHER_APP_ID: z.string().optional(),
   PUSHER_KEY: z.string().optional(),
   PUSHER_SECRET: z.string().optional(),

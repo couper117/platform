@@ -82,6 +82,7 @@ change needed. See `apps/backend/.env.example`.
 ## Documentation
 
 - [`SECURITY.md`](SECURITY.md) — secret handling (rotate + move off OneDrive) and what's already in place
+- [`docs/RESILIENCE.md`](docs/RESILIENCE.md) — vendor dependencies, failover, backups (`npm run db:backup`), recovery runbook
 - [`DESIGN.md`](DESIGN.md) — design system (the `/design-system` route is the living reference)
 - [`docs/1_System_Architecture.md`](docs/1_System_Architecture.md)
 - [`docs/2_Business_Model.md`](docs/2_Business_Model.md)
