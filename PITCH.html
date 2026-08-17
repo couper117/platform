@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RwaSport — One-Page Pitch</title>
+<style>
+  :root{
+    --bg:#0D0D0F; --surface:#17171A; --surface-2:#1F1F23; --hairline:#2A2A30;
+    --text:#F2F2F0; --text-2:#9A9A96; --text-3:#82827E; --brand:#0FBF6A; --accent:#E0A93B;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:"Archivo","Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;font-size:14px;line-height:1.5;font-variant-numeric:tabular-nums}
+  .page{max-width:900px;margin:0 auto;padding:30px 26px 60px}
+  header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid var(--brand);padding-bottom:14px;margin-bottom:18px;gap:16px;flex-wrap:wrap}
+  .brand{font-size:30px;font-weight:800;letter-spacing:-.5px}
+  .brand .g{color:var(--brand)}
+  .brand .full{display:block;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--text-3);font-weight:600;margin-top:2px}
+  .one{color:var(--text-2);font-size:15px;max-width:44ch;text-align:right}
+  .one b{color:var(--text)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+  .box{background:var(--surface);border:1px solid var(--hairline);border-radius:10px;padding:14px 16px}
+  .box.span{grid-column:1 / -1}
+  h3{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--brand);font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  h3 .num{width:18px;height:18px;border-radius:50%;background:rgba(15,191,106,.15);color:var(--brand);font-size:10px;display:grid;place-items:center;font-weight:800}
+  p.body{color:var(--text-2);font-size:13.5px}
+  p.body b{color:var(--text);font-weight:650}
+  ul{list-style:none;margin-top:4px}
+  li{position:relative;padding-left:16px;margin:5px 0;color:var(--text-2);font-size:13px}
+  li::before{content:"›";position:absolute;left:2px;color:var(--brand);font-weight:800}
+  li b{color:var(--text);font-weight:650}
+  .stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+  .stat{background:var(--surface-2);border:1px solid var(--hairline);border-radius:8px;padding:8px 12px;flex:1;min-width:90px;text-align:center}
+  .stat .v{font-size:20px;font-weight:800;color:var(--brand)}
+  .stat .l{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-3)}
+  .rev{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .rev .r{border:1px solid var(--hairline);border-radius:8px;padding:10px 12px}
+  .rev .r .t{font-weight:700;font-size:13px;margin-bottom:2px}
+  .rev .r .d{color:var(--text-3);font-size:11.5px}
+  .ask{background:linear-gradient(180deg,var(--surface),var(--surface-2));border:1px solid var(--hairline);border-left:3px solid var(--accent);border-radius:10px;padding:14px 16px}
+  .ask h3{color:var(--accent)}.ask h3 .num{background:rgba(224,169,59,.16);color:var(--accent)}
+  .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .tag{font-size:11px;border:1px solid var(--hairline);border-radius:999px;padding:4px 10px;color:var(--text-2)}
+  .tag b{color:var(--text)}
+  footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--hairline);display:flex;justify-content:space-between;color:var(--text-3);font-size:11.5px;flex-wrap:wrap;gap:8px}
+  .controls{position:fixed;top:12px;right:12px}
+  .controls button{background:var(--surface);color:var(--text-2);border:1px solid var(--hairline);border-radius:8px;padding:7px 11px;font-size:12px;cursor:pointer;font-family:inherit}
+  .controls button:hover{color:var(--text);border-color:var(--brand)}
+  @media print{@page{margin:12mm}body{background:#fff;color:#111}.controls{display:none}.box,.stat,.rev .r,.ask{border-color:#ccc}.ask{background:#fafafa}}
+</style>
+</head>
+<body>
+<div class="controls"><button onclick="window.print()">Print / PDF</button></div>
+<div class="page">
+  <header>
+    <div class="brand">Rwa<span class="g">Sport</span><span class="full">Rwanda National Sports Platform · RNSP</span></div>
+    <p class="one">The digital home of Rwandan sport — <b>every fixture, result and athlete, from the pro league to the school playground.</b></p>
+  </header>
+
+  <div class="grid">
+    <div class="box">
+      <h3><span class="num">1</span> The problem</h3>
+      <p class="body">Rwandan sport — federations, leagues, clubs and thousands of school athletes — still runs on <b>paper and spreadsheets</b>. Results are slow, records are lost, verification is manual, and fans have no single place to follow it all. There is no digital backbone for a sector the country is investing in heavily.</p>
+    </div>
+    <div class="box">
+      <h3><span class="num">2</span> The solution</h3>
+      <p class="body">One <b>mobile-first platform</b> that digitizes the whole sports lifecycle: federation &amp; team governance, player verification, fixtures, <b>live scores</b>, standings and discipline — plus a dedicated <b>inter-school</b> module (Amashuri / AKC3) and racing. Built for Rwanda: trilingual, offline-ready, inclusive by design.</p>
+    </div>
+  </div>
+
+  <div class="box span">
+    <h3><span class="num">3</span> What's already built <span style="margin-left:auto;font-size:10px;color:var(--text-3);letter-spacing:1px">WORKING PRODUCT — NOT A MOCKUP</span></h3>
+    <div class="stats">
+      <div class="stat"><div class="v">20+</div><div class="l">Sports</div></div>
+      <div class="stat"><div class="v">24</div><div class="l">Federations</div></div>
+      <div class="stat"><div class="v">3</div><div class="l">Languages</div></div>
+      <div class="stat"><div class="v">4</div><div class="l">Role portals</div></div>
+      <div class="stat"><div class="v">PWA</div><div class="l">Offline-ready</div></div>
+      <div class="stat"><div class="v">~47</div><div class="l">Automated tests</div></div>
+    </div>
+    <ul style="columns:2;margin-top:10px">
+      <li>Live Match Center — lineups, events, stats, standings</li>
+      <li>Team &amp; player <b>verification</b> + document review</li>
+      <li>Admin, League, Reporter &amp; Team portals</li>
+      <li>School competitions module (Amashuri / AKC3)</li>
+      <li>Payments integration-ready (signed webhook, env-gated)</li>
+      <li>CI, tests, backups &amp; a resilience/DR plan</li>
+    </ul>
+  </div>
+
+  <div class="grid">
+    <div class="box">
+      <h3><span class="num">4</span> Market &amp; alignment</h3>
+      <ul>
+        <li><b>Young, mobile-first nation</b> (median age ≈ 20); high mobile-money adoption</li>
+        <li>Sport is a national priority &amp; brand (BAL, 2025 UCI Worlds, Visit Rwanda)</li>
+        <li>Advances <b>9 UN SDGs</b>; fits all <b>5 Vision 2050</b> pillars</li>
+        <li>PESTEL verdict: <b>tailwinds &gt; headwinds</b></li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3><span class="num">5</span> Business model</h3>
+      <div class="rev">
+        <div class="r"><div class="t">Verification SaaS</div><div class="d">Annual team/federation fees</div></div>
+        <div class="r"><div class="t">Sponsorship &amp; ads</div><div class="d">Match-day &amp; banner inventory</div></div>
+        <div class="r"><div class="t">Transactions</div><div class="d">Transfer / subscription fees</div></div>
+      </div>
+      <p class="body" style="margin-top:8px">Low-OpEx, consumption-based cloud; revenue led by sponsorship + ads to stay affordable.</p>
+    </div>
+  </div>
+
+  <div class="ask">
+    <h3><span class="num">6</span> The ask</h3>
+    <p class="body">We're seeking a <b>pilot with one federation or the schools programme (AKC3)</b>, and the partnership / support to become Rwanda's official sports infrastructure — the "Irembo for sport."</p>
+    <div class="tags">
+      <span class="tag"><b>Pilot:</b> one federation / AKC3</span>
+      <span class="tag"><b>Partners:</b> MINISPORTS · federations · sponsors</span>
+      <span class="tag"><b>Made in Rwanda</b></span>
+    </div>
+  </div>
+
+  <footer>
+    <span>RwaSport / RNSP — one-page overview</span>
+    <span>Live demo available · works offline</span>
+  </footer>
+</div>
+</body>
+</html>

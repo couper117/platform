@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PESTEL Analysis — RwaSport (RNSP)</title>
+<style>
+  :root{
+    --bg:#0D0D0F; --surface:#17171A; --surface-2:#1F1F23; --hairline:#2A2A30;
+    --text:#F2F2F0; --text-2:#9A9A96; --text-3:#82827E;
+    --brand:#0FBF6A; --accent:#E0A93B;
+    --P:#4C8DD6; --E:#3FA37A; --S:#E0A93B; --T:#9b7bd4; --EN:#4CAF50; --L:#D64545;
+    --ok:#3FA37A; --warn:#E0A93B; --risk:#D64545;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:"Archivo","Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;font-variant-numeric:tabular-nums}
+  .wrap{max-width:1060px;margin:0 auto;padding:32px 20px 96px}
+  header.top{border-bottom:1px solid var(--hairline);padding-bottom:24px;margin-bottom:26px}
+  .kicker{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--brand);font-weight:700;margin:0 0 10px}
+  h1{font-size:32px;line-height:1.12;margin:0 0 8px;font-weight:800;letter-spacing:-.4px}
+  h1 .g{color:var(--brand)}
+  .sub{color:var(--text-2);max-width:78ch;margin:0}
+  .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+  .chip{font-size:11px;padding:5px 10px;border:1px solid var(--hairline);border-radius:999px;color:var(--text-2);background:var(--surface)}
+  .chip b{color:var(--text)}
+
+  /* rating strip */
+  .strip{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin:0 0 28px}
+  .rate{background:var(--surface);border:1px solid var(--hairline);border-radius:10px;padding:12px;text-align:center}
+  .rate .bar{height:4px;border-radius:2px;margin:0 0 10px}
+  .rate .f{font-size:13px;font-weight:800;letter-spacing:.5px}
+  .rate .s{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.6px;margin-top:3px}
+
+  details.fac{background:var(--surface);border:1px solid var(--hairline);border-radius:12px;overflow:hidden;margin-bottom:14px}
+  details.fac>summary{list-style:none;cursor:pointer;padding:16px 18px;display:flex;align-items:center;gap:14px;user-select:none}
+  details.fac>summary::-webkit-details-marker{display:none}
+  summary .barv{width:5px;align-self:stretch;border-radius:3px}
+  summary .ltr{font-size:22px;font-weight:800;width:26px;text-align:center}
+  summary .name{font-size:19px;font-weight:750}
+  summary .tag{margin-left:auto;font-size:11px;font-weight:700;letter-spacing:.6px;padding:4px 10px;border-radius:999px}
+  summary .caret{color:var(--text-3);transition:transform .2s;margin-left:8px}
+  details.fac[open] summary .caret{transform:rotate(90deg)}
+  .tag.ok{background:rgba(63,163,122,.16);color:var(--ok)}
+  .tag.mixed{background:rgba(224,169,59,.16);color:var(--warn)}
+  .tag.watch{background:rgba(214,69,69,.16);color:#E86A6A}
+  .body{border-top:1px solid var(--hairline);padding:18px 20px 22px}
+  .lead{color:var(--text-2);margin:0 0 16px;max-width:86ch}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .block h4{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--text-3);margin:0 0 8px}
+  ul.clean{margin:0 0 14px;padding:0;list-style:none}
+  ul.clean li{position:relative;padding-left:20px;margin:7px 0;color:var(--text)}
+  ul.clean li::before{content:"›";position:absolute;left:3px;color:var(--brand);font-weight:800}
+  ul.clean li b{font-weight:650}
+  ul.clean.opp li::before{content:"+";color:var(--ok)}
+  ul.clean.risk li::before{content:"!";color:var(--risk);font-weight:800}
+  .imp{background:var(--surface-2);border:1px solid var(--hairline);border-left:3px solid var(--brand);border-radius:8px;padding:12px 14px;margin-top:4px}
+  .imp .h{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-3);margin:0 0 4px}
+  .imp p{margin:0;color:var(--text-2);font-size:14px}
+  .imp p b{color:var(--text)}
+
+  h2.sec{font-size:20px;margin:34px 0 14px;letter-spacing:-.3px}
+  table{width:100%;border-collapse:collapse;font-size:14px;background:var(--surface);border:1px solid var(--hairline);border-radius:12px;overflow:hidden}
+  th,td{text-align:left;padding:11px 13px;border-bottom:1px solid var(--hairline);vertical-align:top}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-3);font-weight:600}
+  td:first-child{white-space:nowrap;font-weight:700}
+  tr:last-child td{border-bottom:none}
+  .st{font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;display:inline-block}
+
+  ol.take{counter-reset:t;list-style:none;margin:0;padding:0}
+  ol.take li{counter-increment:t;position:relative;padding:12px 12px 12px 50px;border-bottom:1px solid var(--hairline)}
+  ol.take li:last-child{border-bottom:none}
+  ol.take li::before{content:counter(t);position:absolute;left:12px;top:11px;width:26px;height:26px;border-radius:50%;background:rgba(15,191,106,.14);color:var(--brand);font-weight:800;font-size:13px;display:grid;place-items:center}
+  ol.take li b{font-weight:700}
+  ol.take li span{display:block;color:var(--text-2);font-size:13.5px}
+
+  .verdict{background:linear-gradient(180deg,var(--surface),var(--surface-2));border:1px solid var(--hairline);border-radius:12px;padding:22px;margin:28px 0 0}
+  .verdict h2{margin:0 0 6px;font-size:20px}
+  .verdict p{color:var(--text-2);margin:0;max-width:88ch}
+  footer{margin-top:36px;padding-top:18px;border-top:1px solid var(--hairline);color:var(--text-3);font-size:12.5px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .controls{position:fixed;top:14px;right:14px;display:flex;gap:8px;z-index:10}
+  .controls button{background:var(--surface);color:var(--text-2);border:1px solid var(--hairline);border-radius:8px;padding:8px 12px;font-size:12px;cursor:pointer;font-family:inherit}
+  .controls button:hover{color:var(--text);border-color:var(--brand)}
+  @media(max-width:760px){.cols{grid-template-columns:1fr}.strip{grid-template-columns:repeat(3,1fr)}td:first-child{white-space:normal}}
+  @media print{.controls{display:none}details.fac{border-color:#ccc}details.fac .body{display:block!important}body{background:#fff;color:#111}.verdict{background:#fff}}
+</style>
+</head>
+<body>
+<div class="controls">
+  <button onclick="document.querySelectorAll('details.fac').forEach(d=>d.open=true)">Expand all</button>
+  <button onclick="document.querySelectorAll('details.fac').forEach(d=>d.open=false)">Collapse</button>
+  <button onclick="window.print()">Print / PDF</button>
+</div>
+
+<div class="wrap">
+  <header class="top">
+    <p class="kicker">Macro-environment scan</p>
+    <h1>PESTEL Analysis — <span class="g">RwaSport</span> (RNSP)</h1>
+    <p class="sub">The external forces shaping a mobile-first platform digitizing all of Rwandan sport — professional leagues, 20+ federations, a live Match Center, inter-school competitions (Amashuri / AKC3) and racing. Framed against the Rwandan context: Vision 2050, the digital-economy agenda, and the 2021 data-protection regime.</p>
+    <div class="meta">
+      <span class="chip"><b>P</b>olitical · <b>E</b>conomic · <b>S</b>ocial · <b>T</b>echnological · <b>E</b>nvironmental · <b>L</b>egal</span>
+      <span class="chip">Verdict: <b>tailwinds &gt; headwinds</b></span>
+    </div>
+  </header>
+
+  <div class="strip">
+    <div class="rate"><div class="bar" style="background:var(--P)"></div><div class="f">POLITICAL</div><div class="s">Tailwind</div></div>
+    <div class="rate"><div class="bar" style="background:var(--E)"></div><div class="f">ECONOMIC</div><div class="s">Mixed</div></div>
+    <div class="rate"><div class="bar" style="background:var(--S)"></div><div class="f">SOCIAL</div><div class="s">Strong fit</div></div>
+    <div class="rate"><div class="bar" style="background:var(--T)"></div><div class="f">TECH</div><div class="s">Enabling</div></div>
+    <div class="rate"><div class="bar" style="background:var(--EN)"></div><div class="f">ENVIRON.</div><div class="s">Aligned</div></div>
+    <div class="rate"><div class="bar" style="background:var(--L)"></div><div class="f">LEGAL</div><div class="s">Watch</div></div>
+  </div>
+
+  <!-- POLITICAL -->
+  <details class="fac" open>
+    <summary><span class="barv" style="background:var(--P)"></span><span class="ltr" style="color:var(--P)">P</span><span class="name">Political</span><span class="tag ok">TAILWIND</span><span class="caret">›</span></summary>
+    <div class="body">
+      <p class="lead">Sport and ICT are both explicit national priorities, and the government actively uses sport for development and nation-branding. That makes the policy environment unusually supportive.</p>
+      <div class="cols">
+        <div class="block">
+          <h4>Key forces</h4>
+          <ul class="clean">
+            <li>Sport is a stated government priority via <b>MINISPORTS</b>; strong central delivery capacity and political stability</li>
+            <li>Mature <b>e-government agenda</b> (Smart Rwanda Master Plan, Irembo e-services) normalises digital public services</li>
+            <li>Sport as <b>diplomacy &amp; nation-branding</b>: <b>Visit Rwanda</b> kit deals (Arsenal, PSG, Bayern, Atlético); hosting the <b>Basketball Africa League</b> and the <b>2025 UCI Road World Championships</b> in Kigali (first in Africa)</li>
+            <li>Government-organised school sport (<b>Kagame Cup / Amashuri</b>) aligns directly with the AKC3 module</li>
+          </ul>
+        </div>
+        <div class="block">
+          <h4>Opportunities</h4>
+          <ul class="clean opp">
+            <li>Become quasi-official <b>"Irembo for sport"</b> infrastructure via federation / ministry partnership</li>
+            <li>Official endorsement and integration with national e-gov / ID systems</li>
+          </ul>
+          <h4>Risks / watch</h4>
+          <ul class="clean risk">
+            <li>Value hinges on <b>federation &amp; government adoption</b></li>
+            <li>Exposure to policy shifts, procurement dynamics &amp; incumbent processes</li>
+          </ul>
+        </div>
+      </div>
+      <div class="imp"><p class="h">Implication for RwaSport</p><p>A genuine policy tailwind. The play is to position as <b>national sports infrastructure</b>, not just an app — anchored by the school-sport (AKC3) alignment.</p></div>
+    </div>
+  </details>
+
+  <!-- ECONOMIC -->
+  <details class="fac">
+    <summary><span class="barv" style="background:var(--E)"></span><span class="ltr" style="color:var(--E)">E</span><span class="name">Economic</span><span class="tag mixed">MIXED</span><span class="caret">›</span></summary>
+    <div class="body">
+      <p class="lead">The rails for a digital revenue model exist (mobile money, sponsorship), but low ARPU, fee sensitivity and currency exposure make monetisation the sharpest commercial question.</p>
+      <div class="cols">
+        <div class="block">
+          <h4>Key forces</h4>
+          <ul class="clean">
+            <li>Fast-growing economy and <b>digital-economy push</b>; rising smartphone adoption</li>
+            <li><b>Mobile money is ubiquitous</b> (MTN MoMo, Airtel Money) — in-app payment rails already in users' hands</li>
+            <li>Active sponsorship ecosystem funding sport (BK, MTN, Skol, I&amp;M)</li>
+            <li>Growing <b>sports tourism</b> (BAL, UCI Worlds, Tour du Rwanda)</li>
+          </ul>
+        </div>
+        <div class="block">
+          <h4>Opportunities</h4>
+          <ul class="clean opp">
+            <li><b>Sponsorship-led</b> revenue + match-day ad inventory</li>
+            <li>Transfer fees, premium data/analytics, and digital <b>job creation</b> (reporters, admins)</li>
+          </ul>
+          <h4>Risks / watch</h4>
+          <ul class="clean risk">
+            <li><b>Low ARPU</b> &amp; price-sensitivity on verification/subscription fees</li>
+            <li><b>FX exposure</b> — USD-priced cloud vs RWF revenue</li>
+            <li>Reliance on a few sponsors; thin club/SME budgets</li>
+          </ul>
+        </div>
+      </div>
+      <div class="imp"><p class="h">Implication for RwaSport</p><p>Lead with <b>sponsorship + ads</b> (not user fees) for reach, tier subscriptions to local affordability, and control cloud cost / FX (the SSE realtime path already avoids per-message costs).</p></div>
+    </div>
+  </details>
+
+  <!-- SOCIAL -->
+  <details class="fac">
+    <summary><span class="barv" style="background:var(--S)"></span><span class="ltr" style="color:var(--S)">S</span><span class="name">Social</span><span class="tag ok">STRONG FIT</span><span class="caret">›</span></summary>
+    <div class="body">
+      <p class="lead">Demographics and culture line up almost perfectly with a mobile-first, inclusive sports platform — arguably the strongest of the six factors.</p>
+      <div class="cols">
+        <div class="block">
+          <h4>Key forces</h4>
+          <ul class="clean">
+            <li><b>Very young population</b> (median ≈ 20) with high grassroots participation</li>
+            <li>High mobile penetration and mobile-first behaviour</li>
+            <li>Sport as a vehicle for <b>unity &amp; social cohesion</b> (reconciliation, Umuganda ethos)</li>
+            <li><b>Trilingual</b> society (Kinyarwanda / French / English) — all three supported in-app</li>
+            <li>Inclusion agenda: women's sport and <b>disability sport</b> (Paralympics / Special Olympics), modeled as first-class categories</li>
+          </ul>
+        </div>
+        <div class="block">
+          <h4>Opportunities</h4>
+          <ul class="clean opp">
+            <li>Deep youth engagement; grow women's &amp; para-sport as a differentiator</li>
+            <li>Community &amp; fan features that ride existing social behaviour</li>
+          </ul>
+          <h4>Risks / watch</h4>
+          <ul class="clean risk">
+            <li>Urban–rural <b>digital divide</b> and digital-literacy gaps</li>
+            <li>Device affordability in rural areas</li>
+          </ul>
+        </div>
+      </div>
+      <div class="imp"><p class="h">Implication for RwaSport</p><p>Product-market fit is strong. <b>Inclusion (gender, disability, language)</b> is both a values match and a moat — keep it front-and-centre.</p></div>
+    </div>
+  </details>
+
+  <!-- TECHNOLOGICAL -->
+  <details class="fac">
+    <summary><span class="barv" style="background:var(--T)"></span><span class="ltr" style="color:var(--T)">T</span><span class="name">Technological</span><span class="tag ok">ENABLING</span><span class="caret">›</span></summary>
+    <div class="body">
+      <p class="lead">National ICT investment and fintech maturity provide the substrate; the product's architecture is already tuned for the local reality of variable connectivity.</p>
+      <div class="cols">
+        <div class="block">
+          <h4>Key forces</h4>
+          <ul class="clean">
+            <li>ICT infrastructure investment — <b>4G/fibre</b>, Kigali Innovation City, regional data centres</li>
+            <li>Mature <b>mobile-money APIs</b> and fintech enable in-app payments</li>
+            <li>Growing local software-engineering talent</li>
+          </ul>
+          <h4>How RwaSport fits</h4>
+          <ul class="clean">
+            <li><b>Mobile-first PWA</b> with an offline shell; live data <b>never cached</b> (fresh scores on weak networks)</li>
+            <li><b>SSE</b> realtime (no per-message cost) + portable Postgres reduce lock-in</li>
+          </ul>
+        </div>
+        <div class="block">
+          <h4>Opportunities</h4>
+          <ul class="clean opp">
+            <li><b>Analytics / AI</b> — talent identification, injury &amp; performance insight</li>
+            <li>Streaming/broadcast; integration with national systems</li>
+          </ul>
+          <h4>Risks / watch</h4>
+          <ul class="clean risk">
+            <li>Rural <b>connectivity variability</b> (mitigated by offline-first design)</li>
+            <li>Vendor dependencies (mitigated by portability); cybersecurity obligations</li>
+          </ul>
+        </div>
+      </div>
+      <div class="imp"><p class="h">Implication for RwaSport</p><p>The tech environment is an enabler, and the app's <b>offline-first, portable</b> design already converts a regional weakness (connectivity) into a defensible strength.</p></div>
+    </div>
+  </details>
+
+  <!-- ENVIRONMENTAL -->
+  <details class="fac">
+    <summary><span class="barv" style="background:var(--EN)"></span><span class="ltr" style="color:var(--EN)">E</span><span class="name">Environmental</span><span class="tag ok">ALIGNED</span><span class="caret">›</span></summary>
+    <div class="body">
+      <p class="lead">Rwanda is a continental green-policy leader, and a digital platform is inherently aligned — it removes paper from governance and resonates with the country's active/green-mobility culture.</p>
+      <div class="cols">
+        <div class="block">
+          <h4>Key forces</h4>
+          <ul class="clean">
+            <li>Green-policy leadership — single-use <b>plastics ban</b>, monthly <b>Car-Free Days</b>, Umuganda clean-ups</li>
+            <li>Deep <b>cycling culture</b> (Tour du Rwanda; UCI Worlds 2025) — the racing module is culturally resonant</li>
+            <li>Sustainability is part of the national brand</li>
+          </ul>
+        </div>
+        <div class="block">
+          <h4>Opportunities</h4>
+          <ul class="clean opp">
+            <li><b>Paperless</b> federation operations (replaces paper/spreadsheets)</li>
+            <li>Support green / mass-participation events; an ESG narrative for sponsors</li>
+          </ul>
+          <h4>Risks / watch</h4>
+          <ul class="clean risk">
+            <li>Rainy-season disruption to outdoor fixtures (raises scheduling-feature value)</li>
+            <li>Device e-waste and data-centre energy (minor; offset by efficiency)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="imp"><p class="h">Implication for RwaSport</p><p>A quiet but real alignment: digitising governance is a <b>sustainability story</b> that fits Rwanda's brand and appeals to ESG-minded sponsors.</p></div>
+    </div>
+  </details>
+
+  <!-- LEGAL -->
+  <details class="fac">
+    <summary><span class="barv" style="background:var(--L)"></span><span class="ltr" style="color:var(--L)">L</span><span class="name">Legal</span><span class="tag watch">WATCH</span><span class="caret">›</span></summary>
+    <div class="body">
+      <p class="lead">The one factor demanding active management. The platform holds sensitive personal data — national IDs, verification documents, and <b>minors'</b> data (school athletes) — squarely inside Rwanda's 2021 data-protection regime.</p>
+      <div class="cols">
+        <div class="block">
+          <h4>Key forces</h4>
+          <ul class="clean">
+            <li><b>Data Protection &amp; Privacy Law Nº 058/2021</b> (supervised by the <b>NCSA</b>): lawful basis, controller/processor registration, data-subject rights, and heightened duties for sensitive &amp; children's data</li>
+            <li>The app processes <b>PII, national IDs, uploaded documents, and minors' data</b> (AKC3) — high compliance relevance</li>
+            <li>Payments regulated by <b>BNR</b> (National Bank of Rwanda) + gateway/e-money compliance</li>
+            <li>Sports-governance rules: federation statutes, eligibility, transfers, anti-doping</li>
+          </ul>
+        </div>
+        <div class="block">
+          <h4>Opportunities</h4>
+          <ul class="clean opp">
+            <li>Portability / <b>self-host</b> satisfies data-<b>residency</b> / sovereignty requirements</li>
+            <li>Strong privacy = <b>trust</b> and B2B credibility (a moat, done well)</li>
+          </ul>
+          <h4>Risks / watch</h4>
+          <ul class="clean risk">
+            <li>Registration &amp; <b>consent</b> obligations; children's-data safeguards</li>
+            <li>Breach liability; media/IP licensing</li>
+          </ul>
+        </div>
+      </div>
+      <div class="imp"><p class="h">Implication for RwaSport</p><p>Compliance is a <b>gate, not a nice-to-have</b> — but handled early it becomes a differentiator. Prioritise 058/2021 alignment, especially for minors' data in AKC3.</p></div>
+    </div>
+  </details>
+
+  <!-- SUMMARY MATRIX -->
+  <h2 class="sec">Summary matrix</h2>
+  <table>
+    <thead><tr><th>Factor</th><th>Stance</th><th>Biggest opportunity</th><th>Biggest risk to manage</th></tr></thead>
+    <tbody>
+      <tr><td>Political</td><td><span class="st tag ok">Tailwind</span></td><td>Become official sports infrastructure via partnership</td><td>Adoption depends on federations / government</td></tr>
+      <tr><td>Economic</td><td><span class="st tag mixed">Mixed</span></td><td>Sponsorship + ads-led monetisation</td><td>Low ARPU &amp; USD/RWF FX exposure</td></tr>
+      <tr><td>Social</td><td><span class="st tag ok">Strong fit</span></td><td>Youth + women's + para-sport growth</td><td>Urban–rural digital divide</td></tr>
+      <tr><td>Technological</td><td><span class="st tag ok">Enabling</span></td><td>Analytics / AI &amp; streaming</td><td>Rural connectivity (mitigated by offline-first)</td></tr>
+      <tr><td>Environmental</td><td><span class="st tag ok">Aligned</span></td><td>Paperless governance + ESG story</td><td>Rainy-season fixtures; minor e-waste</td></tr>
+      <tr><td>Legal</td><td><span class="st tag watch">Watch</span></td><td>Privacy as trust; residency via self-host</td><td>058/2021 compliance, esp. minors' data</td></tr>
+    </tbody>
+  </table>
+
+  <!-- TAKEAWAYS -->
+  <h2 class="sec">Strategic takeaways</h2>
+  <ol class="take">
+    <li><b>Position as national infrastructure, not an app.</b><span>Lean on the Political tailwind and the AKC3 / Kagame-Cup alignment to pursue federation &amp; ministry partnership.</span></li>
+    <li><b>Monetise via sponsorship + ads first; tier fees to affordability.</b><span>Protects reach against low ARPU; hedge the USD/RWF cloud-cost exposure (SSE already removes per-message realtime cost).</span></li>
+    <li><b>Make 058/2021 compliance an early moat.</b><span>Consent, controller registration, and minors'-data safeguards — privacy done well becomes a B2B trust advantage.</span></li>
+    <li><b>Double down on inclusion &amp; offline-first as differentiators.</b><span>Gender/disability/language and the never-cache-live-data PWA turn Social and Tech strengths into defensibility.</span></li>
+  </ol>
+
+  <div class="verdict">
+    <h2>Verdict</h2>
+    <p>Four of six forces — <b>Political, Social, Technological, Environmental</b> — are clear tailwinds for a digital sports platform in Rwanda. The two to actively manage are <b>Economic</b> (affordability &amp; currency exposure) and <b>Legal</b> (data-protection compliance for personal and minors' data). On balance: <b>a favourable environment with two well-understood watch-items</b>, both of which the product's design (offline-first, portable, inclusive) already partly addresses.</p>
+  </div>
+
+  <footer>
+    <span>RwaSport / RNSP — PESTEL analysis</span>
+    <span>Rwanda context · Vision 2050 · Data Protection Law Nº 058/2021</span>
+  </footer>
+</div>
+</body>
+</html>

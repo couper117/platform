@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RwaSport — Strategic Analysis</title>
+<style>
+  :root{
+    --bg:#0D0D0F; --surface:#17171A; --surface-2:#1F1F23; --hairline:#2A2A30;
+    --text:#F2F2F0; --text-2:#9A9A96; --text-3:#82827E;
+    --brand:#0FBF6A; --brand-dim:#0c9a55; --accent:#E0A93B; --info:#4C8DD6;
+    --P:#4C8DD6; --E:#3FA37A; --S:#E0A93B; --T:#9b7bd4; --EN:#4CAF50; --L:#D64545;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg); color:var(--text); overflow:hidden;
+    font-family:"Archivo","Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+    font-variant-numeric:tabular-nums; -webkit-font-smoothing:antialiased;
+  }
+  .deck{height:100vh; width:100vw; position:relative}
+  .slide{
+    position:absolute; inset:0; display:none; flex-direction:column;
+    padding:6vh 8vw; opacity:0; transition:opacity .35s ease;
+  }
+  .slide.active{display:flex; opacity:1}
+  .kicker{font-size:12px; letter-spacing:3px; text-transform:uppercase; color:var(--brand); font-weight:700; margin-bottom:14px}
+  h1{font-size:clamp(34px,6vw,68px); font-weight:800; line-height:1.05; letter-spacing:-1px}
+  h1 .g{color:var(--brand)}
+  h2{font-size:clamp(26px,3.6vw,42px); font-weight:800; letter-spacing:-.5px; margin-bottom:6px}
+  .sub{color:var(--text-2); font-size:clamp(15px,1.7vw,20px); max-width:60ch; line-height:1.5}
+  .lead{color:var(--text-2); font-size:clamp(16px,1.9vw,22px); max-width:70ch; line-height:1.55; margin-top:12px}
+  .slide-head{border-bottom:1px solid var(--hairline); padding-bottom:16px; margin-bottom:26px}
+  .fill{flex:1; min-height:0}
+
+  /* generic grids */
+  .grid{display:grid; gap:16px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .card{background:var(--surface); border:1px solid var(--hairline); border-radius:12px; padding:20px 22px}
+  .card .bar{width:38px; height:4px; border-radius:2px; margin-bottom:12px; background:var(--brand)}
+  .card h3{font-size:clamp(17px,1.9vw,22px); font-weight:750; margin-bottom:8px; display:flex; align-items:center; gap:10px}
+  .card .tag{font-size:11px; font-weight:700; letter-spacing:1px; padding:3px 8px; border-radius:999px; background:var(--surface-2); color:var(--text-3)}
+  .card ul{list-style:none}
+  .card li{position:relative; padding-left:18px; margin:7px 0; color:var(--text-2); font-size:clamp(13px,1.35vw,16px); line-height:1.45}
+  .card li::before{content:"›"; position:absolute; left:2px; color:var(--brand); font-weight:800}
+  .card li b{color:var(--text); font-weight:650}
+  .card li.warn::before{content:"!"; color:var(--L); font-weight:800}
+
+  /* title slide */
+  .title-wrap{height:100%; display:flex; flex-direction:column; justify-content:center}
+  .brandline{display:flex; align-items:center; gap:14px; margin-bottom:26px}
+  .dot{width:12px;height:12px;border-radius:50%;background:var(--brand);box-shadow:0 0 0 4px rgba(15,191,106,.15)}
+  .brandline span{font-size:13px; letter-spacing:4px; text-transform:uppercase; color:var(--text-2)}
+  .title-tags{display:flex; gap:10px; flex-wrap:wrap; margin-top:34px}
+  .chip{border:1px solid var(--hairline); background:var(--surface); border-radius:999px; padding:10px 18px; font-size:14px; color:var(--text-2)}
+  .chip b{color:var(--text)}
+
+  /* pestel verdict / meters */
+  .pestel-legend{display:flex; gap:18px; flex-wrap:wrap; margin-top:20px}
+  .leg{display:flex; align-items:center; gap:8px; font-size:14px; color:var(--text-2)}
+  .swatch{width:14px;height:14px;border-radius:4px}
+
+  /* SDG chips */
+  .sdg-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
+  .sdg{border-radius:12px; padding:16px 18px; color:#fff; position:relative; overflow:hidden; min-height:120px; display:flex; flex-direction:column; justify-content:space-between}
+  .sdg .n{font-size:13px; font-weight:800; letter-spacing:1px; opacity:.9}
+  .sdg .t{font-size:clamp(15px,1.7vw,19px); font-weight:800; line-height:1.15}
+  .sdg .how{font-size:12.5px; opacity:.95; line-height:1.35; margin-top:6px}
+
+  /* vision pillars */
+  .pillars{display:grid; grid-template-columns:repeat(5,1fr); gap:12px; height:100%}
+  .pillar{background:var(--surface); border:1px solid var(--hairline); border-top:3px solid var(--brand); border-radius:10px; padding:16px; display:flex; flex-direction:column}
+  .pillar .p-n{font-size:12px; color:var(--brand); font-weight:800; letter-spacing:1px}
+  .pillar h4{font-size:clamp(14px,1.5vw,17px); margin:6px 0 10px; line-height:1.2}
+  .pillar p{font-size:12.5px; color:var(--text-2); line-height:1.4}
+  .pillar .link{margin-top:auto; padding-top:10px; font-size:12px; color:var(--text); border-top:1px solid var(--hairline)}
+  .pillar .link b{color:var(--brand)}
+
+  /* synthesis flow */
+  .flow{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; align-items:stretch}
+  .flow .step{background:var(--surface); border:1px solid var(--hairline); border-radius:12px; padding:18px}
+  .flow .step .s-k{font-size:12px; letter-spacing:1px; text-transform:uppercase; color:var(--brand); font-weight:700}
+  .flow .step h4{margin:8px 0; font-size:clamp(15px,1.7vw,20px)}
+  .flow .step p{color:var(--text-2); font-size:13.5px; line-height:1.45}
+
+  .two-col{display:grid; grid-template-columns:1.1fr 1fr; gap:26px; height:100%}
+  .stat-row{display:flex; gap:14px; flex-wrap:wrap; margin-top:8px}
+  .stat{background:var(--surface); border:1px solid var(--hairline); border-radius:10px; padding:14px 18px; min-width:120px}
+  .stat .v{font-size:clamp(22px,2.6vw,32px); font-weight:800; color:var(--brand)}
+  .stat .l{font-size:12px; color:var(--text-3); text-transform:uppercase; letter-spacing:1px}
+
+  /* chrome */
+  .hud{position:fixed; bottom:18px; left:0; right:0; display:flex; align-items:center; justify-content:space-between; padding:0 24px; pointer-events:none}
+  .progress{height:3px; background:var(--surface-2); border-radius:2px; flex:1; margin:0 20px; overflow:hidden}
+  .progress .fillbar{height:100%; background:var(--brand); width:0; transition:width .35s ease}
+  .counter{font-size:13px; color:var(--text-3); font-variant-numeric:tabular-nums}
+  .brand-mini{font-size:13px; color:var(--text-2); font-weight:700}
+  .brand-mini b{color:var(--brand)}
+  .nav{position:fixed; bottom:14px; right:24px; display:flex; gap:8px; pointer-events:auto}
+  .nav button{background:var(--surface); color:var(--text-2); border:1px solid var(--hairline); border-radius:8px; width:40px;height:34px; cursor:pointer; font-size:16px}
+  .nav button:hover{color:var(--text); border-color:var(--brand)}
+  .hint{position:fixed; top:16px; right:24px; font-size:11px; color:var(--text-3)}
+  @media print{ .slide{display:flex!important; opacity:1!important; position:relative; height:100vh; page-break-after:always} .hud,.nav,.hint{display:none} body{overflow:visible} }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+  <!-- 1 TITLE -->
+  <section class="slide active">
+    <div class="title-wrap">
+      <div class="brandline"><span class="dot"></span><span>Rwanda National Sports Platform</span></div>
+      <h1>Rwa<span class="g">Sport</span><br/>Strategic Analysis</h1>
+      <p class="lead">Digitizing the whole of Rwandan sport — professional leagues, 20+ federations, a live Match Center, inter-school competitions (Amashuri / AKC3) and racing — on one mobile-first platform.</p>
+      <div class="title-tags">
+        <span class="chip"><b>PESTEL</b> environment scan</span>
+        <span class="chip"><b>UN SDGs</b> impact alignment</span>
+        <span class="chip">Rwanda <b>Vision 2050</b> fit</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 AGENDA -->
+  <section class="slide">
+    <div class="slide-head"><div class="kicker">Agenda</div><h2>What this deck covers</h2></div>
+    <div class="fill grid g2" style="align-content:start">
+      <div class="card"><div class="bar"></div><h3>1 · The platform</h3><p class="sub">What RwaSport is and the problem it solves.</p></div>
+      <div class="card"><div class="bar" style="background:var(--info)"></div><h3>2 · PESTEL</h3><p class="sub">The macro-environment: Political, Economic, Social, Technological, Environmental, Legal.</p></div>
+      <div class="card"><div class="bar" style="background:var(--accent)"></div><h3>3 · SDG alignment</h3><p class="sub">Which UN Sustainable Development Goals the platform advances.</p></div>
+      <div class="card"><div class="bar" style="background:var(--T)"></div><h3>4 · Vision 2050</h3><p class="sub">Fit with Rwanda's national transformation pillars — and the strategic synthesis.</p></div>
+    </div>
+  </section>
+
+  <!-- 3 THE PLATFORM -->
+  <section class="slide">
+    <div class="slide-head"><div class="kicker">The platform</div><h2>One digital home for Rwandan sport</h2></div>
+    <div class="two-col">
+      <div>
+        <p class="lead" style="margin-top:0">Most of Rwanda's sport still runs on paper and spreadsheets. RwaSport replaces that with a single, mobile-first system that federations, clubs, reporters and fans all use — from the professional league down to the school playground.</p>
+        <div class="stat-row">
+          <div class="stat"><div class="v">20+</div><div class="l">Sports</div></div>
+          <div class="stat"><div class="v">24</div><div class="l">Federations</div></div>
+          <div class="stat"><div class="v">3</div><div class="l">Languages</div></div>
+          <div class="stat"><div class="v">PWA</div><div class="l">Offline-ready</div></div>
+        </div>
+      </div>
+      <div class="grid" style="align-content:start">
+        <div class="card"><div class="bar"></div><h3>Governance, digitized</h3><ul><li>Team &amp; player <b>verification</b>, document review</li><li>Fixtures, live scores, standings, discipline</li></ul></div>
+        <div class="card"><div class="bar" style="background:var(--accent)"></div><h3>Youth &amp; inclusion</h3><ul><li><b>Amashuri / AKC3</b> inter-school competitions</li><li>Gender &amp; disability categories built in</li></ul></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 PESTEL OVERVIEW -->
+  <section class="slide">
+    <div class="slide-head"><div class="kicker">PESTEL · overview</div><h2>A favorable macro-environment</h2></div>
+    <p class="lead" style="margin-top:0">Rwanda's policy, social and tech context is unusually supportive of a digital sports platform. The two watch-items are economic affordability and legal (data-protection) compliance.</p>
+    <div class="pestel-legend">
+      <div class="leg"><span class="swatch" style="background:var(--P)"></span>Political — <b style="color:var(--text)">tailwind</b></div>
+      <div class="leg"><span class="swatch" style="background:var(--E)"></span>Economic — <b style="color:var(--text)">mixed</b></div>
+      <div class="leg"><span class="swatch" style="background:var(--S)"></span>Social — <b style="color:var(--text)">strong fit</b></div>
+      <div class="leg"><span class="swatch" style="background:var(--T)"></span>Technological — <b style="color:var(--text)">enabling</b></div>
+      <div class="leg"><span class="swatch" style="background:var(--EN)"></span>Environmental — <b style="color:var(--text)">aligned</b></div>
+      <div class="leg"><span class="swatch" style="background:var(--L)"></span>Legal — <b style="color:var(--text)">watch</b></div>
+    </div>
+  </section>
+
+  <!-- 5 PESTEL P & E -->
+  <section class="slide">
+    <div class="slide-head"><div class="kicker">PESTEL · 1 of 3</div><h2>Political &amp; Economic</h2></div>
+    <div class="fill grid g2">
+      <div class="card"><div class="bar" style="background:var(--P)"></div><h3>Political <span class="tag">TAILWIND</span></h3>
+        <ul>
+          <li>Sport &amp; ICT are <b>national priorities</b> (MINISPORTS, Smart Rwanda, e-gov via Irembo)</li>
+          <li>Sport as <b>nation-branding</b>: Visit Rwanda kits, hosting the <b>BAL</b> and the <b>2025 UCI Road Worlds</b> in Kigali</li>
+          <li>Government-backed school sport (<b>Kagame Cup / Amashuri</b>) aligns directly with the AKC3 module</li>
+          <li class="warn">Value depends on federation &amp; government <b>adoption</b></li>
+        </ul>
+      </div>
+      <div class="card"><div class="bar" style="background:var(--E)"></div><h3>Economic <span class="tag">MIXED</span></h3>
+        <ul>
+          <li>Widespread <b>mobile money</b> (MoMo, Airtel) enables the subscription model</li>
+          <li>Growing sport economy &amp; sponsorship (BK, MTN, Skol); digital <b>job creation</b></li>
+          <li class="warn">Price sensitivity on verification fees; <b>low ARPU</b></li>
+          <li class="warn"><b>FX exposure</b> — USD-priced cloud vs RWF revenue</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 PESTEL S & T -->
+  <section class="slide">
+    <div class="slide-head"><div class="kicker">PESTEL · 2 of 3</div><h2>Social &amp; Technological</h2></div>
+    <div class="fill grid g2">
+      <div class="card"><div class="bar" style="background:var(--S)"></div><h3>Social <span class="tag">STRONG FIT</span></h3>
+        <ul>
+          <li><b>Very young</b> population (median ≈ 20) + high mobile penetration</li>
+          <li>Sport as a vehicle for <b>unity &amp; social cohesion</b></li>
+          <li><b>Trilingual</b> UI (Kinyarwanda / French / English) built in</li>
+          <li><b>Gender &amp; disability</b> inclusion modeled explicitly</li>
+          <li class="warn">Urban–rural digital-literacy &amp; connectivity divide</li>
+        </ul>
+      </div>
+      <div class="card"><div class="bar" style="background:var(--T)"></div><h3>Technological <span class="tag">ENABLING</span></h3>
+        <ul>
+          <li>National ICT push — 4G/fibre, Kigali Innovation City</li>
+          <li><b>Mobile-first PWA</b> with an offline shell fits the market</li>
+          <li>Live data is <b>never cached</b> → fresh scores on weak networks</li>
+          <li>Headroom for <b>analytics / talent-scouting</b> later</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 PESTEL EN & L -->
+  <section class="slide">
+    <div class="slide-head"><div class="kicker">PESTEL · 3 of 3</div><h2>Environmental &amp; Legal</h2></div>
+    <div class="fill grid g2">
+      <div class="card"><div class="bar" style="background:var(--EN)"></div><h3>Environmental <span class="tag">ALIGNED</span></h3>
+        <ul>
+          <li>Rwanda is a green leader — plastic-bag ban, <b>Car-Free Days</b>, cycling culture (Tour du Rwanda)</li>
+          <li>Digital replaces <b>paper/spreadsheet</b> processes → paperless governance</li>
+          <li>Low carbon footprint of a cloud service</li>
+          <li class="warn">Rainy-season scheduling for outdoor sport</li>
+        </ul>
+      </div>
+      <div class="card"><div class="bar" style="background:var(--L)"></div><h3>Legal <span class="tag">WATCH</span></h3>
+        <ul>
+          <li><b>Data Protection Law Nº 058/2021</b> (NCSA) — personal data, national IDs, and <b>minors'</b> documents (AKC3)</li>
+          <li>Payments under <b>BNR</b> + gateway compliance</li>
+          <li>Postgres portability supports <b>data-residency</b> needs</li>
+          <li>Encodes federation statutes &amp; eligibility/transfer rules</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 SDGs -->
+  <section class="slide">
+    <div class="slide-head"><div class="kicker">Impact · UN Sustainable Development Goals</div><h2>The Goals RwaSport advances</h2></div>
+    <div class="fill">
+      <div class="sdg-grid">
+        <div class="sdg" style="background:#4C9F38"><div class="n">SDG 3</div><div><div class="t">Good Health &amp; Well-being</div><div class="how">Drives sport participation &amp; active lifestyles nationwide.</div></div></div>
+        <div class="sdg" style="background:#C5192D"><div class="n">SDG 4</div><div><div class="t">Quality Education</div><div class="how">School competitions (AKC3) + digital skills for young admins.</div></div></div>
+        <div class="sdg" style="background:#FF3A21"><div class="n">SDG 5</div><div><div class="t">Gender Equality</div><div class="how">Women's leagues &amp; equal categories first-class in the data model.</div></div></div>
+        <div class="sdg" style="background:#A21942"><div class="n">SDG 8</div><div><div class="t">Decent Work &amp; Growth</div><div class="how">Sports economy, reporter/admin jobs, pro talent pathways.</div></div></div>
+        <div class="sdg" style="background:#FD6925"><div class="n">SDG 9</div><div><div class="t">Industry &amp; Innovation</div><div class="how">Home-grown digital infrastructure for a whole sector.</div></div></div>
+        <div class="sdg" style="background:#DD1367"><div class="n">SDG 10</div><div><div class="t">Reduced Inequalities</div><div class="how">Disability inclusion, rural access, trilingual reach.</div></div></div>
+        <div class="sdg" style="background:#FD9D24"><div class="n">SDG 11</div><div><div class="t">Sustainable Communities</div><div class="how">Community sport &amp; social cohesion at every level.</div></div></div>
+        <div class="sdg" style="background:#00689D"><div class="n">SDG 16</div><div><div class="t">Strong Institutions</div><div class="how">Transparent verification &amp; tamper-clear standings.</div></div></div>
+        <div class="sdg" style="background:#19486A"><div class="n">SDG 17</div><div><div class="t">Partnerships</div><div class="how">Federations, sponsors &amp; government on one platform.</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 VISION 2050 -->
+  <section class="slide">
+    <div class="slide-head"><div class="kicker">National alignment · Rwanda Vision 2050</div><h2>Fit with the five pillars</h2></div>
+    <p class="sub" style="margin-bottom:18px">Vision 2050 targets a high-quality-of-life, high-income Rwanda. RwaSport contributes to every pillar of the transformation.</p>
+    <div class="fill">
+      <div class="pillars">
+        <div class="pillar"><div class="p-n">01</div><h4>Human Development</h4><p>Youth sport, health &amp; well-being; talent identification from school age.</p><div class="link"><b>→</b> AKC3 &amp; player pathways</div></div>
+        <div class="pillar"><div class="p-n">02</div><h4>Economic Growth &amp; Prosperity</h4><p>A digital sports economy — subscriptions, sponsorship, jobs.</p><div class="link"><b>→</b> Monetization &amp; jobs</div></div>
+        <div class="pillar"><div class="p-n">03</div><h4>Transformational Governance</h4><p>Accountable, digital federation governance &amp; e-services.</p><div class="link"><b>→</b> Verification &amp; audit trail</div></div>
+        <div class="pillar"><div class="p-n">04</div><h4>Modern Infrastructure</h4><p>Mobile-first ICT platform reaching every district.</p><div class="link"><b>→</b> PWA, offline-ready</div></div>
+        <div class="pillar"><div class="p-n">05</div><h4>Values &amp; Identity</h4><p>National sporting identity &amp; unity; "Made in Rwanda" tech.</p><div class="link"><b>→</b> Trilingual, home-built</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 SYNTHESIS -->
+  <section class="slide">
+    <div class="slide-head"><div class="kicker">Synthesis</div><h2>Why the timing is right</h2></div>
+    <div class="fill flow" style="align-content:center">
+      <div class="step"><div class="s-k">Environment</div><h4>Enabling</h4><p>Policy, youth demographics, mobile money &amp; ICT all point the same way (PESTEL).</p></div>
+      <div class="step"><div class="s-k">Impact</div><h4>Purposeful</h4><p>Advances 9 SDGs — health, education, inclusion, institutions, growth.</p></div>
+      <div class="step"><div class="s-k">National fit</div><h4>Aligned</h4><p>Contributes to all five Vision 2050 pillars — a "Made in Rwanda" digital public good.</p></div>
+      <div class="step"><div class="s-k">To manage</div><h4>Watch</h4><p>Affordability/FX (Economic) and data-protection compliance (Legal).</p></div>
+    </div>
+  </section>
+
+  <!-- 11 CLOSE -->
+  <section class="slide">
+    <div class="title-wrap">
+      <div class="brandline"><span class="dot"></span><span>RwaSport · Rwanda National Sports Platform</span></div>
+      <h1>The digital home of<br/><span class="g">Rwandan sport.</span></h1>
+      <p class="lead">A favorable environment, real development impact, and national-vision alignment — built mobile-first, inclusive, and Made in Rwanda.</p>
+      <div class="title-tags">
+        <span class="chip"><b>PESTEL:</b> tailwinds &gt; headwinds</span>
+        <span class="chip"><b>9</b> SDGs advanced</span>
+        <span class="chip"><b>5/5</b> Vision 2050 pillars</span>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="hint">← → or Space to navigate · F for fullscreen · P to print</div>
+<div class="hud">
+  <span class="brand-mini">Rwa<b>Sport</b></span>
+  <div class="progress"><div class="fillbar" id="fillbar"></div></div>
+  <span class="counter"><span id="cur">1</span> / <span id="total">11</span></span>
+</div>
+<div class="nav"><button id="prev">‹</button><button id="next">›</button></div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  let i = 0;
+  const total = slides.length;
+  document.getElementById('total').textContent = total;
+  const show = (n) => {
+    i = Math.max(0, Math.min(total - 1, n));
+    slides.forEach((s, k) => s.classList.toggle('active', k === i));
+    document.getElementById('cur').textContent = i + 1;
+    document.getElementById('fillbar').style.width = ((i + 1) / total * 100) + '%';
+  };
+  const next = () => show(i + 1), prev = () => show(i - 1);
+  document.getElementById('next').onclick = next;
+  document.getElementById('prev').onclick = prev;
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); next(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prev(); }
+    else if (e.key === 'Home') show(0);
+    else if (e.key === 'End') show(total - 1);
+    else if (e.key.toLowerCase() === 'f') { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+    else if (e.key.toLowerCase() === 'p') window.print();
+  });
+  // touch swipe
+  let x0 = null;
+  addEventListener('touchstart', e => x0 = e.touches[0].clientX, {passive:true});
+  addEventListener('touchend', e => { if (x0 === null) return; const dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 50) (dx < 0 ? next() : prev()); x0 = null; }, {passive:true});
+  show(0);
+</script>
+</body>
+</html>
