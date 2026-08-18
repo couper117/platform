@@ -4,13 +4,14 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import {
-  Trophy, Clock, MapPin, ChevronLeft, Calendar, Users, Play, Award, Wifi,
+  Trophy, Clock, MapPin, ChevronLeft, Calendar, Users, Play, Award, Wifi, LayoutGrid, List,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { getFixture } from '../../api/endpoints/fixtures';
 import useLiveMatch from '../../hooks/useLiveMatch';
 import ResponsiveWrapper from '../../components/shared/ResponsiveWrapper';
 import MatchEventTimeline from '../../components/shared/MatchEventTimeline';
+import FormationPitch from '../../components/match/FormationPitch';
 import Skeleton from '../../components/shared/Skeleton';
 import Seo from '../../components/shared/Seo';
 import { LiveBadge } from '../../components/ui/Badge';
@@ -66,6 +67,7 @@ const MatchDetailsPage = () => {
   const { t } = useTranslation();
   const { id } = useParams();
   const [tab, setTab] = useState('overview');
+  const [lineupView, setLineupView] = useState('pitch'); // 'pitch' | 'list'
 
   const { data: fixture, isLoading, refetch } = useQuery({
     queryKey: ['match-details', id],
@@ -304,6 +306,33 @@ const MatchDetailsPage = () => {
         {/* Lineups */}
         {tab === 'lineups' && (
           (homeLineup.length || awayLineup.length) ? (
+            <div className="space-y-6">
+            {/* Pitch / List view toggle */}
+            <div className="flex justify-center">
+              <div className="inline-flex items-center gap-1 p-1 bg-white dark:bg-surface-dark2 rounded-xl border border-surface-3 dark:border-white/5">
+                {[
+                  { key: 'pitch', label: t('match.pitch_view'), Icon: LayoutGrid },
+                  { key: 'list', label: t('match.list_view'), Icon: List },
+                ].map(({ key, label, Icon }) => (
+                  <button
+                    key={key}
+                    onClick={() => setLineupView(key)}
+                    className={`px-4 py-2 rounded-lg font-display text-[11px] uppercase tracking-widest flex items-center gap-2 transition-colors cursor-pointer ${
+                      lineupView === key ? 'bg-red text-white shadow' : 'text-surface-dark/50 dark:text-white/50 hover:text-red'
+                    }`}
+                  >
+                    <Icon size={14} /> {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {lineupView === 'pitch' ? (
+              <FormationPitch
+                home={{ team: m.homeTeam, starters: homeLineup.filter((p) => p.isStarter), formation: sheetFor(m.homeTeamId)?.formation, coachName: sheetFor(m.homeTeamId)?.coachName }}
+                away={{ team: m.awayTeam, starters: awayLineup.filter((p) => p.isStarter), formation: sheetFor(m.awayTeamId)?.formation, coachName: sheetFor(m.awayTeamId)?.coachName }}
+              />
+            ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[{ team: m.homeTeam, list: homeLineup, sheet: sheetFor(m.homeTeamId) }, { team: m.awayTeam, list: awayLineup, sheet: sheetFor(m.awayTeamId) }].map((side, i) => {
                 const starters = side.list.filter((p) => p.isStarter);
@@ -339,6 +368,8 @@ const MatchDetailsPage = () => {
                   </Card>
                 );
               })}
+            </div>
+            )}
             </div>
           ) : (
             <EmptyState icon={Users} title={t('match.lineups_unavailable')} hint={t('match.lineups_unavailable_hint')} className="py-16" />

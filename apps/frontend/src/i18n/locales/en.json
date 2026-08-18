@@ -216,6 +216,8 @@
     "substitutes": "Substitutes",
     "coach": "Coach",
     "formation": "Formation",
+    "pitch_view": "Pitch",
+    "list_view": "List",
     "lineups_unavailable": "Lineups not available yet",
     "lineups_unavailable_hint": "Team sheets have not been published for this match.",
     "no_events": "No events yet",

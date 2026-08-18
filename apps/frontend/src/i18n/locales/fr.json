@@ -216,6 +216,8 @@
     "substitutes": "Remplaçants",
     "coach": "Entraîneur",
     "formation": "Formation",
+    "pitch_view": "Terrain",
+    "list_view": "Liste",
     "lineups_unavailable": "Compositions indisponibles",
     "lineups_unavailable_hint": "Les compositions n’ont pas encore été publiées.",
     "no_events": "Aucun événement",
