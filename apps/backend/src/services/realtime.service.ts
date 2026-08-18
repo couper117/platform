@@ -26,4 +26,12 @@ const emitMatchEvent = (fixtureId, event) => {
   sse.publish(`fixture-${fixtureId}`, 'matchEvent', event);
 };
 
-module.exports = { emitMatchUpdate, emitMatchEvent };
+// Per-team match statistics (possession, shots, xG…). Only per-match
+// subscribers care, so this stays off the global ticker. Payload:
+// { teamId, stat } where `stat` is the full MatchStat row.
+const emitMatchStats = (fixtureId, data) => {
+  safeTrigger(`fixture-${fixtureId}`, 'matchStats', data);
+  sse.publish(`fixture-${fixtureId}`, 'matchStats', data);
+};
+
+module.exports = { emitMatchUpdate, emitMatchEvent, emitMatchStats };

@@ -6,6 +6,18 @@ const { sendMail } = require('../utils/sendMail');
 const logActivity = require('../utils/activityLogger');
 const env = require('../config/env');
 
+// Refresh-token cookie options. When the frontend and API live on different
+// domains (e.g. separate Vercel projects), browsers only send the cookie
+// cross-site if it's SameSite=None; Secure. Locally we keep SameSite=Strict
+// over plain HTTP. Used for both setting and clearing so the attributes match.
+const isProd = env.NODE_ENV === 'production';
+const refreshCookieOptions = {
+  httpOnly: true,
+  secure: isProd,
+  sameSite: isProd ? 'none' : 'strict',
+};
+const REFRESH_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
 // Attach the sport a federation admin is scoped to, so the frontend can filter
 // its admin views to that sport.
 const withAdminSport = async (user) => {
@@ -158,12 +170,7 @@ const login = async (req, res, next) => {
     });
 
     // Set refresh token in httpOnly cookie
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie('refreshToken', refreshToken, { ...refreshCookieOptions, maxAge: REFRESH_MAX_AGE_MS });
 
     await prisma.user.update({
       where: { id: user.id },
@@ -233,12 +240,7 @@ const refresh = async (req, res, next) => {
       }),
     ]);
 
-    res.cookie('refreshToken', newRefreshToken, {
-      httpOnly: true,
-      secure: env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie('refreshToken', newRefreshToken, { ...refreshCookieOptions, maxAge: REFRESH_MAX_AGE_MS });
 
     res.status(200).json({
       success: true,
@@ -258,7 +260,7 @@ const logout = async (req, res, next) => {
     if (token) {
       await prisma.refreshToken.deleteMany({ where: { token: hashToken(token) } });
     }
-    res.clearCookie('refreshToken');
+    res.clearCookie('refreshToken', refreshCookieOptions);
     res.status(200).json({ success: true, message: 'Logged out successfully' });
   } catch (error) {
     next(error);

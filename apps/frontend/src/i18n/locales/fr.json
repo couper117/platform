@@ -218,6 +218,8 @@
     "formation": "Formation",
     "pitch_view": "Terrain",
     "list_view": "Liste",
+    "match_stats": "Statistiques",
+    "live_stats": "Stats en direct",
     "lineups_unavailable": "Compositions indisponibles",
     "lineups_unavailable_hint": "Les compositions n’ont pas encore été publiées.",
     "no_events": "Aucun événement",

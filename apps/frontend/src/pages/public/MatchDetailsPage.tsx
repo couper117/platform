@@ -32,15 +32,29 @@ const ScoreDigit = ({ value }) => (
   </motion.span>
 );
 
+// A stat number that pops when its value changes (keyed on the value so a live
+// push re-mounts and re-runs the animation).
+const StatNum = ({ value, className }) => (
+  <motion.span
+    key={value}
+    initial={{ scale: 1.35 }}
+    animate={{ scale: 1 }}
+    transition={{ type: 'spring', stiffness: 500, damping: 20 }}
+    className={`inline-block tabular-nums ${className}`}
+  >
+    {value}
+  </motion.span>
+);
+
 const StatBar = ({ label, home, away }) => {
   const total = (home || 0) + (away || 0);
   const homePct = total ? Math.round((home / total) * 100) : 50;
   return (
     <div className="space-y-1.5">
       <div className="flex justify-between text-xs font-bold tabular-nums">
-        <span className={home >= away ? 'text-red' : 'opacity-50'}>{home}</span>
+        <StatNum value={home} className={home >= away ? 'text-red' : 'opacity-50'} />
         <span className="text-[10px] uppercase tracking-widest opacity-40">{label}</span>
-        <span className={away >= home ? 'text-red' : 'opacity-50'}>{away}</span>
+        <StatNum value={away} className={away >= home ? 'text-red' : 'opacity-50'} />
       </div>
       <div className="flex h-1.5 rounded-full overflow-hidden bg-surface-3 dark:bg-white/10">
         <div className="bg-red transition-all duration-500" style={{ width: `${homePct}%` }} />
@@ -99,10 +113,15 @@ const MatchDetailsPage = () => {
   const awayLineup = lineups.filter((l) => l.teamId === m?.awayTeamId);
   const sheetFor = (teamId) => (m?.teamSheets || []).find((s) => s.teamId === teamId);
 
-  // Real per-team statistics (entered by the admin), with event-derived fallback.
-  const homeStat = (m?.stats || []).find((s) => s.teamId === m?.homeTeamId);
-  const awayStat = (m?.stats || []).find((s) => s.teamId === m?.awayTeamId);
+  // Real per-team statistics (entered by the admin), sourced from the live state
+  // so a `matchStats` push updates the bars without a reload; falls back to the
+  // REST payload, then to event-derived numbers.
+  const liveStats = live.stats?.length ? live.stats : (m?.stats || []);
+  const homeStat = liveStats.find((s) => s.teamId === m?.homeTeamId);
+  const awayStat = liveStats.find((s) => s.teamId === m?.awayTeamId);
   const hasStats = !!(homeStat || awayStat);
+  // True briefly after a live stat push, to flash the "updating" pulse.
+  const statsJustUpdated = !!live.lastStatsUpdate && Date.now() - live.lastStatsUpdate < 2500;
   const STAT_ROWS = [
     ['possession', t('matchstat.possession')], ['shots', t('matchstat.shots')], ['shotsOnTarget', t('matchstat.shots_on_target')],
     ['shotsInsideBox', t('matchstat.shots_inside_box')], ['shotsOutsideBox', t('matchstat.shots_outside_box')],
@@ -279,7 +298,12 @@ const MatchDetailsPage = () => {
           <Card className="p-6 sm:p-8 max-w-2xl mx-auto">
             <div className="flex items-center justify-between mb-6 text-[10px] uppercase tracking-widest font-bold">
               <span className="text-red truncate max-w-[40%]">{m.homeTeam?.name}</span>
-              <span className="opacity-40">Match Stats</span>
+              <span className="flex items-center gap-1.5 opacity-60">
+                {isLive && connected && (
+                  <span className={`w-1.5 h-1.5 rounded-full ${statsJustUpdated ? 'bg-red' : 'bg-green'} animate-pulse`} />
+                )}
+                {isLive && connected ? t('match.live_stats') : t('match.match_stats')}
+              </span>
               <span className="text-rwanda-blue truncate max-w-[40%] text-right">{m.awayTeam?.name}</span>
             </div>
             {hasStats ? (

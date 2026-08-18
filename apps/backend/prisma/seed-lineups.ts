@@ -134,6 +134,19 @@ async function seedTeam(teamId: number, formation: string, coachName: string, ca
   return { formation, coachName, starters: startXI.length, subs: subs.length, captain: captain.fullName };
 }
 
+// Baseline per-team stats so the Match Center Stats tab (and its live-push demo)
+// has real numbers to render on a fresh seed.
+async function seedStats(homeTeamId: number, awayTeamId: number) {
+  const upsert = (teamId: number, d: Record<string, number>) =>
+    prisma.matchStat.upsert({
+      where: { fixtureId_teamId: { fixtureId: FIXTURE_ID, teamId } },
+      update: d,
+      create: { fixtureId: FIXTURE_ID, teamId, ...d },
+    });
+  await upsert(homeTeamId, { possession: 55, shots: 12, shotsOnTarget: 5, corners: 6, fouls: 8, xg: 1.4 });
+  await upsert(awayTeamId, { possession: 45, shots: 9, shotsOnTarget: 3, corners: 4, fouls: 11, xg: 0.9 });
+}
+
 async function main() {
   const fixture = await prisma.fixture.findUnique({
     where: { id: FIXTURE_ID },
@@ -144,7 +157,12 @@ async function main() {
   const home = await seedTeam(fixture.homeTeamId, '4-3-3', 'Adel Amrouche', 'FWD');
   const away = await seedTeam(fixture.awayTeamId, '4-2-3-1', 'Mecky Mexican', 'DEF');
 
-  console.log(`Seeded lineups for fixture ${FIXTURE_ID}: ${fixture.homeTeam.name} vs ${fixture.awayTeam.name}`);
+  // Make the showcase a LIVE match with stats, so the formation pitch and the
+  // real-time Stats tab both have something to show out of the box.
+  await seedStats(fixture.homeTeamId, fixture.awayTeamId);
+  await prisma.fixture.update({ where: { id: FIXTURE_ID }, data: { status: 'LIVE' } });
+
+  console.log(`Seeded showcase fixture ${FIXTURE_ID} (LIVE): ${fixture.homeTeam.name} vs ${fixture.awayTeam.name}`);
   console.log(' home:', JSON.stringify(home));
   console.log(' away:', JSON.stringify(away));
 }
