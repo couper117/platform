@@ -48,7 +48,7 @@ async function main() {
   const football = await prisma.sport.upsert({
     where: { name: 'Football' },
     update: {},
-    create: { name: 'Football', icon: '⚽', slug: 'football', category: 'FIELD', sortOrder: 1 }
+    create: { name: 'Football', icon: '', slug: 'football', category: 'FIELD', sortOrder: 1 }
   });
 
   // 4. LEAGUES

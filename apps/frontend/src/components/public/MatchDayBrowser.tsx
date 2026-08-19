@@ -176,7 +176,7 @@ const MatchDayBrowser = ({ sportId, accent = '#E8002D', leagues = [], showSideba
                         <TeamRow team={f.homeTeam} bold={f.status !== 'SCHEDULED' && (f.homeScore ?? 0) >= (f.awayScore ?? 0)} />
                         <TeamRow team={f.awayTeam} bold={f.status !== 'SCHEDULED' && (f.awayScore ?? 0) >= (f.homeScore ?? 0)} />
                       </div>
-                      {f.streamUrl && <span className="text-[8px] font-bold uppercase tracking-widest text-red border border-red/30 rounded px-1.5 py-0.5">▶ Live</span>}
+                      {f.streamUrl && <span className="text-[8px] font-bold uppercase tracking-widest text-red border border-red/30 rounded px-1.5 py-0.5">Live</span>}
                     </Link>
                   ))}
                 </div>

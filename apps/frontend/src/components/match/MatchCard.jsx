@@ -120,7 +120,7 @@ const MatchCard = ({ fixture, className = '' }) => {
             dot={live}
             label={
               state === 'live' && typeof fixture.liveState?.minute === 'number'
-                ? `${fixture.liveState.minute}â€™`
+                ? `${fixture.liveState.minute}'`
                 : undefined
             }
           />

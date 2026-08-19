@@ -84,7 +84,7 @@ const Rail = ({ state, fixture, showDate }) => {
       <span className="flex animate-live-pulse flex-col items-center gap-0.5 text-live">
         <span className="h-1.5 w-1.5 rounded-pill bg-live" />
         <span className="text-xs font-semibold tabular-nums leading-none">
-          {typeof minute === 'number' ? `${minute}â€™` : 'LIVE'}
+          {typeof minute === 'number' ? `${minute}'` : 'LIVE'}
         </span>
       </span>
     );

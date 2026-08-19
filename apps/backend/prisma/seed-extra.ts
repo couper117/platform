@@ -57,11 +57,11 @@ async function main() {
   // ── SPORTS ────────────────────────────────────────────────────────────
   console.log('  • sports');
   const sportDefs = [
-    { name: 'Football', icon: '⚽', slug: 'football', category: 'FIELD', sortOrder: 1 },
-    { name: 'Basketball', icon: '🏀', slug: 'basketball', category: 'COURT', sortOrder: 2 },
-    { name: 'Volleyball', icon: '🏐', slug: 'volleyball', category: 'COURT', sortOrder: 3 },
-    { name: 'Handball', icon: '🤾', slug: 'handball', category: 'COURT', sortOrder: 4 },
-    { name: 'Rugby', icon: '🏉', slug: 'rugby', category: 'FIELD', sortOrder: 5 },
+    { name: 'Football', icon: '', slug: 'football', category: 'FIELD', sortOrder: 1 },
+    { name: 'Basketball', icon: '', slug: 'basketball', category: 'COURT', sortOrder: 2 },
+    { name: 'Volleyball', icon: '', slug: 'volleyball', category: 'COURT', sortOrder: 3 },
+    { name: 'Handball', icon: '', slug: 'handball', category: 'COURT', sortOrder: 4 },
+    { name: 'Rugby', icon: '', slug: 'rugby', category: 'FIELD', sortOrder: 5 },
   ];
   const sports: any = {};
   for (const s of sportDefs) sports[s.slug] = await prisma.sport.upsert({ where: { name: s.name }, update: {}, create: s });

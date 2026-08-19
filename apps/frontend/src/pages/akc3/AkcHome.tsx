@@ -63,7 +63,7 @@ const SportCard = ({ s, t }) => (
     to="/amashuri/fixtures"
     className="group flex w-[40vw] shrink-0 flex-col items-center gap-2 rounded-2xl border border-hairline bg-surface p-4 text-center transition-all hover:-translate-y-1 hover:border-[#F5B301]/50 sm:w-auto"
   >
-    <span className="text-3xl transition-transform group-hover:scale-110" aria-hidden="true">{s.icon}</span>
+    <span className="flex h-12 w-12 items-center justify-center rounded-full text-xl font-extrabold transition-transform group-hover:scale-110" style={{ background: `${GOLD}1a`, color: GOLD }} aria-hidden="true">{s.name?.charAt(0)?.toUpperCase()}</span>
     <div>
       <p className="text-sm font-bold text-primary">{s.name}</p>
       <p className="text-[11px] text-tertiary">{t('amashuri.comp_count', { count: s.competitions })}</p>
@@ -147,8 +147,8 @@ const AkcHome = () => {
       {/* ─── HERO ─── */}
       <section className="relative overflow-hidden bg-[#062a19] text-white">
         <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(70% 80% at 75% 20%, rgba(16,120,60,0.45), transparent 60%)' }} />
-        <ResponsiveWrapper className="relative z-10 grid items-center gap-6 py-8 lg:grid-cols-2 lg:py-12">
-          <div>
+        <ResponsiveWrapper className="relative z-10 py-8 lg:py-12">
+          <div className="max-w-2xl">
             <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider">
               <GraduationCap size={14} style={{ color: GOLD }} /> {t('amashuri.tagline')}
             </p>
@@ -165,15 +165,6 @@ const AkcHome = () => {
               <Link to="/amashuri/schools" className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-5 py-3 text-sm font-bold text-white backdrop-blur-sm transition-colors hover:bg-white/20">
                 <School size={16} /> {t('amashuri.home_find_school')}
               </Link>
-            </div>
-          </div>
-          {/* Multi-sport visual — swap in /amashuri-hero.png for real athletes. */}
-          <div className="hidden lg:block">
-            <div className="relative mx-auto flex aspect-[5/4] max-w-md items-center justify-center gap-4">
-              <div className="absolute inset-0" style={{ background: `radial-gradient(50% 50% at 55% 45%, ${GOLD}22, transparent 70%)` }} />
-              {['⚽', '🏀', '🏐', '🏃'].map((b, i) => (
-                <span key={b} className="relative text-6xl drop-shadow-[0_0_24px_rgba(245,179,1,0.35)]" style={{ transform: `translateY(${[10, -20, -6, 14][i]}px)` }}>{b}</span>
-              ))}
             </div>
           </div>
         </ResponsiveWrapper>

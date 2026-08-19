@@ -128,7 +128,7 @@ model Sport {
   id          Int           @id @default(autoincrement())
   name        String        @unique @db.VarChar(150)
   slug        String?       @db.VarChar(170)
-  icon        String        @default("ðŸ…") @db.VarChar(10)
+  icon        String        @default("") @db.VarChar(10)
   description String?       @db.Text
   coverImage  String?       @db.VarChar(300)
   category    SportCategory @default(OTHER)

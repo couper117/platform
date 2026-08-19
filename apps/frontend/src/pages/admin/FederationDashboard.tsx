@@ -88,7 +88,7 @@ const FederationDashboard = () => {
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="font-display text-2xl uppercase tracking-tight text-primary sm:text-3xl">{t('dash.welcome_admin', { name: abbr })} <span aria-hidden="true">👋</span></h1>
+          <h1 className="font-display text-2xl uppercase tracking-tight text-primary sm:text-3xl">{t('dash.welcome_admin', { name: abbr })}</h1>
           <p className="mt-1 text-sm text-tertiary">{sportName}</p>
         </div>
         <button className="inline-flex w-fit items-center gap-2 rounded-xl border border-hairline bg-surface px-3 py-2 text-sm font-semibold text-secondary">
