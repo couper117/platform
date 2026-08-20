@@ -11,7 +11,7 @@ const getTeams = async (req, res, next) => {
   try {
     const { sportId, status, province } = req.query;
     
-    const where = { active: true };
+    const where: any = { active: true };
     if (sportId) where.sportId = parseInt(sportId);
     if (status) where.status = status;
     if (province) where.province = province;

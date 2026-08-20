@@ -126,7 +126,7 @@ const getAdminStats = async (req, res, next) => {
 const getUsers = async (req, res, next) => {
   try {
     const { role, q } = req.query;
-    const where = {};
+    const where: any = {};
     if (role) where.role = role;
     if (q) {
       where.OR = [

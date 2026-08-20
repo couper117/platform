@@ -50,7 +50,7 @@ const TeamDashboard = () => {
 
   const nextMatch = fixtures?.[0];
   const nextMatchDate = nextMatch?.matchDate ? new Date(nextMatch.matchDate) : null;
-  const daysUntilMatch = nextMatchDate ? Math.ceil((nextMatchDate - new Date()) / (1000 * 60 * 60 * 24)) : '—';
+  const daysUntilMatch = nextMatchDate ? Math.ceil((+nextMatchDate - +new Date()) / (1000 * 60 * 60 * 24)) : '—';
 
   if (teamLoading) return <Skeleton type="card" count={3} />;
 

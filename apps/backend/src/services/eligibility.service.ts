@@ -1,4 +1,7 @@
 const prisma = require('../config/db');
+// Pure decision logic lives in its own dependency-free module so it can be
+// unit-tested without a database.
+const { isForeign, ageCap, seasonRefYear, playerLeagueIssues } = require('./eligibility.rules');
 
 // Government federation rules. Defaults apply until a super admin overrides them
 // in Settings (grp = 'rules'). All values are integers.
@@ -49,45 +52,9 @@ const ensureRuleSettings = async () => {
   );
 };
 
-const isForeign = (nationality) => {
-  if (!nationality) return false;
-  return !/rwand/i.test(String(nationality));
-};
-
-// "Under-N" cap for a league age category (null = no age restriction).
-const ageCap = (category) => ({ U13: 13, U15: 15, U17: 17, U20: 20, JUNIOR: 20 }[category] || null);
-
-// Reference year for age checks: the season's end year (e.g. "2025/2026" → 2026),
-// else the start-date year, else the created year.
-const seasonRefYear = (league) => {
-  const m = String(league.season || '').match(/(\d{4})\D*(\d{4})?/);
-  if (m) return parseInt(m[2] || m[1], 10);
-  if (league.startDate) return new Date(league.startDate).getFullYear();
-  return new Date(league.createdAt || Date.now()).getFullYear();
-};
-
-// Per-player eligibility against a specific league. Returns [] when eligible.
-const playerLeagueIssues = (player, league, refYear) => {
-  const issues = [];
-  const pg = player.gender; // MALE | FEMALE
-  if (league.gender === 'MALE' && pg !== 'MALE') issues.push(`${player.fullName}: league is men-only`);
-  if (league.gender === 'FEMALE' && pg !== 'FEMALE') issues.push(`${player.fullName}: league is women-only`);
-
-  const cap = ageCap(league.ageCategory);
-  if (cap) {
-    if (!player.dateOfBirth) {
-      issues.push(`${player.fullName}: date of birth required for ${league.ageCategory}`);
-    } else {
-      const age = refYear - new Date(player.dateOfBirth).getFullYear();
-      if (age >= cap) issues.push(`${player.fullName}: too old for ${league.ageCategory} (age ~${age})`);
-    }
-  }
-  return issues;
-};
-
 // Validate a player create/update within a team (no league context).
 // opts: { excludePlayerId } when updating.
-const validatePlayerInTeam = async (teamId, data, rules, opts = {}) => {
+const validatePlayerInTeam = async (teamId, data, rules, opts: any = {}) => {
   const issues = [];
   const active = await prisma.player.findMany({
     where: { teamId, active: true, ...(opts.excludePlayerId ? { id: { not: opts.excludePlayerId } } : {}) },

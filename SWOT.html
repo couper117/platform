@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SWOT Analysis — RwaSport / RNSP</title>
+<style>
+  :root{
+    --bg:#0D0D0F; --surface:#17171A; --surface-2:#1F1F23; --hairline:#2A2A30;
+    --text:#F2F2F0; --text-2:#9A9A96; --text-3:#82827E;
+    --brand:#0FBF6A; --brand-dim:#0c9a55;
+    --live:#E8590C; --danger:#D64545; --danger-text:#E86A6A; --success:#3FA37A;
+    --warn:#E0A93B; --info:#4C8DD6;
+    --s:#0FBF6A; --w:#D64545; --o:#4C8DD6; --t:#E0A93B;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:"Archivo",system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    font-size:15px; line-height:1.6; letter-spacing:.1px;
+    font-variant-numeric:tabular-nums;
+  }
+  .wrap{max-width:1040px; margin:0 auto; padding:32px 20px 96px}
+  header.top{border-bottom:1px solid var(--hairline); padding-bottom:24px; margin-bottom:32px}
+  .kicker{font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--text-3); margin:0 0 10px}
+  h1{font-size:30px; line-height:1.15; margin:0 0 8px; font-weight:800; letter-spacing:-.3px}
+  h1 .accent{color:var(--brand)}
+  .sub{color:var(--text-2); max-width:70ch; margin:0}
+  .meta{display:flex; gap:8px; flex-wrap:wrap; margin-top:18px}
+  .chip{font-size:11px; padding:5px 10px; border:1px solid var(--hairline); border-radius:999px; color:var(--text-2); background:var(--surface)}
+  .chip b{color:var(--text); font-weight:600}
+  .chip.live{border-color:rgba(63,163,122,.5); color:var(--success)}
+  .chip.live::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--success);margin-right:7px;vertical-align:middle;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+  .score{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:0 0 32px}
+  .score .cell{background:var(--surface); border:1px solid var(--hairline); border-radius:8px; padding:16px}
+  .score .cell .n{font-size:26px; font-weight:800; letter-spacing:-.5px}
+  .score .cell .l{font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-3); margin-top:2px}
+  .score .cell.s .n{color:var(--s)} .score .cell.w .n{color:var(--w)}
+  .score .cell.o .n{color:var(--o)} .score .cell.t .n{color:var(--t)}
+
+  section{margin:0 0 14px}
+  details.quad{background:var(--surface); border:1px solid var(--hairline); border-radius:10px; overflow:hidden; margin-bottom:14px}
+  details.quad>summary{
+    list-style:none; cursor:pointer; padding:16px 18px; display:flex; align-items:center; gap:12px;
+    font-size:17px; font-weight:700; user-select:none;
+  }
+  details.quad>summary::-webkit-details-marker{display:none}
+  details.quad>summary .bar{width:4px; align-self:stretch; border-radius:2px}
+  details.quad>summary .caret{margin-left:auto; color:var(--text-3); transition:transform .2s}
+  details.quad[open]>summary .caret{transform:rotate(90deg)}
+  details.quad>summary .tag{font-size:11px; font-weight:600; padding:3px 9px; border-radius:999px; letter-spacing:.5px}
+  .S .bar{background:var(--s)} .W .bar{background:var(--w)} .O .bar{background:var(--o)} .T .bar{background:var(--t)}
+  .S .tag{background:rgba(15,191,106,.15); color:var(--s)}
+  .W .tag{background:rgba(214,69,69,.15); color:var(--danger-text)}
+  .O .tag{background:rgba(76,141,214,.15); color:var(--o)}
+  .T .tag{background:rgba(224,169,59,.15); color:var(--t)}
+  .body{padding:4px 18px 20px; border-top:1px solid var(--hairline)}
+
+  table{width:100%; border-collapse:collapse; margin:14px 0; font-size:14px}
+  th,td{text-align:left; padding:10px 12px; border-bottom:1px solid var(--hairline); vertical-align:top}
+  th{font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-3); font-weight:600}
+  td:first-child{white-space:nowrap; font-weight:600}
+  tr:last-child td{border-bottom:none}
+  .sev{font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px; display:inline-block}
+  .sev.high{background:rgba(214,69,69,.15); color:var(--danger-text)}
+  .sev.med{background:rgba(224,169,59,.15); color:var(--warn)}
+  .sev.low{background:rgba(154,154,150,.14); color:var(--text-2)}
+
+  ul.clean{margin:12px 0; padding-left:0; list-style:none}
+  ul.clean li{position:relative; padding-left:22px; margin:9px 0; color:var(--text)}
+  ul.clean li::before{content:"›"; position:absolute; left:4px; top:-1px; color:var(--brand); font-weight:800}
+  ul.clean li b{font-weight:700}
+  ul.clean li .muted{color:var(--text-2)}
+
+  .callout{border:1px solid var(--hairline); border-left:3px solid var(--info); background:var(--surface-2); border-radius:8px; padding:14px 16px; margin:18px 0}
+  .callout.warn{border-left-color:var(--warn)}
+  .callout .h{font-size:12px; text-transform:uppercase; letter-spacing:1px; color:var(--text-3); margin:0 0 6px}
+  .callout p{margin:0; color:var(--text-2); font-size:14px}
+  .callout p b{color:var(--text)}
+
+  code{background:var(--surface-2); border:1px solid var(--hairline); border-radius:4px; padding:1px 6px; font-size:12.5px; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; color:#cfe8d8}
+
+  .verdict{background:linear-gradient(180deg,var(--surface),var(--surface-2)); border:1px solid var(--hairline); border-radius:12px; padding:24px; margin:28px 0 0}
+  .verdict h2{margin:0 0 6px; font-size:20px}
+  .verdict .lead{color:var(--text-2); margin:0 0 18px; max-width:72ch}
+  ol.pri{counter-reset:p; list-style:none; margin:0; padding:0}
+  ol.pri li{counter-increment:p; position:relative; padding:12px 12px 12px 52px; border-bottom:1px solid var(--hairline)}
+  ol.pri li:last-child{border-bottom:none}
+  ol.pri li::before{content:counter(p); position:absolute; left:12px; top:11px; width:28px; height:28px; border-radius:50%;
+    background:rgba(15,191,106,.14); color:var(--brand); font-weight:800; font-size:14px; display:grid; place-items:center}
+  ol.pri li b{font-weight:700}
+  ol.pri li span{color:var(--text-2); display:block; font-size:13.5px}
+
+  footer{margin-top:40px; padding-top:20px; border-top:1px solid var(--hairline); color:var(--text-3); font-size:12.5px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px}
+  .controls{position:fixed; top:14px; right:14px; display:flex; gap:8px; z-index:10}
+  .controls button{background:var(--surface); color:var(--text-2); border:1px solid var(--hairline); border-radius:8px; padding:8px 12px; font-size:12px; cursor:pointer; font-family:inherit}
+  .controls button:hover{color:var(--text); border-color:var(--brand)}
+
+  @media (max-width:720px){
+    .score{grid-template-columns:repeat(2,1fr)} h1{font-size:24px}
+    td:first-child{white-space:normal}
+  }
+  @media print{
+    body{background:#fff; color:#111} .controls{display:none}
+    details.quad{border-color:#ccc} details.quad>.body{display:block!important}
+    .verdict{background:#fff}
+  }
+</style>
+</head>
+<body>
+<div class="controls">
+  <button onclick="document.querySelectorAll('details.quad').forEach(d=>d.open=true)">Expand all</button>
+  <button onclick="document.querySelectorAll('details.quad').forEach(d=>d.open=false)">Collapse</button>
+  <button onclick="window.print()">Print / PDF</button>
+</div>
+
+<div class="wrap">
+  <header class="top">
+    <p class="kicker">Strategic Assessment</p>
+    <h1>SWOT Analysis — <span class="accent">RwaSport</span> / RNSP</h1>
+    <p class="sub">A mobile-first platform to digitize all of Rwandan sport — professional leagues, 20+ federations, a live Match Center, a school-competitions module (AKC3/Amashuri), and racing — with a monetization layer. React PWA + Express / Prisma / PostgreSQL. Grounded in a full code sweep and live verification.</p>
+    <div class="meta">
+      <span class="chip live">App verified running</span>
+      <span class="chip"><b>42</b>&nbsp;data models</span>
+      <span class="chip"><b>~67</b>&nbsp;frontend pages</span>
+      <span class="chip"><b>3</b>&nbsp;locales (EN/RW/FR)</span>
+      <span class="chip"><b>20</b>&nbsp;sports · <b>24</b>&nbsp;federations</span>
+      <span class="chip">Readiness&nbsp;<b>~7/10</b></span>
+    </div>
+  </header>
+
+  <div class="score">
+    <div class="cell s"><div class="n">8</div><div class="l">Strengths</div></div>
+    <div class="cell w"><div class="n">8</div><div class="l">Weaknesses</div></div>
+    <div class="cell o"><div class="n">6</div><div class="l">Opportunities</div></div>
+    <div class="cell t"><div class="n">6</div><div class="l">Threats</div></div>
+  </div>
+
+  <!-- STRENGTHS -->
+  <details class="quad S" open>
+    <summary><span class="bar"></span>Strengths <span class="tag">INTERNAL · POSITIVE</span><span class="caret">›</span></summary>
+    <div class="body">
+      <table>
+        <thead><tr><th>Area</th><th>Evidence</th></tr></thead>
+        <tbody>
+          <tr><td>Exceptional domain breadth</td><td>42 Prisma models, 34 enums, 6 domains. Sport <em>polymorphism</em> — team sports use Fixtures/Lineups, cycling/athletics use Race/Classification. 14 match-event types, formations, xG, live state, discipline → suspension automation.</td></tr>
+          <tr><td>Real, realistic data</td><td>20 real sports, 24 real federations (FERWAFA, FERWABA…), real RPL clubs (APR, Rayon Sports, Police FC), real Tour du Rwanda stages with real riders. Idempotent upsert-based seeds.</td></tr>
+          <tr><td>Solid auth &amp; security core</td><td>JWT + rotating refresh tokens (SHA-256 at rest), bcrypt cost-12, Helmet, CORS allowlist, tiered rate-limiting, httpOnly/SameSite=strict cookies, Zod on mutations, MIME/size-gated uploads via Sharp → Cloudinary.</td></tr>
+          <tr><td>Feature-complete frontend</td><td>~67 pages, wired to the live API (home, fixtures, standings, live counters confirmed rendering real data). 60+ lazy-loaded routes across public / admin / team / reporter / AKC3 portals.</td></tr>
+          <tr><td>Exemplary design system</td><td><code>DESIGN.md</code> is production-grade: token-only color with measured WCAG ratios, self-hosted Archivo (avoids CDN RTT on Rwandan mobile), tabular numerals, no shadows/gradients, dark-first for outdoor use.</td></tr>
+          <tr><td>Mature i18n</td><td>Three <em>complete</em> locales (EN/RW/FR, ~60 KB each) + date-fns localization + enum translation.</td></tr>
+          <tr><td>Clean architecture</td><td>Routes → controllers → services; Zustand + TanStack Query; Axios auto-refresh interceptor; Zod-validated env at boot; pooler-safe Prisma; PWA deliberately never caches <code>/api</code> (live scores never stale).</td></tr>
+          <tr><td>Clever offline demo</td><td>Self-contained <code>demo/app</code> with a mock adapter + committed <code>dist</code> — zero-install pitch capability, no backend needed.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <!-- WEAKNESSES -->
+  <details class="quad W" open>
+    <summary><span class="bar"></span>Weaknesses <span class="tag">INTERNAL · NEGATIVE</span><span class="caret">›</span></summary>
+    <div class="body">
+      <table>
+        <thead><tr><th>Area</th><th>Evidence</th><th>Sev</th></tr></thead>
+        <tbody>
+          <tr><td>No working quality gates</td><td><code>npm run typecheck</code> fails (552 backend / 395 frontend <code>tsc</code> errors) and <code>npm run lint</code> is broken (no eslint config). <em>Nuance:</em> most backend errors are <code>TS2451 "cannot redeclare"</code> — files are CommonJS, so <code>tsc</code> treats them as global scripts. The app runs fine via <code>tsx</code>; the typecheck script is misconfigured, not 552 real bugs. But frontend store typing is genuinely soft. Net: no functioning type/lint gate.</td><td><span class="sev high">High</span></td></tr>
+          <tr><td>Almost no tests</td><td>Backend: 1 smoke file (~13 read-only cases). Frontend: <b>zero</b>. No unit / integration / e2e, no coverage.</td><td><span class="sev high">High</span></td></tr>
+          <tr><td>No CI/CD</td><td>No <code>.github/workflows</code>, no pre-commit hooks. Nothing blocks a broken commit; deploys aren't gated.</td><td><span class="sev high">High</span></td></tr>
+          <tr><td>Modeled-but-unbuilt features</td><td>Schema + seed exist but <b>no API routes</b> for Transfers, Team Officials, Registrations review, manual Suspensions. Racing is read-only (no result entry).</td><td><span class="sev med">Med</span></td></tr>
+          <tr><td>Payments are mock</td><td><code>payments.controller</code> hardcodes a fake gateway — no real Flutterwave / webhook / signature. Subscription revenue is a stub, so monetization isn't live.</td><td><span class="sev med">Med</span></td></tr>
+          <tr><td>Missing DB indexes</td><td>Only 1 explicit <code>@@index</code> (Race.sportId). Hot FKs (<code>Fixture.leagueId</code>, <code>Standing.leagueId</code>, <code>MatchEvent.fixtureId</code>) unindexed → table scans at scale.</td><td><span class="sev med">Med</span></td></tr>
+          <tr><td>Demo/real duplication</td><td>~30–40% of the frontend mirrored between <code>demo/app</code> and <code>apps/frontend</code>; sync is a manual "port it over" workflow → drift risk.</td><td><span class="sev med">Med</span></td></tr>
+          <tr><td>Tech debt / cleanup</td><td>Dead <code>Team.jerseyHome/jerseyAway</code>; <code>clubColors.js</code> hardcoded stopgap; orphaned <code>/api</code> dir; no root README; 77 KB <code>PROMPT.md</code>.</td><td><span class="sev low">Low</span></td></tr>
+        </tbody>
+      </table>
+      <div class="callout warn">
+        <p class="h">Correction to the sweep</p>
+        <p>The exploration flagged <code>.env</code> and <code>Admin_Credentials.pdf</code> as "committed secrets." <b>Both are false</b> — verified against <code>git ls-files</code>: <code>.env</code> is properly gitignored (only <code>.env.example</code> is tracked) and the PDF is untracked. The real related risk is that secrets live in a <b>OneDrive-synced</b> <code>.env</code> (cloud-synced local exposure), not a git leak.</p>
+      </div>
+    </div>
+  </details>
+
+  <!-- OPPORTUNITIES -->
+  <details class="quad O" open>
+    <summary><span class="bar"></span>Opportunities <span class="tag">EXTERNAL · POSITIVE</span><span class="caret">›</span></summary>
+    <div class="body">
+      <ul class="clean">
+        <li><b>First-mover in a paper-based market.</b> <span class="muted">Positioned as Rwanda's first digital sports ecosystem; most leagues still run on spreadsheets. Whole-lifecycle coverage (federation → pro league → school) is a real moat.</span></li>
+        <li><b>AKC3 youth pipeline.</b> <span class="muted">Digitizing school sport trains thousands of future athletes/managers on the platform young, and opens the youth-demographic sponsorship market.</span></li>
+        <li><b>Low-OpEx, consumption-based infra.</b> <span class="muted">Vercel / Supabase / Cloudinary / Pusher scale with usage and keep off-season costs down.</span></li>
+        <li><b>Three-stream revenue.</b> <span class="muted">Verification SaaS + match-day/banner ads + transfer fees — once real payments land.</span></li>
+        <li><b>Premium ad inventory.</b> <span class="muted">The live-reporting flow (match-day sponsorship) is high-engagement and directly monetizable.</span></li>
+        <li><b>Fast path to "operable."</b> <span class="muted">Finishing the CRUD gaps, wiring real payments, and adding indexes would move it from impressive demo to sellable product in a few sprints.</span></li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- THREATS -->
+  <details class="quad T" open>
+    <summary><span class="bar"></span>Threats <span class="tag">EXTERNAL · NEGATIVE</span><span class="caret">›</span></summary>
+    <div class="body">
+      <ul class="clean">
+        <li><b>Vendor single-points-of-failure.</b> <span class="muted">Supabase (all data), Pusher (live scores — the sellable moment collapses if down), Cloudinary (crests + verification docs), Vercel (deploys). No documented DR / failover / multi-region — riskier given Rwandan connectivity variability.</span></li>
+        <li><b>Trust-dependent revenue.</b> <span class="muted">The B2B model hinges on accurate verification and standings; that logic has historically been fragile (score double-counting, winner-not-recorded, over-strict doc rules) — reportedly fixed, but it's the fragile surface.</span></li>
+        <li><b>Adoption risk.</b> <span class="muted">No documented federation partnerships or pilots; verification fees face price sensitivity; federations may resist cloud data sovereignty.</span></li>
+        <li><b>Key-person / small-team risk.</b> <span class="muted">Domain knowledge is concentrated; tight coupling (one deploy, one DB) amplifies it.</span></li>
+        <li><b>Stale issue register vs. reality.</b> <span class="muted">The tracked register lists admin/team/live-reporting as broken stubs, but recent work and the live run show these built and serving real data — treat the register as lagging and reconcile it.</span></li>
+        <li><b>Real-time cost exposure.</b> <span class="muted">Pusher is pay-per-message; a popular live match (goals/cards × thousands of concurrent fans) could spike costs unpredictably.</span></li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- VERDICT -->
+  <div class="verdict">
+    <h2>Bottom line</h2>
+    <p class="lead">A genuinely impressive, feature-rich, <b>running</b> product (~7/10 production readiness) with a soft engineering-hygiene layer underneath. The vision and breadth are the standout strengths; the gaps are all in gates and finishing, not architecture.</p>
+    <ol class="pri">
+      <li><b>Make payments real</b><span>Integrate a live gateway + webhook/signature — unblocks the entire revenue model.</span></li>
+      <li><b>Fix typecheck + add ESLint config + minimal CI</b><span>GitHub Actions running typecheck and backend smoke tests. Cheap, high-leverage.</span></li>
+      <li><b>Add DB indexes on hot foreign keys</b><span>One migration; protects against a scale cliff on fixtures/standings/events.</span></li>
+      <li><b>Fill the CRUD gaps</b><span>Transfers, team officials, registrations review, racing result entry.</span></li>
+      <li><b>Add frontend e2e tests</b><span>Playwright for login → team registration → live reporting.</span></li>
+      <li><b>Reconcile the issue register &amp; move secrets off OneDrive</b><span>Sync the tracker to current reality; put <code>.env</code> secrets in a proper secret store.</span></li>
+    </ol>
+  </div>
+
+  <footer>
+    <span>RwaSport / RNSP — internal strategic assessment</span>
+    <span>Generated 2026-08-16 · grounded in code sweep + live verification</span>
+  </footer>
+</div>
+</body>
+</html>

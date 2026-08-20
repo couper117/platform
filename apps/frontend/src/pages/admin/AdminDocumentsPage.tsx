@@ -24,7 +24,7 @@ const AdminDocumentsPage = () => {
   });
 
   const reviewMutation = useMutation({
-    mutationFn: async ({ id, status, note }) => {
+    mutationFn: async ({ id, status, note }: any) => {
       await apiClient.put(`/documents/${id}/review`, { status, reviewNote: note });
     },
     onSuccess: () => {
@@ -33,7 +33,7 @@ const AdminDocumentsPage = () => {
       setReviewNote('');
       pushToast('Document reviewed successfully!', 'success');
     },
-    onError: (err) => pushToast(err.response?.data?.message || 'Failed to review document'),
+    onError: (err: any) => pushToast(err.response?.data?.message || 'Failed to review document'),
   });
 
   return (
@@ -100,7 +100,7 @@ const AdminDocumentsPage = () => {
               <div className="flex flex-col items-center space-y-4 opacity-40">
                 <FileText size={64} />
                 <span className="text-[10px] uppercase font-bold tracking-widest">PDF Document Preview Not Available</span>
-                <a href={selectedDoc.filename} target="_blank" className="text-red hover:underline text-xs uppercase font-bold tracking-widest">Download to View</a>
+                <a href={selectedDoc.filename} target="_blank" rel="noreferrer" className="text-red hover:underline text-xs uppercase font-bold tracking-widest">Download to View</a>
               </div>
             ) : (
               <img src={selectedDoc?.filename} className="w-full h-full object-contain" />

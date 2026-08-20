@@ -39,7 +39,7 @@ const AdminNewsPage = () => {
   };
 
   const createMutation = useMutation({
-    mutationFn: async (data) => {
+    mutationFn: async (data: any) => {
       await apiClient.post('/news', toFormData(data));
     },
     onSuccess: () => {
@@ -47,11 +47,11 @@ const AdminNewsPage = () => {
       closeModal();
       pushToast('Article published!', 'success');
     },
-    onError: (err) => pushToast(err.response?.data?.message || 'Failed to publish article'),
+    onError: (err: any) => pushToast(err.response?.data?.message || 'Failed to publish article'),
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }) => {
+    mutationFn: async ({ id, data }: any) => {
       await apiClient.put(`/news/${id}`, toFormData(data));
     },
     onSuccess: () => {
@@ -59,18 +59,18 @@ const AdminNewsPage = () => {
       closeModal();
       pushToast('Article updated!', 'success');
     },
-    onError: (err) => pushToast(err.response?.data?.message || 'Failed to update article'),
+    onError: (err: any) => pushToast(err.response?.data?.message || 'Failed to update article'),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id) => {
+    mutationFn: async (id: any) => {
       await apiClient.delete(`/news/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-news'] });
       pushToast('Article deleted', 'success');
     },
-    onError: (err) => pushToast(err.response?.data?.message || 'Failed to delete article'),
+    onError: (err: any) => pushToast(err.response?.data?.message || 'Failed to delete article'),
   });
 
   const closeModal = () => {

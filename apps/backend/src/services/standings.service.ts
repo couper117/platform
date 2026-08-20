@@ -1,5 +1,6 @@
 const prisma = require('../config/db');
 const { getRules } = require('./eligibility.service');
+const { tallyStandings } = require('./standings.logic');
 
 const recalcStandings = async (leagueId) => {
   try {
@@ -17,48 +18,21 @@ const recalcStandings = async (leagueId) => {
       where: { leagueId, status: 'COMPLETED' },
     });
 
-    const stats = new Map();
-    const ensure = (tid) => {
-      if (!stats.has(tid)) {
-        stats.set(tid, { played: 0, won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, points: 0, results: [] });
-      }
-    };
-
-    for (const { teamId } of leagueTeams) ensure(teamId);
-
-    for (const f of fixtures) {
-      ensure(f.homeTeamId);
-      ensure(f.awayTeamId);
-
-      const h = stats.get(f.homeTeamId);
-      const a = stats.get(f.awayTeamId);
-      const hs = f.homeScore || 0;
-      const as = f.awayScore || 0;
-
-      h.played++; a.played++;
-      h.goalsFor += hs; h.goalsAgainst += as;
-      a.goalsFor += as; a.goalsAgainst += hs;
-
-      if (hs > as) {
-        h.won++; h.points += PW; h.results.push('W');
-        a.lost++; a.points += PL; a.results.push('L');
-      } else if (hs < as) {
-        a.won++; a.points += PW; a.results.push('W');
-        h.lost++; h.points += PL; h.results.push('L');
-      } else {
-        h.drawn++; h.points += PD; h.results.push('D');
-        a.drawn++; a.points += PD; a.results.push('D');
-      }
-    }
+    // Pure scoring maths (unit-tested in test/unit/standings.test.ts).
+    const rows = tallyStandings(
+      leagueTeams.map((lt) => lt.teamId),
+      fixtures,
+      { win: PW, draw: PD, loss: PL }
+    );
 
     // Upsert standings in a transaction
     await prisma.$transaction(
-      Array.from(stats.entries()).map(([teamId, s]) =>
+      rows.map((s) =>
         prisma.standing.upsert({
-          where: { leagueId_teamId: { leagueId, teamId } },
+          where: { leagueId_teamId: { leagueId, teamId: s.teamId } },
           create: {
             leagueId,
-            teamId,
+            teamId: s.teamId,
             played: s.played,
             won: s.won,
             drawn: s.drawn,

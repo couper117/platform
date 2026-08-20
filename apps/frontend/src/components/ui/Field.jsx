@@ -18,6 +18,7 @@ import cn from './cn';
  *     {(p) => <Input {...p} {...register('email')} />}
  *   </Field>
  */
+/** @param {{ label?: React.ReactNode, hint?: React.ReactNode, error?: React.ReactNode, required?: boolean, className?: string, children?: any }} props */
 const Field = ({ label, hint, error, required = false, className, children }) => {
   const id = useId();
   const errorId = `${id}-error`;

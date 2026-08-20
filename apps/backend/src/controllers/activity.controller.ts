@@ -8,7 +8,7 @@ const getActivityLogs = async (req, res, next) => {
     const { userId, module, action, ip, page = 1, limit = 50 } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    const where = {};
+    const where: any = {};
     if (userId) where.userId = parseInt(userId);
     if (module) where.module = module;
     if (action) where.action = action;

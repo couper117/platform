@@ -4,7 +4,7 @@ const logActivity = require('../../utils/activityLogger');
 const getTeams = async (req, res, next) => {
   try {
     const { schoolId, sportId, gender } = req.query;
-    const where = { active: true };
+    const where: any = { active: true };
     if (schoolId) where.schoolId = parseInt(schoolId);
     if (sportId) where.sportId = parseInt(sportId);
     if (gender) where.gender = gender;

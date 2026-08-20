@@ -61,7 +61,7 @@ const AdminSystemHealthPage = () => {
                 <div key={s.key} className="flex items-center gap-3 rounded-2xl border border-hairline bg-surface p-4">
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-surface-2 text-tertiary"><Icon size={18} /></span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-primary">{t(`admin.health.svc_${s.key}`, s.key)}</p>
+                    <p className="text-sm font-semibold text-primary">{String(t(`admin.health.svc_${s.key}`, s.key))}</p>
                     <p className="text-[11px] text-tertiary">{s.detail}</p>
                   </div>
                   {s.ok ? <CheckCircle2 size={18} className="shrink-0 text-brand" /> : <AlertCircle size={18} className="shrink-0 text-red" />}

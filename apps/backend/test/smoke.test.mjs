@@ -91,3 +91,29 @@ test('reporter: assigned fixtures are scoped to the reporter', async () => {
   const r = await get(`/fixtures?reporterId=${me.data?.id || me.user?.id}`, token);
   assert.equal(r.status, 200);
 });
+
+test('features: new admin resources require auth (401)', async () => {
+  for (const p of ['/transfers', '/suspensions', '/registrations']) {
+    assert.equal((await get(p)).status, 401, `${p} should require auth`);
+  }
+});
+
+test('features: super-admin can list the new resources (200)', async () => {
+  const { token } = await login('admin@rwasport.rw');
+  for (const p of ['/transfers', '/suspensions', '/registrations']) {
+    assert.equal((await get(p, token)).status, 200, `${p} should be 200 for admin`);
+  }
+});
+
+test('officials: public list requires a teamId (400)', async () => {
+  assert.equal((await get('/officials')).status, 400);
+});
+
+test('racing: creating a race requires auth (401)', async () => {
+  assert.equal((await post('/races', { sportId: 9, name: 'x' })).status, 401);
+});
+
+test('payments: the webhook rejects an unsigned call (401)', async () => {
+  // No verif-hash header / no configured hash → must fail closed.
+  assert.equal((await post('/payments/webhook', { event: 'charge.completed' })).status, 401);
+});

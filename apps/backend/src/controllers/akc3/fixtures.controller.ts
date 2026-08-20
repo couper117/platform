@@ -5,7 +5,7 @@ const logActivity = require('../../utils/activityLogger');
 const getFixtures = async (req, res, next) => {
   try {
     const { competitionId, status, schoolId } = req.query;
-    const where = {};
+    const where: any = {};
     if (competitionId) where.competitionId = parseInt(competitionId);
     if (status) where.status = status;
     if (schoolId) {
@@ -31,7 +31,7 @@ const getFixtures = async (req, res, next) => {
 };
 
 // Whitelist the fields we accept — never spread req.body straight into Prisma.
-const buildFixtureData = (b = {}) => ({
+const buildFixtureData = (b: any = {}) => ({
   competitionId: b.competitionId ? parseInt(b.competitionId) : null,
   homeTeamId: parseInt(b.homeTeamId),
   awayTeamId: parseInt(b.awayTeamId),

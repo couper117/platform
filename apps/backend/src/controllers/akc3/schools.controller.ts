@@ -4,7 +4,7 @@ const logActivity = require('../../utils/activityLogger');
 const getSchools = async (req, res, next) => {
   try {
     const { category, provinceId, districtId } = req.query;
-    const where = { active: true };
+    const where: any = { active: true };
     if (category) where.category = category;
     if (provinceId) where.provinceId = parseInt(provinceId);
     if (districtId) where.districtId = parseInt(districtId);

@@ -207,6 +207,7 @@ const SportsMenu = () => {
 
 /* ─── header ────────────────────────────────────────────────────────── */
 
+/** @param {{ className?: string }} props */
 const AppHeader = ({ className }) => {
   const { isAuthenticated, user, role, logout } = useAuthStore();
   const { openPalette } = useCommandPalette();

@@ -11,7 +11,7 @@ const logActivity = require('../utils/activityLogger');
 const getNews = async (req, res, next) => {
   try {
     const { sportId, leagueId, category, featured } = req.query;
-    const where = { published: true };
+    const where: any = { published: true };
     if (sportId) where.sportId = parseInt(sportId);
     if (leagueId) where.leagueId = parseInt(leagueId);
     if (category) where.category = category;

@@ -11,7 +11,7 @@ import { Skeleton, EmptyState } from '../../components/ui';
 const GENDERS = ['MALE', 'FEMALE', 'MIXED', 'INCLUSIVE'];
 const AGES = ['U13', 'U15', 'U17', 'U20', 'OPEN'];
 
-/** Amashuri Admin → Teams: edit and hide teams registered by schools. */
+/** Amashuri Admin â†’ Teams: edit and hide teams registered by schools. */
 const AmashuriAdminTeams = () => {
   const { t } = useTranslation();
   const qc = useQueryClient();
@@ -23,7 +23,7 @@ const AmashuriAdminTeams = () => {
   const refresh = () => qc.invalidateQueries({ queryKey: ['aa-teams'] });
 
   const save = useMutation({ mutationFn: () => updateAkcTeam(editing.id, form), onSuccess: () => { setEditing(null); refresh(); } });
-  const toggle = useMutation({ mutationFn: ({ id, active }) => setAkcTeamActive(id, active), onSuccess: refresh });
+  const toggle = useMutation({ mutationFn: ({ id, active }: any) => setAkcTeamActive(id, active), onSuccess: refresh });
 
   const openEdit = (tm) => { setEditing(tm); setForm({ coachName: tm.coachName || '', gender: tm.gender || 'MALE', ageCategory: tm.ageCategory || 'U17' }); };
 
@@ -40,8 +40,8 @@ const AmashuriAdminTeams = () => {
             {teams.map((tm) => (
               <tr key={tm.id} className="transition-colors hover:bg-surface-2 dark:hover:bg-white/5">
                 <td className="px-6 py-4"><div className="flex items-center gap-3"><ClubCrest team={tm.school} size="md" /><span className="text-sm font-semibold text-primary">{tm.school?.name}</span></div></td>
-                <td className="px-6 py-4 text-xs uppercase tracking-wider text-secondary">{tm.gender} · {tm.ageCategory}</td>
-                <td className="px-6 py-4 text-sm text-tertiary">{tm.coachName || '—'}</td>
+                <td className="px-6 py-4 text-xs uppercase tracking-wider text-secondary">{tm.gender} Â· {tm.ageCategory}</td>
+                <td className="px-6 py-4 text-sm text-tertiary">{tm.coachName || 'â€”'}</td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     <button onClick={() => openEdit(tm)} className="text-tertiary hover:text-primary" aria-label={t('aadmin.edit_team')}><Pencil size={15} /></button>

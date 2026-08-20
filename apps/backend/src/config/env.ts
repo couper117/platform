@@ -14,6 +14,10 @@ const envSchema = z.object({
   CLOUDINARY_CLOUD_NAME: z.string().optional(),
   CLOUDINARY_API_KEY: z.string().optional(),
   CLOUDINARY_API_SECRET: z.string().optional(),
+  // Media storage driver. 'cloudinary' (default) or 'local' — local writes to
+  // the served /uploads dir and needs no third-party account (self-hosting /
+  // data-sovereignty). NOTE: local disk is ephemeral on serverless hosts.
+  STORAGE_DRIVER: z.enum(['cloudinary', 'local']).default('cloudinary'),
   PUSHER_APP_ID: z.string().optional(),
   PUSHER_KEY: z.string().optional(),
   PUSHER_SECRET: z.string().optional(),
@@ -23,6 +27,14 @@ const envSchema = z.object({
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
   SMTP_FROM: z.string().optional(),
+  // Flutterwave (payments). All optional: without them the payment provider runs
+  // in a safe "sandbox" mode (no live charges, no real links). Set all three to
+  // go live — see src/services/payments/flutterwave.service.ts.
+  FLW_SECRET_KEY: z.string().optional(),
+  FLW_PUBLIC_KEY: z.string().optional(),
+  FLW_WEBHOOK_HASH: z.string().optional(),   // the dashboard "secret hash" sent back in the verif-hash header
+  FLW_BASE_URL: z.string().url().default('https://api.flutterwave.com/v3'),
+  PAYMENT_CURRENCY: z.string().default('RWF'),
   FRONTEND_URL: z.string().url().default('http://localhost:5173'),
 });
 

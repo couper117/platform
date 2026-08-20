@@ -57,13 +57,13 @@ async function main() {
   // ── SPORTS ────────────────────────────────────────────────────────────
   console.log('  • sports');
   const sportDefs = [
-    { name: 'Football', icon: '⚽', slug: 'football', category: 'FIELD', sortOrder: 1 },
-    { name: 'Basketball', icon: '🏀', slug: 'basketball', category: 'COURT', sortOrder: 2 },
-    { name: 'Volleyball', icon: '🏐', slug: 'volleyball', category: 'COURT', sortOrder: 3 },
-    { name: 'Handball', icon: '🤾', slug: 'handball', category: 'COURT', sortOrder: 4 },
-    { name: 'Rugby', icon: '🏉', slug: 'rugby', category: 'FIELD', sortOrder: 5 },
+    { name: 'Football', icon: '', slug: 'football', category: 'FIELD', sortOrder: 1 },
+    { name: 'Basketball', icon: '', slug: 'basketball', category: 'COURT', sortOrder: 2 },
+    { name: 'Volleyball', icon: '', slug: 'volleyball', category: 'COURT', sortOrder: 3 },
+    { name: 'Handball', icon: '', slug: 'handball', category: 'COURT', sortOrder: 4 },
+    { name: 'Rugby', icon: '', slug: 'rugby', category: 'FIELD', sortOrder: 5 },
   ];
-  const sports = {};
+  const sports: any = {};
   for (const s of sportDefs) sports[s.slug] = await prisma.sport.upsert({ where: { name: s.name }, update: {}, create: s });
 
   // ── FEDERATIONS ───────────────────────────────────────────────────────
@@ -73,7 +73,7 @@ async function main() {
     { name: 'Rwanda Basketball Federation', abbreviation: 'FERWABA', sportId: sports.basketball.id },
     { name: 'Rwanda Volleyball Federation', abbreviation: 'FRVB', sportId: sports.volleyball.id },
   ];
-  const feds = {};
+  const feds: any = {};
   for (const f of fedDefs) {
     const found = await prisma.federation.findFirst({ where: { abbreviation: f.abbreviation } });
     feds[f.abbreviation] = found || await prisma.federation.create({ data: f });

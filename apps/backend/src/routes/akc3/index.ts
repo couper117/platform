@@ -50,7 +50,7 @@ router.get('/standings', async (req, res, next) => {
 router.get('/competitions', async (req, res, next) => {
   try {
     const { status, level } = req.query;
-    const where = {};
+    const where: any = {};
     if (status) where.status = status;
     if (level) where.level = level;
 
@@ -110,7 +110,7 @@ router.get('/announcements', async (req, res, next) => {
 router.get('/athletes', async (req, res, next) => {
   try {
     const { verified, schoolId } = req.query;
-    const where = {};
+    const where: any = {};
     if (verified === 'true') where.docVerified = true;
     if (verified === 'false') where.docVerified = false;
     if (schoolId) where.team = { schoolId: parseInt(schoolId) };
@@ -193,8 +193,8 @@ router.post('/admin/import/players', protect, authorize('SUPERADMIN', 'AMASHURI_
 // --- Championships (AkcCompetition) admin CRUD ---
 
 // Pick + coerce only the fields the AkcCompetition model accepts.
-const buildCompetitionData = (body = {}) => {
-  const data = {};
+const buildCompetitionData = (body: any = {}) => {
+  const data: any = {};
   if (body.name !== undefined) data.name = body.name;
   if (body.edition !== undefined) data.edition = body.edition || null;
   if (body.gender !== undefined) data.gender = body.gender || 'mixed';

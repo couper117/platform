@@ -24,7 +24,7 @@ const AmashuriAdminSports = () => {
           <AdminTable headers={[t('aadmin.col_sport'), t('aadmin.col_competitions')]}>
             {sports.map((s) => (
               <tr key={s.slug} className="transition-colors hover:bg-surface-2 dark:hover:bg-white/5">
-                <td className="px-6 py-4"><div className="flex items-center gap-3"><span className="text-2xl" aria-hidden="true">{s.icon}</span><span className="text-sm font-semibold text-primary">{s.name}</span></div></td>
+                <td className="px-6 py-4"><span className="text-sm font-semibold text-primary">{s.name}</span></td>
                 <td className="px-6 py-4 text-lg font-display font-bold tabular-nums text-primary">{s.competitions}</td>
               </tr>
             ))}

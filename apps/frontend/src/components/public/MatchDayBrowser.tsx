@@ -45,7 +45,7 @@ const StatusCell = ({ f, t }) => {
   );
 };
 
-const TeamRow = ({ team, score, bold }) => (
+const TeamRow = ({ team, score, bold }: { team?: any; score?: any; bold?: boolean }) => (
   <div className="flex items-center gap-2.5 flex-1 min-w-0">
     <div className="w-7 h-7 rounded-full bg-surface-3 dark:bg-white/10 flex items-center justify-center overflow-hidden shrink-0 text-[9px] font-bold">
       {team?.logo ? <img src={team.logo} alt="" className="w-full h-full object-cover" /> : initials(team?.name)}
@@ -176,7 +176,7 @@ const MatchDayBrowser = ({ sportId, accent = '#E8002D', leagues = [], showSideba
                         <TeamRow team={f.homeTeam} bold={f.status !== 'SCHEDULED' && (f.homeScore ?? 0) >= (f.awayScore ?? 0)} />
                         <TeamRow team={f.awayTeam} bold={f.status !== 'SCHEDULED' && (f.awayScore ?? 0) >= (f.homeScore ?? 0)} />
                       </div>
-                      {f.streamUrl && <span className="text-[8px] font-bold uppercase tracking-widest text-red border border-red/30 rounded px-1.5 py-0.5">▶ Live</span>}
+                      {f.streamUrl && <span className="text-[8px] font-bold uppercase tracking-widest text-red border border-red/30 rounded px-1.5 py-0.5">Live</span>}
                     </Link>
                   ))}
                 </div>

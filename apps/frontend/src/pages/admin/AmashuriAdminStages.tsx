@@ -27,7 +27,7 @@ const AmashuriAdminStages = () => {
         : stages.length === 0 ? <EmptyState icon={Layers} title={t('aadmin.none_stages')} hint={t('aadmin.none_stages_hint')} />
         : (
           <AdminTable headers={[t('aadmin.col_stage'), t('aadmin.col_matches')]}>
-            {stages.map(([stage, n]) => (
+            {stages.map(([stage, n]: any) => (
               <tr key={stage} className="transition-colors hover:bg-surface-2 dark:hover:bg-white/5">
                 <td className="px-6 py-4"><div className="flex items-center gap-3"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand/10 text-brand"><Layers size={15} /></span><span className="text-sm font-semibold uppercase tracking-wider text-primary">{stage.replace(/_/g, ' ')}</span></div></td>
                 <td className="px-6 py-4 text-lg font-display font-bold tabular-nums text-primary">{n}</td>

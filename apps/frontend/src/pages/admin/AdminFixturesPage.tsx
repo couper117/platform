@@ -48,7 +48,7 @@ const AdminFixturesPage = () => {
   });
 
   const createFixtureMutation = useMutation({
-    mutationFn: async (data) => {
+    mutationFn: async (data: any) => {
       await apiClient.post('/fixtures', data);
     },
     onSuccess: () => {
@@ -60,7 +60,7 @@ const AdminFixturesPage = () => {
   });
 
   const deleteFixtureMutation = useMutation({
-    mutationFn: async (id) => {
+    mutationFn: async (id: any) => {
       await apiClient.delete(`/fixtures/${id}`);
     },
     onSuccess: () => {
@@ -73,16 +73,16 @@ const AdminFixturesPage = () => {
     createFixtureMutation.mutate(data);
   };
 
-  // ── Streaming URL ──
+  // â”€â”€ Streaming URL â”€â”€
   const [streamFixture, setStreamFixture] = useState(null);
   const [streamUrl, setStreamUrl] = useState('');
   const streamMutation = useMutation({
-    mutationFn: async ({ id, url }) => { await apiClient.patch(`/fixtures/${id}`, { streamUrl: url, streamActive: !!url }); },
+    mutationFn: async ({ id, url }: any) => { await apiClient.patch(`/fixtures/${id}`, { streamUrl: url, streamActive: !!url }); },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-fixtures'] }); setStreamFixture(null); },
-    onError: (err) => alert(err.response?.data?.message || 'Failed to save streaming URL'),
+    onError: (err: any) => alert(err.response?.data?.message || 'Failed to save streaming URL'),
   });
 
-  // ── Match statistics (both teams) ──
+  // â”€â”€ Match statistics (both teams) â”€â”€
   const STAT_FIELDS = [
     ['possession', 'Possession %'], ['shots', 'Shots'], ['shotsOnTarget', 'On target'],
     ['shotsInsideBox', 'Shots in box'], ['shotsOutsideBox', 'Shots out box'], ['corners', 'Corners'],
@@ -105,7 +105,7 @@ const AdminFixturesPage = () => {
       await apiClient.put(`/fixtures/${statsFixture.id}/stats`, { teamId: statsFixture.awayTeamId, ...awayStats });
     },
     onSuccess: () => { setStatsFixture(null); alert('Match statistics saved'); },
-    onError: (err) => alert(err.response?.data?.message || 'Failed to save statistics'),
+    onError: (err: any) => alert(err.response?.data?.message || 'Failed to save statistics'),
   });
 
   return (

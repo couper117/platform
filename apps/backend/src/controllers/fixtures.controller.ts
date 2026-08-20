@@ -1,6 +1,6 @@
 const prisma = require('../config/db');
 const { recalcStandings } = require('../services/standings.service');
-const { emitMatchUpdate, emitMatchEvent } = require('../services/realtime.service');
+const { emitMatchUpdate, emitMatchEvent, emitMatchStats } = require('../services/realtime.service');
 const sse = require('../services/sse.service');
 const { handleCardEvent, serveSuspensions } = require('../services/discipline.service');
 const { getPagination } = require('../utils/paginate');
@@ -46,7 +46,7 @@ const isValidHttpUrl = (u) => {
 const getFixtures = async (req, res, next) => {
   try {
     const { leagueId, sportId, status, from, to, teamId, reporterId } = req.query;
-    const where = {};
+    const where: any = {};
     const andClauses = [];
     if (leagueId) where.leagueId = parseInt(leagueId);
     if (sportId) where.league = { sportId: parseInt(sportId) };
@@ -544,6 +544,9 @@ const saveStats = async (req, res, next) => {
       update: data,
       create: { fixtureId, teamId: tid, ...data },
     });
+    // Push the fresh stat to anyone watching the match so the Stats tab
+    // animates live instead of waiting for a page reload.
+    emitMatchStats(fixtureId, { teamId: tid, stat });
     res.status(200).json({ success: true, data: stat });
   } catch (error) {
     next(error);

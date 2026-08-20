@@ -28,7 +28,7 @@ const LiveReportingPage = () => {
 
   const upcoming = (assignments || [])
     .filter((f) => ACTIVE_STATUSES.includes(f.status))
-    .sort((a, b) => new Date(a.matchDate) - new Date(b.matchDate));
+    .sort((a, b) => +new Date(a.matchDate) - +new Date(b.matchDate));
 
   const { data: fixture, isLoading: fixtureLoading } = useQuery({
     queryKey: ['match-details', selectedFixtureId],
@@ -51,18 +51,18 @@ const LiveReportingPage = () => {
       queryClient.invalidateQueries({ queryKey: ['reporter-assignments'] });
       pushToast('Match is now live!', 'success');
     },
-    onError: (err) => pushToast(err.response?.data?.message || 'Failed to start the match'),
+    onError: (err: any) => pushToast(err.response?.data?.message || 'Failed to start the match'),
   });
 
   const addEventMutation = useMutation({
-    mutationFn: async (eventData) => {
+    mutationFn: async (eventData: any) => {
       await apiClient.post(`/fixtures/${selectedFixtureId}/events`, eventData);
     },
     onSuccess: () => {
       invalidateMatch();
       pushToast('Event logged successfully!', 'success');
     },
-    onError: (err) => pushToast(err.response?.data?.message || 'Failed to log event'),
+    onError: (err: any) => pushToast(err.response?.data?.message || 'Failed to log event'),
   });
 
   const endHalfMutation = useMutation({
@@ -73,7 +73,7 @@ const LiveReportingPage = () => {
       invalidateMatch();
       pushToast('First half ended', 'success');
     },
-    onError: (err) => pushToast(err.response?.data?.message || 'Failed to end the half'),
+    onError: (err: any) => pushToast(err.response?.data?.message || 'Failed to end the half'),
   });
 
   const finishMatchMutation = useMutation({
@@ -90,7 +90,7 @@ const LiveReportingPage = () => {
       pushToast('Match finished!', 'success');
       setSelectedFixtureId(null);
     },
-    onError: (err) => pushToast(err.response?.data?.message || 'Failed to finish the match'),
+    onError: (err: any) => pushToast(err.response?.data?.message || 'Failed to finish the match'),
   });
 
   if (isLoading) return <div className="p-8"><Skeleton type="card" count={3} /></div>;
@@ -122,8 +122,8 @@ const LiveReportingPage = () => {
                       {f.homeTeam.name} <span className="opacity-20 mx-2 text-sm">VS</span> {f.awayTeam.name}
                     </p>
                     <p className="text-[10px] uppercase font-bold tracking-widest opacity-40">
-                      {f.league.name} • {new Date(f.matchDate).toLocaleString()}
-                      {f.status === 'LIVE' && <span className="ml-2 text-red">• LIVE</span>}
+                      {f.league.name} â€¢ {new Date(f.matchDate).toLocaleString()}
+                      {f.status === 'LIVE' && <span className="ml-2 text-red">â€¢ LIVE</span>}
                     </p>
                   </div>
                 </div>

@@ -5,22 +5,22 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
   // App connects through the connection POOLER (Supabase Supavisor, port 6543,
   // pgbouncer=true). directUrl is the DIRECT/session connection (port 5432) that
-  // `prisma migrate`/`db push` use — a transaction pooler can't run migrations.
+  // `prisma migrate`/`db push` use â€” a transaction pooler can't run migrations.
   // In local dev both point at the same cluster (DIRECT_DATABASE_URL falls back
-  // to DATABASE_URL when unset — see config/env.ts).
+  // to DATABASE_URL when unset â€” see config/env.ts).
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_DATABASE_URL")
 }
 
 model Setting {
-  id    Int    @id @default(autoincrement())
-  skey  String @unique @db.VarChar(100)
-  sval  String? @db.Text
-  label String? @db.VarChar(200)
-  grp   String  @default("general") @db.VarChar(80)
+  id       Int     @id @default(autoincrement())
+  skey     String  @unique @db.VarChar(100)
+  sval     String? @db.Text
+  label    String? @db.VarChar(200)
+  grp      String  @default("general") @db.VarChar(80)
   isPublic Boolean @default(true)
 }
 
@@ -35,30 +35,30 @@ model Ad {
 }
 
 model User {
-  id          Int      @id @default(autoincrement())
-  username    String   @unique @db.VarChar(80)
-  password    String   @db.VarChar(255)
-  fullName    String   @db.VarChar(200)
-  email       String?  @unique @db.VarChar(200)
-  phone       String?  @db.VarChar(50)
-  role        Role     @default(PUBLIC)
-  active      Boolean  @default(true)
-  verified    Boolean  @default(false)
-  avatar      String?  @db.VarChar(300)
-  lastLogin   DateTime?
-  createdAt   DateTime @default(now())
+  id        Int       @id @default(autoincrement())
+  username  String    @unique @db.VarChar(80)
+  password  String    @db.VarChar(255)
+  fullName  String    @db.VarChar(200)
+  email     String?   @unique @db.VarChar(200)
+  phone     String?   @db.VarChar(50)
+  role      Role      @default(PUBLIC)
+  active    Boolean   @default(true)
+  verified  Boolean   @default(false)
+  avatar    String?   @db.VarChar(300)
+  lastLogin DateTime?
+  createdAt DateTime  @default(now())
 
   resetTokenHash   String?   @db.VarChar(128)
   resetTokenExpiry DateTime?
 
-  managedTeam Team?         @relation("TeamManager")
-  newsArticles News[]
-  activityLogs ActivityLog[]
+  managedTeam   Team?          @relation("TeamManager")
+  newsArticles  News[]
+  activityLogs  ActivityLog[]
   refreshTokens RefreshToken[]
-  
-  leaguesManaged  LeagueAdminAssignment[]
+
+  leaguesManaged     LeagueAdminAssignment[]
   federationsManaged FederationAdminAssignment[]
-  matchAssignments ReporterAssignment[]
+  matchAssignments   ReporterAssignment[]
 }
 
 enum Role {
@@ -72,15 +72,16 @@ enum Role {
 }
 
 model FederationAdminAssignment {
-  id        Int      @id @default(autoincrement())
+  id           Int        @id @default(autoincrement())
   federationId Int
   federation   Federation @relation(fields: [federationId], references: [id], onDelete: Cascade)
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  assignedBy Int?
-  assignedAt DateTime @default(now())
+  userId       Int
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignedBy   Int?
+  assignedAt   DateTime   @default(now())
 
   @@unique([federationId, userId])
+  @@index([userId])
 }
 
 model LeagueAdminAssignment {
@@ -89,10 +90,11 @@ model LeagueAdminAssignment {
   league     League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
   userId     Int
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  assignedBy Int?     // Superadmin ID
+  assignedBy Int? // Superadmin ID
   assignedAt DateTime @default(now())
 
   @@unique([leagueId, userId])
+  @@index([userId])
 }
 
 model ReporterAssignment {
@@ -103,11 +105,12 @@ model ReporterAssignment {
   fixture    Fixture? @relation(fields: [fixtureId], references: [id], onDelete: Cascade)
   userId     Int
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  assignedBy Int?     // League Admin ID
+  assignedBy Int? // League Admin ID
   assignedAt DateTime @default(now())
 
   @@unique([leagueId, userId])
   @@unique([fixtureId, userId])
+  @@index([userId])
 }
 
 model RefreshToken {
@@ -117,20 +120,22 @@ model RefreshToken {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
   createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model Sport {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique @db.VarChar(150)
-  slug        String?  @db.VarChar(170)
-  icon        String   @default("🏅") @db.VarChar(10)
-  description String?  @db.Text
-  coverImage  String?  @db.VarChar(300)
+  id          Int           @id @default(autoincrement())
+  name        String        @unique @db.VarChar(150)
+  slug        String?       @db.VarChar(170)
+  icon        String        @default("") @db.VarChar(10)
+  description String?       @db.Text
+  coverImage  String?       @db.VarChar(300)
   category    SportCategory @default(OTHER)
-  type        SportType     @default(TEAM)   // how the sport is competed/managed
-  sortOrder   Int      @default(0)
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
+  type        SportType     @default(TEAM) // how the sport is competed/managed
+  sortOrder   Int           @default(0)
+  active      Boolean       @default(true)
+  createdAt   DateTime      @default(now())
 
   leagues     League[]
   teams       Team[]
@@ -170,31 +175,33 @@ model Federation {
   active       Boolean  @default(true)
   createdAt    DateTime @default(now())
 
-  leagues      League[]
-  admins       FederationAdminAssignment[]
+  leagues League[]
+  admins  FederationAdminAssignment[]
+
+  @@index([sportId])
 }
 
 model League {
-  id            Int      @id @default(autoincrement())
-  name          String   @db.VarChar(200)
-  slug          String?  @db.VarChar(220)
-  sportId       Int
-  sport         Sport    @relation(fields: [sportId], references: [id])
-  federationId  Int?
-  federation    Federation? @relation(fields: [federationId], references: [id], onDelete: SetNull)
-  season        String   @default("2025/2026") @db.VarChar(50)
-  gender        Gender   @default(MALE)
-  ageCategory   AgeCategory @default(SENIOR)
-  level         CompLevel @default(NATIONAL)
-  format        LeagueFormat @default(LEAGUE)
-  status        LeagueStatus @default(UPCOMING)
-  maxTeams      Int      @default(16)
-  description   String?  @db.Text
-  startDate     DateTime?
-  endDate       DateTime?
-  adminUserId   Int?
-  active        Boolean  @default(true)
-  createdAt     DateTime @default(now())
+  id           Int          @id @default(autoincrement())
+  name         String       @db.VarChar(200)
+  slug         String?      @db.VarChar(220)
+  sportId      Int
+  sport        Sport        @relation(fields: [sportId], references: [id])
+  federationId Int?
+  federation   Federation?  @relation(fields: [federationId], references: [id], onDelete: SetNull)
+  season       String       @default("2025/2026") @db.VarChar(50)
+  gender       Gender       @default(MALE)
+  ageCategory  AgeCategory  @default(SENIOR)
+  level        CompLevel    @default(NATIONAL)
+  format       LeagueFormat @default(LEAGUE)
+  status       LeagueStatus @default(UPCOMING)
+  maxTeams     Int          @default(16)
+  description  String?      @db.Text
+  startDate    DateTime?
+  endDate      DateTime?
+  adminUserId  Int?
+  active       Boolean      @default(true)
+  createdAt    DateTime     @default(now())
 
   teams         LeagueTeam[]
   fixtures      Fixture[]
@@ -203,12 +210,15 @@ model League {
   competitions  Competition[]
   registrations TeamRegistration[]
   news          News[]
-  
-  admins           LeagueAdminAssignment[]
+
+  admins            LeagueAdminAssignment[]
   assignedReporters ReporterAssignment[]
 
   races          Race[]
   classification Classification?
+
+  @@index([sportId])
+  @@index([federationId])
 }
 
 enum Gender {
@@ -251,47 +261,47 @@ enum LeagueStatus {
 }
 
 model Team {
-  id             Int      @id @default(autoincrement())
-  name           String   @db.VarChar(200)
-  shortName      String?  @db.VarChar(10)
-  slug           String?  @unique @db.VarChar(220)
-  sportId        Int?
-  sport          Sport?   @relation(fields: [sportId], references: [id], onDelete: SetNull)
-  logo           String?  @db.VarChar(300)
-  jerseyHome     String?  @db.VarChar(10)
-  jerseyAway     String?  @db.VarChar(10)
-  foundedYear    Int?
-  homeVenue      String?  @db.VarChar(300)
-  city           String?  @db.VarChar(150)
-  district       String?  @db.VarChar(100)
-  province       String?  @db.VarChar(100)
-  registrationNo String?  @db.VarChar(60)   // federation club registration number
-  primaryColor   String?  @db.VarChar(30)
-  secondaryColor String?  @db.VarChar(30)
-  description    String?  @db.Text
-  email          String?  @db.VarChar(200)
-  phone          String?  @db.VarChar(50)
-  website        String?  @db.VarChar(300)
-  managerUserId  Int?     @unique
-  managerUser    User?    @relation("TeamManager", fields: [managerUserId], references: [id], onDelete: SetNull)
-  status         TeamStatus @default(PENDING)
-  verifiedAt     DateTime?
-  verifiedBy     Int?
-  active         Boolean  @default(true)
-  subscriptionActive Boolean  @default(false)
+  id                 Int        @id @default(autoincrement())
+  name               String     @db.VarChar(200)
+  shortName          String?    @db.VarChar(10)
+  slug               String?    @unique @db.VarChar(220)
+  sportId            Int?
+  sport              Sport?     @relation(fields: [sportId], references: [id], onDelete: SetNull)
+  logo               String?    @db.VarChar(300)
+  foundedYear        Int?
+  homeVenue          String?    @db.VarChar(300)
+  city               String?    @db.VarChar(150)
+  district           String?    @db.VarChar(100)
+  province           String?    @db.VarChar(100)
+  registrationNo     String?    @db.VarChar(60) // federation club registration number
+  primaryColor       String?    @db.VarChar(30)
+  secondaryColor     String?    @db.VarChar(30)
+  description        String?    @db.Text
+  email              String?    @db.VarChar(200)
+  phone              String?    @db.VarChar(50)
+  website            String?    @db.VarChar(300)
+  managerUserId      Int?       @unique
+  managerUser        User?      @relation("TeamManager", fields: [managerUserId], references: [id], onDelete: SetNull)
+  status             TeamStatus @default(PENDING)
+  verifiedAt         DateTime?
+  verifiedBy         Int?
+  active             Boolean    @default(true)
+  subscriptionActive Boolean    @default(false)
   subscriptionUntil  DateTime?
-  createdAt      DateTime @default(now())
+  createdAt          DateTime   @default(now())
 
-  leagues        LeagueTeam[]
-  players        Player[]
-  homeFixtures   Fixture[]   @relation("HomeTeam")
-  awayFixtures   Fixture[]   @relation("AwayTeam")
-  standings      Standing[]
-  topScorers     TopScorer[]
-  registrations  TeamRegistration[]
-  transfersFrom  Transfer[]  @relation("TransferFrom")
-  transfersTo    Transfer[]  @relation("TransferTo")
-  officials      TeamOfficial[]
+  leagues       LeagueTeam[]
+  players       Player[]
+  homeFixtures  Fixture[]          @relation("HomeTeam")
+  awayFixtures  Fixture[]          @relation("AwayTeam")
+  standings     Standing[]
+  topScorers    TopScorer[]
+  registrations TeamRegistration[]
+  transfersFrom Transfer[]         @relation("TransferFrom")
+  transfersTo   Transfer[]         @relation("TransferTo")
+  officials     TeamOfficial[]
+
+  @@index([sportId])
 }
 
 enum TeamStatus {
@@ -302,15 +312,17 @@ enum TeamStatus {
 }
 
 model TeamOfficial {
-  id        Int      @id @default(autoincrement())
+  id        Int          @id @default(autoincrement())
   teamId    Int
-  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  team      Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
   role      OfficialRole @default(OTHER)
-  fullName  String   @db.VarChar(200)
-  phone     String?  @db.VarChar(50)
-  email     String?  @db.VarChar(200)
-  idNumber  String?  @db.VarChar(60)
-  createdAt DateTime @default(now())
+  fullName  String       @db.VarChar(200)
+  phone     String?      @db.VarChar(50)
+  email     String?      @db.VarChar(200)
+  idNumber  String?      @db.VarChar(60)
+  createdAt DateTime     @default(now())
+
+  @@index([teamId])
 }
 
 enum OfficialRole {
@@ -326,38 +338,39 @@ enum OfficialRole {
 }
 
 model LeagueTeam {
-  id        Int      @id @default(autoincrement())
-  leagueId  Int
-  league    League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
-  teamId    Int
-  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  joinedAt  DateTime @default(now())
+  id       Int      @id @default(autoincrement())
+  leagueId Int
+  league   League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  teamId   Int
+  team     Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  joinedAt DateTime @default(now())
 
   @@unique([leagueId, teamId])
+  @@index([teamId])
 }
 
 model Player {
-  id            Int      @id @default(autoincrement())
-  teamId        Int
-  team          Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  fullName      String   @db.VarChar(200)
-  photo         String?  @db.VarChar(300)
-  dateOfBirth   DateTime? @db.Date
-  nationality   String   @default("Rwandan") @db.VarChar(100)
-  idNumber      String?  @db.VarChar(60)   // national ID / passport number
-  licenseNo     String?  @db.VarChar(60)   // federation player licence number
-  position      String?  @db.VarChar(100)
-  jerseyNumber  Int?     @db.SmallInt
-  skillLevel    PlayerSkill @default(AMATEUR)
-  gender        PlayerGender @default(MALE)
-  height        Int?
-  weight        Int?
-  bio           String?  @db.Text
-  status        PlayerStatus @default(PENDING)
-  verifiedAt    DateTime?
-  verifiedBy    Int?
-  active        Boolean  @default(true)
-  createdAt     DateTime @default(now())
+  id           Int          @id @default(autoincrement())
+  teamId       Int
+  team         Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  fullName     String       @db.VarChar(200)
+  photo        String?      @db.VarChar(300)
+  dateOfBirth  DateTime?    @db.Date
+  nationality  String       @default("Rwandan") @db.VarChar(100)
+  idNumber     String?      @db.VarChar(60) // national ID / passport number
+  licenseNo    String?      @db.VarChar(60) // federation player licence number
+  position     String?      @db.VarChar(100)
+  jerseyNumber Int?         @db.SmallInt
+  skillLevel   PlayerSkill  @default(AMATEUR)
+  gender       PlayerGender @default(MALE)
+  height       Int?
+  weight       Int?
+  bio          String?      @db.Text
+  status       PlayerStatus @default(PENDING)
+  verifiedAt   DateTime?
+  verifiedBy   Int?
+  active       Boolean      @default(true)
+  createdAt    DateTime     @default(now())
 
   documents     PlayerDocument[]
   lineups       Lineup[]
@@ -366,19 +379,23 @@ model Player {
   subEvents     MatchEvent[]     @relation("SubEvent")
   transfersFrom Transfer[]
   suspensions   Suspension[]
+
+  @@index([teamId])
 }
 
 model Suspension {
-  id              Int      @id @default(autoincrement())
+  id              Int              @id @default(autoincrement())
   playerId        Int
-  player          Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  player          Player           @relation(fields: [playerId], references: [id], onDelete: Cascade)
   reason          SuspensionReason @default(RED_CARD)
-  matches         Int      @default(1)   // number of matches banned
-  matchesServed   Int      @default(0)
-  active          Boolean  @default(true)
+  matches         Int              @default(1) // number of matches banned
+  matchesServed   Int              @default(0)
+  active          Boolean          @default(true)
   originFixtureId Int?
-  note            String?  @db.Text
-  createdAt       DateTime @default(now())
+  note            String?          @db.Text
+  createdAt       DateTime         @default(now())
+
+  @@index([playerId])
 }
 
 enum SuspensionReason {
@@ -408,18 +425,20 @@ enum PlayerStatus {
 }
 
 model PlayerDocument {
-  id           Int      @id @default(autoincrement())
+  id           Int       @id @default(autoincrement())
   playerId     Int
-  player       Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  player       Player    @relation(fields: [playerId], references: [id], onDelete: Cascade)
   docType      DocType
-  filename     String   @db.VarChar(300)
-  originalName String?  @db.VarChar(300)
+  filename     String    @db.VarChar(300)
+  originalName String?   @db.VarChar(300)
   fileSize     Int?
-  mimeType     String?  @db.VarChar(100)
+  mimeType     String?   @db.VarChar(100)
   status       DocStatus @default(PENDING)
-  reviewNote   String?  @db.Text
+  reviewNote   String?   @db.Text
   reviewedBy   Int?
-  uploadedAt   DateTime @default(now())
+  uploadedAt   DateTime  @default(now())
+
+  @@index([playerId])
 }
 
 enum DocType {
@@ -437,24 +456,26 @@ enum DocStatus {
 }
 
 model Venue {
-  id       Int      @id @default(autoincrement())
-  name     String   @db.VarChar(200)
-  city     String?  @db.VarChar(150)
-  province String?  @db.VarChar(100)
+  id       Int     @id @default(autoincrement())
+  name     String  @db.VarChar(200)
+  city     String? @db.VarChar(150)
+  province String? @db.VarChar(100)
   capacity Int?
-  surface  String?  @db.VarChar(100)
-  active   Boolean  @default(true)
+  surface  String? @db.VarChar(100)
+  active   Boolean @default(true)
 }
 
 model Competition {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   leagueId  Int
-  league    League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
-  name      String   @db.VarChar(200)
+  league    League    @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  name      String    @db.VarChar(200)
   roundType RoundType @default(REGULAR)
-  sortOrder Int      @default(0)
+  sortOrder Int       @default(0)
 
-  fixtures  Fixture[]
+  fixtures Fixture[]
+
+  @@index([leagueId])
 }
 
 enum RoundType {
@@ -467,37 +488,42 @@ enum RoundType {
 }
 
 model Fixture {
-  id            Int      @id @default(autoincrement())
+  id            Int           @id @default(autoincrement())
   leagueId      Int
-  league        League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  league        League        @relation(fields: [leagueId], references: [id], onDelete: Cascade)
   competitionId Int?
-  competition   Competition? @relation(fields: [competitionId], references: [id], onDelete: SetNull)
+  competition   Competition?  @relation(fields: [competitionId], references: [id], onDelete: SetNull)
   homeTeamId    Int
-  homeTeam      Team     @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  homeTeam      Team          @relation("HomeTeam", fields: [homeTeamId], references: [id])
   awayTeamId    Int
-  awayTeam      Team     @relation("AwayTeam", fields: [awayTeamId], references: [id])
-  matchday      Int      @default(1) @db.SmallInt
-  venue         String?  @db.VarChar(300)
+  awayTeam      Team          @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  matchday      Int           @default(1) @db.SmallInt
+  venue         String?       @db.VarChar(300)
   matchDate     DateTime?
   status        FixtureStatus @default(SCHEDULED)
-  homeScore     Int?     @db.SmallInt
-  awayScore     Int?     @db.SmallInt
-  homeScoreHt   Int?     @db.SmallInt
-  awayScoreHt   Int?     @db.SmallInt
+  homeScore     Int?          @db.SmallInt
+  awayScore     Int?          @db.SmallInt
+  homeScoreHt   Int?          @db.SmallInt
+  awayScoreHt   Int?          @db.SmallInt
   attendance    Int?
-  referee       String?  @db.VarChar(200)
-  matchNotes    String?  @db.Text
-  streamUrl     String?  @db.VarChar(500)
-  streamActive  Boolean  @default(false)
-  createdAt     DateTime @default(now())
+  referee       String?       @db.VarChar(200)
+  matchNotes    String?       @db.Text
+  streamUrl     String?       @db.VarChar(500)
+  streamActive  Boolean       @default(false)
+  createdAt     DateTime      @default(now())
 
-  events        MatchEvent[]
-  lineups       Lineup[]
-  liveState     LiveMatchState?
-  teamSheets    MatchTeamSheet[]
-  stats         MatchStat[]
+  events     MatchEvent[]
+  lineups    Lineup[]
+  liveState  LiveMatchState?
+  teamSheets MatchTeamSheet[]
+  stats      MatchStat[]
 
   assignedReporters ReporterAssignment[]
+
+  @@index([leagueId])
+  @@index([homeTeamId])
+  @@index([awayTeamId])
+  @@index([competitionId])
 }
 
 enum FixtureStatus {
@@ -515,7 +541,7 @@ model MatchTeamSheet {
   fixtureId Int
   fixture   Fixture  @relation(fields: [fixtureId], references: [id], onDelete: Cascade)
   teamId    Int
-  formation String?  @db.VarChar(20)   // e.g. 4-3-3, 4-4-2
+  formation String?  @db.VarChar(20) // e.g. 4-3-3, 4-4-2
   coachName String?  @db.VarChar(200)
   published Boolean  @default(false)
   updatedAt DateTime @updatedAt
@@ -529,7 +555,7 @@ model MatchStat {
   fixtureId       Int
   fixture         Fixture  @relation(fields: [fixtureId], references: [id], onDelete: Cascade)
   teamId          Int
-  possession      Int?     // %
+  possession      Int? // %
   shots           Int?
   shotsOnTarget   Int?
   shotsInsideBox  Int?
@@ -540,7 +566,7 @@ model MatchStat {
   yellowCards     Int?
   redCards        Int?
   gkSaves         Int?
-  passAccuracy    Int?     // %
+  passAccuracy    Int? // %
   xg              Decimal? @db.Decimal(4, 2)
   updatedAt       DateTime @updatedAt
 
@@ -548,20 +574,23 @@ model MatchStat {
 }
 
 model MatchEvent {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   fixtureId   Int
-  fixture     Fixture  @relation(fields: [fixtureId], references: [id], onDelete: Cascade)
+  fixture     Fixture   @relation(fields: [fixtureId], references: [id], onDelete: Cascade)
   playerId    Int?
-  player      Player?  @relation("PlayerEvent", fields: [playerId], references: [id], onDelete: SetNull)
-  player2Id   Int?     
-  player2     Player?  @relation("SubEvent", fields: [player2Id], references: [id], onDelete: SetNull)
-  refereeName String?  
+  player      Player?   @relation("PlayerEvent", fields: [playerId], references: [id], onDelete: SetNull)
+  player2Id   Int?
+  player2     Player?   @relation("SubEvent", fields: [player2Id], references: [id], onDelete: SetNull)
+  refereeName String?
   teamId      Int?
   eventType   EventType
-  minute      Int?     @db.SmallInt
-  extraTime   Int      @default(0) @db.SmallInt
-  description String?  @db.VarChar(300)
-  createdAt   DateTime @default(now())
+  minute      Int?      @db.SmallInt
+  extraTime   Int       @default(0) @db.SmallInt
+  description String?   @db.VarChar(300)
+  createdAt   DateTime  @default(now())
+
+  @@index([fixtureId])
+  @@index([playerId])
 }
 
 enum EventType {
@@ -595,61 +624,68 @@ model Lineup {
 }
 
 model LiveMatchState {
-  fixtureId Int     @id
-  fixture   Fixture @relation(fields: [fixtureId], references: [id], onDelete: Cascade)
-  minute    Int     @default(0) @db.SmallInt
-  homeScore Int     @default(0) @db.SmallInt
-  awayScore Int     @default(0) @db.SmallInt
-  status    String  @default("live") @db.VarChar(30)
-  lastEvent String? @db.VarChar(300)
+  fixtureId Int      @id
+  fixture   Fixture  @relation(fields: [fixtureId], references: [id], onDelete: Cascade)
+  minute    Int      @default(0) @db.SmallInt
+  homeScore Int      @default(0) @db.SmallInt
+  awayScore Int      @default(0) @db.SmallInt
+  status    String   @default("live") @db.VarChar(30)
+  lastEvent String?  @db.VarChar(300)
   updatedAt DateTime @updatedAt
 }
 
 model Standing {
-  id            Int    @id @default(autoincrement())
-  leagueId      Int
-  league        League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
-  teamId        Int
-  team          Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  played        Int    @default(0)
-  won           Int    @default(0)
-  drawn         Int    @default(0)
-  lost          Int    @default(0)
-  goalsFor      Int    @default(0)
-  goalsAgainst  Int    @default(0)
-  points        Int    @default(0)
-  form          String @default("") @db.VarChar(20)
-  updatedAt     DateTime @updatedAt
+  id           Int      @id @default(autoincrement())
+  leagueId     Int
+  league       League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  teamId       Int
+  team         Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  played       Int      @default(0)
+  won          Int      @default(0)
+  drawn        Int      @default(0)
+  lost         Int      @default(0)
+  goalsFor     Int      @default(0)
+  goalsAgainst Int      @default(0)
+  points       Int      @default(0)
+  form         String   @default("") @db.VarChar(20)
+  updatedAt    DateTime @updatedAt
 
   @@unique([leagueId, teamId])
 }
 
 model TopScorer {
-  id        Int    @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   leagueId  Int
-  league    League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
-  playerId  Int    @unique
-  player    Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  league    League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  playerId  Int      @unique
+  player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
   teamId    Int
-  team      Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  goals     Int    @default(0)
-  assists   Int    @default(0)
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  goals     Int      @default(0)
+  assists   Int      @default(0)
   updatedAt DateTime @updatedAt
+
+  @@index([leagueId])
+  @@index([teamId])
 }
 
 model Transfer {
-  id           Int      @id @default(autoincrement())
+  id           Int          @id @default(autoincrement())
   playerId     Int
-  player       Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  player       Player       @relation(fields: [playerId], references: [id], onDelete: Cascade)
   fromTeamId   Int?
-  fromTeam     Team?    @relation("TransferFrom", fields: [fromTeamId], references: [id], onDelete: SetNull)
+  fromTeam     Team?        @relation("TransferFrom", fields: [fromTeamId], references: [id], onDelete: SetNull)
   toTeamId     Int
-  toTeam       Team     @relation("TransferTo", fields: [toTeamId], references: [id])
-  transferDate DateTime? @db.Date
+  toTeam       Team         @relation("TransferTo", fields: [toTeamId], references: [id])
+  transferDate DateTime?    @db.Date
   transferType TransferType @default(PERMANENT)
-  fee          Decimal? @db.Decimal(12, 2)
-  notes        String?  @db.Text
-  createdAt    DateTime @default(now())
+  fee          Decimal?     @db.Decimal(12, 2)
+  notes        String?      @db.Text
+  createdAt    DateTime     @default(now())
+
+  @@index([playerId])
+  @@index([toTeamId])
+  @@index([fromTeamId])
 }
 
 enum TransferType {
@@ -660,18 +696,19 @@ enum TransferType {
 }
 
 model TeamRegistration {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   teamId      Int
-  team        Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  team        Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
   leagueId    Int
-  league      League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  league      League    @relation(fields: [leagueId], references: [id], onDelete: Cascade)
   status      RegStatus @default(PENDING)
   submittedAt DateTime  @default(now())
   reviewedAt  DateTime?
   reviewedBy  Int?
-  notes       String?  @db.Text
+  notes       String?   @db.Text
 
   @@unique([teamId, leagueId])
+  @@index([leagueId])
 }
 
 enum RegStatus {
@@ -681,22 +718,26 @@ enum RegStatus {
 }
 
 model News {
-  id          Int      @id @default(autoincrement())
-  sportId     Int?
-  leagueId    Int?
-  league      League?  @relation(fields: [leagueId], references: [id], onDelete: SetNull)
-  title       String   @db.VarChar(300)
-  slug        String?  @db.VarChar(320)
-  excerpt     String?  @db.Text
-  body        String?  @db.Text
-  coverImage  String?  @db.VarChar(300)
-  authorId    Int?
-  author      User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
-  category    NewsCategory @default(NEWS)
-  featured    Boolean  @default(false)
-  published   Boolean  @default(true)
-  views       Int      @default(0)
-  createdAt   DateTime @default(now())
+  id         Int          @id @default(autoincrement())
+  sportId    Int?
+  leagueId   Int?
+  league     League?      @relation(fields: [leagueId], references: [id], onDelete: SetNull)
+  title      String       @db.VarChar(300)
+  slug       String?      @db.VarChar(320)
+  excerpt    String?      @db.Text
+  body       String?      @db.Text
+  coverImage String?      @db.VarChar(300)
+  authorId   Int?
+  author     User?        @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  category   NewsCategory @default(NEWS)
+  featured   Boolean      @default(false)
+  published  Boolean      @default(true)
+  views      Int          @default(0)
+  createdAt  DateTime     @default(now())
+
+  @@index([leagueId])
+  @@index([sportId])
+  @@index([authorId])
 }
 
 enum NewsCategory {
@@ -709,14 +750,14 @@ enum NewsCategory {
 }
 
 model Contact {
-  id        Int      @id @default(autoincrement())
-  name      String   @db.VarChar(200)
-  email     String?  @db.VarChar(200)
-  phone     String?  @db.VarChar(50)
-  subject   String?  @db.VarChar(300)
-  message   String   @db.Text
+  id        Int           @id @default(autoincrement())
+  name      String        @db.VarChar(200)
+  email     String?       @db.VarChar(200)
+  phone     String?       @db.VarChar(50)
+  subject   String?       @db.VarChar(300)
+  message   String        @db.Text
   status    ContactStatus @default(NEW)
-  createdAt DateTime @default(now())
+  createdAt DateTime      @default(now())
 }
 
 enum ContactStatus {
@@ -747,29 +788,32 @@ model ActivityLog {
   pagePath  String?  @db.VarChar(255)
   userAgent String?  @db.Text
   createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
 }
 
 model AkcSchool {
-  id           Int      @id @default(autoincrement())
-  name         String   @db.VarChar(200)
-  shortName    String?  @db.VarChar(50)
-  code         String?  @db.VarChar(50)
-  category     SchoolCategory @default(SECONDARY)
-  provinceId   Int?
-  districtId   Int?
-  sector       String?  @db.VarChar(100)
-  address      String?  @db.Text
-  headTeacher  String?  @db.VarChar(200)
-  coordinator  String?  @db.VarChar(200)
-  coordPhone   String?  @db.VarChar(50)
-  coordEmail   String?  @db.VarChar(200)
-  phone        String?  @db.VarChar(50)
-  email        String?  @db.VarChar(200)
-  logo         String?  @db.VarChar(300)
-  active       Boolean  @default(true)
-  createdAt    DateTime @default(now())
+  id          Int            @id @default(autoincrement())
+  name        String         @db.VarChar(200)
+  shortName   String?        @db.VarChar(50)
+  code        String?        @db.VarChar(50)
+  category    SchoolCategory @default(SECONDARY)
+  provinceId  Int?
+  districtId  Int?
+  sector      String?        @db.VarChar(100)
+  address     String?        @db.Text
+  headTeacher String?        @db.VarChar(200)
+  coordinator String?        @db.VarChar(200)
+  coordPhone  String?        @db.VarChar(50)
+  coordEmail  String?        @db.VarChar(200)
+  phone       String?        @db.VarChar(50)
+  email       String?        @db.VarChar(200)
+  logo        String?        @db.VarChar(300)
+  active      Boolean        @default(true)
+  createdAt   DateTime       @default(now())
 
-  teams        AkcTeam[]
+  teams AkcTeam[]
 }
 
 enum SchoolCategory {
@@ -779,23 +823,26 @@ enum SchoolCategory {
 }
 
 model AkcTeam {
-  id           Int      @id @default(autoincrement())
-  schoolId     Int
-  school       AkcSchool @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  sportId      Int
-  gender       AkcGender @default(MALE)
-  ageCategory  AkcAgeCategory @default(U17)
-  level        AkcLevel @default(NATIONAL)
-  coachName    String?  @db.VarChar(200)
-  coachPhone   String?  @db.VarChar(50)
-  isInclusive  Boolean  @default(false)
-  active       Boolean  @default(true)
-  createdAt    DateTime @default(now())
+  id          Int            @id @default(autoincrement())
+  schoolId    Int
+  school      AkcSchool      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  sportId     Int
+  gender      AkcGender      @default(MALE)
+  ageCategory AkcAgeCategory @default(U17)
+  level       AkcLevel       @default(NATIONAL)
+  coachName   String?        @db.VarChar(200)
+  coachPhone  String?        @db.VarChar(50)
+  isInclusive Boolean        @default(false)
+  active      Boolean        @default(true)
+  createdAt   DateTime       @default(now())
 
   players      AkcPlayer[]
-  homeFixtures AkcFixture[] @relation("AkcHome")
-  awayFixtures AkcFixture[] @relation("AkcAway")
+  homeFixtures AkcFixture[]  @relation("AkcHome")
+  awayFixtures AkcFixture[]  @relation("AkcAway")
   standings    AkcStanding[]
+
+  @@index([schoolId])
+  @@index([sportId])
 }
 
 enum AkcGender {
@@ -822,22 +869,24 @@ enum AkcLevel {
 }
 
 model AkcPlayer {
-  id           Int      @id @default(autoincrement())
-  teamId       Int
-  team         AkcTeam  @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  fullName     String   @db.VarChar(200)
-  dob          DateTime? @db.Date
-  gender       PlayerGender @default(MALE)
-  ageCategory  AkcAgeCategory @default(U17)
-  position     String?  @db.VarChar(100)
-  jersey       Int?     @db.SmallInt
-  idNumber     String?  @db.VarChar(100)
-  idType       AkcIdType @default(NATIONAL_ID)
-  docVerified  Boolean  @default(false)
-  hasDisability Boolean @default(false)
-  disabilityType String? @db.VarChar(200)
-  active       Boolean  @default(true)
-  createdAt    DateTime @default(now())
+  id             Int            @id @default(autoincrement())
+  teamId         Int
+  team           AkcTeam        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  fullName       String         @db.VarChar(200)
+  dob            DateTime?      @db.Date
+  gender         PlayerGender   @default(MALE)
+  ageCategory    AkcAgeCategory @default(U17)
+  position       String?        @db.VarChar(100)
+  jersey         Int?           @db.SmallInt
+  idNumber       String?        @db.VarChar(100)
+  idType         AkcIdType      @default(NATIONAL_ID)
+  docVerified    Boolean        @default(false)
+  hasDisability  Boolean        @default(false)
+  disabilityType String?        @db.VarChar(200)
+  active         Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+
+  @@index([teamId])
 }
 
 enum AkcIdType {
@@ -847,22 +896,24 @@ enum AkcIdType {
 }
 
 model AkcCompetition {
-  id           Int      @id @default(autoincrement())
-  name         String   @db.VarChar(200)
-  edition      String?  @db.VarChar(50)
-  sportId      Int?
-  gender       String   @default("mixed")
-  ageCategory  String   @default("Open")
-  level        AkcLevel @default(NATIONAL)
-  startDate    DateTime? @db.Date
-  endDate      DateTime? @db.Date
-  venue        String?  @db.VarChar(200)
-  status       AkcCompStatus @default(UPCOMING)
-  description  String?  @db.Text
-  createdAt    DateTime @default(now())
+  id          Int           @id @default(autoincrement())
+  name        String        @db.VarChar(200)
+  edition     String?       @db.VarChar(50)
+  sportId     Int?
+  gender      String        @default("mixed")
+  ageCategory String        @default("Open")
+  level       AkcLevel      @default(NATIONAL)
+  startDate   DateTime?     @db.Date
+  endDate     DateTime?     @db.Date
+  venue       String?       @db.VarChar(200)
+  status      AkcCompStatus @default(UPCOMING)
+  description String?       @db.Text
+  createdAt   DateTime      @default(now())
 
-  fixtures     AkcFixture[]
-  standings    AkcStanding[]
+  fixtures  AkcFixture[]
+  standings AkcStanding[]
+
+  @@index([sportId])
 }
 
 enum AkcCompStatus {
@@ -873,24 +924,28 @@ enum AkcCompStatus {
 }
 
 model AkcFixture {
-  id            Int      @id @default(autoincrement())
+  id            Int              @id @default(autoincrement())
   competitionId Int?
-  competition   AkcCompetition? @relation(fields: [competitionId], references: [id], onDelete: SetNull)
+  competition   AkcCompetition?  @relation(fields: [competitionId], references: [id], onDelete: SetNull)
   homeTeamId    Int
-  homeTeam      AkcTeam  @relation("AkcHome", fields: [homeTeamId], references: [id])
+  homeTeam      AkcTeam          @relation("AkcHome", fields: [homeTeamId], references: [id])
   awayTeamId    Int
-  awayTeam      AkcTeam  @relation("AkcAway", fields: [awayTeamId], references: [id])
+  awayTeam      AkcTeam          @relation("AkcAway", fields: [awayTeamId], references: [id])
   matchDate     DateTime?
-  venue         String?  @db.VarChar(200)
-  round         String?  @db.VarChar(100)
-  stage         AkcStage @default(GROUP)
+  venue         String?          @db.VarChar(200)
+  round         String?          @db.VarChar(100)
+  stage         AkcStage         @default(GROUP)
   status        AkcFixtureStatus @default(SCHEDULED)
   homeScore     Int?
   awayScore     Int?
   winnerTeamId  Int?
-  isDraw        Boolean  @default(false)
-  notes         String?  @db.Text
-  createdAt     DateTime @default(now())
+  isDraw        Boolean          @default(false)
+  notes         String?          @db.Text
+  createdAt     DateTime         @default(now())
+
+  @@index([competitionId])
+  @@index([homeTeamId])
+  @@index([awayTeamId])
 }
 
 enum AkcStage {
@@ -911,32 +966,32 @@ enum AkcFixtureStatus {
 }
 
 model AkcStanding {
-  id            Int    @id @default(autoincrement())
+  id            Int            @id @default(autoincrement())
   competitionId Int
   competition   AkcCompetition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
   teamId        Int
-  team          AkcTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  played        Int    @default(0)
-  won           Int    @default(0)
-  drawn         Int    @default(0)
-  lost          Int    @default(0)
-  gf            Int    @default(0)
-  ga            Int    @default(0)
-  points        Int    @default(0)
-  updatedAt     DateTime @updatedAt
+  team          AkcTeam        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  played        Int            @default(0)
+  won           Int            @default(0)
+  drawn         Int            @default(0)
+  lost          Int            @default(0)
+  gf            Int            @default(0)
+  ga            Int            @default(0)
+  points        Int            @default(0)
+  updatedAt     DateTime       @updatedAt
 
   @@unique([competitionId, teamId])
 }
 
 model AkcAnnouncement {
-  id         Int      @id @default(autoincrement())
-  title      String   @db.VarChar(300)
-  body       String   @db.Text
-  category   AkcAnnouncementCategory @default(GENERAL)
-  published  Boolean  @default(true)
-  pinned     Boolean  @default(false)
-  authorId   Int?
-  createdAt  DateTime @default(now())
+  id        Int                     @id @default(autoincrement())
+  title     String                  @db.VarChar(300)
+  body      String                  @db.Text
+  category  AkcAnnouncementCategory @default(GENERAL)
+  published Boolean                 @default(true)
+  pinned    Boolean                 @default(false)
+  authorId  Int?
+  createdAt DateTime                @default(now())
 }
 
 enum AkcAnnouncementCategory {
@@ -947,27 +1002,27 @@ enum AkcAnnouncementCategory {
   URGENT
 }
 
-// ─── RACING (cycling, athletics — SportType.RACING) ──────────────
+// â”€â”€â”€ RACING (cycling, athletics â€” SportType.RACING) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // A racing sport is not a ball game: no home/away, no score. A race produces a
 // RANKED FINISH (time or mark per athlete); a series produces a CLASSIFICATION
 // (riders by cumulative time, or clubs by a medal table). Results/rows are stored
 // as Json because their shape is inherently heterogeneous (a GC row and a medal
-// row carry different columns) — one flexible table renders either in the hub.
+// row carry different columns) â€” one flexible table renders either in the hub.
 model Race {
-  id            Int      @id @default(autoincrement())
+  id            Int        @id @default(autoincrement())
   sportId       Int
-  sport         Sport    @relation(fields: [sportId], references: [id], onDelete: Cascade)
+  sport         Sport      @relation(fields: [sportId], references: [id], onDelete: Cascade)
   competitionId Int?
-  competition   League?  @relation(fields: [competitionId], references: [id], onDelete: SetNull)
-  name          String   @db.VarChar(200)
-  discipline    String?  @db.VarChar(80)   // "Mountain", "100m", "Long Jump"
-  distanceKm    Float?                     // set for cycling stages
-  unit          String?  @db.VarChar(10)   // "s" | "m" for athletics marks
+  competition   League?    @relation(fields: [competitionId], references: [id], onDelete: SetNull)
+  name          String     @db.VarChar(200)
+  discipline    String?    @db.VarChar(80) // "Mountain", "100m", "Long Jump"
+  distanceKm    Float? // set for cycling stages
+  unit          String?    @db.VarChar(10) // "s" | "m" for athletics marks
   date          DateTime?
   status        RaceStatus @default(SCHEDULED)
-  results       Json     @default("[]")    // [{ position, athlete{fullName,photo}, club{name,logo}, time?/mark?, gap?, points }]
-  sortOrder     Int      @default(0)
-  createdAt     DateTime @default(now())
+  results       Json       @default("[]") // [{ position, athlete{fullName,photo}, club{name,logo}, time?/mark?, gap?, points }]
+  sortOrder     Int        @default(0)
+  createdAt     DateTime   @default(now())
 
   @@index([sportId])
 }
@@ -983,14 +1038,14 @@ model Classification {
   id            Int      @id @default(autoincrement())
   competitionId Int      @unique
   competition   League   @relation(fields: [competitionId], references: [id], onDelete: Cascade)
-  title         String   @db.VarChar(120)  // "General Classification" | "Medal Table"
-  identityLabel String?  @db.VarChar(60)   // "Rider" | "Club"
-  valueColumns  Json     @default("[]")    // ["Time","Gap"] | ["G","S","B","Pts"]
-  rows          Json     @default("[]")    // [{ rank, name, image, sub?, values:[...] }]
+  title         String   @db.VarChar(120) // "General Classification" | "Medal Table"
+  identityLabel String?  @db.VarChar(60) // "Rider" | "Club"
+  valueColumns  Json     @default("[]") // ["Time","Gap"] | ["G","S","B","Pts"]
+  rows          Json     @default("[]") // [{ rank, name, image, sub?, values:[...] }]
   updatedAt     DateTime @updatedAt
 }
 
-// ─── TRANSACTIONS (subscriptions / payments) ─────────────────────
+// â”€â”€â”€ TRANSACTIONS (subscriptions / payments) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 model Transaction {
   id        Int      @id @default(autoincrement())
   userId    Int
@@ -999,6 +1054,8 @@ model Transaction {
   status    TxStatus @default(PENDING)
   reference String   @unique @db.VarChar(120)
   createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 enum TxStatus {

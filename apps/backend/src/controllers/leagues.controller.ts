@@ -11,7 +11,7 @@ const getLeagues = async (req, res, next) => {
   try {
     const { sportId, gender, level, status } = req.query;
     
-    const where = { active: true };
+    const where: any = { active: true };
     if (sportId) where.sportId = parseInt(sportId);
     if (gender) where.gender = gender;
     if (level) where.level = level;

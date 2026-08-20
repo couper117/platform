@@ -51,7 +51,7 @@ const TeamProfilePage = () => {
       setLogoFile(null);
       pushToast('Club profile updated!', 'success');
     },
-    onError: (err) => pushToast(err.response?.data?.message || 'Failed to update profile'),
+    onError: (err: any) => pushToast(err.response?.data?.message || 'Failed to update profile'),
   });
 
   const handleChange = (key, val) => setFormData(prev => ({ ...prev, [key]: val }));

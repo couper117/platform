@@ -69,7 +69,7 @@ const AdminChampionshipsPage = () => {
   }, [isModalOpen, editing, reset]);
 
   const saveMutation = useMutation({
-    mutationFn: (payload) =>
+    mutationFn: (payload: any) =>
       editing ? updateChampionship(editing.id, payload) : createChampionship(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-championships'] });
@@ -77,16 +77,16 @@ const AdminChampionshipsPage = () => {
       setIsModalOpen(false);
       setEditing(null);
     },
-    onError: (err) => alert(err.response?.data?.message || t('admin.championships.save_failed')),
+    onError: (err: any) => alert(err.response?.data?.message || t('admin.championships.save_failed')),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => deleteChampionship(id),
+    mutationFn: (id: any) => deleteChampionship(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-championships'] });
       queryClient.invalidateQueries({ queryKey: ['amashuri-championships'] });
     },
-    onError: (err) => alert(err.response?.data?.message || t('admin.championships.delete_failed')),
+    onError: (err: any) => alert(err.response?.data?.message || t('admin.championships.delete_failed')),
   });
 
   const openCreate = () => { setEditing(null); setIsModalOpen(true); };
@@ -134,8 +134,8 @@ const AdminChampionshipsPage = () => {
                 <span className="inline-flex items-center gap-1"><Layers size={12} className="text-rwanda-blue" />{enumLabel('level', c.level)}</span>
               </td>
               <td className="px-6 py-5 text-[11px] opacity-50">
-                {formatDate(c.startDate, 'dd MMM yy') || '—'}
-                {c.endDate ? ` – ${formatDate(c.endDate, 'dd MMM yy')}` : ''}
+                {formatDate(c.startDate, 'dd MMM yy') || 'â€”'}
+                {c.endDate ? ` â€“ ${formatDate(c.endDate, 'dd MMM yy')}` : ''}
               </td>
               <td className="px-6 py-5 text-sm tabular-nums">{c._count?.fixtures ?? 0}</td>
               <td className="px-6 py-5">

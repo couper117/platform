@@ -11,7 +11,7 @@ import { Skeleton, EmptyState } from '../../components/ui';
 const CATEGORIES = ['PRIMARY', 'SECONDARY', 'TVET'];
 const empty = { name: '', code: '', category: 'SECONDARY', sector: '' };
 
-/** Amashuri Admin → Schools: register, edit and hide schools. */
+/** Amashuri Admin â†’ Schools: register, edit and hide schools. */
 const AmashuriAdminSchools = () => {
   const { t } = useTranslation();
   const qc = useQueryClient();
@@ -27,9 +27,9 @@ const AmashuriAdminSchools = () => {
   const save = useMutation({
     mutationFn: () => (editing ? updateAkcSchool(editing.id, form) : createAkcSchool(form)),
     onSuccess: () => { setModal(false); refresh(); },
-    onError: (e) => setErr(e.response?.data?.message || 'Failed'),
+    onError: (e: any) => setErr(e.response?.data?.message || 'Failed'),
   });
-  const toggle = useMutation({ mutationFn: ({ id, active }) => setAkcSchoolActive(id, active), onSuccess: refresh });
+  const toggle = useMutation({ mutationFn: ({ id, active }: any) => setAkcSchoolActive(id, active), onSuccess: refresh });
 
   const openAdd = () => { setEditing(null); setForm(empty); setErr(''); setModal(true); };
   const openEdit = (s) => { setEditing(s); setForm({ name: s.name || '', code: s.code || '', category: s.category || 'SECONDARY', sector: s.sector || '' }); setErr(''); setModal(true); };
@@ -52,7 +52,7 @@ const AmashuriAdminSchools = () => {
               <tr key={s.id} className="transition-colors hover:bg-surface-2 dark:hover:bg-white/5">
                 <td className="px-6 py-4"><div className="flex items-center gap-3"><ClubCrest team={s} size="md" /><span className="text-sm font-semibold text-primary">{s.name}</span></div></td>
                 <td className="px-6 py-4 text-xs uppercase tracking-wider text-secondary">{s.category}</td>
-                <td className="px-6 py-4 text-sm text-tertiary"><span className="inline-flex items-center gap-1"><MapPin size={12} /> {s.sector || '—'}</span></td>
+                <td className="px-6 py-4 text-sm text-tertiary"><span className="inline-flex items-center gap-1"><MapPin size={12} /> {s.sector || 'â€”'}</span></td>
                 <td className="px-6 py-4 text-sm tabular-nums text-secondary">{s._count?.teams ?? 0}</td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">

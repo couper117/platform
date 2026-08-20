@@ -20,10 +20,17 @@
     "seed": "npm run seed --workspace=apps/backend",
     "seed:all": "npm run seed:all --workspace=apps/backend",
     "typecheck": "npm run typecheck --workspace=apps/frontend && npm run typecheck --workspace=apps/backend",
-    "install:all": "npm install"
+    "lint": "npm run lint --workspace=apps/frontend",
+    "test": "npm run test --workspace=apps/backend && npm run test --workspace=apps/frontend",
+    "test:smoke": "npm run test:smoke --workspace=apps/backend",
+    "check:drift": "node scripts/check-demo-drift.mjs",
+    "db:backup": "node scripts/backup-db.mjs",
+    "install:all": "npm install",
+    "prepare": "husky || true"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "husky": "^9.1.7"
   },
   "engines": {
     "node": ">=18.0.0"

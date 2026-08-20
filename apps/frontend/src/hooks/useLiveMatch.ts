@@ -28,7 +28,9 @@ export default function useLiveMatch(fixtureId, initial, onReconnect) {
     minute: initial?.minute ?? initial?.liveState?.minute ?? 0,
     status: initial?.status ?? 'SCHEDULED',
     events: initial?.events ?? [],
+    stats: initial?.stats ?? [],
     lastUpdate: null,
+    lastStatsUpdate: null,
   });
   const [connected, setConnected] = useState(false);
   const seenEventIds = useRef(new Set((initial?.events || []).map((e) => e.id)));
@@ -51,6 +53,7 @@ export default function useLiveMatch(fixtureId, initial, onReconnect) {
       minute: initial.minute ?? initial.liveState?.minute ?? prev.minute ?? 0,
       status: initial.status ?? prev.status,
       events: initial.events ?? prev.events,
+      stats: initial.stats ?? prev.stats,
     }));
   }, [initial]);
 
@@ -87,7 +90,7 @@ export default function useLiveMatch(fixtureId, initial, onReconnect) {
     pusher.connection.bind('failed', onDrop);
     pusher.connection.bind('error', () => setConnected(false));
 
-    const mergeScore = (u = {}) => {
+    const mergeScore = (u: any = {}) => {
       setLive((prev) => ({
         ...prev,
         homeScore: u.homeScore ?? prev.homeScore,
@@ -110,6 +113,17 @@ export default function useLiveMatch(fixtureId, initial, onReconnect) {
       }));
     };
 
+    // Replace this team's row in the stats list (or add it) when new stats push.
+    const mergeStats = (u: any = {}) => {
+      if (u?.teamId == null || !u.stat) return;
+      setLive((prev) => ({
+        ...prev,
+        stats: [...(prev.stats || []).filter((s) => s.teamId !== u.teamId), u.stat],
+        lastStatsUpdate: Date.now(),
+        lastUpdate: Date.now(),
+      }));
+    };
+
     // Global ticker channel (filter to this fixture)
     const global = pusher.subscribe('live-scores');
     global.bind('liveUpdate', (u) => {
@@ -120,6 +134,7 @@ export default function useLiveMatch(fixtureId, initial, onReconnect) {
     const matchChan = pusher.subscribe(`fixture-${fixtureId}`);
     matchChan.bind('matchUpdate', mergeScore);
     matchChan.bind('matchEvent', addEvent);
+    matchChan.bind('matchStats', mergeStats);
 
     return () => {
       try {
@@ -152,7 +167,7 @@ export default function useLiveMatch(fixtureId, initial, onReconnect) {
     // only the reconnects need a REST refetch to catch missed events.
     let opened = false;
 
-    const mergeScore = (u = {}) => setLive((prev) => ({
+    const mergeScore = (u: any = {}) => setLive((prev) => ({
       ...prev,
       homeScore: u.homeScore ?? prev.homeScore,
       awayScore: u.awayScore ?? prev.awayScore,
@@ -166,6 +181,15 @@ export default function useLiveMatch(fixtureId, initial, onReconnect) {
       if (evt.id != null) seenEventIds.current.add(evt.id);
       setLive((prev) => ({ ...prev, events: [evt, ...(prev.events || [])], minute: evt.minute ?? prev.minute, lastUpdate: Date.now() }));
     };
+    const mergeStats = (u: any = {}) => {
+      if (u?.teamId == null || !u.stat) return;
+      setLive((prev) => ({
+        ...prev,
+        stats: [...(prev.stats || []).filter((s) => s.teamId !== u.teamId), u.stat],
+        lastStatsUpdate: Date.now(),
+        lastUpdate: Date.now(),
+      }));
+    };
 
     es.addEventListener('open', () => {
       setConnected(true);
@@ -175,6 +199,7 @@ export default function useLiveMatch(fixtureId, initial, onReconnect) {
     es.addEventListener('error', () => setConnected(false));
     es.addEventListener('matchUpdate', (e) => { try { mergeScore(JSON.parse(e.data)); } catch { /* noop */ } });
     es.addEventListener('matchEvent', (e) => { try { addEvent(JSON.parse(e.data)); } catch { /* noop */ } });
+    es.addEventListener('matchStats', (e) => { try { mergeStats(JSON.parse(e.data)); } catch { /* noop */ } });
     es.addEventListener('liveUpdate', (e) => {
       try { const u = JSON.parse(e.data); if (String(u.fixtureId) === String(fixtureId)) mergeScore(u); } catch { /* noop */ }
     });

@@ -4,13 +4,14 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import {
-  Trophy, Clock, MapPin, ChevronLeft, Calendar, Users, Play, Award, Wifi,
+  Trophy, Clock, MapPin, ChevronLeft, Calendar, Users, Play, Award, Wifi, LayoutGrid, List,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { getFixture } from '../../api/endpoints/fixtures';
 import useLiveMatch from '../../hooks/useLiveMatch';
 import ResponsiveWrapper from '../../components/shared/ResponsiveWrapper';
 import MatchEventTimeline from '../../components/shared/MatchEventTimeline';
+import FormationPitch from '../../components/match/FormationPitch';
 import Skeleton from '../../components/shared/Skeleton';
 import Seo from '../../components/shared/Seo';
 import { LiveBadge } from '../../components/ui/Badge';
@@ -31,15 +32,29 @@ const ScoreDigit = ({ value }) => (
   </motion.span>
 );
 
+// A stat number that pops when its value changes (keyed on the value so a live
+// push re-mounts and re-runs the animation).
+const StatNum = ({ value, className }) => (
+  <motion.span
+    key={value}
+    initial={{ scale: 1.35 }}
+    animate={{ scale: 1 }}
+    transition={{ type: 'spring', stiffness: 500, damping: 20 }}
+    className={`inline-block tabular-nums ${className}`}
+  >
+    {value}
+  </motion.span>
+);
+
 const StatBar = ({ label, home, away }) => {
   const total = (home || 0) + (away || 0);
   const homePct = total ? Math.round((home / total) * 100) : 50;
   return (
     <div className="space-y-1.5">
       <div className="flex justify-between text-xs font-bold tabular-nums">
-        <span className={home >= away ? 'text-red' : 'opacity-50'}>{home}</span>
+        <StatNum value={home} className={home >= away ? 'text-red' : 'opacity-50'} />
         <span className="text-[10px] uppercase tracking-widest opacity-40">{label}</span>
-        <span className={away >= home ? 'text-red' : 'opacity-50'}>{away}</span>
+        <StatNum value={away} className={away >= home ? 'text-red' : 'opacity-50'} />
       </div>
       <div className="flex h-1.5 rounded-full overflow-hidden bg-surface-3 dark:bg-white/10">
         <div className="bg-red transition-all duration-500" style={{ width: `${homePct}%` }} />
@@ -66,6 +81,7 @@ const MatchDetailsPage = () => {
   const { t } = useTranslation();
   const { id } = useParams();
   const [tab, setTab] = useState('overview');
+  const [lineupView, setLineupView] = useState('pitch'); // 'pitch' | 'list'
 
   const { data: fixture, isLoading, refetch } = useQuery({
     queryKey: ['match-details', id],
@@ -97,10 +113,15 @@ const MatchDetailsPage = () => {
   const awayLineup = lineups.filter((l) => l.teamId === m?.awayTeamId);
   const sheetFor = (teamId) => (m?.teamSheets || []).find((s) => s.teamId === teamId);
 
-  // Real per-team statistics (entered by the admin), with event-derived fallback.
-  const homeStat = (m?.stats || []).find((s) => s.teamId === m?.homeTeamId);
-  const awayStat = (m?.stats || []).find((s) => s.teamId === m?.awayTeamId);
+  // Real per-team statistics (entered by the admin), sourced from the live state
+  // so a `matchStats` push updates the bars without a reload; falls back to the
+  // REST payload, then to event-derived numbers.
+  const liveStats = live.stats?.length ? live.stats : (m?.stats || []);
+  const homeStat = liveStats.find((s) => s.teamId === m?.homeTeamId);
+  const awayStat = liveStats.find((s) => s.teamId === m?.awayTeamId);
   const hasStats = !!(homeStat || awayStat);
+  // True briefly after a live stat push, to flash the "updating" pulse.
+  const statsJustUpdated = !!live.lastStatsUpdate && Date.now() - live.lastStatsUpdate < 2500;
   const STAT_ROWS = [
     ['possession', t('matchstat.possession')], ['shots', t('matchstat.shots')], ['shotsOnTarget', t('matchstat.shots_on_target')],
     ['shotsInsideBox', t('matchstat.shots_inside_box')], ['shotsOutsideBox', t('matchstat.shots_outside_box')],
@@ -277,7 +298,12 @@ const MatchDetailsPage = () => {
           <Card className="p-6 sm:p-8 max-w-2xl mx-auto">
             <div className="flex items-center justify-between mb-6 text-[10px] uppercase tracking-widest font-bold">
               <span className="text-red truncate max-w-[40%]">{m.homeTeam?.name}</span>
-              <span className="opacity-40">Match Stats</span>
+              <span className="flex items-center gap-1.5 opacity-60">
+                {isLive && connected && (
+                  <span className={`w-1.5 h-1.5 rounded-full ${statsJustUpdated ? 'bg-red' : 'bg-green'} animate-pulse`} />
+                )}
+                {isLive && connected ? t('match.live_stats') : t('match.match_stats')}
+              </span>
               <span className="text-rwanda-blue truncate max-w-[40%] text-right">{m.awayTeam?.name}</span>
             </div>
             {hasStats ? (
@@ -304,6 +330,33 @@ const MatchDetailsPage = () => {
         {/* Lineups */}
         {tab === 'lineups' && (
           (homeLineup.length || awayLineup.length) ? (
+            <div className="space-y-6">
+            {/* Pitch / List view toggle */}
+            <div className="flex justify-center">
+              <div className="inline-flex items-center gap-1 p-1 bg-white dark:bg-surface-dark2 rounded-xl border border-surface-3 dark:border-white/5">
+                {[
+                  { key: 'pitch', label: t('match.pitch_view'), Icon: LayoutGrid },
+                  { key: 'list', label: t('match.list_view'), Icon: List },
+                ].map(({ key, label, Icon }) => (
+                  <button
+                    key={key}
+                    onClick={() => setLineupView(key)}
+                    className={`px-4 py-2 rounded-lg font-display text-[11px] uppercase tracking-widest flex items-center gap-2 transition-colors cursor-pointer ${
+                      lineupView === key ? 'bg-red text-white shadow' : 'text-surface-dark/50 dark:text-white/50 hover:text-red'
+                    }`}
+                  >
+                    <Icon size={14} /> {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {lineupView === 'pitch' ? (
+              <FormationPitch
+                home={{ team: m.homeTeam, starters: homeLineup.filter((p) => p.isStarter), formation: sheetFor(m.homeTeamId)?.formation, coachName: sheetFor(m.homeTeamId)?.coachName }}
+                away={{ team: m.awayTeam, starters: awayLineup.filter((p) => p.isStarter), formation: sheetFor(m.awayTeamId)?.formation, coachName: sheetFor(m.awayTeamId)?.coachName }}
+              />
+            ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[{ team: m.homeTeam, list: homeLineup, sheet: sheetFor(m.homeTeamId) }, { team: m.awayTeam, list: awayLineup, sheet: sheetFor(m.awayTeamId) }].map((side, i) => {
                 const starters = side.list.filter((p) => p.isStarter);
@@ -339,6 +392,8 @@ const MatchDetailsPage = () => {
                   </Card>
                 );
               })}
+            </div>
+            )}
             </div>
           ) : (
             <EmptyState icon={Users} title={t('match.lineups_unavailable')} hint={t('match.lineups_unavailable_hint')} className="py-16" />
