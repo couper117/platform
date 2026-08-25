@@ -223,7 +223,8 @@
     "lineups_unavailable_hint": "Amakipe y’uyu mukino ntararatangazwa.",
     "no_events": "Nta bintu biraba",
     "no_events_hint": "Ibiba mu mukino bizagaragara hano.",
-    "stats_unpublished": "Imibare irambuye ntararatangazwa — iva ku bintu byabaye mu mukino"
+    "stats_unpublished": "Imibare irambuye ntararatangazwa — iva ku bintu byabaye mu mukino",
+    "sport": "Siporo"
   },
   "standings": {
     "col_pos": "Umw.",
@@ -1576,5 +1577,28 @@
     "f_id": "Nomero y indangamuntu",
     "required": "Izina rirakenewe",
     "manage": "Gucunga"
+  },
+  "contact": {
+    "seo_title": "Twandikire",
+    "seo_desc": "Vugana n’ikipe ya RwaSport.",
+    "title_pre": "Twandikire",
+    "title_accent": "Ubu",
+    "subtitle": "Twishimira kukumva",
+    "label_name": "Amazina",
+    "label_subject": "Insanganyamatsiko",
+    "label_message": "Ubutumwa",
+    "ph_name": "Amazina yawe",
+    "ph_email": "wowe@imeyili.com",
+    "ph_phone": "+250 ...",
+    "ph_subject": "Twagufasha dute?",
+    "ph_message": "Andika ubutumwa bwawe...",
+    "send": "Ohereza ubutumwa",
+    "sent_title": "Ubutumwa bwoherejwe",
+    "sent_body": "Urakoze kutwandikira — ikipe yacu izagusubiza vuba.",
+    "send_another": "Ohereza ubundi",
+    "error_generic": "Hari ikitagenze neza. Ongera ugerageze.",
+    "v_name": "Andika amazina yawe",
+    "v_email": "Andika imeyili yemewe",
+    "v_message": "Ubutumwa bugomba kuba nibura inyuguti 10"
   }
 }

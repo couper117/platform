@@ -6,7 +6,9 @@ import { motion } from 'framer-motion';
 import { School, Clock, MapPin, ChevronLeft, Calendar, Trophy, Flag } from 'lucide-react';
 import { format } from 'date-fns';
 import { getAkcFixture } from '../../api/endpoints/amashuri';
+import useSportLookup from '../../hooks/useSportLookup';
 import ResponsiveWrapper from '../../components/shared/ResponsiveWrapper';
+import SportIcon from '../../components/shared/SportIcon';
 import Skeleton from '../../components/shared/Skeleton';
 import Seo from '../../components/shared/Seo';
 import Card from '../../components/ui/Card';
@@ -54,6 +56,8 @@ const AmashuriMatchPage = () => {
     queryFn: () => getAkcFixture(id),
     retry: false,
   });
+  // Called before the early returns below — hook order must stay stable.
+  const { forFixture } = useSportLookup();
 
   if (isLoading) {
     return <div className="py-20"><ResponsiveWrapper><Skeleton type="card" /></ResponsiveWrapper></div>;
@@ -72,6 +76,7 @@ const AmashuriMatchPage = () => {
   const isCompleted = m.status === 'COMPLETED';
   const homeName = m.homeTeam?.school?.name;
   const awayName = m.awayTeam?.school?.name;
+  const sport = forFixture(m);
 
   return (
     <div className="bg-surface-2 dark:bg-surface-dark min-h-screen pb-24">
@@ -96,6 +101,14 @@ const AmashuriMatchPage = () => {
         <ResponsiveWrapper className="relative z-10">
           <div className="flex flex-col items-center gap-10">
             <div className="flex flex-col items-center gap-3">
+              {/* The sport is the fact that used to be missing here: a 1:1 with no
+                  discipline told you nothing. It leads, competition follows. */}
+              {sport && (
+                <span className="inline-flex items-center gap-2 h-8 px-4 rounded-pill bg-white/15 border border-white/25 text-[11px] font-bold uppercase tracking-[0.2em]">
+                  <SportIcon slug={sport.slug} size={14} />
+                  {sport.name}
+                </span>
+              )}
               <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/50">
                 {m.competition?.name || 'Schools Championship'}
               </span>
@@ -166,6 +179,7 @@ const AmashuriMatchPage = () => {
             </h3>
             <dl className="space-y-3 text-sm">
               {[
+                [t('match.sport'), sport?.name],
                 [t('match.stage'), m.stage?.replace(/_/g, ' ')],
                 [t('match.round'), m.round],
                 [t('match.competition'), m.competition?.name],

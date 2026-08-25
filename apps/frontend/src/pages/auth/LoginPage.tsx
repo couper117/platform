@@ -46,10 +46,9 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const { register, handleSubmit, formState } = useForm({
+  const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: zodResolver(loginSchema),
   });
-  const errors: any = formState.errors;
 
   const onSubmit = async (data) => {
     setIsLoading(true);
@@ -122,7 +121,7 @@ const LoginPage = () => {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
             <Field
               label={t('authx.email_or_username')}
-              error={errors.username?.message && t(errors.username.message)}
+              error={errors.username?.message && t(errors.username.message as string)}
               required
             >
               {(p) => (
@@ -138,7 +137,7 @@ const LoginPage = () => {
 
             <Field
               label={t('auth.password', 'Password')}
-              error={errors.password?.message && t(errors.password.message)}
+              error={errors.password?.message && t(errors.password.message as string)}
               required
             >
               {(p) => (

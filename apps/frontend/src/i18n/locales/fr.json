@@ -183,7 +183,7 @@
     "awaiting_hint": "Les événements en direct apparaîtront ici au fil du match.",
     "no_lineup": "Aucune composition",
     "no_lineup_hint": "La feuille de match n'est pas publiée.",
-    "match_stats": "Statistiques",
+    "match_stats": "Statistiques du match",
     "goals": "Buts",
     "yellow_cards": "Cartons jaunes",
     "red_cards": "Cartons rouges",
@@ -223,7 +223,8 @@
     "lineups_unavailable_hint": "Les compositions n’ont pas encore été publiées.",
     "no_events": "Aucun événement",
     "no_events_hint": "Les événements du match apparaîtront ici.",
-    "stats_unpublished": "Statistiques détaillées non publiées — dérivées des événements du match"
+    "stats_unpublished": "Statistiques détaillées non publiées — dérivées des événements du match",
+    "sport": "Sport"
   },
   "standings": {
     "col_pos": "Pos",
@@ -1576,5 +1577,28 @@
     "f_id": "Numéro ID",
     "required": "Le nom est requis",
     "manage": "Gérer"
+  },
+  "contact": {
+    "seo_title": "Contact",
+    "seo_desc": "Contactez l’équipe RwaSport.",
+    "title_pre": "Nous",
+    "title_accent": "Contacter",
+    "subtitle": "Nous serions ravis de vous lire",
+    "label_name": "Nom",
+    "label_subject": "Objet",
+    "label_message": "Message",
+    "ph_name": "Votre nom",
+    "ph_email": "vous@email.com",
+    "ph_phone": "+250 ...",
+    "ph_subject": "Comment pouvons-nous aider ?",
+    "ph_message": "Écrivez votre message...",
+    "send": "Envoyer le message",
+    "sent_title": "Message envoyé",
+    "sent_body": "Merci de nous avoir contactés — notre équipe vous répondra sous peu.",
+    "send_another": "Envoyer un autre",
+    "error_generic": "Une erreur est survenue. Veuillez réessayer.",
+    "v_name": "Veuillez saisir votre nom",
+    "v_email": "Saisissez un e-mail valide",
+    "v_message": "Le message doit contenir au moins 10 caractères"
   }
 }
