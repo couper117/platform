@@ -36,6 +36,16 @@ const envSchema = z.object({
   FLW_BASE_URL: z.string().url().default('https://api.flutterwave.com/v3'),
   PAYMENT_CURRENCY: z.string().default('RWF'),
   FRONTEND_URL: z.string().url().default('http://localhost:5173'),
+  // Where personal data is stored, and the certificate that permits it if that is
+  // outside Rwanda (Law N° 058/2021 arts. 48–50). Checked at boot by
+  // services/dataResidency.service.ts.
+  // An empty value in a .env file means "not set", not "invalid" — otherwise a
+  // commented-out placeholder stops the server for the wrong reason.
+  DATA_RESIDENCY: z.preprocess(
+    (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+    z.enum(['rwanda', 'offshore']).optional()
+  ),
+  NCSA_REGISTRATION_NUMBER: z.string().optional(),
 });
 
 const CRITICAL_FIELDS = ['DATABASE_URL', 'JWT_SECRET'];

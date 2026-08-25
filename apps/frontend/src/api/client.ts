@@ -16,6 +16,20 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // File uploads must not inherit the instance-wide JSON content type. Axios only
+    // auto-negotiates multipart when no Content-Type is set, so leaving the default
+    // in place sends the body as application/json — multer then parses no file and
+    // the upload silently arrives empty. Clearing it lets the browser set
+    // multipart/form-data together with the boundary it generates.
+    if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+      if (typeof config.headers?.delete === 'function') {
+        config.headers.delete('Content-Type');
+      } else {
+        delete config.headers['Content-Type'];
+      }
+    }
+
     return config;
   },
   (error) => Promise.reject(error)

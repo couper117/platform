@@ -1,4 +1,5 @@
 const prisma = require('../config/db');
+const { canSeePersonalData, redactPlayer } = require('../services/privacy.service');
 const { getPagination } = require('../utils/paginate');
 const { uploadImage, deleteImage } = require('../services/storage.service');
 const logActivity = require('../utils/activityLogger');
@@ -44,13 +45,19 @@ const getPlayers = async (req, res, next) => {
 // @desc    Get single player
 // @route   GET /api/v1/players/:id
 // @access  Public
+// Public player profile. Verification documents evidence a person's identity and
+// their date of birth and national ID identify them off the pitch, so both are
+// withheld from anyone without a verification or eligibility duty
+// (Law N° 058/2021 art. 46, 47).
 const getPlayer = async (req, res, next) => {
   try {
+    const privileged = canSeePersonalData(req.user);
+
     const player = await prisma.player.findUnique({
       where: { id: parseInt(req.params.id) },
       include: {
         team: true,
-        documents: true,
+        ...(privileged ? { documents: true } : {}),
         suspensions: { where: { active: true } },
       },
     });
@@ -59,7 +66,7 @@ const getPlayer = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Player not found' });
     }
 
-    res.status(200).json({ success: true, data: player });
+    res.status(200).json({ success: true, data: privileged ? player : redactPlayer(player) });
   } catch (error) {
     next(error);
   }

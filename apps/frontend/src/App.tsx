@@ -14,6 +14,7 @@ import PublicLayout from './components/layout/PublicLayout';
 import AdminLayout from './components/layout/AdminLayout';
 import TeamLayout from './components/layout/TeamLayout';
 import ReporterLayout from './components/layout/ReporterLayout';
+import SchoolLayout from './components/layout/SchoolLayout';
 
 // Route pages are code-split so heavy deps (recharts, framer-motion) load on demand.
 // Public Pages
@@ -41,6 +42,11 @@ const RegisterTeamPage = lazy(() => import('./pages/auth/RegisterTeamPage'));
 // Admin Pages
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 const AkcAdminDashboard = lazy(() => import('./pages/admin/AkcAdminDashboard'));
+const AmashuriAdminSchoolDetail = lazy(() => import('./pages/admin/AmashuriAdminSchoolDetail'));
+
+// School coordinator portal
+const SchoolDashboard = lazy(() => import('./pages/school/SchoolDashboard'));
+const SchoolAthletesPage = lazy(() => import('./pages/school/SchoolAthletesPage'));
 const AdminLeaguesPage = lazy(() => import('./pages/admin/AdminLeaguesPage'));
 const AdminTeamsPage = lazy(() => import('./pages/admin/AdminTeamsPage'));
 const AdminFixturesPage = lazy(() => import('./pages/admin/AdminFixturesPage'));
@@ -241,6 +247,7 @@ function App() {
               <Route path="amashuri/results" element={<AmashuriAdminResults />} />
               <Route path="amashuri/standings" element={<AmashuriAdminStandings />} />
               <Route path="amashuri/schools" element={<AmashuriAdminSchools />} />
+              <Route path="amashuri/school/:id" element={<AmashuriAdminSchoolDetail />} />
               <Route path="amashuri/teams" element={<AmashuriAdminTeams />} />
               <Route path="amashuri/athletes" element={<AmashuriAdminAthletes />} />
               <Route path="amashuri/approvals" element={<AmashuriAdminApprovals />} />
@@ -251,6 +258,13 @@ function App() {
             </Route>
 
             {/* Team Manager Routes */}
+            {/* School Coordinator Portal — one school, scoped server-side */}
+            <Route path="/school" element={<SchoolLayout />}>
+              <Route index element={<Navigate to="/school/dashboard" replace />} />
+              <Route path="dashboard" element={<SchoolDashboard />} />
+              <Route path="athletes" element={<SchoolAthletesPage />} />
+            </Route>
+
             <Route path="/team" element={<TeamLayout />}>
               <Route index element={<Navigate to="/team/dashboard" replace />} />
               <Route path="dashboard" element={<TeamDashboard />} />

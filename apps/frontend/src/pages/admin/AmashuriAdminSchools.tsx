@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -56,6 +57,7 @@ const AmashuriAdminSchools = () => {
                 <td className="px-6 py-4 text-sm tabular-nums text-secondary">{s._count?.teams ?? 0}</td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
+                    <Link to={`/admin/amashuri/school/${s.id}`} className="text-[10px] font-bold uppercase tracking-widest text-brand hover:underline">{t('aadmin.manage')}</Link>
                     <button onClick={() => openEdit(s)} className="text-tertiary hover:text-primary" aria-label={t('aadmin.edit_school')}><Pencil size={15} /></button>
                     <button onClick={() => toggle.mutate({ id: s.id, active: !s.active })} className="text-tertiary hover:text-red" aria-label={s.active ? t('aadmin.hide') : t('aadmin.show')}>{s.active ? <EyeOff size={15} /> : <Eye size={15} />}</button>
                   </div>

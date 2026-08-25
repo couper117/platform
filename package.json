@@ -25,6 +25,8 @@
     "test:smoke": "npm run test:smoke --workspace=apps/backend",
     "check:drift": "node scripts/check-demo-drift.mjs",
     "db:backup": "node scripts/backup-db.mjs",
+    "privacy:purge": "tsx scripts/purge-expired-data.mjs",
+    "privacy:purge:apply": "tsx scripts/purge-expired-data.mjs --apply",
     "install:all": "npm install",
     "prepare": "husky || true"
   },
@@ -34,5 +36,17 @@
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "allowScripts": {
+    "sharp@0.33.5": true,
+    "sharp@0.35.3": true,
+    "@prisma/client@5.22.0": true,
+    "@prisma/engines@5.22.0": true,
+    "esbuild@0.28.2": true,
+    "esbuild@0.21.5": true,
+    "fsevents@2.3.3": true,
+    "fsevents@2.3.2": true,
+    "prisma@5.22.0": true,
+    "@scarf/scarf@1.4.0": true
   }
 }

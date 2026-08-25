@@ -34,6 +34,7 @@ export const ADMIN_PAGES = [
   { path: '/admin/amashuri/stages', label: 'Stages', roles: ['SUPERADMIN', 'AMASHURI_ADMIN'] },
   { path: '/admin/amashuri/sports', label: 'Sports', roles: ['SUPERADMIN', 'AMASHURI_ADMIN'] },
   { path: '/admin/amashuri/schools', label: 'Schools', roles: ['SUPERADMIN', 'AMASHURI_ADMIN'] },
+  { path: '/admin/amashuri/school/', label: 'School detail', roles: ['SUPERADMIN', 'AMASHURI_ADMIN'] },
   { path: '/admin/amashuri/teams', label: 'Teams', roles: ['SUPERADMIN', 'AMASHURI_ADMIN'] },
   { path: '/admin/amashuri/athletes', label: 'Athletes', roles: ['SUPERADMIN', 'AMASHURI_ADMIN'] },
   { path: '/admin/amashuri/approvals', label: 'Approvals', roles: ['SUPERADMIN', 'AMASHURI_ADMIN'] },

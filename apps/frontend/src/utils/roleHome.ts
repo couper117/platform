@@ -10,6 +10,8 @@ export const roleHome = (role) => {
       return '/admin/akc3';
     case 'MATCH_REPORTER':
       return '/reporter/dashboard';
+    case 'SCHOOL_COORDINATOR':
+      return '/school/dashboard';
     case 'TEAM_MANAGER':
     default:
       return '/team/dashboard';

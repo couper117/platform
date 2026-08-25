@@ -31,6 +31,7 @@ const transferRoutes = require('./routes/transfers.routes');
 const officialRoutes = require('./routes/officials.routes');
 const suspensionRoutes = require('./routes/suspensions.routes');
 const registrationRoutes = require('./routes/registrations.routes');
+const privacyRoutes = require('./routes/privacy.routes');
 
 const app = express();
 
@@ -115,6 +116,8 @@ app.use('/api/v1/transfers', transferRoutes);
 app.use('/api/v1/officials', officialRoutes);
 app.use('/api/v1/suspensions', suspensionRoutes);
 app.use('/api/v1/registrations', registrationRoutes);
+// Data-subject rights under Law N° 058/2021 arts. 18–24.
+app.use('/api/v1/privacy', privacyRoutes);
 
 // Health check
 app.get('/api/v1/health', (req, res) => {
