@@ -1,6 +1,11 @@
 const app = require('./src/app');
 const env = require('./src/config/env');
 const { ensureRuleSettings } = require('./src/services/eligibility.service');
+const { checkResidencyAtStartup } = require('./src/services/dataResidency.service');
+
+// Refuse to run a production deployment that stores personal data outside Rwanda
+// without the NCSA certificate art. 50 requires. Runs before the port is bound.
+checkResidencyAtStartup(env);
 
 const PORT = env.PORT || 5000;
 
