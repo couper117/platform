@@ -218,7 +218,6 @@
     "formation": "Imitunganyirize",
     "pitch_view": "Ikibuga",
     "list_view": "Urutonde",
-    "match_stats": "Imibare y'umukino",
     "live_stats": "Imibare igezweho",
     "lineups_unavailable": "Amakipe ntararatangazwa",
     "lineups_unavailable_hint": "Amakipe y’uyu mukino ntararatangazwa.",
@@ -1403,7 +1402,10 @@
     "nav_seasons": "Ibihembwe",
     "nav_stages": "Ibyiciro",
     "nav_sports": "Siporo",
-    "nav_approvals": "Kwemeza"
+    "nav_approvals": "Kwemeza",
+    "nav_my_athletes": "Abakinnyi bacu",
+    "role_school": "Urubuga rw’ishuri",
+    "role_school_sub": "Kwiyandikisha kw’abakinnyi"
   },
   "roles": {
     "SUPERADMIN": "Umuyobozi mukuru",
@@ -1572,6 +1574,7 @@
     "f_position": "Umwanya",
     "f_jersey": "Maillot",
     "f_id": "Nomero y indangamuntu",
-    "required": "Izina rirakenewe"
+    "required": "Izina rirakenewe",
+    "manage": "Gucunga"
   }
 }

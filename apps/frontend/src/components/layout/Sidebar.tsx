@@ -126,16 +126,26 @@ const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
       { to: '/team/documents', key: 'portal.nav_documents', icon: <FileText size={18} /> },
     ] },
   ];
+  const schoolGroups = [
+    { section: 'main', items: [
+      { to: '/school/dashboard', key: 'portal.nav_dashboard', icon: <LayoutDashboard size={18} /> },
+      { to: '/school/athletes', key: 'portal.nav_my_athletes', icon: <UserSquare2 size={18} /> },
+    ] },
+  ];
   const reporterGroups = [
     { section: 'main', items: [{ to: '/reporter/dashboard', key: 'portal.nav_live_reporting', icon: <Radio size={18} /> }] },
   ];
 
-  const groups = type === 'team' ? teamGroups : type === 'reporter' ? reporterGroups : adminGroups;
+  const groups = type === 'team' ? teamGroups
+    : type === 'reporter' ? reporterGroups
+    : type === 'school' ? schoolGroups
+    : adminGroups;
 
   // ── role-branded header ──
   const headerFor = () => {
     if (type === 'team') return { icon: <Shield size={18} />, title: t('portal.role_team'), sub: null, accent: 'text-brand bg-brand/15' };
     if (type === 'reporter') return { icon: <Radio size={18} />, title: t('portal.role_reporter'), sub: null, accent: 'text-brand bg-brand/15' };
+    if (type === 'school') return { icon: <GraduationCap size={18} />, title: t('portal.role_school'), sub: t('portal.role_school_sub'), accent: 'text-[#F5B301] bg-[#F5B301]/15' };
     if (role === 'SUPERADMIN') return { icon: <Landmark size={18} />, title: t('portal.role_ministry'), sub: t('portal.role_ministry_sub'), accent: 'text-brand bg-brand/15' };
     if (role === 'FEDERATION_ADMIN') return { icon: <ShieldCheck size={18} />, title: t('portal.role_federation'), sub: sport?.name || null, accent: 'text-brand bg-brand/15' };
     if (role === 'AMASHURI_ADMIN') return { icon: <GraduationCap size={18} />, title: t('portal.role_amashuri'), sub: t('portal.role_amashuri_sub'), accent: 'text-[#F5B301] bg-[#F5B301]/15' };

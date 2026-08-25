@@ -6,6 +6,7 @@
  * Run:  node prisma/seed-extra.js
  */
 const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
 
 const MARKER = 'seed_extra_v1';
@@ -355,6 +356,27 @@ async function main() {
     schools.push(exists || await prisma.akcSchool.create({ data: { ...s, active: true, coordinator: 'School Sports Coordinator', coordPhone: '+250789000000' } }));
   }
   const akcTeams = [];
+  // A school-coordinator login for the first seeded school, so the school portal
+  // and the roster-form flow are demonstrable straight after seeding. Same password
+  // as the other seeded accounts (see README).
+  const coordSchool = schools[0];
+  if (coordSchool) {
+    await prisma.user.upsert({
+      where: { username: 'school.coordinator' },
+      update: { akcSchoolId: coordSchool.id },
+      create: {
+        username: 'school.coordinator',
+        password: await bcrypt.hash('Manager@123', 12),
+        fullName: `${coordSchool.shortName || coordSchool.name} Sports Coordinator`,
+        email: 'coordinator@rwasport.rw',
+        role: 'SCHOOL_COORDINATOR',
+        akcSchoolId: coordSchool.id,
+        active: true,
+        verified: true,
+      },
+    });
+  }
+
   for (const school of schools) {
     let t = await prisma.akcTeam.findFirst({ where: { schoolId: school.id, sportId: sports.football.id, ageCategory: 'U17' } });
     if (!t) t = await prisma.akcTeam.create({ data: { schoolId: school.id, sportId: sports.football.id, gender: 'MALE', ageCategory: 'U17', level: 'NATIONAL', coachName: 'Coach ' + school.shortName } });

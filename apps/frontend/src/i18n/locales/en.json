@@ -218,7 +218,6 @@
     "formation": "Formation",
     "pitch_view": "Pitch",
     "list_view": "List",
-    "match_stats": "Match Stats",
     "live_stats": "Live Stats",
     "lineups_unavailable": "Lineups not available yet",
     "lineups_unavailable_hint": "Team sheets have not been published for this match.",
@@ -1403,7 +1402,10 @@
     "nav_seasons": "Seasons",
     "nav_stages": "Stages",
     "nav_sports": "Sports",
-    "nav_approvals": "Approvals"
+    "nav_approvals": "Approvals",
+    "nav_my_athletes": "My Athletes",
+    "role_school": "School Portal",
+    "role_school_sub": "Athlete registration"
   },
   "roles": {
     "SUPERADMIN": "Super Admin",
@@ -1572,6 +1574,7 @@
     "f_position": "Position",
     "f_jersey": "Jersey",
     "f_id": "ID number",
-    "required": "Name is required"
+    "required": "Name is required",
+    "manage": "Manage"
   }
 }

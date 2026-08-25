@@ -53,6 +53,11 @@ model User {
 
   managedTeam   Team?          @relation("TeamManager")
   newsArticles  News[]
+
+  // A SCHOOL_COORDINATOR registers athletes for exactly one school. Every query
+  // that role makes is scoped to this id — see middleware/auth.ts.
+  akcSchoolId Int?
+  akcSchool   AkcSchool? @relation(fields: [akcSchoolId], references: [id], onDelete: SetNull)
   activityLogs  ActivityLog[]
   refreshTokens RefreshToken[]
 
@@ -65,6 +70,7 @@ enum Role {
   SUPERADMIN
   FEDERATION_ADMIN
   AMASHURI_ADMIN
+  SCHOOL_COORDINATOR
   LEAGUE_ADMIN
   MATCH_REPORTER
   TEAM_MANAGER
@@ -813,7 +819,8 @@ model AkcSchool {
   active      Boolean        @default(true)
   createdAt   DateTime       @default(now())
 
-  teams AkcTeam[]
+  teams        AkcTeam[]
+  coordinators User[]
 }
 
 enum SchoolCategory {
@@ -880,6 +887,17 @@ model AkcPlayer {
   jersey         Int?           @db.SmallInt
   idNumber       String?        @db.VarChar(100)
   idType         AkcIdType      @default(NATIONAL_ID)
+  // Collected on the school roster form the coordinator fills in.
+  nationality    String?        @db.VarChar(100)
+  guardianPhone  String?        @db.VarChar(50)
+  schoolClass    String?        @db.VarChar(50)
+  studentCode    String?        @db.VarChar(100)
+  // Law N° 058/2021 art. 9: a child under 16 may only have their data processed
+  // with the consent of a holder of parental responsibility. The school records
+  // who gave it and when, so the basis for processing is evidenced per child.
+  guardianName      String?     @db.VarChar(200)
+  guardianConsent   Boolean     @default(false)
+  guardianConsentAt DateTime?
   docVerified    Boolean        @default(false)
   hasDisability  Boolean        @default(false)
   disabilityType String?        @db.VarChar(200)
@@ -887,6 +905,7 @@ model AkcPlayer {
   createdAt      DateTime       @default(now())
 
   @@index([teamId])
+  @@index([studentCode])
 }
 
 enum AkcIdType {
@@ -1062,4 +1081,53 @@ enum TxStatus {
   PENDING
   SUCCESS
   FAILED
+}
+
+
+// ── Data protection (Law N° 058/2021) ──
+
+/// A request from a data subject exercising a right under arts. 18–24. Logged so
+/// the statutory thirty-day response deadline is visible and auditable.
+model DataSubjectRequest {
+  id           Int       @id @default(autoincrement())
+  type         DsrType
+  subjectName  String    @db.VarChar(200)
+  subjectEmail String?   @db.VarChar(200)
+  subjectPhone String?   @db.VarChar(50)
+  /// Who is asking: the person themselves, or a parent/guardian acting for a child.
+  relationship DsrRelationship @default(SELF)
+  /// Which records the request concerns, in the requester's own words.
+  details      String?   @db.Text
+  status       DsrStatus @default(RECEIVED)
+  handledBy    Int?
+  responseNote String?   @db.Text
+  createdAt    DateTime  @default(now())
+  /// createdAt + 30 days (arts. 18, 19, 20, 23, 24).
+  dueAt        DateTime
+  closedAt     DateTime?
+
+  @@index([status])
+  @@index([dueAt])
+}
+
+enum DsrType {
+  ACCESS
+  RECTIFICATION
+  ERASURE
+  OBJECTION
+  PORTABILITY
+  RESTRICTION
+}
+
+enum DsrRelationship {
+  SELF
+  PARENT_OR_GUARDIAN
+  LEGAL_REPRESENTATIVE
+}
+
+enum DsrStatus {
+  RECEIVED
+  IN_PROGRESS
+  COMPLETED
+  REJECTED
 }

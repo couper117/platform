@@ -183,7 +183,7 @@
     "awaiting_hint": "Les événements en direct apparaîtront ici au fil du match.",
     "no_lineup": "Aucune composition",
     "no_lineup_hint": "La feuille de match n'est pas publiée.",
-    "match_stats": "Statistiques du match",
+    "match_stats": "Statistiques",
     "goals": "Buts",
     "yellow_cards": "Cartons jaunes",
     "red_cards": "Cartons rouges",
@@ -218,7 +218,6 @@
     "formation": "Formation",
     "pitch_view": "Terrain",
     "list_view": "Liste",
-    "match_stats": "Statistiques",
     "live_stats": "Stats en direct",
     "lineups_unavailable": "Compositions indisponibles",
     "lineups_unavailable_hint": "Les compositions n’ont pas encore été publiées.",
@@ -1403,7 +1402,10 @@
     "nav_seasons": "Saisons",
     "nav_stages": "Phases",
     "nav_sports": "Sports",
-    "nav_approvals": "Approbations"
+    "nav_approvals": "Approbations",
+    "nav_my_athletes": "Mes athlètes",
+    "role_school": "Portail école",
+    "role_school_sub": "Inscription des athlètes"
   },
   "roles": {
     "SUPERADMIN": "Super Admin",
@@ -1572,6 +1574,7 @@
     "f_position": "Poste",
     "f_jersey": "Maillot",
     "f_id": "Numéro ID",
-    "required": "Le nom est requis"
+    "required": "Le nom est requis",
+    "manage": "Gérer"
   }
 }

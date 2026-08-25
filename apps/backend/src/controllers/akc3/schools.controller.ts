@@ -1,5 +1,6 @@
 const prisma = require('../../config/db');
 const logActivity = require('../../utils/activityLogger');
+const { PUBLIC_ATHLETE_SELECT, canSeePersonalData, publiclyVisibleAthleteWhere } = require('../../services/privacy.service');
 
 const getSchools = async (req, res, next) => {
   try {
@@ -20,11 +21,31 @@ const getSchools = async (req, res, next) => {
   }
 };
 
+// Public school profile. It nests the school's athletes, so unless the caller has
+// a duty that needs more (an Amashuri admin, or this school's own coordinator),
+// each athlete is projected down to what a team sheet shows — no date of birth,
+// national ID, guardian phone, student code or disability. Law N° 058/2021 art. 9,
+// 11 and 47.
 const getSchool = async (req, res, next) => {
   try {
+    const id = parseInt(req.params.id);
+    const privileged = canSeePersonalData(req.user)
+      && (req.user.role !== 'SCHOOL_COORDINATOR' || req.user.akcSchoolId === id);
+
     const school = await prisma.akcSchool.findUnique({
-      where: { id: parseInt(req.params.id) },
-      include: { teams: { include: { players: true } } },
+      where: { id },
+      include: {
+        teams: {
+          include: {
+            players: privileged
+              ? true
+              // Art. 9: a child awaiting guardian consent has no lawful basis for
+              // processing, and publishing is processing. Their record stays —
+              // admins still see it to chase the consent — but it is not published.
+              : { select: PUBLIC_ATHLETE_SELECT, where: publiclyVisibleAthleteWhere(new Date().getUTCFullYear()) },
+          },
+        },
+      },
     });
     if (!school) return res.status(404).json({ success: false, message: 'School not found' });
     res.status(200).json({ success: true, data: school });
