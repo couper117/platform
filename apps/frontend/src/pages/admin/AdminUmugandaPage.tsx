@@ -72,7 +72,9 @@ const AdminUmugandaPage = () => {
 
   const days = daysData?.data?.days || [];
   const next = daysData?.data?.next;
-  const conflicts = conflictsData?.data || [];
+  // Memoised rather than a bare `|| []`: the fallback would be a new array on
+  // every render, defeating the totalConflicts memo below.
+  const conflicts = useMemo(() => conflictsData?.data || [], [conflictsData]);
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['umuganda'] });
 

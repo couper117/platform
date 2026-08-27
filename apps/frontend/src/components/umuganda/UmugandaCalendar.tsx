@@ -85,18 +85,19 @@ const UmugandaCalendar = ({ className }: { className?: string }) => {
   });
 
   const cells = useMemo(() => buildMonthGrid(cursor.year, cursor.month), [cursor]);
-  const events = data?.data?.events || [];
-  const umugandaDays = data?.data?.umugandaDays || [];
-
-  const eventsByDay = useMemo(() => bucketByDay(events), [events]);
+  // The `|| []` fallbacks live inside the memos on purpose: pulled out into a
+  // const they build a fresh array on every render, so the memo below would see
+  // a new dependency each time and never actually memoise. Keying on `data` —
+  // which only changes when the query resolves — is what makes these stable.
+  const eventsByDay = useMemo(() => bucketByDay(data?.data?.events || []), [data]);
   const umugandaByDay = useMemo(() => {
     const m = new Map<string, any>();
-    for (const u of umugandaDays) {
+    for (const u of data?.data?.umugandaDays || []) {
       if (String(u.status).toUpperCase() === 'DISABLED') continue;
       m.set(u.dayKey || dayKey(u.date), u);
     }
     return m;
-  }, [umugandaDays]);
+  }, [data]);
 
   const step = (delta: number) => {
     setCursor((c) => {
