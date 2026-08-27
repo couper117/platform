@@ -32,6 +32,7 @@ const SOCIALS = [
 const EXPLORE = [
   ['footer.choose_sport', '/'],
   ['nav.fixtures', '/fixtures'],
+  ['nav.calendar', '/calendar'],
   ['nav.results', '/results'],
   ['nav.leagues', '/leagues'],
   ['nav.news', '/news'],

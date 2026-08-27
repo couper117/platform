@@ -22,6 +22,7 @@ const HomePage = lazy(() => import('./pages/public/HomePage'));
 const LeaguesPage = lazy(() => import('./pages/public/LeaguesPage'));
 const LeagueDetailsPage = lazy(() => import('./pages/public/LeagueDetailsPage'));
 const FixturesPage = lazy(() => import('./pages/public/FixturesPage'));
+const CalendarPage = lazy(() => import('./pages/public/CalendarPage'));
 const TeamsIndexPage = lazy(() => import('./pages/public/TeamsIndexPage'));
 const MatchDetailsPage = lazy(() => import('./pages/public/MatchDetailsPage'));
 const NewsListPage = lazy(() => import('./pages/public/NewsListPage'));
@@ -54,6 +55,7 @@ const AdminPlayersPage = lazy(() => import('./pages/admin/AdminPlayersPage'));
 const AdminDocumentsPage = lazy(() => import('./pages/admin/AdminDocumentsPage'));
 const AdminNewsPage = lazy(() => import('./pages/admin/AdminNewsPage'));
 const AdminSettingsPage = lazy(() => import('./pages/admin/AdminSettingsPage'));
+const AdminUmugandaPage = lazy(() => import('./pages/admin/AdminUmugandaPage'));
 const AdminSportAdminsPage = lazy(() => import('./pages/admin/AdminSportAdminsPage'));
 const AdminAdsPage = lazy(() => import('./pages/admin/AdminAdsPage'));
 const AdminVisitorsPage = lazy(() => import('./pages/admin/AdminVisitorsPage'));
@@ -177,6 +179,7 @@ function App() {
               <Route path="/leagues" element={<LeaguesPage />} />
               <Route path="/leagues/:id" element={<LeagueDetailsPage />} />
               <Route path="/fixtures" element={<FixturesPage />} />
+              <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/live" element={<FixturesPage />} />
               <Route path="/results" element={<FixturesPage />} />
               <Route path="/teams" element={<TeamsIndexPage />} />
@@ -231,6 +234,7 @@ function App() {
               <Route path="akc3" element={<AkcAdminDashboard />} />
               <Route path="championships" element={<AdminChampionshipsPage />} />
               <Route path="sport-admins" element={<AdminSportAdminsPage />} />
+              <Route path="umuganda" element={<AdminUmugandaPage />} />
               <Route path="settings" element={<AdminSettingsPage />} />
 
               {/* League Admin sub-sections */}

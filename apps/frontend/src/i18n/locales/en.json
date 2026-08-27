@@ -9,6 +9,7 @@
     "home": "Home",
     "leagues": "Leagues",
     "fixtures": "Fixtures",
+    "calendar": "Calendar",
     "results": "Results",
     "news": "News",
     "amashuri": "Amashuri Games",
@@ -856,7 +857,10 @@
       "ONGOING": "Ongoing",
       "COMPLETED": "Completed",
       "POSTPONED": "Postponed",
-      "CANCELLED": "Cancelled"
+      "CANCELLED": "Cancelled",
+      "CONFIRMED": "Confirmed",
+      "UMUGANDA_CONFLICT": "Umuganda conflict",
+      "RESCHEDULED": "Rescheduled"
     },
     "league_status": {
       "ACTIVE": "Active",
@@ -974,6 +978,16 @@
     "activity_action": {
       "PAGE_VIEW": "Page View",
       "LOGIN": "Login"
+    },
+    "umuganda_status": {
+      "EXPECTED": "Expected",
+      "CONFIRMED": "Confirmed",
+      "MOVED": "Moved",
+      "DISABLED": "Disabled"
+    },
+    "umuganda_source": {
+      "GENERATED": "Calculated",
+      "ADMIN": "Added by admin"
     }
   },
   "demo": {
@@ -1406,7 +1420,8 @@
     "nav_approvals": "Approvals",
     "nav_my_athletes": "My Athletes",
     "role_school": "School Portal",
-    "role_school_sub": "Athlete registration"
+    "role_school_sub": "Athlete registration",
+    "nav_umuganda": "Umuganda"
   },
   "roles": {
     "SUPERADMIN": "Super Admin",
@@ -1600,5 +1615,87 @@
     "v_name": "Please enter your name",
     "v_email": "Enter a valid email",
     "v_message": "Message must be at least 10 characters"
+  },
+  "umuganda": {
+    "day": "Umuganda Day",
+    "short": "Umuganda",
+    "upcoming": "Upcoming Umuganda",
+    "communityWorkDay": "Community work day — some sports events may be affected.",
+    "notice": "Umuganda notice",
+    "notices": "Umuganda notices",
+    "originally": "Originally",
+    "newDate": "New date",
+    "reason": "Reason",
+    "reasonHint": "Shown to the public alongside the change.",
+    "reasonPlaceholder": "e.g. Moved to the Sunday after Umuganda",
+    "rescheduled": "Rescheduled",
+    "sportsAffected": "Sports affected",
+    "viewCalendar": "View calendar",
+    "expectedDate": "Expected date",
+    "confirmedDate": "Confirmed date",
+    "thisMonth": "This month",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "legendSports": "Sports event",
+    "legendUmuganda": "Umuganda",
+    "legendRescheduled": "Rescheduled",
+    "legendConflict": "Conflict",
+    "noEventsThisDay": "No sports events on this day.",
+    "calendarTitle": "Sports calendar",
+    "calendarDescription": "Fixtures, results and Umuganda days in one place — so you always know whether a match is still on.",
+    "conflictTitle": "Umuganda conflict",
+    "conflictWarning": "This event is scheduled on an expected Umuganda day. Please confirm whether the event will continue, be postponed, or take place after Umuganda.",
+    "chooseDecision": "Choose what happens to this match",
+    "saveDecision": "Save decision",
+    "decisionFailed": "The decision could not be saved.",
+    "newDateTime": "New date and time",
+    "newDateRequired": "Choose a new date and time first.",
+    "publicPreview": "What the public will see",
+    "decide": "Decide",
+    "management": "Umuganda management",
+    "managementIntro": "The last Saturday of each month is calculated automatically as the expected date. Authorities can move it — your override always wins.",
+    "generateDates": "Generate dates",
+    "generated": "{{count}} date(s) generated.",
+    "addDate": "Add Umuganda date",
+    "editDate": "Edit date",
+    "createAnnouncement": "Create announcement",
+    "announcementPublished": "Announcement published.",
+    "publish": "Publish",
+    "message": "Message",
+    "titleField": "Title",
+    "descriptionField": "Description",
+    "date": "Date",
+    "statusLabel": "Status",
+    "statusHint": "Expected is the calculation. Confirmed, Moved and Disabled are your decision, and generation will never overwrite them.",
+    "startTime": "Start time",
+    "endTime": "End time",
+    "window": "Window",
+    "source": "Source",
+    "sourceOverridden": "Overridden",
+    "thisMonthDate": "Next Umuganda",
+    "upcomingDates": "Upcoming dates",
+    "conflictingEvents": "Conflicting events",
+    "noConflicts": "No conflicts",
+    "noConflictsHint": "No sports events currently fall on an Umuganda day.",
+    "noDates": "No Umuganda dates yet",
+    "noDatesHint": "Use Generate dates to calculate the coming months.",
+    "saved": "Saved.",
+    "saveFailed": "That could not be saved.",
+    "decision": {
+      "continue": "Continue event",
+      "continueHint": "Goes ahead as scheduled.",
+      "move": "Move event",
+      "moveHint": "Pick a new date and time.",
+      "after": "Schedule after Umuganda",
+      "afterHint": "Same day, kicking off after community work.",
+      "affected": "Mark as affected",
+      "affectedHint": "Flag it now, decide later."
+    },
+    "banner": {
+      "continue": "This match goes ahead as scheduled on Umuganda day.",
+      "move": "Match rescheduled due to Umuganda.",
+      "after": "This match will take place after Umuganda.",
+      "affected": "This match is affected by Umuganda. A final decision is pending."
+    }
   }
 }

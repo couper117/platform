@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  LayoutDashboard, Trophy, Users, UserSquare2, FileText, Newspaper, Settings, Activity,
+  LayoutDashboard, Trophy, Users, UserSquare2, FileText, Newspaper, Settings, Activity, HeartHandshake,
   School, X, Megaphone, ClipboardList, ShieldCheck, Radio, Lock, Landmark, GraduationCap,
   Medal, Shield, ExternalLink, HelpCircle, Users2, KeyRound, LayoutTemplate, Image as ImageIcon,
   ClipboardCheck, BarChart3, Target, TrendingUp, CalendarDays, Layers,
@@ -31,6 +31,7 @@ const PATH_META = {
   '/admin/players': { key: 'portal.nav_players', section: 'management', icon: <UserSquare2 size={18} /> },
   '/admin/documents': { key: 'portal.nav_documents', section: 'management', icon: <FileText size={18} /> },
   '/admin/fixtures': { key: 'portal.nav_fixtures', section: 'operations', icon: <Activity size={18} /> },
+  '/admin/umuganda': { key: 'portal.nav_umuganda', section: 'operations', icon: <HeartHandshake size={18} /> },
   '/admin/championships': { key: 'portal.nav_championships', section: 'competitions', icon: <Medal size={18} /> },
   '/admin/news': { key: 'portal.nav_news', section: 'content', icon: <Newspaper size={18} /> },
   '/admin/ads': { key: 'portal.nav_ads', section: 'content', icon: <Megaphone size={18} /> },

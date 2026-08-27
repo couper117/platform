@@ -9,6 +9,7 @@
     "home": "Ahabanza",
     "leagues": "Amarushanwa",
     "fixtures": "Imikino",
+    "calendar": "Kalendari",
     "results": "Ibyarangiye",
     "news": "Amakuru",
     "amashuri": "Imikino y'Amashuri",
@@ -856,7 +857,10 @@
       "ONGOING": "Urakomeje",
       "COMPLETED": "Warangiye",
       "POSTPONED": "Wasubitswe",
-      "CANCELLED": "Wahagaritswe"
+      "CANCELLED": "Wahagaritswe",
+      "CONFIRMED": "Byemejwe",
+      "UMUGANDA_CONFLICT": "Bihuriranye n'Umuganda",
+      "RESCHEDULED": "Byimuwe"
     },
     "league_status": {
       "ACTIVE": "Rirakora",
@@ -974,6 +978,16 @@
     "activity_action": {
       "PAGE_VIEW": "Yarebye urupapuro",
       "LOGIN": "Yinjiye"
+    },
+    "umuganda_status": {
+      "EXPECTED": "Iteganyijwe",
+      "CONFIRMED": "Yemejwe",
+      "MOVED": "Yimuwe",
+      "DISABLED": "Yahagaritswe"
+    },
+    "umuganda_source": {
+      "GENERATED": "Yabazwe",
+      "ADMIN": "Yashyizweho n'umuyobozi"
     }
   },
   "demo": {
@@ -1406,7 +1420,8 @@
     "nav_approvals": "Kwemeza",
     "nav_my_athletes": "Abakinnyi bacu",
     "role_school": "Urubuga rw’ishuri",
-    "role_school_sub": "Kwiyandikisha kw’abakinnyi"
+    "role_school_sub": "Kwiyandikisha kw’abakinnyi",
+    "nav_umuganda": "Umuganda"
   },
   "roles": {
     "SUPERADMIN": "Umuyobozi mukuru",
@@ -1600,5 +1615,87 @@
     "v_name": "Andika amazina yawe",
     "v_email": "Andika imeyili yemewe",
     "v_message": "Ubutumwa bugomba kuba nibura inyuguti 10"
+  },
+  "umuganda": {
+    "day": "Umunsi w'Umuganda",
+    "short": "Umuganda",
+    "upcoming": "Umuganda utaha",
+    "communityWorkDay": "Umunsi w'umuganda — imikino imwe n'imwe ishobora guhinduka.",
+    "notice": "Itangazo ry'Umuganda",
+    "notices": "Amatangazo y'Umuganda",
+    "originally": "Byari biteganyijwe",
+    "newDate": "Itariki nshya",
+    "reason": "Impamvu",
+    "reasonHint": "Igaragarira abantu hamwe n'impinduka.",
+    "reasonPlaceholder": "urugero: Byimuriwe ku cyumweru nyuma y'umuganda",
+    "rescheduled": "Byimuwe",
+    "sportsAffected": "Imikino yagizweho ingaruka",
+    "viewCalendar": "Reba kalendari",
+    "expectedDate": "Itariki iteganyijwe",
+    "confirmedDate": "Itariki yemejwe",
+    "thisMonth": "Uku kwezi",
+    "previousMonth": "Ukwezi gushize",
+    "nextMonth": "Ukwezi gutaha",
+    "legendSports": "Umukino",
+    "legendUmuganda": "Umuganda",
+    "legendRescheduled": "Byimuwe",
+    "legendConflict": "Bihuriranye",
+    "noEventsThisDay": "Nta mukino uri kuri uyu munsi.",
+    "calendarTitle": "Kalendari y'imikino",
+    "calendarDescription": "Imikino, ibyavuye mu mikino n'iminsi y'Umuganda ahantu hamwe — kugira ngo umenye niba umukino ukibaho.",
+    "conflictTitle": "Guhurirana n'Umuganda",
+    "conflictWarning": "Uyu mukino uteganyijwe ku munsi witezweho Umuganda. Emeza niba uzakomeza, uzimurwa, cyangwa uzabera nyuma y'umuganda.",
+    "chooseDecision": "Hitamo icyo uyu mukino uzaba",
+    "saveDecision": "Bika icyemezo",
+    "decisionFailed": "Icyemezo nticyabashije kubikwa.",
+    "newDateTime": "Itariki n'isaha nshya",
+    "newDateRequired": "Banza uhitemo itariki n'isaha nshya.",
+    "publicPreview": "Ibyo abantu bazabona",
+    "decide": "Fata icyemezo",
+    "management": "Gucunga Umuganda",
+    "managementIntro": "Wa wundi munsi wa gatandatu wa nyuma w'ukwezi ubarwa nk'itariki iteganyijwe. Ubuyobozi bushobora kuyihindura — icyemezo cyawe ni cyo gihora gitsinda.",
+    "generateDates": "Kubara amatariki",
+    "generated": "Amatariki {{count}} yabaruwe.",
+    "addDate": "Ongeraho itariki y'Umuganda",
+    "editDate": "Hindura itariki",
+    "createAnnouncement": "Kora itangazo",
+    "announcementPublished": "Itangazo ryatangajwe.",
+    "publish": "Tangaza",
+    "message": "Ubutumwa",
+    "titleField": "Umutwe",
+    "descriptionField": "Ibisobanuro",
+    "date": "Itariki",
+    "statusLabel": "Imimerere",
+    "statusHint": "Iteganyijwe ni iyabazwe. Yemejwe, Yimuwe na Yahagaritswe ni icyemezo cyawe, kandi kubara ntibizabisimbura.",
+    "startTime": "Isaha yo gutangira",
+    "endTime": "Isaha yo kurangiza",
+    "window": "Igihe",
+    "source": "Inkomoko",
+    "sourceOverridden": "Yahinduwe",
+    "thisMonthDate": "Umuganda utaha",
+    "upcomingDates": "Amatariki ataha",
+    "conflictingEvents": "Imikino ihuriranye",
+    "noConflicts": "Nta guhurirana",
+    "noConflictsHint": "Nta mukino uri ku munsi w'Umuganda ubu.",
+    "noDates": "Nta matariki y'Umuganda arahaba",
+    "noDatesHint": "Koresha Kubara amatariki kugira ngo ubare amezi ataha.",
+    "saved": "Byabitswe.",
+    "saveFailed": "Ntibyashoboye kubikwa.",
+    "decision": {
+      "continue": "Umukino ukomeze",
+      "continueHint": "Uzabaho nk'uko byateganyijwe.",
+      "move": "Wimure umukino",
+      "moveHint": "Hitamo itariki n'isaha nshya.",
+      "after": "Uzabe nyuma y'Umuganda",
+      "afterHint": "Umunsi umwe, utangire nyuma y'umuganda.",
+      "affected": "Wandike ko wagizweho ingaruka",
+      "affectedHint": "Wemeze ubu, ufate icyemezo nyuma."
+    },
+    "banner": {
+      "continue": "Uyu mukino uzabaho nk'uko byateganyijwe ku munsi w'Umuganda.",
+      "move": "Umukino wimuwe kubera Umuganda.",
+      "after": "Uyu mukino uzabera nyuma y'Umuganda.",
+      "affected": "Uyu mukino wagizweho ingaruka n'Umuganda. Icyemezo cya nyuma kiracyategerejwe."
+    }
   }
 }
