@@ -105,6 +105,12 @@ async function main() {
     { name: 'Mukura Victory Sports', shortName: 'MUK', slug: 'mukura-vs', city: 'Huye', province: 'South', foundedYear: 1966, homeVenue: 'Huye Stadium' },
     { name: 'Gorilla FC', shortName: 'GOR', slug: 'gorilla-fc', city: 'Kigali', province: 'Kigali', foundedYear: 2020, homeVenue: 'Kigali Pele Stadium' },
     { name: 'Etincelles FC', shortName: 'ETI', slug: 'etincelles-fc', city: 'Rubavu', province: 'West', foundedYear: 1978, homeVenue: 'Umuganda Stadium' },
+    // Founding years below are taken from each club's own crest. homeVenue is left
+    // unset where the ground is not known rather than invented — an empty field
+    // reads as missing, a wrong stadium reads as fact.
+    { name: 'Kiyovu Sports', shortName: 'KIY', slug: 'kiyovu-sports', city: 'Kigali', province: 'Kigali', foundedYear: 1964, homeVenue: 'Kigali Pele Stadium' },
+    { name: 'Amagaju FC', shortName: 'AMG', slug: 'amagaju-fc', city: 'Nyamagabe', province: 'South', foundedYear: 1935 },
+    { name: 'Rutsiro FC Tsinda', shortName: 'RUT', slug: 'rutsiro-fc', city: 'Rutsiro', province: 'West', foundedYear: 2014 },
   ];
   const teams = [];
   for (const t of teamDefs) {

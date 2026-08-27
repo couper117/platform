@@ -20,6 +20,9 @@ const COLORS = [
   { match: 'Kiyovu', color: '#0F7A3D' },   // Kiyovu Sports — green & white
   { match: 'Police', color: '#12386E' },   // Police FC — dark blue
   { match: 'Patriots', color: '#1D4ED8' }, // Patriots BBC — blue
+  { match: 'Amagaju', color: '#1B2A6B' },  // Amagaju FC — navy & yellow
+  { match: 'Rutsiro', color: '#2A6DB0' },  // Rutsiro FC Tsinda — blue & white
+  { match: 'Mukura', color: '#F2C300' },   // Mukura Victory Sports — yellow & black
 ];
 
 async function main() {
