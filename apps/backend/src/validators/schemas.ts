@@ -77,6 +77,33 @@ module.exports = {
     active: z.boolean().optional(),
   }),
 
+  // ── Umuganda ──
+  createUmuganda: wrap({
+    date: z.string().min(8, 'A date is required'),
+    title: z.string().optional(),
+    description: z.string().optional(),
+    status: z.enum(['EXPECTED', 'CONFIRMED', 'MOVED', 'DISABLED']).optional(),
+    startTime: z.string().regex(/^\d{1,2}:\d{2}$/, 'Use HH:MM').optional(),
+    endTime: z.string().regex(/^\d{1,2}:\d{2}$/, 'Use HH:MM').optional(),
+  }),
+  updateUmuganda: wrap({
+    date: z.string().min(8).optional(),
+    status: z.enum(['EXPECTED', 'CONFIRMED', 'MOVED', 'DISABLED']).optional(),
+    startTime: z.string().regex(/^\d{1,2}:\d{2}$/, 'Use HH:MM').optional(),
+    endTime: z.string().regex(/^\d{1,2}:\d{2}$/, 'Use HH:MM').optional(),
+  }),
+  umugandaAnnouncement: wrap({
+    title: z.string().min(3, 'A title is required'),
+    body: z.string().min(3, 'A message is required'),
+  }),
+  // The four decisions an administrator may take on a clashing match. There is
+  // deliberately no "cancel" — the platform never cancels a match over Umuganda.
+  umugandaDecision: wrap({
+    decision: z.enum(['CONTINUE', 'MOVED', 'AFTER_UMUGANDA', 'AFFECTED']),
+    newDate: z.string().optional().nullable(),
+    reason: z.string().max(500).optional().nullable(),
+  }),
+
   idish,
   optIdish,
 };

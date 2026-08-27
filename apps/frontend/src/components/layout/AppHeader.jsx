@@ -59,6 +59,7 @@ const PRIMARY_RIGHT = [
 
 /** Extra destinations for the mobile drawer (the bottom bar owns the primaries). */
 const SECONDARY = [
+  { to: '/calendar', labelKey: 'nav.calendar', icon: CalendarDays },
   { to: '/teams', labelKey: 'nav.teams', icon: Users },
   { to: '/amashuri', labelKey: 'nav.amashuri', icon: GraduationCap },
   { to: '/home', labelKey: 'nav.home', icon: Home },

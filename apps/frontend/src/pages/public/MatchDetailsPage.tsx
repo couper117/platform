@@ -9,6 +9,7 @@ import {
 import { format } from 'date-fns';
 import { getFixture } from '../../api/endpoints/fixtures';
 import useLiveMatch from '../../hooks/useLiveMatch';
+import MatchUmugandaBanner from '../../components/umuganda/MatchUmugandaBanner';
 import ResponsiveWrapper from '../../components/shared/ResponsiveWrapper';
 import MatchEventTimeline from '../../components/shared/MatchEventTimeline';
 import FormationPitch from '../../components/match/FormationPitch';
@@ -238,6 +239,11 @@ const MatchDetailsPage = () => {
           </div>
         </ResponsiveWrapper>
       </section>
+
+      {/* Umuganda — why this match moved, if it did. Renders nothing otherwise. */}
+      <ResponsiveWrapper className="mt-6">
+        <MatchUmugandaBanner fixture={m} />
+      </ResponsiveWrapper>
 
       {/* Tabbed content */}
       <ResponsiveWrapper className="mt-6 sm:mt-10">

@@ -6,6 +6,7 @@ const { handleCardEvent, serveSuspensions } = require('../services/discipline.se
 const { getPagination } = require('../utils/paginate');
 const { enforceSportScope, leagueSportId } = require('../utils/scope');
 const logActivity = require('../utils/activityLogger');
+const { syncFixtureConflict, detectConflict, raiseNotice } = require('../services/umuganda.service');
 
 // Can this user manage the fixture's competition-level data (result, stats,
 // streaming)? Super admins, the sport's federation admin, an assigned league
@@ -169,6 +170,10 @@ const createFixture = async (req, res, next) => {
       },
     });
 
+    // Umuganda awareness: flag a clash, never refuse or cancel the fixture.
+    // The admin gets the warning and decides (see setUmugandaDecision).
+    const { conflict, fixture: checked } = await syncFixtureConflict('LEAGUE', fixture);
+
     await logActivity({
       userId: req.user.id,
       action: 'Create Fixture',
@@ -177,7 +182,7 @@ const createFixture = async (req, res, next) => {
       ip: req.ip,
     });
 
-    res.status(201).json({ success: true, data: fixture });
+    res.status(201).json({ success: true, data: checked, umugandaConflict: conflict });
   } catch (error) {
     next(error);
   }
@@ -581,7 +586,18 @@ const updateFixtureMeta = async (req, res, next) => {
         streamActive: streamActive !== undefined ? !!streamActive : undefined,
       },
     });
-    res.status(200).json({ success: true, data: updated });
+
+    // Only re-evaluate when the date actually moved, so an unrelated edit
+    // (venue, referee) can't quietly reset an admin's Umuganda decision.
+    let umugandaConflict = null;
+    let result = updated;
+    if (matchDate !== undefined) {
+      const sync = await syncFixtureConflict('LEAGUE', updated);
+      umugandaConflict = sync.conflict;
+      result = sync.fixture;
+    }
+
+    res.status(200).json({ success: true, data: result, umugandaConflict });
   } catch (error) {
     next(error);
   }
@@ -633,4 +649,7 @@ module.exports = {
   saveStats,
   updateFixtureMeta,
   streamFixture,
+  // Exported so the Umuganda decision endpoint authorizes a league fixture by
+  // exactly the same rule as every other fixture mutation.
+  canManageFixture,
 };

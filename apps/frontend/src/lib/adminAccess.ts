@@ -19,6 +19,9 @@ export const ADMIN_PAGES = [
   { path: '/admin/visitors', label: 'Visitors', roles: ['SUPERADMIN'] },
   { path: '/admin/akc3', label: 'Amashuri Games', roles: ['SUPERADMIN', 'AMASHURI_ADMIN'] },
   { path: '/admin/championships', label: 'Championships', roles: ['SUPERADMIN', 'AMASHURI_ADMIN'] },
+  // Umuganda touches league AND school fixtures, so every fixture-owning role
+  // needs it; per-fixture ownership is still enforced server-side.
+  { path: '/admin/umuganda', label: 'Umuganda', roles: ['SUPERADMIN', 'FEDERATION_ADMIN', 'LEAGUE_ADMIN', 'AMASHURI_ADMIN'] },
   { path: '/admin/settings', label: 'Settings', roles: ['SUPERADMIN'] },
 
   // League Admin operational sub-sections
