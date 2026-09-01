@@ -1,103 +1,172 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import {
-  GraduationCap, Trophy, School, Radio, MapPin, ArrowRight, Search, Users, Layers, Newspaper, ChevronRight,
+  GraduationCap, Trophy, School, Radio, MapPin, ArrowRight, Layers, Newspaper, ChevronRight,
 } from 'lucide-react';
 import {
   getSchools, getChampionships, getAkcSports, getAkcFixtures, getAkcAnnouncements,
 } from '../../api/endpoints/amashuri';
-import ResponsiveWrapper from '../../components/shared/ResponsiveWrapper';
+import { useEnumLabel } from '../../i18n/enums';
+import useSportLookup from '../../hooks/useSportLookup';
+import { SPORT_PHOTOS } from '../../config/heroMedia';
 import Seo from '../../components/shared/Seo';
 import ClubCrest from '../../components/ui/ClubCrest';
-import Button from '../../components/ui/Button';
+import SportIcon from '../../components/shared/SportIcon';
+import { Badge, EmptyState, ErrorState, SectionHeading, Skeleton, StatusPill } from '../../components/ui';
+import cn from '../../components/ui/cn';
 
 /**
  * Amashuri Games — the digital home of Rwandan SCHOOL sports.
  *
  * Not one tournament: an umbrella ecosystem of many sports, schools, teams and
- * competitions. The homepage mirrors the main RwaSport landing (hero → live →
- * pick a sport → competitions → schools → news) but scoped to schools and wearing
- * a gold accent to set the school ecosystem apart from the green main platform.
- * Every number and card is data-driven from the /akc3 API.
+ * competitions. The homepage mirrors the main RwaSport landing (header → live →
+ * pick a sport → competitions → schools → news), now on the same plain-header,
+ * token-driven system every other page uses — no photo hero, no dark gradient
+ * banner, no gold accent colour. Live on the real /akc3 API and fully
+ * translated (EN/FR/RW) — every label goes through t(); only data (school,
+ * competition names) stays data.
  */
 
-const GOLD = '#F5B301';
+/* ── header stat, same anatomy as SportLayout's Stat ─────────────────────── */
+const Stat = ({ icon: Icon, value, label, live = false }: { icon: any; value: any; label: any; live?: boolean }) => (
+  <span className="flex items-center gap-1.5">
+    <Icon size={14} aria-hidden="true" className={live ? 'text-live' : 'text-tertiary'} />
+    <span className={cn('text-sm font-semibold tabular-nums', live ? 'text-live' : 'text-primary')}>{value}</span>
+    <span className="text-sm text-tertiary">{label}</span>
+  </span>
+);
 
-/* ── live school match card (sport-aware status) ────────────────────────────── */
-const LiveSchoolCard = ({ fx }) => {
+/* ── live school match card — same anatomy as AmashuriFixtureCard/MatchTile ── */
+const LiveSchoolCard = ({ fx, t }: { fx: any; t: any }) => {
   const rows = [
-    { s: fx.homeTeam?.school, score: fx.homeScore },
-    { s: fx.awayTeam?.school, score: fx.awayScore },
+    { school: fx.homeTeam?.school, score: fx.homeScore },
+    { school: fx.awayTeam?.school, score: fx.awayScore },
   ];
   const lead = fx.homeScore != null && fx.awayScore != null ? (fx.homeScore >= fx.awayScore ? 0 : 1) : -1;
   return (
     <Link
       to={`/amashuri/matches/${fx.id}`}
-      className="flex w-[280px] shrink-0 snap-start flex-col rounded-2xl border border-hairline bg-surface p-4 transition-colors hover:border-[#F5B301]/50 sm:w-auto sm:min-w-0 sm:flex-1 sm:shrink"
+      className="flex w-[280px] shrink-0 snap-start flex-col gap-3 rounded-card border border-hairline bg-surface p-3 transition-colors duration-150 ease-standard hover:bg-surface-2 sm:w-auto sm:min-w-0"
     >
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <span className="truncate text-[10px] font-bold uppercase tracking-wider text-tertiary">{fx.competition?.name}</span>
-        <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-red/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red" /> {fx.statusLabel || 'Live'}
-        </span>
+      <div className="flex items-center justify-between gap-2">
+        <span className="min-w-0 flex-1 truncate text-xs text-tertiary">{fx.competition?.name}</span>
+        <StatusPill status="ONGOING" label={fx.statusLabel || t('match.live')} className="shrink-0" />
       </div>
-      <div className="space-y-2.5">
+      <div className="flex flex-col gap-1.5">
         {rows.map((r, i) => (
-          <div key={i} className="flex items-center gap-2.5">
-            <ClubCrest team={r.s} size="sm" />
-            <span className={`min-w-0 flex-1 truncate text-sm ${lead === i ? 'font-bold text-primary' : 'text-secondary'}`}>{r.s?.name || 'TBD'}</span>
-            <span className={`shrink-0 text-sm tabular-nums ${lead === i ? 'font-bold text-primary' : 'text-secondary'}`}>{r.score ?? '-'}</span>
+          <div key={i} className="flex items-center gap-2">
+            <ClubCrest team={r.school} size="sm" />
+            <span className={cn('min-w-0 flex-1 truncate text-sm', lead === i ? 'font-semibold text-primary' : 'text-secondary')}>
+              {r.school?.name || t('common.tbd')}
+            </span>
+            <span className={cn('shrink-0 text-sm tabular-nums', lead === i ? 'font-semibold text-primary' : 'text-secondary')}>
+              {r.score ?? 0}
+            </span>
           </div>
         ))}
       </div>
-      {fx.venue && <p className="mt-2.5 flex items-center gap-1 truncate text-[11px] text-tertiary"><MapPin size={11} /> {fx.venue}</p>}
+      {fx.venue && (
+        <p className="flex items-center gap-1 truncate text-xs text-tertiary">
+          <MapPin size={11} className="shrink-0" aria-hidden="true" /> {fx.venue}
+        </p>
+      )}
     </Link>
   );
 };
 
-/* ── sport card ─────────────────────────────────────────────────────────────── */
-const SportCard = ({ s }) => (
-  <Link
-    to="/amashuri/fixtures"
-    className="group flex w-[40vw] shrink-0 flex-col items-center gap-2 rounded-2xl border border-hairline bg-surface p-4 text-center transition-all hover:-translate-y-1 hover:border-[#F5B301]/50 sm:w-auto"
-  >
-    <span className="text-3xl transition-transform group-hover:scale-110" aria-hidden="true">{s.icon}</span>
-    <div>
-      <p className="text-sm font-bold text-primary">{s.name}</p>
-      <p className="text-[11px] text-tertiary">{s.competitions} competitions</p>
-    </div>
-  </Link>
-);
-
-/* ── competition card ───────────────────────────────────────────────────────── */
-const CompetitionCard = ({ c }) => {
-  const stats = c.regions != null
-    ? [[c.regions, 'Regions'], [c.events, 'Events'], [c.athletes, 'Athletes']]
-    : [[c.schools, 'Schools'], [c.groups, 'Groups'], [c.matches, 'Matches']];
+/* ── sport tile ────────────────────────────────────────────────────────────
+   A sport is a photograph everywhere else in this app (see SportsIndexPage).
+   The old tile was a grey circle holding one letter — an unloaded-avatar
+   look, not a placeholder anyone chose on purpose. A sport with a shipped
+   photo in /public/hero gets the same full-bleed treatment as the sports
+   catalogue; a sport with none (rugby, table tennis) gets a brand-tinted
+   panel carrying its icon — never a letter, never a bare grey box. ────── */
+const SportCard = ({ s, t }: { s: any; t: any }) => {
+  const hasPhoto = SPORT_PHOTOS.has(s.slug);
   return (
     <Link
       to="/amashuri/fixtures"
-      className="group flex w-[80vw] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-hairline bg-surface transition-all hover:-translate-y-1 hover:border-[#F5B301]/50 sm:w-auto"
+      className="group relative flex aspect-[3/4] w-[40vw] shrink-0 flex-col justify-end overflow-hidden rounded-card border border-hairline transition-colors duration-200 ease-standard hover:border-brand/50 sm:w-auto"
     >
-      <div className="relative h-28 overflow-hidden">
-        {c.coverImage && <img src={c.coverImage} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        <span className="absolute left-3 top-3 rounded-md bg-[#F5B301] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-black">{c.sportName}</span>
-      </div>
-      <div className="flex flex-1 flex-col p-4">
-        <h3 className="font-bold leading-tight text-primary group-hover:text-brand-text">{c.name}</h3>
-        <p className="mt-1 flex flex-wrap items-center gap-x-2 text-[11px] text-tertiary">
-          <span>{c.levelLabel}</span><span aria-hidden="true">·</span>
-          <span className="inline-flex items-center gap-0.5"><MapPin size={10} /> {c.location}</span>
+      {hasPhoto ? (
+        <>
+          <img
+            src={`/hero/${s.slug}.jpg`}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-standard group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+          <div className="relative p-3">
+            <p className="font-display text-sm font-bold leading-tight text-white">{s.name}</p>
+            <p className="mt-0.5 text-xs text-white/65">{t('amashuri.comp_count', { count: s.competitions })}</p>
+          </div>
+        </>
+      ) : (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-brand-tint p-3 text-center transition-colors duration-200 ease-standard group-hover:bg-brand/20">
+          <SportIcon slug={s.slug} size={26} className="text-brand-text" />
+          <div>
+            <p className="font-display text-sm font-bold leading-tight text-brand-text">{s.name}</p>
+            <p className="mt-0.5 text-xs text-brand-text/70">{t('amashuri.comp_count', { count: s.competitions })}</p>
+          </div>
+        </div>
+      )}
+    </Link>
+  );
+};
+
+/* ── competition tile ──────────────────────────────────────────────────────
+   A generated gradient (utils/crest.cover(), a `data:` URI) is a placeholder
+   this app drew for itself, so it loses to a real file: the sport's photo
+   from /public/hero first, then a genuinely uploaded (non-`data:`) cover,
+   then no band at all — never the gradient. Same precedence as ExplorePage's
+   `uploaded` const / LeagueCard's sportPhoto(). ────────────────────────── */
+const CompetitionCard = ({ c, t }: { c: any; t: any }) => {
+  const { bySportId } = useSportLookup();
+  const sport = bySportId(c.sportId);
+  const uploaded = c.coverImage && !String(c.coverImage).startsWith('data:') ? c.coverImage : null;
+  const img = (sport?.slug && SPORT_PHOTOS.has(sport.slug) ? `/hero/${sport.slug}.jpg` : null) || uploaded;
+  const stats = c.regions != null
+    ? [[c.regions, t('amashuri.col_regions')], [c.events, t('amashuri.col_events')], [c.athletes, t('amashuri.col_athletes')]]
+    : [[c.schools, t('amashuri.col_schools')], [c.groups, t('amashuri.col_groups')], [c.matches, t('amashuri.col_matches')]];
+  return (
+    <Link
+      to="/amashuri/fixtures"
+      className="group flex w-[80vw] shrink-0 snap-start flex-col overflow-hidden rounded-card border border-hairline bg-surface transition-colors duration-150 ease-standard hover:border-brand/40 hover:bg-surface-2 sm:w-auto"
+    >
+      {img && (
+        <div className="aspect-[16/9] overflow-hidden bg-surface-2">
+          <img src={img} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+        </div>
+      )}
+      <div className="flex flex-1 flex-col gap-1 p-4">
+        {c.sportName && (
+          <span className="flex items-center gap-1.5 text-xs font-semibold text-tertiary">
+            {sport?.slug && <SportIcon slug={sport.slug} size={12} className="shrink-0" />}
+            {c.sportName}
+          </span>
+        )}
+        <h3 className="font-display text-base font-semibold leading-tight text-primary transition-colors duration-150 ease-standard group-hover:text-brand-text">
+          {c.name}
+        </h3>
+        <p className="flex flex-wrap items-center gap-x-2 text-xs text-tertiary">
+          <span>{c.levelLabel}</span>
+          {c.location && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span className="inline-flex items-center gap-1"><MapPin size={11} aria-hidden="true" /> {c.location}</span>
+            </>
+          )}
         </p>
-        <div className="mt-auto grid grid-cols-3 gap-2 pt-3">
+        <div className="mt-3 grid grid-cols-3 gap-2 border-t border-hairline pt-3">
           {stats.map(([v, label]) => (
-            <div key={label} className="rounded-lg bg-surface-2 py-2 text-center">
+            <div key={label} className="text-center">
               <p className="font-display text-lg font-bold tabular-nums text-primary">{v}</p>
-              <p className="text-[9px] font-bold uppercase tracking-wider text-tertiary">{label}</p>
+              <p className="text-xs text-tertiary">{label}</p>
             </div>
           ))}
         </div>
@@ -106,110 +175,105 @@ const CompetitionCard = ({ c }) => {
   );
 };
 
-const SectionHead = ({ icon: Icon, title, to, viewLabel = 'View all' }) => (
-  <div className="mb-4 flex items-center justify-between gap-3">
-    <h2 className="flex items-center gap-2 text-lg font-extrabold uppercase tracking-tight text-primary sm:text-xl">
-      {Icon && <Icon size={18} style={{ color: GOLD }} />} {title}
-    </h2>
-    {to && (
-      <Link to={to} className="inline-flex shrink-0 items-center gap-1 text-xs font-bold uppercase tracking-wider text-brand-text">
-        {viewLabel} <ArrowRight size={13} />
-      </Link>
-    )}
-  </div>
-);
-
 const AkcHome = () => {
   const { t } = useTranslation();
-  const { data: schoolsRes } = useQuery({ queryKey: ['ama-schools'], queryFn: () => getSchools(), retry: false });
-  const { data: compsRes } = useQuery({ queryKey: ['ama-comps'], queryFn: () => getChampionships(), retry: false });
-  const { data: sportsRes } = useQuery({ queryKey: ['ama-sports'], queryFn: () => getAkcSports(), retry: false });
-  const { data: fixturesRes } = useQuery({ queryKey: ['ama-fixtures'], queryFn: () => getAkcFixtures(), retry: false });
-  const { data: newsRes } = useQuery({ queryKey: ['ama-news'], queryFn: () => getAkcAnnouncements(), retry: false });
+  const enumLabel = useEnumLabel();
 
-  const schools = schoolsRes?.data || [];
-  const competitions = compsRes?.data || [];
-  const sports = sportsRes?.data || [];
-  const live = (fixturesRes?.data || []).filter((f) => f.status === 'ONGOING');
-  const news = (newsRes?.data || []).slice(0, 3);
+  const schoolsQ = useQuery({ queryKey: ['ama-schools'], queryFn: () => getSchools(), retry: false });
+  const compsQ = useQuery({ queryKey: ['ama-comps'], queryFn: () => getChampionships(), retry: false });
+  const sportsQ = useQuery({ queryKey: ['ama-sports'], queryFn: () => getAkcSports(), retry: false });
+  const fixturesQ = useQuery({ queryKey: ['ama-fixtures'], queryFn: () => getAkcFixtures(), retry: false });
+  const newsQ = useQuery({ queryKey: ['ama-news'], queryFn: () => getAkcAnnouncements(), retry: false });
 
-  // Dynamic stats — real counts from the /akc3 data, never hardcoded.
-  const stats = [
-    { icon: Layers, value: sports.length, label: 'Sports' },
-    { icon: School, value: schools.length, label: 'Schools' },
-    { icon: Trophy, value: competitions.length, label: 'Competitions' },
-    { icon: Radio, value: live.length, label: 'Live matches' },
-  ];
+  const isLoading = schoolsQ.isLoading || compsQ.isLoading || sportsQ.isLoading || fixturesQ.isLoading || newsQ.isLoading;
+  const isError = schoolsQ.isError || compsQ.isError || sportsQ.isError || fixturesQ.isError || newsQ.isError;
+  const refetchAll = () => {
+    schoolsQ.refetch();
+    compsQ.refetch();
+    sportsQ.refetch();
+    fixturesQ.refetch();
+    newsQ.refetch();
+  };
+
+  if (isLoading) {
+    return (
+      <div className="mx-auto max-w-3xl space-y-3 px-4 pt-6 lg:max-w-6xl lg:px-6">
+        <Skeleton className="h-8 w-2/3" />
+        <Skeleton className="h-4 w-1/2" />
+        <Skeleton className="h-40 w-full rounded-card" />
+        <Skeleton className="h-40 w-full rounded-card" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-16 lg:max-w-6xl lg:px-6">
+        <ErrorState title={t('amashuri.error_title')} hint={t('amashuri.error_hint')} onRetry={refetchAll} />
+      </div>
+    );
+  }
+
+  const schools = schoolsQ.data?.data || [];
+  const competitions = compsQ.data?.data || [];
+  const sports = sportsQ.data?.data || [];
+  const live = (fixturesQ.data?.data || []).filter((f: any) => f.status === 'ONGOING');
+  const news = (newsQ.data?.data || []).slice(0, 3);
 
   return (
     <div className="min-h-screen bg-page">
       <Seo title={t('seo.amashuri_home_title')} description={t('seo.amashuri_home_desc')} />
 
-      {/* ─── HERO ─── */}
-      <section className="relative overflow-hidden bg-[#062a19] text-white">
-        <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(70% 80% at 75% 20%, rgba(16,120,60,0.45), transparent 60%)' }} />
-        <ResponsiveWrapper className="relative z-10 grid items-center gap-6 py-8 lg:grid-cols-2 lg:py-12">
-          <div>
-            <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider">
-              <GraduationCap size={14} style={{ color: GOLD }} /> Rwanda Inter-School Sports
-            </p>
-            <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl">
-              Rwandan School Sports,<br />All in <span style={{ color: GOLD }}>One Place</span>
-            </h1>
-            <p className="mt-4 max-w-md text-base leading-relaxed text-white/70">
-              Follow school competitions, teams, athletes, fixtures, results and championships across Rwanda.
-            </p>
-            <div className="mt-6 flex flex-wrap items-center gap-3">
-              <Link to="/amashuri/championships" className="inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-bold text-black transition-transform hover:-translate-y-0.5" style={{ background: GOLD }}>
-                Explore competitions <ArrowRight size={16} />
-              </Link>
-              <Link to="/amashuri/schools" className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-5 py-3 text-sm font-bold text-white backdrop-blur-sm transition-colors hover:bg-white/20">
-                <School size={16} /> Find a school
-              </Link>
-            </div>
-          </div>
-          {/* Multi-sport visual — swap in /amashuri-hero.png for real athletes. */}
-          <div className="hidden lg:block">
-            <div className="relative mx-auto flex aspect-[5/4] max-w-md items-center justify-center gap-4">
-              <div className="absolute inset-0" style={{ background: `radial-gradient(50% 50% at 55% 45%, ${GOLD}22, transparent 70%)` }} />
-              {['⚽', '🏀', '🏐', '🏃'].map((b, i) => (
-                <span key={b} className="relative text-6xl drop-shadow-[0_0_24px_rgba(245,179,1,0.35)]" style={{ transform: `translateY(${[10, -20, -6, 14][i]}px)` }}>{b}</span>
-              ))}
-            </div>
-          </div>
-        </ResponsiveWrapper>
+      <div className="mx-auto max-w-3xl px-4 pt-4 lg:max-w-6xl lg:px-6 lg:pt-6">
+        <div className="mb-2 flex items-center gap-2">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-control border border-hairline bg-surface-2 text-primary">
+            <GraduationCap size={16} aria-hidden="true" />
+          </span>
+          <Badge>{t('amashuri.tagline')}</Badge>
+        </div>
+        <h1 className="mb-3 font-display text-xl font-extrabold tracking-[-0.02em] text-primary sm:mb-4 sm:text-3xl">
+          {t('amashuri.home_title_line1')} {t('amashuri.home_title_pre')}{t('amashuri.home_title_accent')}
+        </h1>
+        <p className="mb-4 max-w-xl text-sm text-secondary sm:mb-6">{t('amashuri.home_subtitle')}</p>
 
-        {/* Stats bar */}
-        <ResponsiveWrapper className="relative z-10 pb-6">
-          <div className="grid grid-cols-2 gap-3 rounded-2xl border border-white/10 bg-black/25 p-4 sm:grid-cols-4">
-            {stats.map(({ icon: Icon, value, label }) => (
-              <div key={label} className="flex items-center gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/5"><Icon size={17} style={{ color: GOLD }} /></span>
-                <div>
-                  <p className="font-display text-xl font-extrabold leading-none tabular-nums">{value}</p>
-                  <p className="mt-0.5 text-[11px] text-white/55">{label}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </ResponsiveWrapper>
-      </section>
+        <div className="mb-4 flex flex-wrap items-center gap-x-5 gap-y-2 sm:mb-6">
+          <Link
+            to="/amashuri/championships"
+            className="inline-flex min-h-tap items-center gap-1.5 text-sm font-semibold text-secondary transition-colors duration-150 ease-standard hover:text-brand-text"
+          >
+            {t('amashuri.home_explore_comps')}
+            <ArrowRight size={14} aria-hidden="true" />
+          </Link>
+          <Link
+            to="/amashuri/schools"
+            className="inline-flex min-h-tap items-center gap-1.5 text-sm font-semibold text-secondary transition-colors duration-150 ease-standard hover:text-brand-text"
+          >
+            <School size={14} aria-hidden="true" />
+            {t('amashuri.home_find_school')}
+          </Link>
+        </div>
 
-      <ResponsiveWrapper className="space-y-10 py-8 lg:py-10">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-hairline pb-4 pt-4">
+          <Stat icon={Layers} value={sports.length} label={t('amashuri.stat_sports')} />
+          <Stat icon={School} value={schools.length} label={t('amashuri.stat_schools')} />
+          <Stat icon={Trophy} value={competitions.length} label={t('amashuri.stat_competitions')} />
+          <Stat icon={Radio} value={live.length} label={t('amashuri.stat_live')} live={live.length > 0} />
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-3xl space-y-8 px-4 pb-10 pt-2 lg:max-w-6xl lg:px-6 lg:pb-14">
         {/* ─── LIVE SCHOOL SPORTS ─── */}
         {live.length > 0 && (
           <section>
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <h2 className="flex items-center gap-2 text-lg font-extrabold uppercase tracking-tight text-primary sm:text-xl">
-                <Radio size={18} className="text-red" /> Live School Sports
-                <span className="rounded-full bg-red/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red">{live.length} Live</span>
-              </h2>
-              <Link to="/amashuri/fixtures" className="inline-flex shrink-0 items-center gap-1 text-xs font-bold uppercase tracking-wider text-brand-text">
-                <span className="hidden sm:inline">View all live matches</span><span className="sm:hidden">View all</span> <ArrowRight size={13} />
-              </Link>
-            </div>
-            <div className="scroll-contain flex snap-x gap-3 overflow-x-auto pb-1 sm:overflow-visible">
-              {live.map((fx) => <LiveSchoolCard key={fx.id} fx={fx} />)}
+            <SectionHeading
+              title={t('amashuri.live_school_sports')}
+              accent={t('amashuri.live_count', { count: live.length })}
+              action={t('amashuri.view_all_live')}
+              actionTo="/amashuri/fixtures"
+              className="mb-4"
+            />
+            <div className="scroll-contain flex snap-x gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-2 sm:overflow-visible lg:grid-cols-3">
+              {live.map((fx: any) => <LiveSchoolCard key={fx.id} fx={fx} t={t} />)}
             </div>
           </section>
         )}
@@ -217,13 +281,16 @@ const AkcHome = () => {
         {/* ─── PICK A SPORT ─── */}
         {sports.length > 0 && (
           <section>
-            <SectionHead title="Pick a sport" to="/amashuri/fixtures" viewLabel="View all sports" />
+            <SectionHeading title={t('amashuri.pick_sport')} action={t('amashuri.view_all_sports')} actionTo="/amashuri/fixtures" className="mb-4" />
             <div className="scroll-contain flex gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-4 sm:overflow-visible lg:grid-cols-8">
-              {sports.map((s) => <SportCard key={s.slug} s={s} />)}
-              <Link to="/amashuri/fixtures" className="flex w-[40vw] shrink-0 flex-col items-center justify-center gap-2 rounded-2xl border border-hairline bg-surface p-4 text-center hover:border-[#F5B301]/50 sm:w-auto">
-                <ChevronRight size={22} className="text-tertiary" />
-                <p className="text-sm font-bold text-primary">More sports</p>
-                <p className="text-[11px] text-tertiary">View all</p>
+              {sports.map((s: any) => <SportCard key={s.slug} s={s} t={t} />)}
+              <Link
+                to="/amashuri/fixtures"
+                className="flex aspect-[3/4] w-[40vw] shrink-0 flex-col items-center justify-center gap-2 rounded-card border border-hairline bg-surface p-3 text-center transition-colors duration-150 ease-standard hover:border-brand/40 hover:bg-surface-2 sm:w-auto"
+              >
+                <ChevronRight size={22} className="text-tertiary" aria-hidden="true" />
+                <p className="text-sm font-semibold text-primary">{t('amashuri.more_sports')}</p>
+                <p className="text-xs text-tertiary">{t('amashuri.view_all')}</p>
               </Link>
             </div>
           </section>
@@ -232,53 +299,63 @@ const AkcHome = () => {
         {/* ─── POPULAR COMPETITIONS ─── */}
         {competitions.length > 0 && (
           <section>
-            <SectionHead title="Popular competitions" to="/amashuri/championships" viewLabel="View all competitions" />
+            <SectionHeading title={t('amashuri.popular_comps')} action={t('amashuri.view_all_comps')} actionTo="/amashuri/championships" className="mb-4" />
             <div className="scroll-contain flex snap-x gap-4 overflow-x-auto pb-2 sm:grid sm:grid-cols-2 sm:overflow-visible lg:grid-cols-4">
-              {competitions.map((c) => <CompetitionCard key={c.id} c={c} />)}
+              {competitions.map((c: any) => <CompetitionCard key={c.id} c={c} t={t} />)}
             </div>
           </section>
         )}
 
         {/* ─── DISCOVER SCHOOLS + LATEST NEWS ─── */}
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
           <section>
-            <SectionHead icon={School} title="Discover schools" to="/amashuri/schools" viewLabel="View directory" />
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {schools.slice(0, 4).map((s) => (
-                <Link key={s.id} to={`/amashuri/schools/${s.id}`} className="group flex items-center gap-3 rounded-2xl border border-hairline bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-[#F5B301]/50">
-                  <ClubCrest team={s} size="lg" />
-                  <div className="min-w-0">
-                    <p className="truncate font-bold text-primary group-hover:text-brand-text">{s.name}</p>
-                    <p className="mt-0.5 flex items-center gap-1 truncate text-[11px] text-tertiary">
-                      <MapPin size={11} /> {s.sector || s.province || 'Rwanda'} · {s.category}
-                    </p>
-                  </div>
-                </Link>
-              ))}
-            </div>
+            <SectionHeading title={t('amashuri.discover_schools')} action={t('amashuri.view_directory')} actionTo="/amashuri/schools" className="mb-4" />
+            {schools.length > 0 ? (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {schools.slice(0, 4).map((s: any) => (
+                  <Link
+                    key={s.id}
+                    to={`/amashuri/schools/${s.id}`}
+                    className="group flex items-center gap-3 rounded-card border border-hairline bg-surface p-4 transition-colors duration-150 ease-standard hover:border-brand/40 hover:bg-surface-2"
+                  >
+                    <ClubCrest team={s} size="lg" />
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-primary transition-colors duration-150 ease-standard group-hover:text-brand-text">
+                        {s.name}
+                      </p>
+                      <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-tertiary">
+                        <MapPin size={11} aria-hidden="true" /> {s.sector || s.province || t('sporthub.rwanda')} · {enumLabel('school_category', s.category)}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <EmptyState icon={School} title={t('amashuri.no_schools')} hint={t('amashuri.no_schools_hint')} />
+            )}
           </section>
 
-          <section id="news" className="rounded-2xl border border-hairline bg-surface p-5">
+          <section className="rounded-card border border-hairline bg-surface p-4 sm:p-5">
             <div className="mb-4 flex items-center gap-2">
-              <Newspaper size={16} style={{ color: GOLD }} />
-              <h2 className="text-sm font-bold uppercase tracking-widest text-primary">Latest news</h2>
+              <Newspaper size={16} className="text-tertiary" aria-hidden="true" />
+              <h2 className="font-display text-lg font-semibold text-primary">{t('amashuri.latest_news')}</h2>
             </div>
             {news.length === 0 ? (
-              <p className="py-4 text-sm text-tertiary">No school-sports news yet.</p>
+              <p className="py-4 text-sm text-tertiary">{t('amashuri.no_news')}</p>
             ) : (
               <div className="space-y-4">
-                {news.map((a) => (
-                  <div key={a.id} className="border-b border-hairline/60 pb-3 last:border-0 last:pb-0">
-                    <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: GOLD }}>{String(a.category || 'News').replace(/_/g, ' ')}</p>
+                {news.map((a: any) => (
+                  <div key={a.id} className="border-b border-hairline pb-3 last:border-0 last:pb-0">
+                    <p className="text-xs text-tertiary">{String(a.category || t('amashuri.news_default')).replace(/_/g, ' ')}</p>
                     <p className="text-sm font-semibold leading-snug text-primary">{a.title}</p>
-                    {a.createdAt && <p className="mt-0.5 text-[11px] text-tertiary">{format(new Date(a.createdAt), 'd MMM yyyy')}</p>}
+                    {a.createdAt && <p className="mt-0.5 text-xs text-tertiary">{format(new Date(a.createdAt), 'd MMM yyyy')}</p>}
                   </div>
                 ))}
               </div>
             )}
           </section>
         </div>
-      </ResponsiveWrapper>
+      </div>
     </div>
   );
 };

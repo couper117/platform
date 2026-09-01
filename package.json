@@ -28,7 +28,8 @@
     "privacy:purge": "tsx scripts/purge-expired-data.mjs",
     "privacy:purge:apply": "tsx scripts/purge-expired-data.mjs --apply",
     "install:all": "npm install",
-    "prepare": "husky || true"
+    "prepare": "husky || true",
+    "dev:demo": "npm run dev:demo --workspace=apps/frontend"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",

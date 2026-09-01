@@ -1,27 +1,53 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Activity } from 'lucide-react';
-import ResponsiveWrapper from '../../components/shared/ResponsiveWrapper';
-import Skeleton from '../../components/shared/Skeleton';
 import Seo from '../../components/shared/Seo';
-import AmashuriHero from '../../components/amashuri/AmashuriHero';
 import AmashuriFixtureCard from '../../components/amashuri/AmashuriFixtureCard';
-import EmptyState from '../../components/ui/EmptyState';
+import { EmptyState, ErrorState, SkeletonList } from '../../components/ui';
+import cn from '../../components/ui/cn';
 import { getAkcFixtures } from '../../api/endpoints/amashuri';
 
-// AkcFixture status enum: SCHEDULED | ONGOING | COMPLETED | POSTPONED | CANCELLED
-const TABS = [
-  { status: 'SCHEDULED', labelKey: 'amashuri.schedule.upcoming' },
-  { status: 'ONGOING', labelKey: 'amashuri.schedule.live' },
-  { status: 'COMPLETED', labelKey: 'amashuri.schedule.results' },
+// AkcFixture status enum: SCHEDULED | ONGOING | COMPLETED | POSTPONED | CANCELLED.
+// Tab labels reuse the app-wide fixtures.tab_* strings rather than duplicating
+// "Upcoming/Live/Results" under amashuri — same words, one translation source.
+const TABS: [string, string][] = [
+  ['SCHEDULED', 'fixtures.tab_upcoming'],
+  ['ONGOING', 'fixtures.tab_live'],
+  ['COMPLETED', 'fixtures.tab_results'],
 ];
+
+const Tab = ({ active, children, ...props }: any) => (
+  <button
+    type="button"
+    aria-current={active ? 'page' : undefined}
+    className={cn(
+      'relative flex min-h-tap shrink-0 items-center whitespace-nowrap px-0.5 text-sm font-semibold',
+      'transition-colors duration-150 ease-standard',
+      'after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:content-[""]',
+      active ? 'text-primary after:bg-brand' : 'text-secondary after:bg-transparent hover:text-primary'
+    )}
+    {...props}
+  >
+    {children}
+  </button>
+);
 
 const AkcFixturesPage = () => {
   const { t } = useTranslation();
-  const [status, setStatus] = useState('SCHEDULED');
+  const location = useLocation();
+  // The route sets which status this screen opens on, same idiom as
+  // FixturesPage/:isResultsPage. The tabs still switch freely after.
+  const isResultsPage = location.pathname === '/amashuri/results';
+  const defaultStatus = isResultsPage ? 'COMPLETED' : 'SCHEDULED';
+  const [status, setStatus] = useState(defaultStatus);
 
-  const { data: fixtures, isLoading } = useQuery({
+  useEffect(() => {
+    setStatus(defaultStatus);
+  }, [defaultStatus]);
+
+  const { data: fixtures, isLoading, isError, refetch } = useQuery({
     queryKey: ['amashuri-fixtures', status],
     queryFn: () => getAkcFixtures({ status }),
     retry: false,
@@ -30,51 +56,48 @@ const AkcFixturesPage = () => {
   const list = fixtures?.data || [];
 
   return (
-    <div className="bg-surface-2 dark:bg-surface-dark min-h-screen pb-24">
+    <div className="min-h-screen bg-page">
       <Seo title={t('seo.amashuri_fixtures_title')} description={t('seo.amashuri_fixtures_desc')} />
 
-      <AmashuriHero
-        eyebrow={t('amashuri.schedule.eyebrow')}
-        title={t('amashuri.schedule.title')}
-        accent={t('amashuri.schedule.accent')}
-        subtitle={t('amashuri.schedule.subtitle')}
-        compact
-      />
+      <div className="mx-auto max-w-3xl px-4 pt-4 lg:max-w-6xl lg:px-6 lg:pt-6">
+        <h1 className="mb-3 font-display text-xl font-extrabold tracking-[-0.02em] text-primary sm:mb-4 sm:text-3xl">
+          {t('amashuri.schedule.title')} {t('amashuri.schedule.accent')}
+        </h1>
 
-      {/* Status tabs */}
-      <div className="sticky top-[68px] z-40 bg-white/80 dark:bg-surface-dark2/80 backdrop-blur-xl border-b border-surface-3 dark:border-white/5 shadow-sm">
-        <ResponsiveWrapper>
-          <div className="flex overflow-x-auto scrollbar-hide py-4 gap-8 items-center">
-            {TABS.map((tab) => (
-              <button
-                key={tab.status}
-                onClick={() => setStatus(tab.status)}
-                className={`text-[11px] font-bold uppercase tracking-widest transition-all whitespace-nowrap cursor-pointer ${
-                  status === tab.status
-                    ? 'text-rwanda-blue underline underline-offset-8 decoration-2'
-                    : 'opacity-40 hover:opacity-100'
-                }`}
-              >
-                {t(tab.labelKey)}
-              </button>
-            ))}
-          </div>
-        </ResponsiveWrapper>
+        <nav aria-label={t('fixtures.filter_state', 'State')} className="flex items-stretch gap-6 border-b border-hairline">
+          {TABS.map(([value, labelKey]) => (
+            <Tab key={value} active={status === value} onClick={() => setStatus(value)}>
+              {value === 'ONGOING' && status !== 'ONGOING' && (
+                <span
+                  aria-hidden="true"
+                  className="mr-2 inline-block h-1.5 w-1.5 animate-live-pulse rounded-pill bg-live align-middle"
+                />
+              )}
+              {t(labelKey)}
+            </Tab>
+          ))}
+        </nav>
       </div>
 
-      <ResponsiveWrapper className="mt-12">
+      <div className="mx-auto max-w-3xl px-4 pb-10 pt-4 lg:max-w-6xl lg:px-6 lg:pb-14">
         {isLoading ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8"><Skeleton type="card" count={4} /></div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <SkeletonList count={6}>
+              <AmashuriFixtureCard.Skeleton />
+            </SkeletonList>
+          </div>
+        ) : isError ? (
+          <ErrorState title={t('amashuri.schedule.error_title')} hint={t('amashuri.schedule.error_hint')} onRetry={refetch} />
         ) : list.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            {list.map((fixture) => (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {list.map((fixture: any) => (
               <AmashuriFixtureCard key={fixture.id} fixture={fixture} />
             ))}
           </div>
         ) : (
           <EmptyState icon={Activity} title={t('amashuri.schedule.empty')} hint={t('amashuri.schedule.empty_hint')} />
         )}
-      </ResponsiveWrapper>
+      </div>
     </div>
   );
 };

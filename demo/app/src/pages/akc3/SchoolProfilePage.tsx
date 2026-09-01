@@ -3,129 +3,154 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { School, MapPin, Users, Trophy, ChevronLeft } from 'lucide-react';
-import ResponsiveWrapper from '../../components/shared/ResponsiveWrapper';
-import Skeleton from '../../components/shared/Skeleton';
+import { getSchool, getAkcFixtures } from '../../api/endpoints/amashuri';
+import { useEnumLabel } from '../../i18n/enums';
 import Seo from '../../components/shared/Seo';
 import AmashuriFixtureCard from '../../components/amashuri/AmashuriFixtureCard';
-import Card from '../../components/ui/Card';
-import Badge from '../../components/ui/Badge';
-import EmptyState from '../../components/ui/EmptyState';
-import { getSchool, getAkcFixtures } from '../../api/endpoints/amashuri';
+import ClubCrest from '../../components/ui/ClubCrest';
+import { Badge, EmptyState, ErrorState, SectionHeading, Skeleton, SkeletonList } from '../../components/ui';
+
+const TeamCard = ({ team, t, enumLabel }: { team: any; t: any; enumLabel: any }) => (
+  <div className="flex flex-col gap-4 rounded-card border border-hairline bg-surface p-4">
+    <div className="flex items-start justify-between gap-2">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control bg-surface-2 text-tertiary">
+        <Trophy size={18} aria-hidden="true" />
+      </span>
+      <Badge>{enumLabel('age_category', team.ageCategory)}</Badge>
+    </div>
+    <div>
+      <h3 className="font-display text-base font-semibold text-primary">
+        {enumLabel('gender', team.gender)} {t('amashuri.school_profile.team')}
+      </h3>
+      <p className="mt-0.5 text-xs text-tertiary">
+        {t('amashuri.school_profile.coach')}: {team.coachName || t('common.tbd')}
+      </p>
+    </div>
+    <div className="flex items-center gap-2 border-t border-hairline pt-3 text-xs text-secondary">
+      <Users size={14} className="text-tertiary" aria-hidden="true" />
+      <span>{team.players?.length || 0} {t('amashuri.school_profile.players')}</span>
+    </div>
+  </div>
+);
 
 const SchoolProfilePage = () => {
   const { t } = useTranslation();
+  const enumLabel = useEnumLabel();
   const { id } = useParams();
 
-  const { data: school, isLoading } = useQuery({
+  const { data: school, isLoading, isError, refetch } = useQuery({
     queryKey: ['amashuri-school-profile', id],
     queryFn: () => getSchool(id),
+    enabled: !!id,
     retry: false,
   });
 
-  const { data: fixtures } = useQuery({
+  const { data: fixtures, isLoading: fixturesLoading, isError: fixturesError, refetch: refetchFixtures } = useQuery({
     queryKey: ['amashuri-school-fixtures', id],
     queryFn: () => getAkcFixtures({ schoolId: id }),
     enabled: !!id,
     retry: false,
   });
 
-  if (isLoading) return <div className="py-20"><ResponsiveWrapper><Skeleton type="card" /></ResponsiveWrapper></div>;
-
   const s = school?.data;
   const teams = s?.teams || [];
   const matches = fixtures?.data || [];
+  const ready = !isLoading && !isError && !!s;
 
   return (
-    <div className="bg-surface-2 dark:bg-surface-dark min-h-screen pb-24">
+    <div className="min-h-screen bg-page">
       <Seo
         title={t('seo.school_profile_title', { school: s?.name || t('amashuri.school') })}
         description={t('seo.school_profile_desc', { school: s?.name || t('amashuri.school') })}
       />
 
-      {/* Header */}
-      <section className="bg-red py-16 sm:py-20 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-red via-red to-[#007bb0]" />
-        <div className="absolute -top-24 -right-16 w-96 h-96 rounded-full bg-rwanda-yellow/15 blur-[120px]" />
-        <ResponsiveWrapper className="relative z-10">
-          <Link to="/amashuri/schools" className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white/60 hover:text-rwanda-yellow transition-colors mb-8">
-            <ChevronLeft size={14} />
-            <span>{t('amashuri.school_profile.back')}</span>
-          </Link>
+      <div className="mx-auto max-w-3xl px-4 pt-4 lg:max-w-6xl lg:px-6 lg:pt-6">
+        <Link
+          to="/amashuri/schools"
+          className="mb-3 inline-flex items-center gap-1.5 text-xs font-semibold text-secondary transition-colors duration-150 ease-standard hover:text-brand-text"
+        >
+          <ChevronLeft size={14} aria-hidden="true" /> {t('amashuri.school_profile.back')}
+        </Link>
 
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-            <div className="flex items-center gap-6">
-              <div className="w-24 h-24 sm:w-32 sm:h-32 bg-white rounded-3xl flex items-center justify-center text-red shadow-2xl overflow-hidden">
-                {s?.logo ? <img src={s.logo} alt={s.name} className="w-full h-full object-cover" /> : <School size={64} />}
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="bg-rwanda-yellow text-red text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded">{s?.category}</span>
-                  {s?.code && <span className="text-[10px] font-bold uppercase tracking-widest opacity-60 italic">Code: {s.code}</span>}
+        {isLoading ? (
+          <div className="flex items-center gap-4 pb-4">
+            <Skeleton circle className="h-16 w-16" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-6 w-1/2" />
+              <Skeleton className="h-3 w-1/3" />
+            </div>
+          </div>
+        ) : isError ? (
+          <ErrorState title={t('amashuri.school_profile.error_title')} hint={t('amashuri.school_profile.error_hint')} onRetry={refetch} className="py-10" />
+        ) : !s ? (
+          <EmptyState icon={School} title={t('amashuri.school_profile.not_found')} hint={t('amashuri.school_profile.not_found_hint')} className="py-10" />
+        ) : (
+          <>
+            <div className="flex flex-wrap items-center gap-4 pb-4">
+              <ClubCrest team={s} size="lg" />
+              <div className="min-w-0">
+                <div className="mb-1 flex flex-wrap items-center gap-2">
+                  <Badge>{enumLabel('school_category', s.category)}</Badge>
+                  {s.code && <span className="text-xs text-tertiary">{t('amashuri.directory.code', { code: s.code })}</span>}
                 </div>
-                <h1 className="text-4xl sm:text-6xl font-display uppercase tracking-tighter leading-none">{s?.name}</h1>
-                <div className="flex items-center gap-2 opacity-60 text-xs font-bold uppercase tracking-widest">
-                  <MapPin size={14} />
-                  <span>{s?.sector || 'Rwanda'}</span>
-                </div>
+                <h1 className="font-display text-xl font-extrabold tracking-[-0.02em] text-primary sm:text-3xl">{s.name}</h1>
+                <p className="mt-1 flex items-center gap-1 text-xs text-tertiary">
+                  <MapPin size={12} aria-hidden="true" /> {s.sector || t('sporthub.rwanda')}
+                </p>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10 text-center min-w-[96px]">
-                <span className="block text-2xl font-display leading-none">{teams.length}</span>
-                <span className="text-[8px] uppercase font-bold tracking-widest opacity-60">{t('amashuri.school_profile.active_teams')}</span>
-              </div>
-              <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10 text-center min-w-[96px]">
-                <span className="block text-2xl font-display leading-none">{matches.length}</span>
-                <span className="text-[8px] uppercase font-bold tracking-widest opacity-60">{t('amashuri.school_profile.fixtures')}</span>
-              </div>
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-hairline pb-4 pt-4">
+              <span className="flex items-center gap-1.5 text-sm">
+                <Trophy size={14} className="text-tertiary" aria-hidden="true" />
+                <span className="font-semibold tabular-nums text-primary">{teams.length}</span>
+                <span className="text-tertiary">{t('amashuri.school_profile.active_teams')}</span>
+              </span>
+              <span className="flex items-center gap-1.5 text-sm">
+                <Users size={14} className="text-tertiary" aria-hidden="true" />
+                <span className="font-semibold tabular-nums text-primary">{matches.length}</span>
+                <span className="text-tertiary">{t('amashuri.school_profile.fixtures')}</span>
+              </span>
             </div>
-          </div>
-        </ResponsiveWrapper>
-      </section>
+          </>
+        )}
+      </div>
 
-      <ResponsiveWrapper className="mt-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          {/* Teams */}
-          <div className="lg:col-span-2 space-y-8">
-            <h2 className="text-3xl font-display uppercase tracking-tight border-b border-surface-3 dark:border-white/5 pb-4">{t('amashuri.school_profile.teams_title')} <span className="text-red">{t('amashuri.school_profile.teams_accent')}</span></h2>
-            {teams.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {teams.map((team) => (
-                  <Card key={team.id} className="p-6 space-y-6">
-                    <div className="flex justify-between items-start">
-                      <span className="p-3 bg-red/5 rounded-2xl text-red"><Trophy size={20} /></span>
-                      <Badge tone="blue">{team.ageCategory}</Badge>
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-display uppercase tracking-tight">{team.gender} {t('amashuri.school_profile.team')}</h3>
-                      <p className="text-[10px] uppercase font-bold tracking-widest opacity-40">{t('amashuri.school_profile.coach')}: {team.coachName || 'TBD'}</p>
-                    </div>
-                    <div className="flex items-center gap-2 pt-4 border-t border-surface-3 dark:border-white/5">
-                      <Users size={14} className="opacity-40" />
-                      <span className="text-xs font-bold opacity-60">{team.players?.length || 0} {t('amashuri.school_profile.players')}</span>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <EmptyState icon={Users} title={t('amashuri.school_profile.no_teams')} hint={t('amashuri.school_profile.no_teams_hint')} />
-            )}
-          </div>
+      {ready && (
+        <div className="mx-auto max-w-3xl px-4 pb-10 lg:max-w-6xl lg:px-6 lg:pb-14">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+            <section className="lg:col-span-2">
+              <SectionHeading title={t('amashuri.school_profile.teams_title')} accent={t('amashuri.school_profile.teams_accent')} className="mb-4" />
+              {teams.length > 0 ? (
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {teams.map((team: any) => <TeamCard key={team.id} team={team} t={t} enumLabel={enumLabel} />)}
+                </div>
+              ) : (
+                <EmptyState icon={Users} title={t('amashuri.school_profile.no_teams')} hint={t('amashuri.school_profile.no_teams_hint')} />
+              )}
+            </section>
 
-          {/* Matches */}
-          <div className="space-y-8">
-            <h2 className="text-3xl font-display uppercase tracking-tight border-b border-surface-3 dark:border-white/5 pb-4">{t('amashuri.school_profile.match_center')} <span className="text-red">{t('amashuri.school_profile.match_center_accent')}</span></h2>
-            {matches.length > 0 ? (
-              <div className="space-y-6">
-                {matches.slice(0, 4).map((f) => <AmashuriFixtureCard key={f.id} fixture={f} />)}
-              </div>
-            ) : (
-              <EmptyState title={t('amashuri.school_profile.no_matches')} hint={t('amashuri.school_profile.no_matches_hint')} className="py-16" />
-            )}
+            <section>
+              <SectionHeading title={t('amashuri.school_profile.match_center')} accent={t('amashuri.school_profile.match_center_accent')} className="mb-4" />
+              {fixturesLoading ? (
+                <div className="grid grid-cols-1 gap-3">
+                  <SkeletonList count={2}>
+                    <AmashuriFixtureCard.Skeleton />
+                  </SkeletonList>
+                </div>
+              ) : fixturesError ? (
+                <ErrorState title={t('amashuri.schedule.error_title')} hint={t('amashuri.schedule.error_hint')} onRetry={refetchFixtures} />
+              ) : matches.length > 0 ? (
+                <div className="grid grid-cols-1 gap-3">
+                  {matches.slice(0, 4).map((f: any) => <AmashuriFixtureCard key={f.id} fixture={f} />)}
+                </div>
+              ) : (
+                <EmptyState title={t('amashuri.school_profile.no_matches')} hint={t('amashuri.school_profile.no_matches_hint')} className="py-10" />
+              )}
+            </section>
           </div>
         </div>
-      </ResponsiveWrapper>
+      )}
     </div>
   );
 };

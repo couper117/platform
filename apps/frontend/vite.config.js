@@ -36,7 +36,12 @@ export default defineConfig({
     }),
   ],
   server: {
-    port: 5173,
+    // 5174 is this project's port. `strictPort` makes a clash FAIL rather than
+    // silently moving to the next free port — a dev server quietly landing on a
+    // different port than the one you opened is how you end up staring at a stale
+    // tab wondering why a change did not appear.
+    port: 5174,
+    strictPort: true,
     proxy: {
       '/api': {
         target: 'http://localhost:5000',

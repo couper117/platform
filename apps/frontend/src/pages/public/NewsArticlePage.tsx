@@ -1,16 +1,39 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { format } from 'date-fns';
-import { Calendar, User, ChevronLeft, AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Calendar, User, ChevronLeft, Newspaper } from 'lucide-react';
 import { getArticle } from '../../api/endpoints/news';
-import ResponsiveWrapper from '../../components/shared/ResponsiveWrapper';
-import Skeleton from '../../components/shared/Skeleton';
 import Seo from '../../components/shared/Seo';
+import useDateFormat from '../../i18n/dateLocale';
+import { useEnumLabel } from '../../i18n/enums';
+import { Badge, Button, EmptyState, ErrorState, Skeleton, SkeletonText } from '../../components/ui';
 
+/**
+ * Article.
+ *
+ * WHAT THIS REPLACED
+ * A 42vh photo hero with a dark gradient scrim, an uppercase red category
+ * pill floating over it, and body copy dropped in at `max-w-none` — the
+ * measure ran the full content column, well past a readable line length.
+ *
+ * This is a reading page now: the header (back link, category, headline,
+ * date/author) sits in the normal page-header slot, the cover image (when
+ * there is one) runs as a plain in-flow hero rather than a text-on-photo
+ * banner, and the body sits at `max-w-[68ch]` — the width every other prose
+ * block in the system targets.
+ *
+ * The body is still rendered with `dangerouslySetInnerHTML`, unchanged from
+ * before — this pass restyles the wrapper, it does not touch how the HTML
+ * gets there or gets sanitised.
+ */
 const NewsArticlePage = () => {
+  const { t } = useTranslation();
   const { slug } = useParams();
-  const { data, isLoading, isError } = useQuery({
+  const formatDate = useDateFormat();
+  const enumLabel = useEnumLabel();
+
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['news-article', slug],
     queryFn: () => getArticle(slug),
     retry: 1,
@@ -19,49 +42,109 @@ const NewsArticlePage = () => {
   const article = data?.data;
 
   if (isLoading) {
-    return <div className="py-24"><ResponsiveWrapper><Skeleton type="card" count={1} /></ResponsiveWrapper></div>;
+    return (
+      <div className="mx-auto max-w-3xl px-4 pt-4 lg:px-6 lg:pt-6">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="mt-4 h-8 w-3/4" />
+        <Skeleton className="mt-3 h-4 w-40" />
+        <Skeleton className="mt-5 aspect-[16/9] w-full" />
+        <SkeletonText lines={6} className="mt-6 max-w-[68ch]" />
+      </div>
+    );
   }
 
-  if (isError || !article) {
+  if (isError) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 text-center px-4">
-        <AlertCircle size={40} className="text-red" />
-        <p className="font-display text-3xl uppercase tracking-widest opacity-60">Article not found</p>
-        <Link to="/news" className="bg-red text-white px-6 py-2 rounded-lg font-display uppercase tracking-widest text-sm">Back to News</Link>
+      <div className="mx-auto max-w-3xl px-4 py-16 lg:px-6">
+        <ErrorState title={t('news.error_title')} hint={t('news.error_hint')} onRetry={refetch} />
+      </div>
+    );
+  }
+
+  if (!article) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-16 lg:px-6">
+        <EmptyState
+          icon={Newspaper}
+          title={t('news.not_found_title')}
+          hint={t('news.not_found_hint')}
+          action={
+            <Button to="/news" variant="secondary" icon={ChevronLeft}>
+              {t('news.back_to_news')}
+            </Button>
+          }
+        />
       </div>
     );
   }
 
   return (
-    <article className="bg-surface-2 dark:bg-surface-dark min-h-screen pb-24">
-      <Seo title={article.title} description={article.excerpt || ''} image={article.coverImage} />
+    <article className="min-h-screen bg-page pb-16">
+      <Seo title={article.title} description={article.excerpt || ''} />
 
-      {/* Hero */}
-      <div className="relative h-[42vh] min-h-[300px] bg-surface-dark overflow-hidden">
-        {article.coverImage && (
-          <img src={article.coverImage} alt={article.title} className="absolute inset-0 w-full h-full object-cover opacity-60" />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-surface-dark via-surface-dark/70 to-transparent" />
-        <ResponsiveWrapper className="relative z-10 h-full flex flex-col justify-end pb-10">
-          <Link to="/news" className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white/50 hover:text-red mb-4 w-fit">
-            <ChevronLeft size={14} /> Back to News
-          </Link>
-          <span className="bg-red text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full w-fit mb-4">{article.category}</span>
-          <h1 className="text-3xl sm:text-5xl font-display text-white uppercase tracking-tighter leading-tight max-w-4xl">{article.title}</h1>
-          <div className="flex items-center gap-4 mt-4 text-[10px] uppercase font-bold tracking-widest text-white/50">
-            <span className="flex items-center gap-1"><Calendar size={12} />{article.createdAt ? format(new Date(article.createdAt), 'dd MMM yyyy') : ''}</span>
-            <span className="flex items-center gap-1"><User size={12} />{article.author?.fullName || 'RwaSport'}</span>
-          </div>
-        </ResponsiveWrapper>
+      <div className="mx-auto max-w-3xl px-4 pt-4 lg:px-6 lg:pt-6">
+        <Link
+          to="/news"
+          className="mb-4 inline-flex min-h-tap items-center gap-1.5 text-sm font-semibold text-secondary transition-colors duration-150 ease-standard hover:text-brand-text"
+        >
+          <ChevronLeft size={16} aria-hidden="true" />
+          {t('news.back_to_news')}
+        </Link>
+
+        {article.category && <Badge className="mb-3">{enumLabel('news_category', article.category)}</Badge>}
+
+        <h1 className="font-display text-2xl font-extrabold leading-tight tracking-[-0.02em] text-primary sm:text-4xl">
+          {article.title}
+        </h1>
+
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-tertiary">
+          {article.createdAt && (
+            <span className="flex items-center gap-1.5">
+              <Calendar size={13} aria-hidden="true" />
+              {formatDate(article.createdAt, 'd MMMM yyyy')}
+            </span>
+          )}
+          <span className="flex items-center gap-1.5">
+            <User size={13} aria-hidden="true" />
+            {article.author?.fullName || t('news.default_author')}
+          </span>
+        </div>
       </div>
 
-      <ResponsiveWrapper className="mt-12 max-w-3xl">
-        {article.excerpt && <p className="text-lg sm:text-xl font-light opacity-70 leading-relaxed mb-8 border-l-4 border-red pl-6">{article.excerpt}</p>}
+      {article.coverImage && (
+        <div className="mx-auto mt-5 max-w-3xl px-4 lg:px-6">
+          <div className="aspect-[16/9] overflow-hidden rounded-card bg-surface-2">
+            <img
+              src={article.coverImage}
+              alt={article.title}
+              loading="eager"
+              decoding="async"
+              className="h-full w-full object-cover"
+            />
+          </div>
+        </div>
+      )}
+
+      <div className="mx-auto max-w-3xl px-4 pt-6 lg:px-6">
+        {article.excerpt && (
+          <p className="max-w-[68ch] text-lg font-medium leading-relaxed text-secondary">{article.excerpt}</p>
+        )}
         <div
-          className="prose prose-lg dark:prose-invert max-w-none opacity-80 leading-relaxed [&_p]:mb-4"
+          className={[
+            'max-w-[68ch] text-base leading-relaxed text-secondary',
+            article.excerpt ? 'mt-6' : '',
+            '[&>p]:mb-4 [&>p:last-child]:mb-0',
+            '[&_h2]:mb-3 [&_h2]:mt-8 [&_h2]:font-display [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-primary',
+            '[&_h3]:mb-2 [&_h3]:mt-6 [&_h3]:font-display [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-primary',
+            '[&_a]:font-semibold [&_a]:text-brand-text [&_a]:underline [&_a]:underline-offset-2',
+            '[&_strong]:font-semibold [&_strong]:text-primary',
+            '[&_ul]:mb-4 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:mb-4 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-1',
+            '[&_blockquote]:border-l-2 [&_blockquote]:border-brand/40 [&_blockquote]:pl-4 [&_blockquote]:italic',
+            '[&_img]:my-4 [&_img]:rounded-card',
+          ].join(' ')}
           dangerouslySetInnerHTML={{ __html: article.body || '' }}
         />
-      </ResponsiveWrapper>
+      </div>
     </article>
   );
 };

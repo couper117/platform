@@ -5,55 +5,77 @@ import { useTranslation } from 'react-i18next';
 import { Trophy, Calendar, MapPin, Layers, ChevronRight, Medal } from 'lucide-react';
 import { format } from 'date-fns';
 import { getChampionships, getSchools } from '../../api/endpoints/amashuri';
-import ResponsiveWrapper from '../../components/shared/ResponsiveWrapper';
-import Skeleton from '../../components/shared/Skeleton';
+import { useEnumLabel } from '../../i18n/enums';
 import Seo from '../../components/shared/Seo';
-import AmashuriHero from '../../components/amashuri/AmashuriHero';
 import AmashuriStats from '../../components/amashuri/AmashuriStats';
-import SectionHeading from '../../components/ui/SectionHeading';
-import Card from '../../components/ui/Card';
-import Badge from '../../components/ui/Badge';
-import EmptyState from '../../components/ui/EmptyState';
+import { EmptyState, ErrorState, SectionHeading, Skeleton, SkeletonList, StatusPill } from '../../components/ui';
 
-const statusTone = (status) => {
-  switch (status) {
-    case 'ONGOING': return 'green';
-    case 'COMPLETED': return 'blue';
-    case 'CANCELLED': return 'red';
-    default: return 'gold';
-  }
-};
-
-const ChampionshipCard = ({ c, t }) => (
-  <Card hover className="p-6 relative overflow-hidden">
-    <div className="absolute top-0 right-0 w-28 h-28 bg-rwanda-blue/5 -mr-12 -mt-12 rounded-full" />
-    <div className="relative z-10 space-y-4">
-      <div className="flex items-start justify-between">
-        <span className="p-3 bg-rwanda-blue/10 rounded-2xl text-rwanda-blue"><Trophy size={24} /></span>
-        <Badge tone={statusTone(c.status)}>{(c.status || 'UPCOMING').replace(/_/g, ' ')}</Badge>
-      </div>
-      <div>
-        <h3 className="font-display text-2xl uppercase tracking-tight leading-tight">{c.name}</h3>
-        {c.edition && <p className="text-[10px] uppercase tracking-widest opacity-40 mt-1">{c.edition}</p>}
-      </div>
-      <div className="flex flex-wrap gap-4 text-[10px] font-bold uppercase tracking-widest opacity-50">
-        <span className="flex items-center gap-1.5"><Layers size={12} className="text-rwanda-blue" />{c.level || 'National'}</span>
-        {c.venue && <span className="flex items-center gap-1.5"><MapPin size={12} className="text-rwanda-blue" />{c.venue}</span>}
-        {c.startDate && <span className="flex items-center gap-1.5"><Calendar size={12} className="text-rwanda-blue" />{format(new Date(c.startDate), 'dd MMM yyyy')}</span>}
-      </div>
-      <div className="flex items-center justify-between pt-4 border-t border-surface-3 dark:border-white/5 text-[10px] uppercase font-bold tracking-widest">
-        <span className="opacity-50">{t('amashuri.championships_page.fixtures_teams', { fixtures: c._count?.fixtures ?? 0, teams: c._count?.standings ?? 0 })}</span>
-        <Link to="/amashuri/standings" className="flex items-center gap-1 text-rwanda-blue hover:underline">
-          {t('amashuri.championships_page.standings')} <ChevronRight size={14} />
-        </Link>
-      </div>
+const ChampionshipCard = ({ c, t, enumLabel }: { c: any; t: any; enumLabel: any }) => (
+  <Link
+    to="/amashuri/standings"
+    className="group flex h-full flex-col gap-4 rounded-card border border-hairline bg-surface p-4 transition-colors duration-150 ease-standard hover:border-brand/40 hover:bg-surface-2 sm:p-5"
+  >
+    <div className="flex items-start justify-between gap-2">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control bg-surface-2 text-tertiary transition-colors duration-150 ease-standard group-hover:bg-brand-tint group-hover:text-brand-text">
+        <Trophy size={18} aria-hidden="true" />
+      </span>
+      <StatusPill status={c.status || 'UPCOMING'} label={enumLabel('championship_status', c.status || 'UPCOMING')} />
     </div>
-  </Card>
+
+    <div className="min-w-0 flex-1 space-y-1">
+      <h3 className="truncate font-display text-lg font-semibold text-primary">{c.name}</h3>
+      {c.edition && <p className="text-xs text-tertiary">{c.edition}</p>}
+    </div>
+
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-secondary">
+      <span className="flex items-center gap-1.5">
+        <Layers size={12} className="shrink-0 text-tertiary" aria-hidden="true" />
+        {c.level ? enumLabel('level', c.level) : t('amashuri.level.national')}
+      </span>
+      {c.venue && (
+        <span className="flex items-center gap-1.5">
+          <MapPin size={12} className="shrink-0 text-tertiary" aria-hidden="true" /> {c.venue}
+        </span>
+      )}
+      {c.startDate && (
+        <span className="flex items-center gap-1.5">
+          <Calendar size={12} className="shrink-0 text-tertiary" aria-hidden="true" /> {format(new Date(c.startDate), 'dd MMM yyyy')}
+        </span>
+      )}
+    </div>
+
+    <div className="mt-auto flex items-center justify-between border-t border-hairline pt-3 text-xs">
+      <span className="text-secondary">
+        {t('amashuri.championships_page.fixtures_teams', { fixtures: c._count?.fixtures ?? 0, teams: c._count?.standings ?? 0 })}
+      </span>
+      <span className="flex items-center gap-1 font-semibold text-secondary transition-colors duration-150 ease-standard group-hover:text-brand-text">
+        {t('amashuri.championships_page.standings')} <ChevronRight size={14} aria-hidden="true" />
+      </span>
+    </div>
+  </Link>
 );
+
+const ChampionshipCardSkeleton = () => (
+  <div className="h-full rounded-card border border-hairline bg-surface p-4 sm:p-5">
+    <div className="mb-4 flex items-start justify-between gap-2">
+      <Skeleton className="h-10 w-10" />
+      <Skeleton className="h-5 w-16" />
+    </div>
+    <Skeleton className="h-5 w-3/4" />
+    <Skeleton className="mt-2 h-3 w-1/2" />
+    <div className="mt-4 border-t border-hairline pt-3">
+      <Skeleton className="h-3 w-2/3" />
+    </div>
+  </div>
+);
+
+const GRID = 'grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 lg:gap-5';
 
 const ChampionshipsPage = () => {
   const { t } = useTranslation();
-  const { data: comps, isLoading } = useQuery({
+  const enumLabel = useEnumLabel();
+
+  const { data: comps, isLoading, isError, refetch } = useQuery({
     queryKey: ['amashuri-championships'],
     queryFn: () => getChampionships(),
     retry: false,
@@ -67,36 +89,51 @@ const ChampionshipsPage = () => {
   const championships = comps?.data || [];
 
   return (
-    <div className="bg-surface-2 dark:bg-surface-dark min-h-screen pb-24">
+    <div className="min-h-screen bg-page">
       <Seo title={t('seo.amashuri_championships_title')} description={t('seo.amashuri_championships_desc')} />
 
-      <AmashuriHero
-        title={t('amashuri.championships_page.title')}
-        accent={t('amashuri.championships_page.accent')}
-        subtitle={t('amashuri.championships_page.subtitle')}
-      />
+      <div className="mx-auto max-w-3xl px-4 pt-4 lg:max-w-6xl lg:px-6 lg:pt-6">
+        <h1 className="mb-3 font-display text-xl font-extrabold tracking-[-0.02em] text-primary sm:mb-4 sm:text-3xl">
+          {t('amashuri.championships_page.title')} {t('amashuri.championships_page.accent')}
+        </h1>
+        <p className="mb-4 text-sm text-secondary sm:mb-6">{t('amashuri.championships_page.subtitle')}</p>
+      </div>
 
-      <ResponsiveWrapper className="mt-16 space-y-20">
-        {/* Championships list */}
+      <div className="mx-auto max-w-3xl space-y-10 px-4 pb-10 lg:max-w-6xl lg:px-6 lg:pb-14">
         <section>
-          <SectionHeading eyebrow={t('amashuri.championships_page.umbrella')} title={t('amashuri.championships_page.all')} accent={t('amashuri.championships_page.all_accent')} />
+          <SectionHeading
+            eyebrow={t('amashuri.championships_page.umbrella')}
+            title={t('amashuri.championships_page.all')}
+            accent={t('amashuri.championships_page.all_accent')}
+            className="mb-4"
+          />
           {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"><Skeleton type="card" count={3} /></div>
+            <div className={GRID}>
+              <SkeletonList count={6}>
+                <ChampionshipCardSkeleton />
+              </SkeletonList>
+            </div>
+          ) : isError ? (
+            <ErrorState title={t('amashuri.championships_page.error_title')} hint={t('amashuri.championships_page.error_hint')} onRetry={refetch} />
           ) : championships.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {championships.map((c) => <ChampionshipCard key={c.id} c={c} t={t} />)}
+            <div className={GRID}>
+              {championships.map((c: any) => <ChampionshipCard key={c.id} c={c} t={t} enumLabel={enumLabel} />)}
             </div>
           ) : (
             <EmptyState icon={Medal} title={t('amashuri.championships_page.none')} hint={t('amashuri.championships_page.none_hint')} />
           )}
         </section>
 
-        {/* Stats */}
         <section>
-          <SectionHeading eyebrow={t('amashuri.championships_page.insights')} title={t('amashuri.championships_page.numbers')} accent={t('amashuri.championships_page.numbers_accent')} />
+          <SectionHeading
+            eyebrow={t('amashuri.championships_page.insights')}
+            title={t('amashuri.championships_page.numbers')}
+            accent={t('amashuri.championships_page.numbers_accent')}
+            className="mb-4"
+          />
           <AmashuriStats schools={schools?.data || []} championships={championships} />
         </section>
-      </ResponsiveWrapper>
+      </div>
     </div>
   );
 };

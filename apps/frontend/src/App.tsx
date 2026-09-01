@@ -29,7 +29,23 @@ const NewsListPage = lazy(() => import('./pages/public/NewsListPage'));
 const NewsArticlePage = lazy(() => import('./pages/public/NewsArticlePage'));
 const ContactPage = lazy(() => import('./pages/public/ContactPage'));
 const LegalPage = lazy(() => import('./pages/public/LegalPage'));
-const SportHubPage = lazy(() => import('./pages/public/SportHubPage'));
+// Sport section: a shell with real routed tabs, not one page with anchor links.
+const SportsIndexPage = lazy(() => import('./pages/public/SportsIndexPage'));
+const SportLayout = lazy(() => import('./pages/public/sport/SportLayout'));
+const SportOverview = lazy(() => import('./pages/public/sport/SportOverview'));
+const SportMatches = lazy(() => import('./pages/public/sport/SportMatches'));
+const SportTeams = lazy(() => import('./pages/public/sport/SportTeams'));
+const SportStandings = lazy(() => import('./pages/public/sport/SportStandings'));
+const SportNews = lazy(() => import('./pages/public/sport/SportNews'));
+// A club gets its own section, same shape as a sport's: a shell plus routed tabs.
+// Named Club* deliberately: TeamLayout and TeamPlayersPage already exist for the
+// signed-in team PORTAL, and shadowing those silently breaks /team.
+const ClubLayout = lazy(() => import('./pages/public/club/ClubLayout'));
+const ClubOverview = lazy(() => import('./pages/public/club/ClubOverview'));
+const ClubMatches = lazy(() => import('./pages/public/club/ClubMatches'));
+const ClubRecord = lazy(() => import('./pages/public/club/ClubRecord'));
+const ClubStats = lazy(() => import('./pages/public/club/ClubStats'));
+const ClubPlayers = lazy(() => import('./pages/public/club/ClubPlayers'));
 const ExplorePage = lazy(() => import('./pages/public/ExplorePage'));
 
 // First-run sport preference. Eager, not lazy: it decides what the landing route
@@ -175,7 +191,14 @@ function App() {
               />
               <Route path="/explore" element={<Navigate to="/" replace />} />
               <Route path="/home" element={<HomePage />} />
-              <Route path="/sports/:slug" element={<SportHubPage />} />
+              <Route path="/sports" element={<SportsIndexPage />} />
+              <Route path="/sports/:slug" element={<SportLayout />}>
+                <Route index element={<SportOverview />} />
+                <Route path="matches" element={<SportMatches />} />
+                <Route path="teams" element={<SportTeams />} />
+                <Route path="standings" element={<SportStandings />} />
+                <Route path="news" element={<SportNews />} />
+              </Route>
               <Route path="/leagues" element={<LeaguesPage />} />
               <Route path="/leagues/:id" element={<LeagueDetailsPage />} />
               <Route path="/fixtures" element={<FixturesPage />} />
@@ -183,6 +206,13 @@ function App() {
               <Route path="/live" element={<FixturesPage />} />
               <Route path="/results" element={<FixturesPage />} />
               <Route path="/teams" element={<TeamsIndexPage />} />
+              <Route path="/teams/:id" element={<ClubLayout />}>
+                <Route index element={<ClubOverview />} />
+                <Route path="matches" element={<ClubMatches />} />
+                <Route path="record" element={<ClubRecord />} />
+                <Route path="stats" element={<ClubStats />} />
+                <Route path="players" element={<ClubPlayers />} />
+              </Route>
               <Route path="/news" element={<NewsListPage />} />
               <Route path="/news/:slug" element={<NewsArticlePage />} />
               <Route path="/matches/:id" element={<MatchDetailsPage />} />
