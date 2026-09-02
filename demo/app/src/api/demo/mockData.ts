@@ -962,6 +962,10 @@ const SQUAD: Record<string, { starters: number; positions?: string[] }> = {
   badminton:  { starters: 2 },
 };
 
+/** A shape only exists where the sport expresses one. */
+const FORMATION: Record<string, string> = { football: '4-3-3', rugby: '3-2-3-2-3-2' };
+const AWAY_FORMATION: Record<string, string> = { football: '4-2-3-1', rugby: '3-2-3-2-3-2' };
+
 const lineupFor = (teamId, sportSlug?: string) => {
   const spec = (sportSlug && SQUAD[sportSlug]) || SQUAD.football;
   return playersOf(teamId).slice(0, spec.starters).map((p, i) => ({
@@ -1061,8 +1065,8 @@ export const buildFixtureDetail = (fixture) => {
       ...lineupFor(fixture.awayTeamId, fixture.league?.sport?.slug),
     ],
     teamSheets: [
-      { teamId: fixture.homeTeamId, formation: '4-3-3', coachName: coachOf(fixture.homeTeamId), published: true },
-      { teamId: fixture.awayTeamId, formation: '4-2-3-1', coachName: coachOf(fixture.awayTeamId), published: true },
+      { teamId: fixture.homeTeamId, formation: FORMATION[fixture.league?.sport?.slug] ?? null, coachName: coachOf(fixture.homeTeamId), published: true },
+      { teamId: fixture.awayTeamId, formation: AWAY_FORMATION[fixture.league?.sport?.slug] ?? null, coachName: coachOf(fixture.awayTeamId), published: true },
     ],
     homeCoach: coachOf(fixture.homeTeamId), awayCoach: coachOf(fixture.awayTeamId),
     homeTeamDetail: home, awayTeamDetail: away,

@@ -1,1 +1,0 @@
-import{u as c}from"./index-Cggq74kS.js";const p=t=>String(t).trim().replace(/[\s-]+/g,"_").replace(/[^\w]/g,"").toUpperCase(),i=t=>String(t).replace(/_/g," ").toLowerCase().replace(/\b\w/g,n=>n.toUpperCase()),m=(t,n,e,r="")=>{if(e==null||e==="")return r;const a=p(e),s=`enums.${n}.${a}`,o=t(s);return o===s?i(e):o},l=()=>{const{t}=c();return(n,e,r="")=>m(t,n,e,r)};export{l as u};
