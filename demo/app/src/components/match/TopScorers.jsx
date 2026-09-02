@@ -14,7 +14,7 @@ import cn from '../ui/cn';
  * club as secondary text rather than taking a column: a 320px rail can afford one
  * emphasis, and goals are what "top scorer" means.
  */
-const TopScorers = ({ scorers = [], limit = 5, className }) => {
+const TopScorers = ({ scorers = [], limit = 5, className = '' }) => {
   if (scorers.length === 0) return null;
 
   return (

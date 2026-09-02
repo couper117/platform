@@ -1,182 +1,220 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { surfaceFor, type Marking, type Surface } from '../../config/playingSurfaces';
 
-// A LiveScore/FotMob-style formation pitch. Renders both teams on a single
-// vertical field: the home side occupies the top half (attacking down toward
-// the centre line), the away side is mirrored on the bottom. Players are placed
-// from the team sheet's formation string (e.g. "4-3-3"); positions are inferred
-// from each player's roster position so they land in sensible slots even when
-// the lineup is partial or the formation is unusual.
+/**
+ * Both line-ups on the surface the sport is actually played on.
+ *
+ * This was a football pitch — goalkeeper, penalty areas, a "4-3-3" formation
+ * string — drawn for every sport on the platform. Of the twenty here it was
+ * right for one: a basketball court is not a smaller pitch, volleyball is six in
+ * two ranks either side of a net, and a judo bout has nothing to lay out at all.
+ *
+ * The geometry now comes from config/playingSurfaces.ts, so adding a sport is
+ * data rather than another component, and a sport with no surface says so
+ * instead of being given a field it does not play on.
+ */
 
-// Classify a free-form position label into a role rank so we can fill the pitch
-// goalkeeper → defenders → midfielders → forwards. Unknowns sit in midfield.
-const roleRank = (pos) => {
+/** Colours per surface, so a court is not obliged to be green. */
+const TONE: Record<Surface['tone'], { fill: string; line: string }> = {
+  grass: { fill: 'repeating-linear-gradient(0deg,#17663a 0 10%,#1a7040 10% 20%)', line: 'rgba(255,255,255,.38)' },
+  wood:  { fill: 'repeating-linear-gradient(90deg,#b9793c 0 6%,#c08243 6% 12%)',  line: 'rgba(255,255,255,.55)' },
+  clay:  { fill: 'linear-gradient(160deg,#c2563a,#a8452d)',                        line: 'rgba(255,255,255,.6)'  },
+  blue:  { fill: 'linear-gradient(160deg,#1b5e93,#14496f)',                        line: 'rgba(255,255,255,.55)' },
+  mat:   { fill: 'linear-gradient(160deg,#3f4c8a,#2e3866)',                        line: 'rgba(255,255,255,.5)'  },
+};
+
+/**
+ * A point on a circle, in screen degrees: 0 is east, 90 is south.
+ *
+ * Chosen so an arc reads the way it is drawn on a court — an arc at the top of
+ * the surface sweeping 0 to 180 bulges downward, toward the middle, which is
+ * where a free-throw semicircle or a goal-area arc actually points. Measuring
+ * from north instead put every arc a quarter turn out, and the three-point line
+ * swept off the side of the court.
+ */
+const pt = (cx: number, cy: number, r: number, deg: number) => {
+  const a = (deg * Math.PI) / 180;
+  return `${(cx + r * Math.cos(a)).toFixed(2)},${(cy + r * Math.sin(a)).toFixed(2)}`;
+};
+
+const Markings = ({ surface }: { surface: Surface }) => (
+  <svg viewBox="0 0 100 150" preserveAspectRatio="none" className="absolute inset-0 h-full w-full" aria-hidden="true">
+    <g fill="none" stroke={TONE[surface.tone].line} strokeWidth="0.4">
+      {surface.markings.map((m: Marking, i) => {
+        if (m.t === 'rect') {
+          return <rect key={i} x={m.x} y={m.y} width={m.w} height={m.h} strokeDasharray={m.dash ? '2 2' : undefined} />;
+        }
+        if (m.t === 'line') {
+          return <line key={i} x1={m.x1} y1={m.y1} x2={m.x2} y2={m.y2} strokeDasharray={m.dash ? '2 2' : undefined} />;
+        }
+        if (m.t === 'circle') {
+          return <circle key={i} cx={m.cx} cy={m.cy} r={m.r}
+            fill={m.fill ? TONE[surface.tone].line : 'none'} stroke={m.fill ? 'none' : undefined} />;
+        }
+        // Arc, drawn the long way only when it genuinely sweeps past a half turn.
+        const large = Math.abs(m.to - m.from) > 180 ? 1 : 0;
+        return <path key={i} d={`M ${pt(m.cx, m.cy, m.r, m.from)} A ${m.r} ${m.r} 0 ${large} 1 ${pt(m.cx, m.cy, m.r, m.to)}`} />;
+      })}
+    </g>
+  </svg>
+);
+
+/**
+ * Rank a free-form position so players land in sensible places.
+ *
+ * Deliberately generic: the same ordering serves a goalkeeper, a point guard and
+ * a setter, because every one of these sports lists its roster from the back
+ * outwards. Anything unrecognised sits in the middle rather than being dropped.
+ */
+const roleRank = (pos?: string) => {
   const s = String(pos || '').toLowerCase();
-  if (/goal|keeper|\bgk\b/.test(s)) return 0;
-  if (/def|back|\bcb\b|\brb\b|\blb\b|\bwb\b|full/.test(s)) return 1;
-  if (/for|strik|attack|wing|\bst\b|\bcf\b|\bfw\b/.test(s)) return 3;
-  if (/mid|\bcm\b|\bdm\b|\bam\b/.test(s)) return 2;
+  if (/goal|keeper|\bgk\b|\bgs\b|libero/.test(s)) return 0;
+  if (/def|back|\bcb\b|\brb\b|\blb\b|\bwb\b|full|guard|\bpg\b|\bsg\b|\bgd\b/.test(s)) return 1;
+  if (/for|strik|attack|wing|\bst\b|\bcf\b|\bfw\b|centre|center|\bc\b|spik/.test(s)) return 3;
   return 2;
 };
 
-// Turn a formation string into its outfield lines (GK excluded). Falls back to
-// 4-4-2 when the string is missing or doesn't describe a valid 10-outfield shape.
-const parseFormation = (formation) => {
-  const lines = String(formation || '')
-    .split(/[^0-9]+/)
-    .map((n) => parseInt(n, 10))
-    .filter((n) => n > 0);
+/** Trim a row layout so it never seats more players than the sport fields. */
+const clampRows = (rows: number[], starters: number) => {
+  const out: number[] = [];
+  let left = starters;
+  for (const n of rows) {
+    if (left <= 0) break;
+    out.push(Math.min(n, left));
+    left -= out[out.length - 1];
+  }
+  return out.length ? out : rows;
+};
+
+/** Formation strings only mean something where the sport uses them. */
+const parseFormation = (formation: string | undefined, fallback: number[]) => {
+  const lines = String(formation || '').split(/[^0-9]+/).map((n) => parseInt(n, 10)).filter((n) => n > 0);
   const sum = lines.reduce((a, b) => a + b, 0);
-  if (!lines.length || sum < 6 || sum > 10) return [4, 4, 2];
+  if (!lines.length || sum < 3 || sum > 20) return fallback;
   return lines;
 };
 
-// Build (x%, y%) slots for one team. `top` teams run from their goal line (near
-// the top edge) down toward the halfway line; `bottom` teams are mirrored.
-const buildSlots = (lines, orientation) => {
-  const rows = lines.length + 1; // + goalkeeper
-  const near = orientation === 'top' ? 7 : 93;
-  const far = orientation === 'top' ? 43 : 57;
-  const slots = [];
-  for (let k = 0; k < rows; k += 1) {
-    const y = rows > 1 ? near + (k / (rows - 1)) * (far - near) : near;
-    if (k === 0) {
-      slots.push({ x: 50, y });
-      continue;
-    }
-    const n = lines[k - 1];
-    for (let i = 0; i < n; i += 1) {
-      // Mirror the away side left-to-right so the two shapes face off cleanly.
-      const raw = ((i + 1) / (n + 1)) * 100;
-      slots.push({ x: orientation === 'top' ? raw : 100 - raw, y });
-    }
-  }
+/** (x%, y%) for each starter, from the goal line inward. */
+const buildSlots = (rows: number[], orientation: 'top' | 'bottom', opposed: boolean, band: [number, number]) => {
+  // Mirrored for the bottom side, so both teams read as facing each other.
+  const near = opposed ? (orientation === 'top' ? band[0] : 150 - band[0]) : band[0];
+  const far = opposed ? (orientation === 'top' ? band[1] : 150 - band[1]) : band[1];
+  const slots: Array<{ x: number; y: number }> = [];
+  rows.forEach((count, r) => {
+    const v = rows.length === 1 ? (near + far) / 2 : near + ((far - near) * r) / (rows.length - 1);
+    const y = (v / 150) * 100;
+    for (let i = 0; i < count; i += 1) slots.push({ x: ((i + 1) * 100) / (count + 1), y });
+  });
   return slots;
 };
 
-const PlayerToken = ({ slot, player, color }) => {
-  const name = player?.player?.fullName || 'Player';
-  const surname = name.split(' ').slice(-1)[0];
-  return (
+const Token = ({ slot, player, color, label }: any) => (
+  <div className="absolute -translate-x-1/2 -translate-y-1/2 text-center" style={{ left: `${slot.x}%`, top: `${slot.y}%` }}>
     <div
-      className="absolute flex flex-col items-center gap-0.5 -translate-x-1/2 -translate-y-1/2 w-16"
-      style={{ left: `${slot.x}%`, top: `${slot.y}%` }}
+      className="mx-auto flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold text-white shadow ring-2 ring-white/60 sm:h-8 sm:w-8 sm:text-[11px]"
+      style={{ backgroundColor: color }}
     >
-      <div className="relative">
-        <div
-          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-[11px] sm:text-sm font-display tabular-nums text-white shadow-lg ring-2 ring-white/70"
-          style={{ backgroundColor: color }}
-        >
-          {player?.jerseyNo ?? '—'}
-        </div>
-        {player?.isCaptain && (
-          <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gold text-white text-[8px] font-bold flex items-center justify-center ring-1 ring-white">
-            C
-          </span>
-        )}
-      </div>
-      <span className="max-w-full truncate text-[8px] sm:text-[10px] font-bold uppercase tracking-tight text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-        {surname}
-      </span>
+      {player.jerseyNo ?? player.player?.jersey ?? label ?? ''}
     </div>
-  );
-};
+    <p className="mt-0.5 max-w-[9ch] truncate text-[8px] font-medium text-white/90 sm:text-[9px]">
+      {(player.player?.fullName || player.fullName || '').split(' ').slice(-1)[0]}
+    </p>
+  </div>
+);
 
-// One team's players placed onto the shared pitch.
-const TeamShape = ({ starters, formation, color, orientation }) => {
-  const lines = parseFormation(formation);
-  const slots = buildSlots(lines, orientation);
-  const ordered = [...starters].sort((a, b) => roleRank(a.position) - roleRank(b.position));
+const TeamShape = ({ starters, formation, color, orientation, surface }: any) => {
+  // The sport's shape wins over whatever string the team sheet carries.
+  //
+  // A formation only means something where the sport expresses one, so it is
+  // read only for those sports — and even then it may not add up to more players
+  // than the sport puts on the surface. Without this, a basketball fixture whose
+  // sheet says "4-3-3" laid out eleven players on a court that holds five, which
+  // is a football line-up wearing a basketball court.
+  // A formation string describes the outfield — "4-3-3" is ten players, not
+  // eleven. Where the sport keeps a goal, that row is added back, or the
+  // goalkeeper is quietly dropped from every team sheet that names a shape.
+  const keeps = surface.rows[0] === 1;
+  const rows = surface.formations?.length && formation
+    ? clampRows(
+        keeps ? [1, ...parseFormation(formation, surface.rows.slice(1))]
+              : parseFormation(formation, surface.rows),
+        surface.starters,
+      )
+    : surface.rows;
+  const slots = buildSlots(rows, orientation, surface.opposed, surface.band);
+  const ordered = [...starters]
+    .sort((a: any, b: any) => roleRank(a.position) - roleRank(b.position))
+    .slice(0, surface.starters);
   return (
     <>
       {slots.map((slot, i) =>
         ordered[i] ? (
-          <PlayerToken key={ordered[i].id ?? i} slot={slot} player={ordered[i]} color={color} />
+          <Token key={ordered[i].id ?? i} slot={slot} player={ordered[i]} color={color}
+            label={surface.positions?.[i]} />
         ) : null,
       )}
     </>
   );
 };
 
-// SVG line markings for a full portrait pitch (viewBox 100 x 150).
-const PitchMarkings = () => (
-  <svg
-    viewBox="0 0 100 150"
-    preserveAspectRatio="none"
-    className="absolute inset-0 w-full h-full"
-    aria-hidden="true"
-  >
-    <g fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="0.4">
-      <rect x="3" y="3" width="94" height="144" />
-      <line x1="3" y1="75" x2="97" y2="75" />
-      <circle cx="50" cy="75" r="11" />
-      <circle cx="50" cy="75" r="0.8" fill="rgba(255,255,255,0.5)" stroke="none" />
-      {/* top penalty + goal areas */}
-      <rect x="24" y="3" width="52" height="20" />
-      <rect x="38" y="3" width="24" height="9" />
-      {/* bottom penalty + goal areas */}
-      <rect x="24" y="127" width="52" height="20" />
-      <rect x="38" y="138" width="24" height="9" />
-    </g>
-  </svg>
-);
-
 const HALF = 'flex items-center gap-2 text-[10px] font-display uppercase tracking-widest text-white/90';
 
-const FormationPitch = ({ home, away }) => {
+const FormationPitch = ({ home, away, sport }: any) => {
   const { t } = useTranslation();
+  const surface = surfaceFor(sport);
+
+  // No surface, no drawing. A bout, a race or a board game has no field to place
+  // anyone on, and inventing one would tell the reader something untrue.
+  if (!surface) return null;
+
   const homeColor = home.team?.primaryColor || '#E8002D';
   const awayColor = away.team?.primaryColor || '#12386E';
+  const tone = TONE[surface.tone];
 
   return (
-    <div className="max-w-lg mx-auto">
-      {/* Team headers with their formation shapes */}
-      <div className="flex items-center justify-between mb-3 px-1">
+    <div className="mx-auto max-w-lg">
+      <div className="mb-3 flex items-center justify-between px-1">
         <div className={HALF}>
-          <span className="w-3 h-3 rounded-full ring-2 ring-white/50" style={{ backgroundColor: homeColor }} />
-          <span className="truncate max-w-[40vw]">{home.team?.name}</span>
+          <span className="h-3 w-3 rounded-full ring-2 ring-white/50" style={{ backgroundColor: homeColor }} />
+          <span className="max-w-[40vw] truncate">{home.team?.name}</span>
           {home.formation && <span className="opacity-50">· {home.formation}</span>}
         </div>
+        <span className="text-[9px] uppercase tracking-widest text-white/45">{surface.label}</span>
       </div>
 
-      <div className="relative w-full aspect-[68/105] rounded-2xl overflow-hidden shadow-xl border border-white/10">
-        {/* Mown-stripe turf */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              'repeating-linear-gradient(0deg, #17663a 0 10%, #1a7040 10% 20%)',
-          }}
-        />
+      <div className="relative w-full overflow-hidden rounded-2xl border border-white/10 shadow-xl aspect-[68/105]">
+        <div className="absolute inset-0" style={{ background: tone.fill }} />
         <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/10" />
-        <PitchMarkings />
+        <Markings surface={surface} />
 
         {home.starters.length > 0 ? (
-          <TeamShape starters={home.starters} formation={home.formation} color={homeColor} orientation="top" />
+          <TeamShape starters={home.starters} formation={home.formation} color={homeColor}
+            orientation="top" surface={surface} />
         ) : (
-          <span className="absolute top-[22%] left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-widest text-white/50">
+          <span className="absolute left-1/2 top-[22%] -translate-x-1/2 text-[10px] uppercase tracking-widest text-white/50">
             {t('match.lineups_unavailable')}
           </span>
         )}
-        {away.starters.length > 0 ? (
-          <TeamShape starters={away.starters} formation={away.formation} color={awayColor} orientation="bottom" />
+        {surface.opposed && (away.starters.length > 0 ? (
+          <TeamShape starters={away.starters} formation={away.formation} color={awayColor}
+            orientation="bottom" surface={surface} />
         ) : (
           <span className="absolute bottom-[22%] left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-widest text-white/50">
             {t('match.lineups_unavailable')}
           </span>
-        )}
+        ))}
       </div>
 
-      <div className="flex items-center justify-between mt-3 px-1">
+      <div className="mt-3 flex items-center justify-between px-1">
         <div className={HALF}>
-          <span className="w-3 h-3 rounded-full ring-2 ring-white/50" style={{ backgroundColor: awayColor }} />
-          <span className="truncate max-w-[40vw]">{away.team?.name}</span>
+          <span className="h-3 w-3 rounded-full ring-2 ring-white/50" style={{ backgroundColor: awayColor }} />
+          <span className="max-w-[40vw] truncate">{away.team?.name}</span>
           {away.formation && <span className="opacity-50">· {away.formation}</span>}
         </div>
       </div>
 
-      {/* Coaches */}
-      <div className="flex items-center justify-between mt-4 text-[10px] uppercase tracking-widest opacity-50">
+      <div className="mt-4 flex items-center justify-between text-[10px] uppercase tracking-widest opacity-50">
         <span>{home.coachName ? `${t('match.coach')}: ${home.coachName}` : ''}</span>
         <span>{away.coachName ? `${t('match.coach')}: ${away.coachName}` : ''}</span>
       </div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import FollowButton from '../shared/FollowButton';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useEnumLabel } from '../../i18n/enums';
@@ -82,6 +83,13 @@ const TeamCard = ({ team }: TeamCardProps) => {
         </div>
       </div>
 
+      {/* Following works without an account, so this sits on the public card
+          rather than behind a sign-in. Inside the link but not part of it: the
+          button stops the click propagating, so following never navigates away
+          to the club page. */}
+      <div className="border-t border-hairline px-4 py-3 sm:px-5">
+        <FollowButton teamId={team.id} size="sm" />
+      </div>
     </Link>
   );
 };

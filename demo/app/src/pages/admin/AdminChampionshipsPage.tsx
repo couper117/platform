@@ -69,7 +69,7 @@ const AdminChampionshipsPage = () => {
   }, [isModalOpen, editing, reset]);
 
   const saveMutation = useMutation({
-    mutationFn: (payload) =>
+    mutationFn: (payload: any) =>
       editing ? updateChampionship(editing.id, payload) : createChampionship(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-championships'] });
@@ -77,16 +77,16 @@ const AdminChampionshipsPage = () => {
       setIsModalOpen(false);
       setEditing(null);
     },
-    onError: (err) => alert(err.response?.data?.message || t('admin.championships.save_failed')),
+    onError: (err: any) => alert(err.response?.data?.message || t('admin.championships.save_failed')),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => deleteChampionship(id),
+    mutationFn: (id: any) => deleteChampionship(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-championships'] });
       queryClient.invalidateQueries({ queryKey: ['amashuri-championships'] });
     },
-    onError: (err) => alert(err.response?.data?.message || t('admin.championships.delete_failed')),
+    onError: (err: any) => alert(err.response?.data?.message || t('admin.championships.delete_failed')),
   });
 
   const openCreate = () => { setEditing(null); setIsModalOpen(true); };

@@ -4,9 +4,9 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, RefreshCw, AlertTriangle, Clock } from 'lucide-react';
 import { getUmugandaCalendar } from '../../api/endpoints/umuganda';
-import { useDateFormat } from '../../i18n/dateLocale';
+import { useDateFormat, useDayFormat } from '../../i18n/dateLocale';
 import useEnumLabel from '../../i18n/enums';
-import { buildMonthGrid, bucketByDay, dayKey, isUmugandaTouched } from '../../utils/umuganda';
+import { buildMonthGrid, bucketByDay, dayKey, kigaliDayKey, isUmugandaTouched } from '../../utils/umuganda';
 import UmugandaMark from './UmugandaMark';
 import { Skeleton } from '../ui';
 import cn from '../ui/cn';
@@ -26,7 +26,9 @@ import cn from '../ui/cn';
  * detail view, and doubles as the day view for ordinary match days.
  */
 
-const todayKey = () => dayKey(new Date());
+// Today, as Kigali reckons it. dayKey() would give the UTC day, which is the
+// wrong day for the first two hours of every Rwandan morning.
+const todayKey = () => kigaliDayKey(new Date());
 
 const EventRow = ({ event }: { event: any }) => {
   const { t } = useTranslation();
@@ -73,6 +75,7 @@ const EventRow = ({ event }: { event: any }) => {
 const UmugandaCalendar = ({ className }: { className?: string }) => {
   const { t } = useTranslation();
   const fmt = useDateFormat();
+  const fmtDay = useDayFormat();
 
   const now = new Date();
   const [cursor, setCursor] = useState({ year: now.getUTCFullYear(), month: now.getUTCMonth() + 1 });
@@ -109,11 +112,14 @@ const UmugandaCalendar = ({ className }: { className?: string }) => {
     });
   };
 
-  const monthLabel = fmt(new Date(Date.UTC(cursor.year, cursor.month - 1, 1)), 'MMMM yyyy');
+  // Calendar labels are days, not instants: formatting a UTC midnight in local
+  // time shows the previous day west of Greenwich — and for the 1st of a month,
+  // the previous month.
+  const monthLabel = fmtDay(new Date(Date.UTC(cursor.year, cursor.month - 1, 1)), 'MMMM yyyy');
   // Weekday initials, Monday-first, from the active locale rather than hardcoded.
   const weekdays = useMemo(
-    () => Array.from({ length: 7 }, (_, i) => fmt(new Date(Date.UTC(2024, 0, 1 + i)), 'EEEEE')),
-    [fmt]
+    () => Array.from({ length: 7 }, (_, i) => fmtDay(new Date(Date.UTC(2024, 0, 1 + i)), 'EEEEE')),
+    [fmtDay]
   );
 
   const selectedUmuganda = selected ? umugandaByDay.get(selected) : null;
@@ -248,7 +254,7 @@ const UmugandaCalendar = ({ className }: { className?: string }) => {
         <div className="rounded-card border border-hairline bg-surface p-4 sm:p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h3 className="font-display text-base font-semibold text-primary">
-              {fmt(new Date(selected + 'T00:00:00.000Z'), 'EEEE d MMMM yyyy')}
+              {fmtDay(new Date(selected + 'T00:00:00.000Z'), 'EEEE d MMMM yyyy')}
             </h3>
             {selectedUmuganda && <UmugandaMark size="sm" />}
           </div>

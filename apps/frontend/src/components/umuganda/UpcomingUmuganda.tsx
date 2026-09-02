@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { ArrowRight, Clock, RefreshCw } from 'lucide-react';
 import { getUmugandaDays } from '../../api/endpoints/umuganda';
-import { useDateFormat } from '../../i18n/dateLocale';
+import { useDayFormat } from '../../i18n/dateLocale';
 import UmugandaMark from './UmugandaMark';
 import cn from '../ui/cn';
 
@@ -18,7 +18,7 @@ import cn from '../ui/cn';
  */
 const UpcomingUmuganda = ({ className }: { className?: string }) => {
   const { t } = useTranslation();
-  const fmt = useDateFormat();
+  const fmt = useDayFormat();
 
   const { data, isLoading } = useQuery({
     queryKey: ['umuganda', 'upcoming'],

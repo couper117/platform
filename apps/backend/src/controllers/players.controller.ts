@@ -1,4 +1,5 @@
 const prisma = require('../config/db');
+const { assignedLeagueIds } = require('../utils/scope');
 const { canSeePersonalData, redactPlayer } = require('../services/privacy.service');
 const { getPagination } = require('../utils/paginate');
 const { uploadImage, deleteImage } = require('../services/storage.service');
@@ -12,6 +13,40 @@ const canManageTeam = (user, team) =>
   user.id === team.managerUserId ||
   (user.role === 'FEDERATION_ADMIN' && Number(user.sportId) === Number(team.sportId));
 
+/** Returned when a role should see nothing rather than everything. */
+const DENY_ALL = Symbol('deny-all');
+
+/**
+ * Extra `where` clauses confining a player list to the caller's remit.
+ *
+ * Returns null for an account that may see every player, DENY_ALL for one whose
+ * remit is empty. That distinction matters: a federation admin attached to no
+ * federation, or a league admin assigned to no league, has a remit of nothing —
+ * and "nothing" must not fall through to "everything", which is precisely how an
+ * unscoped list becomes a leak.
+ */
+const playerScopeWhere = async (user) => {
+  if (!user || user.role === 'SUPERADMIN') return null;
+
+  if (user.role === 'TEAM_MANAGER') {
+    return { team: { managerUserId: user.id } };
+  }
+
+  if (user.role === 'FEDERATION_ADMIN') {
+    if (user.sportId == null) return DENY_ALL;
+    return { team: { sportId: Number(user.sportId) } };
+  }
+
+  if (user.role === 'LEAGUE_ADMIN') {
+    const leagueIds = await assignedLeagueIds(user);
+    if (!leagueIds || leagueIds.length === 0) return DENY_ALL;
+    // Players of the clubs entered in the competitions they run.
+    return { team: { leagues: { some: { leagueId: { in: leagueIds } } } } };
+  }
+
+  return DENY_ALL;
+};
+
 // @desc    Get all players
 // @route   GET /api/v1/players
 // @access  Private (Admin)
@@ -24,11 +59,32 @@ const getPlayers = async (req, res, next) => {
     if (sportId) where.team = { sportId: parseInt(sportId) };
     if (search) where.fullName = { contains: search, mode: 'insensitive' };
 
+    // Confine the list to what this account is responsible for.
+    //
+    // There was no scoping here at all: `players.read` is held by team managers,
+    // league admins and federation admins alike, so every one of them could list
+    // every player on the platform — a club manager could read all eleven other
+    // squads, and the response embedded each player's identity documents. These
+    // are dates of birth and passport records, and art. 47 of Law 058/2021 asks
+    // for them to be seen only by those who need them.
+    const scope = await playerScopeWhere(req.user);
+    if (scope === DENY_ALL) {
+      return res.status(200).json({ success: true, count: 0, total: 0, data: [] });
+    }
+    if (scope) Object.assign(where, scope);
+
     const { skip, take } = getPagination(req.query);
     const [players, total] = await Promise.all([
       prisma.player.findMany({
         where,
-        include: { team: true, documents: true },
+        include: {
+          team: true,
+          // A summary, not the documents themselves. A list needs to show who is
+          // verified and who is still missing paperwork; it never needs to carry
+          // the records to do that. The single-player endpoint returns them, and
+          // redacts by role on the way out.
+          _count: { select: { documents: true } },
+        },
         orderBy: { fullName: 'asc' },
         skip,
         take,
@@ -36,7 +92,9 @@ const getPlayers = async (req, res, next) => {
       prisma.player.count({ where }),
     ]);
 
-    res.status(200).json({ success: true, count: players.length, total, data: players });
+    const data = players.map(({ _count, ...p }) => ({ ...p, documentCount: _count.documents }));
+
+    res.status(200).json({ success: true, count: data.length, total, data });
   } catch (error) {
     next(error);
   }
@@ -96,7 +154,7 @@ const createPlayer = async (req, res, next) => {
 
     let photo = null;
     if (req.file) {
-      photo = await uploadImage(req.file, 'players', 400, 400);
+      photo = await uploadImage(req.file, 'players', 400, 400, { uploadedById: req.user?.id, purpose: 'avatar' });
     }
 
     const player = await prisma.player.create({
@@ -168,7 +226,7 @@ const updatePlayer = async (req, res, next) => {
     let photo = player.photo;
     if (req.file) {
       if (player.photo) await deleteImage(player.photo);
-      photo = await uploadImage(req.file, 'players', 400, 400);
+      photo = await uploadImage(req.file, 'players', 400, 400, { uploadedById: req.user?.id, purpose: 'avatar' });
     }
 
     player = await prisma.player.update({

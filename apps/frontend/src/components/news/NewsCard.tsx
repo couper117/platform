@@ -94,7 +94,7 @@ const NewsCard = ({ article, className }: { article: NewsArticleSummary; classNa
  * The top story — larger type, full-width photo where one exists. Same
  * text-only fallback as the grid card: no image means no frame, just copy.
  */
-NewsCard.Lead = ({ article, className }: { article: NewsArticleSummary; className?: string }) => {
+NewsCard.Lead = function NewsCardLead({ article, className }: { article: NewsArticleSummary; className?: string }) {
   const formatDate = useDateFormat();
   const preview = previewOf(article);
 
@@ -135,7 +135,7 @@ NewsCard.Lead = ({ article, className }: { article: NewsArticleSummary; classNam
  * category badge — this is the "also happening" list, not a second grid.
  * Text-only fallback when there is no image, same rule as every other card.
  */
-NewsCard.Row = ({ article, className }: { article: NewsArticleSummary; className?: string }) => {
+NewsCard.Row = function NewsCardRow({ article, className }: { article: NewsArticleSummary; className?: string }) {
   const formatDate = useDateFormat();
 
   return (

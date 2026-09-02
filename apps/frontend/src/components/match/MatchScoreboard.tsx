@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { tickClock } from '../../utils/matchClock';
 import { Calendar, Clock, MapPin, Award, Wifi, Play } from 'lucide-react';
 import { matchState } from './MatchRow';
 import ClubCrest from '../ui/ClubCrest';
@@ -38,6 +39,8 @@ type MatchScoreboardProps = {
     awayScore?: number;
     minute?: number;
     status?: string;
+    /** The running clock, stamped when it arrived — see utils/matchClock.ts. */
+    clock?: any;
   };
   connected: boolean;
 };
@@ -61,9 +64,26 @@ const MatchScoreboard = ({ fixture, live, connected }: MatchScoreboardProps) => 
   const showScore = isLive || state === 'fulltime';
   const off = state === 'postponed' || state === 'abandoned';
 
-  const minute = live.minute;
+  // The minute has to move.
+  //
+  // `live.minute` only changes when the server pushes, so a viewer watching a
+  // quiet passage of play sees the clock freeze — and it disagrees with the
+  // reporter's console, which is the one thing a match clock must never do. The
+  // server sends the kick-off timestamp; tickClock extrapolates from it, so this
+  // counts every second without a request per second. Same implementation both
+  // sides use, deliberately: see utils/matchClock.ts.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!isLive) return undefined;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [isLive]);
+
+  const clock = tickClock(live.clock, now);
+  const minute = live.clock ? clock.minute : live.minute;
   const liveLabel =
-    fixture.statusLabel || (typeof minute === 'number' ? `${minute}'` : t('match.live'));
+    fixture.statusLabel
+    || (live.clock ? clock.display : (typeof minute === 'number' ? `${minute}'` : t('match.live')));
 
   const kickoff = fixture.matchDate ? new Date(fixture.matchDate) : null;
 

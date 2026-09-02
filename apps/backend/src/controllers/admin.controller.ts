@@ -1,5 +1,8 @@
 const prisma = require('../config/db');
 const logActivity = require('../utils/activityLogger');
+const {
+  CAPABILITIES, ALL, ROLE_CAPABILITIES, isKnown, capabilitiesFor, roleCapabilities, can,
+} = require('../services/capabilities.rules');
 
 // @desc    Federations (each = a sport) with their assigned admins + the Amashuri admins
 // @route   GET /api/v1/admin/roster
@@ -138,19 +141,55 @@ const getUsers = async (req, res, next) => {
     const users = await prisma.user.findMany({
       where,
       orderBy: { createdAt: 'desc' },
-      select: { id: true, fullName: true, email: true, username: true, role: true, active: true, verified: true, createdAt: true },
+      select: {
+        id: true, fullName: true, email: true, username: true, role: true,
+        active: true, verified: true, createdAt: true, lastLogin: true,
+        grantedCapabilities: true, revokedCapabilities: true,
+      },
     });
-    res.status(200).json({ success: true, count: users.length, data: users });
+
+    // Resolved capabilities travel with each row so the list can show what an
+    // account can actually do, not merely what its role suggests. The raw grant
+    // and revoke arrays come too, because the editor needs to show which entries
+    // are exceptions someone made rather than defaults of the role.
+    const data = users.map((u) => ({ ...u, capabilities: capabilitiesFor(u) }));
+
+    res.status(200).json({ success: true, count: data.length, data });
   } catch (error) {
     next(error);
   }
 };
 
-const ASSIGNABLE_ROLES = ['SUPERADMIN', 'FEDERATION_ADMIN', 'LEAGUE_ADMIN', 'AMASHURI_ADMIN', 'MATCH_REPORTER', 'TEAM_MANAGER', 'PUBLIC'];
+// Every role the platform defines. SCHOOL_COORDINATOR was missing, so the one
+// role that exists purely to be delegated could not be assigned from here.
+const ASSIGNABLE_ROLES = Object.keys(ROLE_CAPABILITIES);
 
 // @desc    Update a user's role / active flag
 // @route   PATCH /api/v1/admin/users/:id
 // @access  Private (SUPERADMIN)
+/**
+ * Read a capability list off the request body.
+ *
+ * Returns { list } or { error }. Unknown names are refused rather than stored:
+ * a misspelled capability would sit in the database looking like a grant and
+ * never match anything, which is worse than a rejection because nobody would
+ * know it was doing nothing.
+ */
+const readCapabilityList = (value, field) => {
+  if (value === undefined) return { list: undefined };
+  if (!Array.isArray(value)) return { error: `${field} must be an array of capability names` };
+
+  const list = [...new Set(value.map((c) => String(c).trim()).filter(Boolean))];
+  const unknown = list.filter((c) => !isKnown(c) || c === '*');
+  if (unknown.length) {
+    return { error: `Unknown ${field}: ${unknown.join(', ')}` };
+  }
+  return { list };
+};
+
+// @desc    Update a user's role, active flag and per-account capabilities
+// @route   PATCH /api/v1/admin/users/:id
+// @access  Private (users.write)
 const updateUser = async (req, res, next) => {
   try {
     const id = parseInt(req.params.id);
@@ -167,14 +206,96 @@ const updateUser = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Invalid role' });
     }
 
+    const granted = readCapabilityList(req.body.grantedCapabilities, 'grantedCapabilities');
+    if (granted.error) return res.status(400).json({ success: false, message: granted.error });
+    const revoked = readCapabilityList(req.body.revokedCapabilities, 'revokedCapabilities');
+    if (revoked.error) return res.status(400).json({ success: false, message: revoked.error });
+
+    // Locking yourself out is easy to do and tedious to undo — it needs another
+    // super admin and a database session. Refuse it while the mistake is still
+    // one field on a form.
+    if (id === req.user.id) {
+      const after = {
+        ...target,
+        role: role ?? target.role,
+        grantedCapabilities: granted.list ?? target.grantedCapabilities,
+        revokedCapabilities: revoked.list ?? target.revokedCapabilities,
+      };
+      if (!can(after, 'users.write')) {
+        return res.status(400).json({
+          success: false,
+          message: 'That would remove your own permission to manage users. Ask another super admin to make this change.',
+        });
+      }
+      if (active === false) {
+        return res.status(400).json({ success: false, message: 'You cannot deactivate your own account.' });
+      }
+    }
+
     const user = await prisma.user.update({
       where: { id },
-      data: { role: role ?? undefined, active: active !== undefined ? !!active : undefined },
-      select: { id: true, fullName: true, email: true, username: true, role: true, active: true },
+      data: {
+        role: role ?? undefined,
+        active: active !== undefined ? !!active : undefined,
+        grantedCapabilities: granted.list ?? undefined,
+        revokedCapabilities: revoked.list ?? undefined,
+      },
+      select: {
+        id: true, fullName: true, email: true, username: true, role: true, active: true,
+        grantedCapabilities: true, revokedCapabilities: true,
+      },
     });
 
-    await logActivity({ userId: req.user.id, action: 'Update User', detail: `Updated ${user.email} (role=${user.role}, active=${user.active})`, module: 'admin', ip: req.ip });
-    res.status(200).json({ success: true, data: user });
+    // Log what changed about their access, not just that a row was written: this
+    // is the record an audit would ask for.
+    const changes = [];
+    if (role && role !== target.role) changes.push(`role ${target.role} to ${role}`);
+    if (active !== undefined && !!active !== target.active) changes.push(active ? 'reactivated' : 'deactivated');
+    if (granted.list) changes.push(`granted [${granted.list.join(', ') || 'none'}]`);
+    if (revoked.list) changes.push(`revoked [${revoked.list.join(', ') || 'none'}]`);
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Update User',
+      detail: `${user.email || user.username}: ${changes.join('; ') || 'no change'}`,
+      module: 'admin',
+      ip: req.ip,
+    });
+
+    res.status(200).json({ success: true, data: { ...user, capabilities: capabilitiesFor(user) } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * The capability catalogue and the role defaults.
+ *
+ * Served rather than duplicated in the frontend so the grant editor and the
+ * permissions matrix are drawn from the same policy the server enforces. A
+ * hand-maintained copy in the browser is how the two drift.
+ */
+// @desc    The capability catalogue and what each role holds by default
+// @route   GET /api/v1/admin/capabilities
+// @access  Private (users.write)
+const getCapabilityCatalogue = async (req, res, next) => {
+  try {
+    // Group by the prefix so the editor can render sections without a second
+    // list to keep in step with this one.
+    const groups = {};
+    for (const name of ALL) {
+      const group = name.split('.')[0];
+      (groups[group] = groups[group] || []).push({ name, description: CAPABILITIES[name] });
+    }
+
+    const roles = Object.fromEntries(
+      Object.keys(ROLE_CAPABILITIES).map((role) => [
+        role,
+        roleCapabilities(role).includes('*') ? ALL : roleCapabilities(role),
+      ]),
+    );
+
+    res.status(200).json({ success: true, data: { capabilities: CAPABILITIES, groups, roles } });
   } catch (error) {
     next(error);
   }
@@ -236,13 +357,49 @@ const getMediaLibrary = async (req, res, next) => {
       prisma.sport.findMany({ where: { coverImage: { not: null } }, select: { id: true, name: true, coverImage: true }, take: 200 }),
       prisma.player.findMany({ where: { photo: { not: null } }, select: { id: true, fullName: true, photo: true }, take: 200 }),
     ]);
-    const media = [
+    const inUse = [
       ...news.map((n) => ({ url: n.coverImage, source: 'news', label: n.title })),
       ...teams.map((t) => ({ url: t.logo, source: 'team', label: t.name })),
       ...sports.map((s) => ({ url: s.coverImage, source: 'sport', label: s.name })),
       ...players.map((p) => ({ url: p.photo, source: 'player', label: p.fullName })),
     ];
-    res.status(200).json({ success: true, count: media.length, data: media });
+
+    // Uploads are now recorded as they happen, which the column scan above
+    // cannot see: a file whose owner was since edited to point elsewhere is
+    // still on disk, still costing storage, and was invisible here. Merged on
+    // URL so anything already in use keeps the label that identifies it, and
+    // anything only in the record shows up as unattached.
+    const records = await prisma.media.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 500,
+      include: { uploadedBy: { select: { id: true, fullName: true } } },
+    });
+
+    const byUrl = new Map(inUse.filter((m) => m.url).map((m) => [m.url, m]));
+    for (const r of records) {
+      const existing = byUrl.get(r.url);
+      byUrl.set(r.url, {
+        url: r.url,
+        source: existing?.source || r.ownerType,
+        label: existing?.label || null,
+        purpose: r.purpose,
+        bytes: r.bytes,
+        mimeType: r.mimeType,
+        uploadedBy: r.uploadedBy?.fullName || null,
+        uploadedAt: r.createdAt,
+        // Recorded but nothing points at it — a candidate for deletion.
+        unattached: !existing,
+      });
+    }
+
+    const media = [...byUrl.values()];
+    res.status(200).json({
+      success: true,
+      count: media.length,
+      tracked: records.length,
+      unattached: media.filter((m) => m.unattached).length,
+      data: media,
+    });
   } catch (error) {
     next(error);
   }
@@ -250,5 +407,6 @@ const getMediaLibrary = async (req, res, next) => {
 
 module.exports = {
   getAdminStats, getRoster, assignAmashuriAdmin, revokeAdmin,
-  getUsers, updateUser, getSystemHealth, getMediaLibrary,
+  getUsers, updateUser, getCapabilityCatalogue,
+  getSystemHealth, getMediaLibrary,
 };

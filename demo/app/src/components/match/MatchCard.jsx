@@ -74,7 +74,7 @@ const Side = ({ team, align }) => (
   </div>
 );
 
-const MatchCard = ({ fixture, className }) => {
+const MatchCard = ({ fixture, className = '' }) => {
   const safe = useMotionSafe();
   const state = matchState(fixture);
   const live = state === 'live' || state === 'halftime';
@@ -120,7 +120,7 @@ const MatchCard = ({ fixture, className }) => {
             dot={live}
             label={
               state === 'live' && typeof fixture.liveState?.minute === 'number'
-                ? `${fixture.liveState.minute}’`
+                ? `${fixture.liveState.minute}'`
                 : undefined
             }
           />

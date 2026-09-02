@@ -27,8 +27,6 @@ import cn from '../ui/cn';
  * specifies at radius 0 — plus a colour change. No pill, no background blob.
  */
 
-// Five destinations — Live is promoted here because live sport is a core purpose
-// of the platform and must be one thumb-tap away.
 /**
  * The first five destinations of the app's one navigation list, in its order.
  *

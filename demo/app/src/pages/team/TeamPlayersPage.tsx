@@ -33,7 +33,7 @@ const TeamPlayersPage = () => {
   const invalidateTeam = () => queryClient.invalidateQueries({ queryKey: ['team-dashboard-data'] });
 
   const createMutation = useMutation({
-    mutationFn: async (data) => {
+    mutationFn: async (data: any) => {
       await apiClient.post('/players', { ...data, teamId: team.id });
     },
     onSuccess: () => {
@@ -41,11 +41,11 @@ const TeamPlayersPage = () => {
       closeModal();
       pushToast('Player registered!', 'success');
     },
-    onError: (err) => pushToast(err.response?.data?.message || 'Failed to register player'),
+    onError: (err: any) => pushToast(err.response?.data?.message || 'Failed to register player'),
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }) => {
+    mutationFn: async ({ id, data }: any) => {
       await apiClient.put(`/players/${id}`, data);
     },
     onSuccess: () => {
@@ -53,18 +53,18 @@ const TeamPlayersPage = () => {
       closeModal();
       pushToast('Player updated!', 'success');
     },
-    onError: (err) => pushToast(err.response?.data?.message || 'Failed to update player'),
+    onError: (err: any) => pushToast(err.response?.data?.message || 'Failed to update player'),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id) => {
+    mutationFn: async (id: any) => {
       await apiClient.delete(`/players/${id}`);
     },
     onSuccess: () => {
       invalidateTeam();
       pushToast('Player removed', 'success');
     },
-    onError: (err) => pushToast(err.response?.data?.message || 'Failed to remove player'),
+    onError: (err: any) => pushToast(err.response?.data?.message || 'Failed to remove player'),
   });
 
   const closeModal = () => {

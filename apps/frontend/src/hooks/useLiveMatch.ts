@@ -1,3 +1,4 @@
+import { stampClock } from '../utils/matchClock';
 import { useEffect, useRef, useState } from 'react';
 import Pusher from 'pusher-js';
 
@@ -26,6 +27,8 @@ export default function useLiveMatch(fixtureId, initial, onReconnect) {
     homeScore: initial?.homeScore ?? 0,
     awayScore: initial?.awayScore ?? 0,
     minute: initial?.minute ?? initial?.liveState?.minute ?? 0,
+    // The running clock, stamped on arrival so the UI can extrapolate from it.
+    clock: stampClock(initial?.clock),
     status: initial?.status ?? 'SCHEDULED',
     events: initial?.events ?? [],
     stats: initial?.stats ?? [],
@@ -51,6 +54,7 @@ export default function useLiveMatch(fixtureId, initial, onReconnect) {
       homeScore: initial.homeScore ?? prev.homeScore ?? 0,
       awayScore: initial.awayScore ?? prev.awayScore ?? 0,
       minute: initial.minute ?? initial.liveState?.minute ?? prev.minute ?? 0,
+      clock: stampClock(initial.clock) ?? prev.clock,
       status: initial.status ?? prev.status,
       events: initial.events ?? prev.events,
       stats: initial.stats ?? prev.stats,
@@ -96,6 +100,7 @@ export default function useLiveMatch(fixtureId, initial, onReconnect) {
         homeScore: u.homeScore ?? prev.homeScore,
         awayScore: u.awayScore ?? prev.awayScore,
         minute: u.minute ?? prev.minute,
+        clock: stampClock(u.clock) ?? prev.clock,
         status: u.status ?? prev.status,
         lastUpdate: Date.now(),
       }));
@@ -172,6 +177,7 @@ export default function useLiveMatch(fixtureId, initial, onReconnect) {
       homeScore: u.homeScore ?? prev.homeScore,
       awayScore: u.awayScore ?? prev.awayScore,
       minute: u.minute ?? prev.minute,
+      clock: stampClock(u.clock) ?? prev.clock,
       status: u.status ?? prev.status,
       lastUpdate: Date.now(),
     }));

@@ -25,6 +25,10 @@ const AdBanner = ({ position }) => {
           href={ad.targetUrl || '#'}
           target="_blank"
           rel="noopener noreferrer sponsored"
+          // Report the click, then let the link do what it was going to do. Fired
+          // rather than awaited: a sponsor's tally must never sit between someone
+          // and the page they tapped through to.
+          onClick={() => { apiClient.post(`/ads/${ad.id}/click`).catch(() => {}); }}
           className="block overflow-hidden rounded-xl"
         >
           <img

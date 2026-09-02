@@ -1,4 +1,5 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
+import useAuthStore from './store/authStore';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { AnimatePresence } from 'framer-motion';
@@ -79,6 +80,9 @@ const AdminVisitorsPage = lazy(() => import('./pages/admin/AdminVisitorsPage'));
 const AdminChampionshipsPage = lazy(() => import('./pages/admin/AdminChampionshipsPage'));
 const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage'));
 const AdminRolesPage = lazy(() => import('./pages/admin/AdminRolesPage'));
+const AdminRequestsPage = lazy(() => import('./pages/admin/AdminRequestsPage'));
+const AdminCompliancePage = lazy(() => import('./pages/admin/AdminCompliancePage'));
+const AdminSportsPage = lazy(() => import('./pages/admin/AdminSportsPage'));
 const AdminSystemHealthPage = lazy(() => import('./pages/admin/AdminSystemHealthPage'));
 const AdminContentPage = lazy(() => import('./pages/admin/AdminContentPage'));
 const AdminMediaPage = lazy(() => import('./pages/admin/AdminMediaPage'));
@@ -103,6 +107,7 @@ const AmashuriAdminStages = lazy(() => import('./pages/admin/AmashuriAdminStages
 const AmashuriAdminSports = lazy(() => import('./pages/admin/AmashuriAdminSports'));
 const AmashuriAdminOfficials = lazy(() => import('./pages/admin/AmashuriAdminOfficials'));
 const LiveReportingPage = lazy(() => import('./pages/admin/LiveReportingPage'));
+const ReporterProfilePage = lazy(() => import('./pages/admin/ReporterProfilePage'));
 
 // Team Pages
 const TeamDashboard = lazy(() => import('./pages/team/TeamDashboard'));
@@ -165,6 +170,14 @@ function App() {
   // SplashScreen owns its own timing now — it waits for webfonts, holds long enough
   // for its fill animation to be seen, caps itself, then slides away and calls back.
   // App only needs to know when it has finished leaving so it can unmount it.
+
+  // Re-read the signed-in account once per load. The stored copy is a snapshot
+  // taken at sign-in, so a role change or a revoked capability made since then
+  // would otherwise go unnoticed until the token expired. Fires and forgets:
+  // syncUser swallows its own failures and never signs anyone out.
+  useEffect(() => {
+    useAuthStore.getState().syncUser();
+  }, []);
 
   return (
     <HelmetProvider>
@@ -275,6 +288,9 @@ function App() {
               <Route path="media" element={<AdminMediaPage />} />
               <Route path="users" element={<AdminUsersPage />} />
               <Route path="roles" element={<AdminRolesPage />} />
+              <Route path="requests" element={<AdminRequestsPage />} />
+              <Route path="compliance" element={<AdminCompliancePage />} />
+              <Route path="sports" element={<AdminSportsPage />} />
               <Route path="system-health" element={<AdminSystemHealthPage />} />
               <Route path="visitors" element={<AdminVisitorsPage />} />
               <Route path="akc3" element={<AkcAdminDashboard />} />
@@ -328,6 +344,7 @@ function App() {
             {/* Match Reporter Portal */}
             <Route element={<ReporterLayout />}>
               <Route path="/reporter/dashboard" element={<LiveReportingPage />} />
+              <Route path="/reporter/profile" element={<ReporterProfilePage />} />
             </Route>
             
             {/* Living styleguide — deliberately outside PublicLayout so the

@@ -73,3 +73,23 @@ nothing else needs to change.
 - **Author:** Claude Nizeyimana
 - **Licence:** CC BY-SA 4.0
 - **Source:** https://commons.wikimedia.org/wiki/File%3AGirls%20practicing%20sport%20after%20Covid-19%20lockdown%20in%20Rwanda.jpg
+
+## Client-supplied press photography — NOT Commons, NOT freely licensed
+
+These four came from the client (RwaSport / MINISPORTS), who chose them and is
+responsible for clearing them. Everything above is CC or public domain with its
+author recorded; these are not, and must not be treated as reusable the same way.
+`credit: null` in config/heroMedia.ts suppresses the attribution line for them —
+printing a Commons-style credit on a press photo would be wrong, not absent.
+
+| file | subject | source |
+|---|---|---|
+| `football.jpg` | Amavubi in a CECAFA fixture | cecafaonline.com `/2024/10/Rwanda1.jpg` |
+| `basketball.jpg` | BAL at BK Arena, Al Ahly celebration | cdn-bal.nba.com `/2023/05/EHAB-AMIN-scaled.jpg` |
+| `basketball-finals.jpg` | BAL Finals, contested rebound | ktpress.rw `/2026/05/WhatsApp-Image-2026-05-27-at-22.04.38.jpeg` |
+| `basketball-women.jpg` | APR WBBC v REG WBBC | bbkigalifm.com `/APR_WBBC_v_REG_WBBC.width-800.jpg` |
+
+`basketball.jpg` replaced a Commons photograph (Claude Nizeyimana, CC BY-SA) of a
+BAL flag ceremony; `football.jpg` replaced one of Kigali Pelé Stadium (Annick
+green, CC BY-SA) that was mostly trees and signage at the crops this app uses.
+Both originals are still in git history if the licence question forces a revert.

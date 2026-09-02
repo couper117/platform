@@ -12,12 +12,22 @@ const { getFixtures, createFixture, enterResult } = require('../../controllers/a
 const { REQUIRED_COLUMNS, OPTIONAL_COLUMNS } = require('../../services/akc3/import.rules');
 const logActivity = require('../../utils/activityLogger');
 const { PUBLIC_ATHLETE_SELECT } = require('../../services/privacy.service');
-const { protect, attachUser, authorize } = require('../../middleware/auth');
+const { protect, attachUser, requireCapability } = require('../../middleware/auth');
 const uploadCsv = require('../../middleware/uploadCsv');
 const validate = require('../../middleware/validate');
 const schemas = require('../../validators/schemas');
 
 const router = express.Router();
+
+// The three things an Amashuri administrator does, kept apart so each route says
+// which one it is. Reading these records is not the same act as creating them,
+// and a bulk import is not the same act as either — see
+// services/capabilities.rules.ts. Declared here, above every route, because a
+// route referencing one of these before it is initialised fails at load, not at
+// request time.
+const amashuriRead = requireCapability('akc.read');
+const amashuri = requireCapability('akc.write');
+const amashuriImport = requireCapability('akc.import');
 
 // School coordinator portal (scoped to the signed-in user's own school).
 router.use('/school', schoolPortalRoutes);
@@ -78,7 +88,67 @@ router.get('/competitions', async (req, res, next) => {
         _count: { select: { fixtures: true, standings: true } },
       },
     });
-    res.status(200).json({ success: true, count: competitions.length, data: competitions });
+
+    // The hub's competition card reads sportName, levelLabel, location,
+    // coverImage and a set of counts. It was given sportId, level, venue and a
+    // raw _count, so every one of those rendered blank: an unlabelled badge, an
+    // empty level, a map pin with nothing beside it, and three "undefined" stat
+    // tiles. Presenting them is this endpoint's job — the card cannot turn a
+    // sportId into a name.
+    //
+    // AkcCompetition.sportId is a plain column with no relation declared, so the
+    // sports are fetched once and mapped rather than included per row.
+    const LEVEL_LABEL = {
+      NATIONAL: 'National',
+      PROVINCIAL: 'Provincial',
+      DISTRICT: 'District',
+      SECTOR: 'Sector',
+      SCHOOL: 'School',
+    };
+
+    const sportIds = [...new Set(competitions.map((c) => c.sportId).filter((id) => id != null))];
+    const sports = sportIds.length
+      ? await prisma.sport.findMany({
+          where: { id: { in: sportIds } },
+          select: { id: true, name: true, slug: true, coverImage: true },
+        })
+      : [];
+    const sportById = new Map<number, any>(sports.map((sp) => [sp.id, sp]));
+
+    // Schools taking part, counted once for every competition rather than per
+    // row, so the list stays a fixed number of queries however long it grows.
+    const teamRows = await prisma.akcFixture.findMany({
+      where: { competitionId: { in: competitions.map((c) => c.id) } },
+      select: {
+        competitionId: true,
+        homeTeam: { select: { schoolId: true } },
+        awayTeam: { select: { schoolId: true } },
+      },
+    });
+    const schoolsByComp = new Map();
+    for (const f of teamRows) {
+      if (!schoolsByComp.has(f.competitionId)) schoolsByComp.set(f.competitionId, new Set());
+      const set = schoolsByComp.get(f.competitionId);
+      if (f.homeTeam?.schoolId != null) set.add(f.homeTeam.schoolId);
+      if (f.awayTeam?.schoolId != null) set.add(f.awayTeam.schoolId);
+    }
+
+    const data = competitions.map((c) => {
+      const sport = c.sportId != null ? sportById.get(c.sportId) : null;
+      return {
+        ...c,
+        sportName: sport?.name ?? null,
+        sportSlug: sport?.slug ?? null,
+        coverImage: sport?.coverImage ?? null,
+        levelLabel: LEVEL_LABEL[c.level] || c.level || null,
+        location: c.venue ?? null,
+        schools: schoolsByComp.get(c.id)?.size ?? 0,
+        groups: c._count.standings,
+        matches: c._count.fixtures,
+      };
+    });
+
+    res.status(200).json({ success: true, count: data.length, data });
   } catch (error) {
     next(error);
   }
@@ -130,7 +200,7 @@ router.get('/announcements', async (req, res, next) => {
 // would breach Law N° 058/2021 art. 9 (children), art. 11 (sensitive data) and
 // art. 47 (safeguards). The route was always described as an admin view; it was
 // simply never placed behind `protect`.
-router.get('/athletes', protect, authorize('SUPERADMIN', 'AMASHURI_ADMIN'), async (req, res, next) => {
+router.get('/athletes', protect, amashuriRead, async (req, res, next) => {
   try {
     const { verified, schoolId } = req.query;
     const where: any = {};
@@ -150,7 +220,7 @@ router.get('/athletes', protect, authorize('SUPERADMIN', 'AMASHURI_ADMIN'), asyn
 });
 
 // Approve an athlete's documents (the Amashuri "Pending Approvals" action).
-router.patch('/admin/athletes/:id/verify', protect, authorize('SUPERADMIN', 'AMASHURI_ADMIN'), async (req, res, next) => {
+router.patch('/admin/athletes/:id/verify', protect, amashuri, async (req, res, next) => {
   try {
     const athlete = await prisma.akcPlayer.update({
       where: { id: parseInt(req.params.id) },
@@ -162,7 +232,6 @@ router.patch('/admin/athletes/:id/verify', protect, authorize('SUPERADMIN', 'AMA
   }
 });
 
-const amashuri = authorize('SUPERADMIN', 'AMASHURI_ADMIN');
 
 // Create a single athlete (the per-athlete alternative to the CSV import).
 router.post('/admin/athletes', protect, amashuri, validate(schemas.akcCreateAthlete), async (req, res, next) => {
@@ -355,7 +424,7 @@ router.post('/admin/results/:fixtureId', protect, amashuri, enterResult);
 // A blank CSV with the exact headings the importer expects, plus one example row.
 // Served from the backend so the column list has a single source of truth
 // (import.rules.ts) rather than a copy in the frontend that can drift.
-router.get('/admin/import/template', protect, amashuri, (req, res) => {
+router.get('/admin/import/template', protect, amashuriImport, (req, res) => {
   const columns = [...REQUIRED_COLUMNS, ...OPTIONAL_COLUMNS];
   const example: any = {
     schoolCode: 'ESB-04',
@@ -387,7 +456,7 @@ router.get('/admin/import/template', protect, amashuri, (req, res) => {
 router.post(
   '/admin/import/players',
   protect,
-  authorize('SUPERADMIN', 'AMASHURI_ADMIN'),
+  amashuriImport,
   (req, res, next) => {
     uploadCsv.single('file')(req, res, (err) => {
       if (!err) return next();
@@ -422,7 +491,7 @@ const buildCompetitionData = (body: any = {}) => {
   return data;
 };
 
-router.post('/admin/competitions', protect, authorize('SUPERADMIN', 'AMASHURI_ADMIN'), validate(schemas.akcCreateCompetition), async (req, res, next) => {
+router.post('/admin/competitions', protect, amashuri, validate(schemas.akcCreateCompetition), async (req, res, next) => {
   try {
     if (!req.body?.name) {
       return res.status(400).json({ success: false, message: 'Championship name is required' });
@@ -434,7 +503,7 @@ router.post('/admin/competitions', protect, authorize('SUPERADMIN', 'AMASHURI_AD
   }
 });
 
-router.put('/admin/competitions/:id', protect, authorize('SUPERADMIN', 'AMASHURI_ADMIN'), async (req, res, next) => {
+router.put('/admin/competitions/:id', protect, amashuri, async (req, res, next) => {
   try {
     const competition = await prisma.akcCompetition.update({
       where: { id: parseInt(req.params.id) },
@@ -449,7 +518,7 @@ router.put('/admin/competitions/:id', protect, authorize('SUPERADMIN', 'AMASHURI
   }
 });
 
-router.delete('/admin/competitions/:id', protect, authorize('SUPERADMIN', 'AMASHURI_ADMIN'), async (req, res, next) => {
+router.delete('/admin/competitions/:id', protect, amashuri, async (req, res, next) => {
   try {
     await prisma.akcCompetition.delete({ where: { id: parseInt(req.params.id) } });
     res.status(200).json({ success: true, message: 'Championship deleted' });

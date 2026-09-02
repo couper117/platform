@@ -90,18 +90,6 @@ const LoginPage = () => {
   const { index: shown, still } = useHeroRotation(slides.length);
   const current = slides[shown];
 
-  // Demo app: one-tap sign-in for each portal, rendered on the side panel so a
-  // presenter never types. Any password works (see the demo mock adapter).
-  const isDemo = true;
-  const demoRoles = [
-    { label: 'Super Admin', username: 'admin' },
-    { label: 'Federation Admin', username: 'federation' },
-    { label: 'League Admin', username: 'league' },
-    { label: 'Amashuri Admin', username: 'amashuri' },
-    { label: 'Team Manager', username: 'coach' },
-    { label: 'Match Reporter', username: 'reporter' },
-  ];
-
   return (
     <div className="min-h-screen bg-page lg:grid lg:grid-cols-2">
       <Seo title="Sign in" description="Sign in to RwaSport." />
@@ -144,7 +132,7 @@ const LoginPage = () => {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
             <Field
               label={t('authx.email_or_username')}
-              error={errors.username?.message && t(errors.username.message)}
+              error={errors.username?.message && t(errors.username.message as string)}
               required
             >
               {(p) => (
@@ -160,7 +148,7 @@ const LoginPage = () => {
 
             <Field
               label={t('auth.password', 'Password')}
-              error={errors.password?.message && t(errors.password.message)}
+              error={errors.password?.message && t(errors.password.message as string)}
               required
             >
               {(p) => (
@@ -293,30 +281,6 @@ const LoginPage = () => {
               </span>
             )}
           </div>
-
-          {isDemo && (
-            <div className="mt-8 max-w-md border-t border-white/15 pt-6">
-              <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.3em] text-white/50">
-                Demo — sign in as
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                {demoRoles.map((r) => (
-                  <button
-                    key={r.username}
-                    type="button"
-                    onClick={() => onSubmit({ username: r.username, password: 'demo1234' })}
-                    disabled={isLoading}
-                    className="rounded-pill border border-white/25 bg-white/10 px-3 py-2 text-xs font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20 disabled:opacity-50"
-                  >
-                    {r.label}
-                  </button>
-                ))}
-              </div>
-              <p className="mt-3 text-[10px] text-white/40">
-                Any password works — or type an admin name in the form.
-              </p>
-            </div>
-          )}
         </div>
       </div>
     </div>

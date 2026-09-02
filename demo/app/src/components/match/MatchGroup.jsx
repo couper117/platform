@@ -29,7 +29,8 @@ import cn from '../ui/cn';
  * pinned is worth more: it lets you switch Upcoming/Live/Results at any scroll
  * position.
  */
-export const MatchdayDivider = ({ date, competition, className }) => {
+/** @param {{ date?: any, competition?: any, className?: string }} props */
+export const MatchdayDivider = ({ date, competition, className = '' }) => {
   const d = date ? new Date(date) : null;
 
   const label = !d
@@ -67,7 +68,8 @@ export const MatchdayDivider = ({ date, competition, className }) => {
  * Competition label within a date group. Deliberately quiet — it qualifies the
  * rows beneath it and must not compete with them for attention.
  */
-export const CompetitionHeader = ({ name, meta, className }) => (
+/** @param {{ name?: any, meta?: any, className?: string }} props */
+export const CompetitionHeader = ({ name, meta, className = '' }) => (
   <div className={cn('flex h-5 items-center justify-between gap-2 px-3', className)}>
     <span className="truncate text-xs text-tertiary">{name}</span>
     {meta && <span className="shrink-0 text-xs text-tertiary">{meta}</span>}

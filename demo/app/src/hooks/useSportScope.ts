@@ -11,7 +11,7 @@ export default function useSportScope() {
   const role = useAuthStore((s) => s.role);
   const isScoped = role === 'FEDERATION_ADMIN';
   const sportId = isScoped ? (user?.sportId ?? null) : null;
-  const sport = isScoped ? (user?.sport ?? null) : null;
+  const sport: any = isScoped ? (user?.sport ?? null) : null;
   return {
     sportId,
     sport,

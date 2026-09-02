@@ -33,7 +33,7 @@ const DEFAULT_SLUGS = ['football', 'basketball', 'volleyball', 'athletics', 'cyc
 const BOUNCE_MS = 900;
 const SWAP_MS = 2400;
 
-const SportBounce = ({ slugs = DEFAULT_SLUGS, size = 34, className }) => {
+const SportBounce = ({ slugs = DEFAULT_SLUGS, size = 34, className = '' }) => {
   const safe = useMotionSafe();
   const [i, setI] = useState(0);
   const list = slugs.length ? slugs : DEFAULT_SLUGS;

@@ -109,7 +109,9 @@ const AdminDocumentsPage = () => {
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40 ml-1">Review Note (Optional)</label>
+              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40 ml-1">
+                Review Note {reviewNote.trim().length >= 3 ? '' : '(required to reject)'}
+              </label>
               <textarea 
                 className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl focus:border-red outline-none transition-all placeholder:opacity-20 min-h-[100px]"
                 placeholder="Reason for rejection or verification notes..."
@@ -121,8 +123,9 @@ const AdminDocumentsPage = () => {
             <div className="grid grid-cols-2 gap-4">
               <button 
                 onClick={() => reviewMutation.mutate({ id: selectedDoc.id, status: 'REJECTED', note: reviewNote })}
-                disabled={reviewMutation.isPending}
-                className="bg-white dark:bg-white/5 border border-red/20 text-red font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red/5 transition-all flex items-center justify-center space-x-2"
+                disabled={reviewMutation.isPending || reviewNote.trim().length < 3}
+                title={reviewNote.trim().length < 3 ? 'Say why, so the club knows what to correct' : undefined}
+                className="bg-white dark:bg-white/5 border border-danger/30 text-danger-text font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-danger/5 transition-all flex items-center justify-center space-x-2 disabled:opacity-40"
               >
                 <XCircle size={20} />
                 <span>Reject</span>
@@ -136,6 +139,14 @@ const AdminDocumentsPage = () => {
                 <span>Approve</span>
               </button>
             </div>
+
+            {reviewMutation.isError && (
+              <p className="text-xs text-danger-text">
+                {(reviewMutation.error as any)?.response?.data?.errors?.[0]?.message
+                  || (reviewMutation.error as any)?.response?.data?.message
+                  || 'Could not save that review.'}
+              </p>
+            )}
           </div>
         </div>
       </AdminModal>

@@ -126,6 +126,15 @@ data is high-risk by default.
 
 Each item says what the platform now does on its own, and what still needs a human.
 
+**This section is also live in the product.** Super Admin → Data Protection
+(`/admin/compliance`, `GET /privacy/compliance`) reports the same obligations as a
+current reading: the consent backlog, open and overdue data-subject requests, and
+rows held past their retention period are *counted from the database*, not copied
+from here, so they change without anyone editing this file. The obligations that
+need a person — registering, appointing, signing — are reported as configuration:
+set, or not set. A checklist that implied work nobody had done would be worse than
+no checklist.
+
 ### 6.1 Storage outside Rwanda (arts. 48 and 50) — highest risk
 
 `.env.example` documented production on Supabase `aws-0-eu-central-1` —

@@ -47,9 +47,9 @@ const AdminPlayersPage = () => {
   });
 
   const createPlayerMutation = useMutation({
-    mutationFn: async (payload) => {
+    mutationFn: async (payload: any) => {
       const fd = new FormData();
-      Object.entries(payload).forEach(([k, v]) => { if (v !== '' && v != null) fd.append(k, v); });
+      Object.entries(payload).forEach(([k, v]: any) => { if (v !== '' && v != null) fd.append(k, v as any); });
       if (photoFile) fd.append('photo', photoFile);
       const { data } = await apiClient.post('/players', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       return data;
@@ -61,13 +61,13 @@ const AdminPlayersPage = () => {
       setPhotoFile(null);
       setFormError('');
     },
-    onError: (err) => {
+    onError: (err: any) => {
       setFormError(err.response?.data?.message || 'Failed to register player');
     },
   });
 
   const deletePlayerMutation = useMutation({
-    mutationFn: async (id) => { await apiClient.delete(`/players/${id}`); },
+    mutationFn: async (id: any) => { await apiClient.delete(`/players/${id}`); },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-players'] });
     },

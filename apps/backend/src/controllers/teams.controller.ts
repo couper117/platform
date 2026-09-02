@@ -106,7 +106,7 @@ const createTeam = async (req, res, next) => {
 
     let logo = null;
     if (req.file) {
-      logo = await uploadImage(req.file, 'teams', 200, 200);
+      logo = await uploadImage(req.file, 'teams', 200, 200, { uploadedById: req.user?.id, purpose: 'logo' });
     }
 
     const team = await prisma.team.create({
@@ -166,7 +166,7 @@ const updateTeam = async (req, res, next) => {
     let logo = team.logo;
     if (req.file) {
       if (team.logo) await deleteImage(team.logo);
-      logo = await uploadImage(req.file, 'teams', 200, 200);
+      logo = await uploadImage(req.file, 'teams', 200, 200, { uploadedById: req.user?.id, purpose: 'logo' });
     }
 
     team = await prisma.team.update({

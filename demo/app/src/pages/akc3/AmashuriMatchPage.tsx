@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { getAkcFixture } from '../../api/endpoints/amashuri';
+import useSportLookup from '../../hooks/useSportLookup';
 import { useEnumLabel } from '../../i18n/enums';
 import { useDateFormat } from '../../i18n/dateLocale';
 import MatchScoreboard from '../../components/match/MatchScoreboard';
@@ -90,6 +91,7 @@ const AmashuriMatchPage = () => {
   const { t } = useTranslation();
   const enumLabel = useEnumLabel();
   const df = useDateFormat();
+  const { forFixture } = useSportLookup();
   const { id } = useParams();
 
   const { data, isPending, isError, refetch } = useQuery({
@@ -119,6 +121,9 @@ const AmashuriMatchPage = () => {
   }
 
   const m = asFixture(raw);
+  // Which sport this school match was played in. Restored from the sport-aware
+  // version this rebuild replaced: an Amashuri fixture is not football by default.
+  const sport = forFixture(m);
 
   const infoRows: Array<[string, React.ReactNode]> = [
     [t('match.competition'), m.competition?.name],
@@ -126,6 +131,7 @@ const AmashuriMatchPage = () => {
     [t('match.round'), raw.round],
     [t('amashuri.athlete.age_group'), enumLabel('age_category', raw.homeTeam?.ageCategory)],
     [t('match.status'), enumLabel('fixture_status', raw.status) || raw.status],
+    [t('match.sport'), sport?.name],
     [t('match.venue'), raw.venue],
   ].filter(([, v]) => v !== undefined && v !== null && v !== '') as Array<[string, React.ReactNode]>;
 

@@ -43,14 +43,28 @@ module.exports = {
   createFixture: wrap({ leagueId: idish, homeTeamId: idish, awayTeamId: idish }),
   saveResult: wrap({ homeScore: idish, awayScore: idish }),
   addMatchEvent: wrap({
-    eventType: z.enum(['GOAL', 'OWN_GOAL', 'PENALTY', 'RED_CARD', 'YELLOW_CARD', 'SUBSTITUTION', 'INJURY', 'VAR', 'KICKOFF', 'HALFTIME', 'FULLTIME', 'EXTRA_TIME']),
-    minute: idish,
+    eventType: z.enum(['COMMENTARY', 'GOAL', 'OWN_GOAL', 'PENALTY', 'RED_CARD', 'YELLOW_CARD', 'SUBSTITUTION', 'INJURY', 'VAR', 'KICKOFF', 'HALFTIME', 'FULLTIME', 'EXTRA_TIME']),
+    // Optional: omitted means "now", and the controller reads the running clock.
+    minute: idish.optional(),
   }),
 
   // ── Teams / Players / Docs ──
   createTeam: wrap({ name: z.string().min(2) }),
   createPlayer: wrap({ fullName: z.string().min(2), teamId: idish }),
-  reviewDocument: wrap({ status: z.enum(['APPROVED', 'REJECTED']), reviewNote: z.string().optional() }),
+  // A rejection has to say why. The club sees reviewNote on their documents page
+  // and has no other way to learn what to fix — "REJECTED" on its own sends them
+  // back to re-upload the same file.
+  reviewDocument: z.object({
+    body: z.object({
+      status: z.enum(['APPROVED', 'REJECTED']),
+      reviewNote: z.string().optional(),
+    }).passthrough().refine(
+      (b) => b.status !== 'REJECTED' || (b.reviewNote || '').trim().length >= 3,
+      { message: 'Say why it was rejected, so the club knows what to correct', path: ['reviewNote'] },
+    ),
+    query: z.any().optional(),
+    params: z.any().optional(),
+  }),
   updateTeamStatus: wrap({ status: z.enum(['PENDING', 'VERIFIED', 'SUSPENDED', 'REJECTED']) }),
 
   // ── Content ──

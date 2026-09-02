@@ -59,17 +59,17 @@ const AdminSportAdminsPage = () => {
   const handleErr = (e) => setError(e.response?.data?.message || 'Something went wrong');
 
   const assignFed = useMutation({
-    mutationFn: ({ email, federationId }) => apiClient.post('/admin/assign-federation-admin', { email, federationId }),
+    mutationFn: ({ email, federationId }: any) => apiClient.post('/admin/assign-federation-admin', { email, federationId }),
     onSuccess: () => { setError(''); refresh(); },
     onError: handleErr,
   });
   const assignAmashuri = useMutation({
-    mutationFn: ({ email }) => apiClient.post('/admin/assign-amashuri-admin', { email }),
+    mutationFn: ({ email }: any) => apiClient.post('/admin/assign-amashuri-admin', { email }),
     onSuccess: () => { setError(''); refresh(); },
     onError: handleErr,
   });
   const revoke = useMutation({
-    mutationFn: (payload) => apiClient.post('/admin/revoke-admin', payload),
+    mutationFn: (payload: any) => apiClient.post('/admin/revoke-admin', payload),
     onSuccess: () => { setError(''); refresh(); },
     onError: handleErr,
   });

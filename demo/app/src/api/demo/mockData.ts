@@ -401,7 +401,11 @@ export const scorersByLeague = {
 /* ── fixtures ──────────────────────────────────────────────────────────── */
 const REFS = ['P. Mukasine', 'J. Habineza', 'S. Nkurunziza', 'A. Mutabazi', 'D. Uwimana'];
 const fx = (id, leagueId, leagueName, homeId, awayId, status, whenIso, venue, hs, as, matchday, opts: any = {}) => ({
-  id, leagueId, league: { id: leagueId, name: leagueName },
+  id, leagueId,
+  // The sport travels with the fixture: the lineup view draws the surface the
+  // sport is actually played on, and without this every match — basketball,
+  // volleyball, a cycling stage — fell back to showing nothing at all.
+  league: { id: leagueId, name: leagueName, sport: leagues.find((l) => l.id === leagueId)?.sport ?? null },
   homeTeamId: homeId, awayTeamId: awayId, homeTeam: teamRef(homeId), awayTeam: teamRef(awayId),
   status, matchDate: whenIso, venue, referee: REFS[id % REFS.length], matchday,
   homeScore: hs, awayScore: as,
@@ -1154,9 +1158,42 @@ export const buildLeagueDetail = (league) => {
   return { ...league, teams: teamsInLeague, standings: st, topScorers: sc, fixtures: fixtures.filter((f) => f.leagueId === league.id) };
 };
 
-const lineupFor = (teamId) => playersOf(teamId).slice(0, 11).map((p, i) => ({
-  id: teamId * 50 + i, teamId, jerseyNo: p.jerseyNumber, isStarter: i < 11, isCaptain: i === 0, position: p.position, player: { id: p.id, fullName: p.fullName, photo: p.photo },
-}));
+/**
+ * How many a sport actually puts on the surface, and what those places are
+ * called.
+ *
+ * Every team sheet named eleven, whatever the sport — so a basketball fixture
+ * fielded eleven players in football positions, and the demo showed a football
+ * line-up standing on a basketball court. Sports absent from this list keep
+ * whatever the roster gives them.
+ */
+const SQUAD: Record<string, { starters: number; positions?: string[] }> = {
+  football:   { starters: 11 },
+  rugby:      { starters: 15 },
+  basketball: { starters: 5, positions: ['Point Guard', 'Shooting Guard', 'Small Forward', 'Power Forward', 'Center'] },
+  volleyball: { starters: 6, positions: ['Outside Hitter', 'Setter', 'Opposite', 'Middle Blocker', 'Libero', 'Outside Hitter'] },
+  handball:   { starters: 7 },
+  netball:    { starters: 7, positions: ['GS', 'GA', 'WA', 'C', 'WD', 'GD', 'GK'] },
+  tennis:     { starters: 2 },
+  badminton:  { starters: 2 },
+};
+
+/** A shape only exists where the sport expresses one. */
+const FORMATION: Record<string, string> = { football: '4-3-3', rugby: '3-2-3-2-3-2' };
+const AWAY_FORMATION: Record<string, string> = { football: '4-2-3-1', rugby: '3-2-3-2-3-2' };
+
+const lineupFor = (teamId, sportSlug?: string) => {
+  const spec = (sportSlug && SQUAD[sportSlug]) || SQUAD.football;
+  return playersOf(teamId).slice(0, spec.starters).map((p, i) => ({
+    id: teamId * 50 + i,
+    teamId,
+    jerseyNo: p.jerseyNumber,
+    isStarter: true,
+    isCaptain: i === 0,
+    position: spec.positions?.[i] ?? p.position,
+    player: { id: p.id, fullName: p.fullName, photo: p.photo },
+  }));
+};
 
 export const buildFixtureDetail = (fixture) => {
   const h2h = headToHead(fixture);
@@ -1221,12 +1258,33 @@ export const buildFixtureDetail = (fixture) => {
     { teamId: fixture.homeTeamId, possession: 54, shots: 12, shotsOnTarget: 6, shotsInsideBox: 8, shotsOutsideBox: 4, corners: 7, offsides: 2, fouls: 11, yellowCards: 1, redCards: 0, gkSaves: 3, passAccuracy: 84, xg: 1.8 },
     { teamId: fixture.awayTeamId, possession: 46, shots: 9, shotsOnTarget: 4, shotsInsideBox: 5, shotsOutsideBox: 4, corners: 3, offsides: 3, fouls: 14, yellowCards: 2, redCards: 0, gkSaves: 5, passAccuracy: 79, xg: 1.1 },
   ] : [];
+  // A running clock for live matches, shaped exactly like the API's derived clock
+  // so the shared tickClock() has something to count from. `minute` is taken from
+  // the fixture, and elapsedSeconds is back-dated to that minute, which makes the
+  // demo tick forward from a plausible point instead of sitting on 0'.
+  const liveMinute = fixture.minute ?? 37;
+  const secondHalf = liveMinute > 45;
+  const clock = fixture.status === 'LIVE'
+    ? {
+        period: secondHalf ? 'SECOND_HALF' : 'FIRST_HALF',
+        running: true,
+        minute: liveMinute,
+        stoppage: 0,
+        addedMinutes: secondHalf ? 4 : 2,
+        elapsedSeconds: liveMinute * 60,
+        display: `${liveMinute}'`,
+      }
+    : { period: fixture.status === 'COMPLETED' ? 'FULL_TIME' : 'PRE', running: false, minute: fixture.status === 'COMPLETED' ? 90 : 0, stoppage: 0, addedMinutes: 0, elapsedSeconds: 0, display: fixture.status === 'COMPLETED' ? "90'" : "0'" };
+
   return {
-    ...fixture, referee: fixture.referee || 'TBD', events, stats,
-    lineups: [...lineupFor(fixture.homeTeamId), ...lineupFor(fixture.awayTeamId)],
+    ...fixture, referee: fixture.referee || 'TBD', events, stats, clock,
+    lineups: [
+      ...lineupFor(fixture.homeTeamId, fixture.league?.sport?.slug),
+      ...lineupFor(fixture.awayTeamId, fixture.league?.sport?.slug),
+    ],
     teamSheets: [
-      { teamId: fixture.homeTeamId, formation: '4-3-3', coachName: coachOf(fixture.homeTeamId), published: true },
-      { teamId: fixture.awayTeamId, formation: '4-2-3-1', coachName: coachOf(fixture.awayTeamId), published: true },
+      { teamId: fixture.homeTeamId, formation: FORMATION[fixture.league?.sport?.slug] ?? null, coachName: coachOf(fixture.homeTeamId), published: true },
+      { teamId: fixture.awayTeamId, formation: AWAY_FORMATION[fixture.league?.sport?.slug] ?? null, coachName: coachOf(fixture.awayTeamId), published: true },
     ],
     homeCoach: coachOf(fixture.homeTeamId), awayCoach: coachOf(fixture.awayTeamId),
     homeTeamDetail: home, awayTeamDetail: away,
