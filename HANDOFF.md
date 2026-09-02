@@ -1,33 +1,31 @@
 # HANDOFF
 
 ## Current Task
-Polishing the public pages against the real API. Admin is NEXT and untouched.
+Header language switcher, and the Amashuri overview against real data.
+ADMIN IS NEXT — still untouched, a colleague is on it.
 
 ## Status
-Solved. 18 routes clean at 1440px and 390px, zero broken images, no JS errors.
+Solved. 14 routes clean at 1440px and 390px.
 
-- **/fixtures all sports.** Three attempts to get right, and the lesson was that
-  the GROUPING was the problem, not the card. By competition: twenty headings for
-  forty-two matches, 5,074px. By day: worse, 7,255px — the schedule is forty-two
-  fixtures across THIRTY-THREE days, so that axis is just as sparse. Plain rows:
-  3,799px but forty-two identical grey stripes, flat and off-language. Now an
-  ungrouped three-across grid of MatchTile, which already prints its own
-  competition so it needs no heading: **3,113px**, and it looks like the app.
-- **One card everywhere.** /fixtures scoped rendered MatchCard in two columns
-  while the sport hub rendered MatchTile in three — two different cards for the
-  same fixture, one click apart. Everything is MatchTile at three across now.
-- **Every kickoff read 21:34.** `Date.now() + n days` stamped each showcase
-  fixture with the moment the seed ran, so the schedule was a column of identical
-  numbers. Real hours now — weekday evenings, weekend afternoons — in the seed
-  and backfilled onto all 82 existing rows.
-- **News images.** All six articles shared ONE remote Unsplash URL, and it did not
-  load here at all: six broken-image icons. `seed:news-images` points them at the
-  local photography the app already ships, matched by keyword to the story.
-- **/calendar.** Gutter skyscrapers removed — a month grid is already a dense
-  field of boxes and flanking it with two more vertical panels turns the screen
-  into columns. Days with sport are tinted so the shape of the month reads, and
-  the bare corner digit is a count pill rather than a second date.
-- **"1 matches"** on the sport cards is pluralised.
+- **Language switcher in the header.** It only ever existed in the mobile drawer,
+  so a desktop visitor could not read a NATIONAL platform with three official
+  working languages in anything but English. Globe + the two-letter code, on the
+  same hover panel as the Sports menu. Verified end to end: switching to
+  Kinyarwanda re-renders the page and sets `<html lang="rw">`.
+- **The Amashuri overview was built for demo-shaped data.** Seven sports, four
+  competitions, five live matches. The real programme has ONE sport, ONE
+  competition and nothing live, so: a lone tile at the left of an eight-column
+  row, one competition card at quarter width, and — because the live section
+  simply vanished when nothing was in play — no fixtures on the page at all.
+  - The live section is now "Next up" when nothing is live, showing the next
+    fixtures. A school sports page with no matches on it is not a page.
+  - Grids use `auto-fill` with a minimum width. Capping the column COUNT was my
+    first attempt and it was worse — a grid told to lay one item across two
+    columns stretches it, so a single sport tile became a 550px square.
+  - `LiveSchoolCard` hard-coded status ONGOING, so the new upcoming fixtures each
+    wore a red "Live" pill. It reads the fixture now.
+- **Plurals.** "1 Sports", "1 Competitions", "1 matches", "1 competitions" —
+  across the Amashuri hero, the homepage sport tiles and the /sports index.
 
 ## Progress
 - [x] `scripts/make-ad-creatives.mjs` rebuilt: 6 sponsors x 3 shapes (-lg/-mb/-mr)

@@ -132,16 +132,19 @@ const AmashuriLayout = () => {
           <h1 className="font-display text-lg font-extrabold leading-tight tracking-[-0.02em] text-white sm:text-4xl sm:leading-tight">
             {t('amashuri.home_title_line1')} {t('amashuri.home_title_pre')}{t('amashuri.home_title_accent')}
           </h1>
+          {/* PLURALISED. Against the demo's data every count sat comfortably above
+              one; against the real one this read "1 Sports · 1 Competitions", which
+              is the kind of detail that makes a platform look unattended. */}
           <div className="scroll-contain -mx-4 mt-2 flex items-center gap-x-2.5 overflow-x-auto px-4 sm:mx-0 sm:mt-3 sm:flex-wrap sm:gap-x-5 sm:overflow-visible sm:px-0">
-            <Stat icon={Layers} value={sports.length} label={t('amashuri.stat_sports')} />
-            <Stat icon={School} value={schools.length} label={t('amashuri.stat_schools')} />
+            <Stat icon={Layers} value={sports.length} label={t('amashuri.n_sports', { count: sports.length })} />
+            <Stat icon={School} value={schools.length} label={t('amashuri.n_schools', { count: schools.length })} />
             {/* THREE STATS ON A PHONE, FOUR ABOVE `sm`. All four came to 398px of
                 labels, which overflows a 360px screen and sliced "Live matches" in
                 half at the edge — a clipped word reads as a bug, not as a hint to
                 scroll. Competitions is the one to drop: it is the longest label and
                 the Championships tab is six pixels below it. */}
-            <Stat icon={Trophy} value={competitions.length} label={t('amashuri.stat_competitions')} className="hidden sm:flex" />
-            <Stat icon={Radio} value={live.length} label={t('amashuri.stat_live')} live={live.length > 0} />
+            <Stat icon={Trophy} value={competitions.length} label={t('amashuri.n_competitions', { count: competitions.length })} className="hidden sm:flex" />
+            <Stat icon={Radio} value={live.length} label={t('amashuri.n_live', { count: live.length })} live={live.length > 0} />
           </div>
         </div>
 

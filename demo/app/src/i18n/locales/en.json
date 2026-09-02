@@ -518,7 +518,6 @@
     "pick_sport": "Pick a sport",
     "view_all_sports": "View all sports",
     "more_sports": "More sports",
-    "comp_count": "{{count}} competitions",
     "col_regions": "Regions",
     "col_events": "Events",
     "col_athletes": "Athletes",
@@ -554,7 +553,19 @@
       "eligibility": "Eligibility",
       "verified": "Verified",
       "pending": "Pending review"
-    }
+    },
+    "next_up": "Next up",
+    "n_sports_one": "Sport",
+    "n_sports_other": "Sports",
+    "n_schools_one": "School",
+    "n_schools_other": "Schools",
+    "n_competitions_one": "Competition",
+    "n_competitions_other": "Competitions",
+    "n_live_one": "Live match",
+    "n_live_other": "Live matches",
+    "comp_count_one": "{{count}} competition",
+    "comp_count_other": "{{count}} competitions",
+    "view_all_fixtures": "View all fixtures"
   },
   "admin": {
     "portal": "Admin Portal",

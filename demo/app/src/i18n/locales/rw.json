@@ -518,7 +518,6 @@
     "pick_sport": "Hitamo siporo",
     "view_all_sports": "Reba siporo zose",
     "more_sports": "Izindi siporo",
-    "comp_count": "amarushanwa {{count}}",
     "col_regions": "Uturere",
     "col_events": "Ibikorwa",
     "col_athletes": "Abakinnyi",
@@ -554,7 +553,19 @@
       "eligibility": "Uburenganzira bwo gukina",
       "verified": "Byemejwe",
       "pending": "Birategerejwe"
-    }
+    },
+    "next_up": "Ibikurikira",
+    "n_sports_one": "Siporo",
+    "n_sports_other": "Siporo",
+    "n_schools_one": "Ishuri",
+    "n_schools_other": "Amashuri",
+    "n_competitions_one": "Irushanwa",
+    "n_competitions_other": "Amarushanwa",
+    "n_live_one": "Umukino ubaho",
+    "n_live_other": "Imikino ibaho",
+    "comp_count_one": "Irushanwa {{count}}",
+    "comp_count_other": "Amarushanwa {{count}}",
+    "view_all_fixtures": "Reba gahunda yose"
   },
   "admin": {
     "portal": "Urubuga rw'Ubuyobozi",

@@ -518,7 +518,6 @@
     "pick_sport": "Choisir un sport",
     "view_all_sports": "Voir tous les sports",
     "more_sports": "Plus de sports",
-    "comp_count": "{{count}} compétitions",
     "col_regions": "Régions",
     "col_events": "Épreuves",
     "col_athletes": "Athlètes",
@@ -554,7 +553,19 @@
       "eligibility": "Éligibilité",
       "verified": "Vérifiée",
       "pending": "En cours de vérification"
-    }
+    },
+    "next_up": "À venir",
+    "n_sports_one": "Sport",
+    "n_sports_other": "Sports",
+    "n_schools_one": "École",
+    "n_schools_other": "Écoles",
+    "n_competitions_one": "Compétition",
+    "n_competitions_other": "Compétitions",
+    "n_live_one": "Match en direct",
+    "n_live_other": "Matchs en direct",
+    "comp_count_one": "{{count}} compétition",
+    "comp_count_other": "{{count}} compétitions",
+    "view_all_fixtures": "Voir tout le calendrier"
   },
   "admin": {
     "portal": "Portail Admin",
