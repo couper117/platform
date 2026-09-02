@@ -49,6 +49,9 @@ const envSchema = z.object({
   // Close matches a reporter left live. Off unless explicitly enabled: ending a
   // match is publicly visible and hard to walk back, so it follows the same
   // opt-in shape as the retention purge. See services/staleMatches.logic.ts.
+  // Shared secret for scheduled work. Vercel sends it as a bearer token on cron
+  // invocations; without it those endpoints refuse everything.
+  CRON_SECRET: z.string().optional(),
   AUTO_END_STALLED_MATCHES: z.preprocess(
     (v) => String(v).toLowerCase() === 'true',
     z.boolean().default(false),
