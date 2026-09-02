@@ -117,7 +117,17 @@ const FixturesPage = () => {
   const list = fixtures?.data ?? [];
   const featured = pickFeatured(list);
 
-  const groups = groupFixtures(list); // mobile: by date
+  /**
+   * Has the reader narrowed the list to one sport or one competition?
+   *
+   * It decides two things that have to agree: how the list is grouped (by day
+   * across everything, or by competition within one sport) and whether the rail
+   * can show a table at all. A table describes one competition, so the same
+   * answer governs both.
+   */
+  const isScoped = !!sportSlug || !!filters.leagueId;
+
+  const groups = groupFixtures(list); // by date
   const compGroups = groupByCompetition(list); // desktop: by competition
 
   /**
@@ -151,7 +161,7 @@ const FixturesPage = () => {
      * It comes back as soon as the list is narrowed to a sport or a competition,
      * which is the point at which a table means something again.
      */
-    if (!sportSlug && !filters.leagueId) return undefined;
+    if (!isScoped) return undefined;
 
     if (filters.leagueId) return filters.leagueId;
 
@@ -262,9 +272,31 @@ const FixturesPage = () => {
               ) : null
             }
           />
+        ) : isDesktop && !isScoped ? (
+          /* DESKTOP, ALL SPORTS: one continuous list of rows, no grouping at all.
+             ─────────────────────────────────────────────────────────────────
+             Grouping was the whole problem. By competition it produced twenty
+             headings for forty-two matches — a heading, one lonely card at half
+             width, another heading — and a 5,000px page. Grouping by day instead
+             was worse: this schedule is forty-two fixtures spread across
+             THIRTY-THREE days and two months, roughly one a day, so the day axis
+             is just as sparse and the page grew to 7,000px.
+
+             Sparse data does not want cards. Every heading was announcing a group
+             of one, and every card was reserving space for a density that is not
+             there. A row carries its own date and its own competition, so it
+             needs no heading at all — which is how a fixture list has always been
+             printed, and it reads as a schedule rather than a stack of posters. */
+          <div className="overflow-hidden rounded-card border border-hairline bg-surface">
+            {list.map((fixture) => (
+              <MatchRow key={fixture.id} fixture={fixture} showDate showCompetition />
+            ))}
+          </div>
         ) : isDesktop ? (
-          /* DESKTOP: competition heading, then a two-column grid of cards.
-             Grouped by league rather than date — see groupByCompetition. */
+          /* DESKTOP, ONE SPORT OR ONE COMPETITION: competition heading, then a
+             two-column grid of cards. Once the list is narrowed the competition
+             is meaningful again — there are two or three of them, not twenty —
+             and a card can afford the fuller layout. */
           compGroups.map((comp) => (
             <section key={comp.name} className="mb-5 last:mb-0">
               <SectionHeading title={comp.name} className="mb-2" />
