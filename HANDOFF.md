@@ -7,9 +7,9 @@ fix its header, we don't need those nav links, nice icons with a nice search bar
 we will copy every other admin page based on this one."
 
 ## Status
-In progress. The shell and the template dashboard are **done and committed**
-(`6095aa1`). Six agents are fanning the template out across the remaining 43 admin
-pages.
+**Solved and shipped.** The whole admin portal is on one design vocabulary.
+`Levi` and `main` are both at `691b8bb`; frontend and backend typecheck, `vite
+build` passes.
 
 ## Progress
 - [x] `components/admin/AdminUI.tsx` — the shared kit: `PageHeader`, `StatCard`
@@ -23,8 +23,12 @@ pages.
 - [x] `AdminDashboard.tsx` rebuilt on the kit — **this is the template**.
 - [x] Backend `GET /admin/activity-trend` (real daily counts, Kigali days) and
       `/activity?excludeModule=` (audit trail, not the visitor tracker's own noise).
-- [ ] 43 remaining admin pages — agents in flight, see below.
-- [ ] Visual pass over the fanned-out pages, then typecheck + build + commit.
+- [x] 43 remaining admin pages, fanned out to six agents and reviewed.
+- [x] Sidebar pinned to the viewport with its own scroller.
+- [x] Visual sweep of all 33 reachable admin routes: no page errors, no page
+      scrolling sideways.
+- [x] Committed, pushed, merged to `main` (one conflict in `apps/backend/
+      package.json`: kept Levi's `seed:all`, main's `vercel-build`).
 
 ## Working Notes
 
@@ -54,10 +58,28 @@ under `src/i18n/`; hands off `AdminUI/AdminTopBar/Sidebar/AdminLayout/AdminDashb
 scrolls sideways; `npx tsc -p apps/frontend --noEmit` clean at the end (the only
 acceptable errors are the pre-existing `vitest` / `@testing-library` ones).
 
-**Next step on resume:** collect the six agent reports, run the typecheck and the
-frontend build once across the whole tree, screenshot a sample of the fanned-out
-pages against the user's dev server on `localhost:5174` (Vite binds `[::1]`, so use
-`localhost`, never `127.0.0.1`; log in as `admin` / `Manager@123`), then commit.
+**Four more fabricated statistics were found and removed during the fan-out**, all
+of the same kind as the dashboard's: `FederationDashboard`'s six-month growth curve
+was a literal array; `LeagueDashboard`'s "goals scored over the season" was a sine
+wave over fifteen invented matchdays, and its fixture rows said Assigned/Pending by
+row index; `AdminAdsPage` and `AkcAdminDashboard` printed a green "Active" chip on
+every row regardless of the record. All now read real data or a real empty state.
+
+**Open follow-ups, none blocking:**
+  - `GET /akc3/schools` hard-filters `active: true`, so hiding a school removes it
+    from the only list that could un-hide it — the Show toggle is unreachable.
+  - `visitorTracker` (see above) still writes a row per API GET.
+  - `ReporterProfilePage`'s error branch is unreachable: the `isLoading || !form`
+    guard runs first and `form` stays null forever on a failed fetch.
+  - `AdminFixturesPage`, `LiveReportingPage`, `AdminNewsPage`, `AdminAdsPage` and
+    `AdminSettingsPage` have no `t()` at all — hardcoded English, needs an i18n pass.
+  - Several list pages show the empty state on a failed request rather than an
+    error state.
+  - `/admin/players` renders ~20,000px of unpaginated rows.
+
+**To verify visually on resume:** the user's dev server on `localhost:5174` (Vite
+binds `[::1]`, so use `localhost`, never `127.0.0.1`; log in as `admin` /
+`Manager@123`).
 
 ## Standing constraints
 - **Never start a dev server.** The user is the only one who runs it.
