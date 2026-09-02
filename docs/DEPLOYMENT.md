@@ -104,10 +104,17 @@ it per request. Three things moved:
 - **Competition rule seeding** runs once per cold start, fire-and-forget. A
   function that awaits it before its first reply is a function that times out.
 - **The stalled-match sweep** was an in-process timer. There is no process to hold
-  one, so `vercel.json` schedules `/api/v1/internal/cron/end-stalled-matches`
-  every ten minutes. It is gated on `CRON_SECRET` and still honours
-  `AUTO_END_STALLED_MATCHES`, so adding the schedule cannot by itself start
-  ending matches on a deployment that never opted in.
+  one, so `vercel.json` schedules `/api/v1/internal/cron/end-stalled-matches`. It
+  is gated on `CRON_SECRET` and still honours `AUTO_END_STALLED_MATCHES`, so
+  adding the schedule cannot by itself start ending matches on a deployment that
+  never opted in.
+
+  It runs **once a day at 03:00**, because a Hobby plan permits no more than that
+  — a deployment on Hobby will refuse to build with a finer schedule. Daily is
+  coarse for this job: a match a reporter leaves live can stay live for most of a
+  day before anything closes it. On a Pro plan change the schedule to
+  `*/10 * * * *`. Anywhere else, run `npm run matches:end-stalled:apply` from
+  your own scheduler as often as you like.
 
 Two limits remain, and neither has a workaround inside the function:
 

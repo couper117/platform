@@ -58,3 +58,5 @@ nga-tourism-project-main/
 
 # Local DB backups (scripts/backup-db.mjs)
 backups/
+
+.env*

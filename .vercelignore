@@ -1,0 +1,22 @@
+# What must never reach a deployment.
+#
+# `vercel deploy` from the CLI honours this file, not .gitignore — so a local
+# .env sits beside the build, dotenv loads it, and the deployment quietly uses a
+# developer's database and secrets instead of the ones configured on the project.
+# That is how a production build ended up trying to reach 127.0.0.1:5433.
+.env
+.env.*
+!.env.example
+
+node_modules
+**/node_modules
+
+# Build output — Vercel builds from source.
+apps/frontend/dist
+demo/dist
+demo/app/dist
+
+# Local working files.
+.git
+*.log
+uploads
