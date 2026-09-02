@@ -726,11 +726,11 @@
     "roles": {
       "title": "Inshingano &",
       "title_accent": "Uburenganzira",
-      "subtitle": "Uruhare ruki rugera ku gice ki cy ubuyobozi",
-      "col_section": "Igice",
+      "subtitle": "Icyo buri ruhare rwemerewe gukora",
+      "col_section": "Uburenganzira",
       "allowed": "Byemewe",
       "denied": "Nta bwinjire",
-      "note": "Iyi mbonerahamwe ikomoka ku rutonde rumwe rw uburenganzira ruyobora menu n ubuyobozi bwa backend — ntihindurwa n intoki."
+      "note": "Iva kuri API ikoresheje amategeko yayo ubwayo, bityo ntishobora gutandukana n ibyo seriveri yemera. Ibidasanzwe kuri konti runaka bishyirwa kuri iyo konti, muri Abakoresha."
     },
     "health": {
       "title": "Ubuzima bwa",
@@ -1368,6 +1368,7 @@
     "nav_dashboard": "Imbonerahamwe",
     "nav_sport_admins": "Abayobozi ba siporo",
     "nav_leagues": "Amaligi",
+    "nav_sports": "Siporo",
     "nav_fixtures": "Imikino",
     "nav_teams": "Amakipe",
     "nav_players": "Abakinnyi",
@@ -1381,6 +1382,7 @@
     "nav_profile": "Umwirondoro w ikipe",
     "nav_lineups": "Abakina",
     "nav_live_reporting": "Gutanga raporo kuri ubu",
+    "nav_my_profile": "Umwirondoro wanjye",
     "nav_my_players": "Abakinnyi banjye",
     "role_ministry": "Minisiteri y Imikino",
     "role_ministry_sub": "Rwanda",
@@ -1403,6 +1405,8 @@
     "nav_media": "Ububiko bw amashusho",
     "nav_users": "Abakoresha",
     "nav_roles": "Inshingano & uburenganzira",
+    "nav_requests": "Gusaba kwinjira",
+    "nav_compliance": "Kurinda amakuru bwite",
     "nav_system_health": "Ubuzima bwa sisitemu",
     "nav_match_reports": "Raporo z imikino",
     "nav_standings": "Imyanya",
@@ -1416,7 +1420,6 @@
     "nav_athletes": "Abakinnyi",
     "nav_seasons": "Ibihembwe",
     "nav_stages": "Ibyiciro",
-    "nav_sports": "Siporo",
     "nav_approvals": "Kwemeza",
     "nav_my_athletes": "Abakinnyi bacu",
     "role_school": "Urubuga rw’ishuri",
@@ -1697,5 +1700,15 @@
       "after": "Uyu mukino uzabera nyuma y'Umuganda.",
       "affected": "Uyu mukino wagizweho ingaruka n'Umuganda. Icyemezo cya nyuma kiracyategerejwe."
     }
+  },
+  "follow": {
+    "follow": "Kurikirana",
+    "following": "Urakurikirana",
+    "unfollow": "Reka gukurikirana"
+  },
+  "notifications": {
+    "title": "Amakuru",
+    "mark_all": "Menya byose",
+    "none": "Nta kintu kiraboneka."
   }
 }

@@ -14,7 +14,7 @@ const BLUE = '#00A1DE';
 const GOLD = '#F5A623';
 const GREEN = '#00C853';
 
-const ChartCard = ({ icon: Icon, title, subtitle, children }) => (
+const ChartCard = ({ icon: Icon, title, subtitle, children }: { icon: any; title?: React.ReactNode; subtitle?: React.ReactNode; children?: React.ReactNode }) => (
   <Card className="p-5 sm:p-6">
     <div className="flex items-center gap-3 mb-5">
       <span className="w-9 h-9 rounded-xl bg-red/10 text-red flex items-center justify-center">
@@ -29,7 +29,7 @@ const ChartCard = ({ icon: Icon, title, subtitle, children }) => (
   </Card>
 );
 
-const ChartTooltip = ({ active, payload, label }) => {
+const ChartTooltip = ({ active, payload, label }: { active?: boolean; payload?: any[]; label?: any }) => {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-xl border border-surface-3 dark:border-white/10 bg-white dark:bg-surface-dark2 px-3 py-2 shadow-xl">

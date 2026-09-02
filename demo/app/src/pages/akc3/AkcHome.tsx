@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import {
-  GraduationCap, Trophy, School, Radio, MapPin, ArrowRight, Search, Users, Layers, Newspaper, ChevronRight,
+  GraduationCap, Trophy, School, Radio, MapPin, ArrowRight, Users, Layers, Newspaper, ChevronRight,
 } from 'lucide-react';
 import {
   getSchools, getChampionships, getAkcSports, getAkcFixtures, getAkcAnnouncements,
@@ -12,7 +12,6 @@ import {
 import ResponsiveWrapper from '../../components/shared/ResponsiveWrapper';
 import Seo from '../../components/shared/Seo';
 import ClubCrest from '../../components/ui/ClubCrest';
-import Button from '../../components/ui/Button';
 
 /**
  * Amashuri Games — the digital home of Rwandan SCHOOL sports.
@@ -20,14 +19,14 @@ import Button from '../../components/ui/Button';
  * Not one tournament: an umbrella ecosystem of many sports, schools, teams and
  * competitions. The homepage mirrors the main RwaSport landing (hero → live →
  * pick a sport → competitions → schools → news) but scoped to schools and wearing
- * a gold accent to set the school ecosystem apart from the green main platform.
- * Every number and card is data-driven from the /akc3 API.
+ * a gold accent. Live on the real /akc3 API and fully translated (EN/FR/RW) —
+ * every label goes through t(); only data (school, competition names) stays data.
  */
 
 const GOLD = '#F5B301';
 
 /* ── live school match card (sport-aware status) ────────────────────────────── */
-const LiveSchoolCard = ({ fx }) => {
+const LiveSchoolCard = ({ fx, t }) => {
   const rows = [
     { s: fx.homeTeam?.school, score: fx.homeScore },
     { s: fx.awayTeam?.school, score: fx.awayScore },
@@ -41,7 +40,7 @@ const LiveSchoolCard = ({ fx }) => {
       <div className="mb-3 flex items-center justify-between gap-2">
         <span className="truncate text-[10px] font-bold uppercase tracking-wider text-tertiary">{fx.competition?.name}</span>
         <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-red/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red" /> {fx.statusLabel || 'Live'}
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red" /> {fx.statusLabel || t('match.live', 'Live')}
         </span>
       </div>
       <div className="space-y-2.5">
@@ -59,24 +58,24 @@ const LiveSchoolCard = ({ fx }) => {
 };
 
 /* ── sport card ─────────────────────────────────────────────────────────────── */
-const SportCard = ({ s }) => (
+const SportCard = ({ s, t }) => (
   <Link
     to="/amashuri/fixtures"
     className="group flex w-[40vw] shrink-0 flex-col items-center gap-2 rounded-2xl border border-hairline bg-surface p-4 text-center transition-all hover:-translate-y-1 hover:border-[#F5B301]/50 sm:w-auto"
   >
-    <span className="text-3xl transition-transform group-hover:scale-110" aria-hidden="true">{s.icon}</span>
+    <span className="flex h-12 w-12 items-center justify-center rounded-full text-xl font-extrabold transition-transform group-hover:scale-110" style={{ background: `${GOLD}1a`, color: GOLD }} aria-hidden="true">{s.name?.charAt(0)?.toUpperCase()}</span>
     <div>
       <p className="text-sm font-bold text-primary">{s.name}</p>
-      <p className="text-[11px] text-tertiary">{s.competitions} competitions</p>
+      <p className="text-[11px] text-tertiary">{t('amashuri.comp_count', { count: s.competitions })}</p>
     </div>
   </Link>
 );
 
 /* ── competition card ───────────────────────────────────────────────────────── */
-const CompetitionCard = ({ c }) => {
+const CompetitionCard = ({ c, t }) => {
   const stats = c.regions != null
-    ? [[c.regions, 'Regions'], [c.events, 'Events'], [c.athletes, 'Athletes']]
-    : [[c.schools, 'Schools'], [c.groups, 'Groups'], [c.matches, 'Matches']];
+    ? [[c.regions, t('amashuri.col_regions')], [c.events, t('amashuri.col_events')], [c.athletes, t('amashuri.col_athletes')]]
+    : [[c.schools, t('amashuri.col_schools')], [c.groups, t('amashuri.col_groups')], [c.matches, t('amashuri.col_matches')]];
   return (
     <Link
       to="/amashuri/fixtures"
@@ -106,7 +105,7 @@ const CompetitionCard = ({ c }) => {
   );
 };
 
-const SectionHead = ({ icon: Icon, title, to, viewLabel = 'View all' }) => (
+const SectionHead = ({ icon: Icon, title, to, viewLabel }: any) => (
   <div className="mb-4 flex items-center justify-between gap-3">
     <h2 className="flex items-center gap-2 text-lg font-extrabold uppercase tracking-tight text-primary sm:text-xl">
       {Icon && <Icon size={18} style={{ color: GOLD }} />} {title}
@@ -135,10 +134,10 @@ const AkcHome = () => {
 
   // Dynamic stats — real counts from the /akc3 data, never hardcoded.
   const stats = [
-    { icon: Layers, value: sports.length, label: 'Sports' },
-    { icon: School, value: schools.length, label: 'Schools' },
-    { icon: Trophy, value: competitions.length, label: 'Competitions' },
-    { icon: Radio, value: live.length, label: 'Live matches' },
+    { icon: Layers, value: sports.length, label: t('amashuri.stat_sports') },
+    { icon: School, value: schools.length, label: t('amashuri.stat_schools') },
+    { icon: Trophy, value: competitions.length, label: t('amashuri.stat_competitions') },
+    { icon: Radio, value: live.length, label: t('amashuri.stat_live') },
   ];
 
   return (
@@ -148,33 +147,24 @@ const AkcHome = () => {
       {/* ─── HERO ─── */}
       <section className="relative overflow-hidden bg-[#062a19] text-white">
         <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(70% 80% at 75% 20%, rgba(16,120,60,0.45), transparent 60%)' }} />
-        <ResponsiveWrapper className="relative z-10 grid items-center gap-6 py-8 lg:grid-cols-2 lg:py-12">
-          <div>
+        <ResponsiveWrapper className="relative z-10 py-8 lg:py-12">
+          <div className="max-w-2xl">
             <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider">
-              <GraduationCap size={14} style={{ color: GOLD }} /> Rwanda Inter-School Sports
+              <GraduationCap size={14} style={{ color: GOLD }} /> {t('amashuri.tagline')}
             </p>
             <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl">
-              Rwandan School Sports,<br />All in <span style={{ color: GOLD }}>One Place</span>
+              {t('amashuri.home_title_line1')}<br />{t('amashuri.home_title_pre')}<span style={{ color: GOLD }}>{t('amashuri.home_title_accent')}</span>
             </h1>
             <p className="mt-4 max-w-md text-base leading-relaxed text-white/70">
-              Follow school competitions, teams, athletes, fixtures, results and championships across Rwanda.
+              {t('amashuri.home_subtitle')}
             </p>
             <div className="mt-6 flex flex-wrap items-center gap-3">
               <Link to="/amashuri/championships" className="inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-bold text-black transition-transform hover:-translate-y-0.5" style={{ background: GOLD }}>
-                Explore competitions <ArrowRight size={16} />
+                {t('amashuri.home_explore_comps')} <ArrowRight size={16} />
               </Link>
               <Link to="/amashuri/schools" className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-5 py-3 text-sm font-bold text-white backdrop-blur-sm transition-colors hover:bg-white/20">
-                <School size={16} /> Find a school
+                <School size={16} /> {t('amashuri.home_find_school')}
               </Link>
-            </div>
-          </div>
-          {/* Multi-sport visual — swap in /amashuri-hero.png for real athletes. */}
-          <div className="hidden lg:block">
-            <div className="relative mx-auto flex aspect-[5/4] max-w-md items-center justify-center gap-4">
-              <div className="absolute inset-0" style={{ background: `radial-gradient(50% 50% at 55% 45%, ${GOLD}22, transparent 70%)` }} />
-              {['⚽', '🏀', '🏐', '🏃'].map((b, i) => (
-                <span key={b} className="relative text-6xl drop-shadow-[0_0_24px_rgba(245,179,1,0.35)]" style={{ transform: `translateY(${[10, -20, -6, 14][i]}px)` }}>{b}</span>
-              ))}
             </div>
           </div>
         </ResponsiveWrapper>
@@ -201,15 +191,15 @@ const AkcHome = () => {
           <section>
             <div className="mb-4 flex items-center justify-between gap-3">
               <h2 className="flex items-center gap-2 text-lg font-extrabold uppercase tracking-tight text-primary sm:text-xl">
-                <Radio size={18} className="text-red" /> Live School Sports
-                <span className="rounded-full bg-red/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red">{live.length} Live</span>
+                <Radio size={18} className="text-red" /> {t('amashuri.live_school_sports')}
+                <span className="rounded-full bg-red/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red">{t('amashuri.live_count', { count: live.length })}</span>
               </h2>
               <Link to="/amashuri/fixtures" className="inline-flex shrink-0 items-center gap-1 text-xs font-bold uppercase tracking-wider text-brand-text">
-                <span className="hidden sm:inline">View all live matches</span><span className="sm:hidden">View all</span> <ArrowRight size={13} />
+                <span className="hidden sm:inline">{t('amashuri.view_all_live')}</span><span className="sm:hidden">{t('amashuri.view_all')}</span> <ArrowRight size={13} />
               </Link>
             </div>
             <div className="scroll-contain flex snap-x gap-3 overflow-x-auto pb-1 sm:overflow-visible">
-              {live.map((fx) => <LiveSchoolCard key={fx.id} fx={fx} />)}
+              {live.map((fx) => <LiveSchoolCard key={fx.id} fx={fx} t={t} />)}
             </div>
           </section>
         )}
@@ -217,13 +207,13 @@ const AkcHome = () => {
         {/* ─── PICK A SPORT ─── */}
         {sports.length > 0 && (
           <section>
-            <SectionHead title="Pick a sport" to="/amashuri/fixtures" viewLabel="View all sports" />
+            <SectionHead title={t('amashuri.pick_sport')} to="/amashuri/fixtures" viewLabel={t('amashuri.view_all_sports')} />
             <div className="scroll-contain flex gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-4 sm:overflow-visible lg:grid-cols-8">
-              {sports.map((s) => <SportCard key={s.slug} s={s} />)}
+              {sports.map((s) => <SportCard key={s.slug} s={s} t={t} />)}
               <Link to="/amashuri/fixtures" className="flex w-[40vw] shrink-0 flex-col items-center justify-center gap-2 rounded-2xl border border-hairline bg-surface p-4 text-center hover:border-[#F5B301]/50 sm:w-auto">
                 <ChevronRight size={22} className="text-tertiary" />
-                <p className="text-sm font-bold text-primary">More sports</p>
-                <p className="text-[11px] text-tertiary">View all</p>
+                <p className="text-sm font-bold text-primary">{t('amashuri.more_sports')}</p>
+                <p className="text-[11px] text-tertiary">{t('amashuri.view_all')}</p>
               </Link>
             </div>
           </section>
@@ -232,9 +222,9 @@ const AkcHome = () => {
         {/* ─── POPULAR COMPETITIONS ─── */}
         {competitions.length > 0 && (
           <section>
-            <SectionHead title="Popular competitions" to="/amashuri/championships" viewLabel="View all competitions" />
+            <SectionHead title={t('amashuri.popular_comps')} to="/amashuri/championships" viewLabel={t('amashuri.view_all_comps')} />
             <div className="scroll-contain flex snap-x gap-4 overflow-x-auto pb-2 sm:grid sm:grid-cols-2 sm:overflow-visible lg:grid-cols-4">
-              {competitions.map((c) => <CompetitionCard key={c.id} c={c} />)}
+              {competitions.map((c) => <CompetitionCard key={c.id} c={c} t={t} />)}
             </div>
           </section>
         )}
@@ -242,7 +232,7 @@ const AkcHome = () => {
         {/* ─── DISCOVER SCHOOLS + LATEST NEWS ─── */}
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
           <section>
-            <SectionHead icon={School} title="Discover schools" to="/amashuri/schools" viewLabel="View directory" />
+            <SectionHead icon={School} title={t('amashuri.discover_schools')} to="/amashuri/schools" viewLabel={t('amashuri.view_directory')} />
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {schools.slice(0, 4).map((s) => (
                 <Link key={s.id} to={`/amashuri/schools/${s.id}`} className="group flex items-center gap-3 rounded-2xl border border-hairline bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-[#F5B301]/50">
@@ -250,7 +240,7 @@ const AkcHome = () => {
                   <div className="min-w-0">
                     <p className="truncate font-bold text-primary group-hover:text-brand-text">{s.name}</p>
                     <p className="mt-0.5 flex items-center gap-1 truncate text-[11px] text-tertiary">
-                      <MapPin size={11} /> {s.sector || s.province || 'Rwanda'} · {s.category}
+                      <MapPin size={11} /> {s.sector || s.province || t('sporthub.rwanda')} · {s.category}
                     </p>
                   </div>
                 </Link>
@@ -261,15 +251,15 @@ const AkcHome = () => {
           <section id="news" className="rounded-2xl border border-hairline bg-surface p-5">
             <div className="mb-4 flex items-center gap-2">
               <Newspaper size={16} style={{ color: GOLD }} />
-              <h2 className="text-sm font-bold uppercase tracking-widest text-primary">Latest news</h2>
+              <h2 className="text-sm font-bold uppercase tracking-widest text-primary">{t('amashuri.latest_news')}</h2>
             </div>
             {news.length === 0 ? (
-              <p className="py-4 text-sm text-tertiary">No school-sports news yet.</p>
+              <p className="py-4 text-sm text-tertiary">{t('amashuri.no_news')}</p>
             ) : (
               <div className="space-y-4">
                 {news.map((a) => (
                   <div key={a.id} className="border-b border-hairline/60 pb-3 last:border-0 last:pb-0">
-                    <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: GOLD }}>{String(a.category || 'News').replace(/_/g, ' ')}</p>
+                    <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: GOLD }}>{String(a.category || t('amashuri.news_default')).replace(/_/g, ' ')}</p>
                     <p className="text-sm font-semibold leading-snug text-primary">{a.title}</p>
                     {a.createdAt && <p className="mt-0.5 text-[11px] text-tertiary">{format(new Date(a.createdAt), 'd MMM yyyy')}</p>}
                   </div>

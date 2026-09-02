@@ -9,7 +9,7 @@ import cn from '../ui/cn';
  * League table.
  *
  * SIX COLUMNS AND NO HORIZONTAL SCROLL, EVER. pos / crest / name / P / GD / Pts.
- * The rest — W, D, L, goals for and against, recent form — lives behind an inline
+ * The rest Ã¢â‚¬â€ W, D, L, goals for and against, recent form Ã¢â‚¬â€ lives behind an inline
  * expansion, because a sideways-scrolling table hides the column you are looking
  * for and, in a 320px rail, would hide most of them.
  *
@@ -19,7 +19,7 @@ import cn from '../ui/cn';
  */
 
 /** W/D/L from the `form` string, most recent last. Colour is the only signal. */
-export const FormStrip = ({ form = '', className }) => {
+export const FormStrip = ({ form = '', className = '' }) => {
   const marks = form.slice(-5).split('');
   if (marks.length === 0) return null;
   return (
@@ -94,7 +94,7 @@ const StandingsRow = ({ row, expanded, onToggle, safe }) => {
   );
 };
 
-const StandingsTable = ({ rows = [], className }) => {
+const StandingsTable = ({ rows = [], className = '' }) => {
   const safe = useMotionSafe();
   const [openId, setOpenId] = useState(null);
 

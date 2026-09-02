@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import NotificationBell from '../shared/NotificationBell';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -252,6 +253,10 @@ const AppHeader = ({ className }) => {
 
         <div className="flex shrink-0 items-center gap-1">
           <IconButton icon={Search} label={t('nav.search', 'Search')} size="sm" onClick={openPalette} />
+          {/* Shown to anyone with notifications, signed in or not — following a
+              team never needed an account, so hearing about it must not either.
+              Renders nothing at all when there is nothing to show. */}
+          <NotificationBell />
           {/* Visible at every width, phones included. Switching theme is a
               one-tap thing people do in bright sun or at night — burying it two
               taps deep behind the hamburger made the least sense on the device

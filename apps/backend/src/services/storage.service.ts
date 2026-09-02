@@ -58,12 +58,46 @@ const deleteCloudinary = async (url) => {
   }
 };
 
-const uploadImage = async (file, folder, width = 400, height = 400) => {
+/**
+ * Keep a record of an uploaded file.
+ *
+ * A URL stored in a VarChar on the thing it belongs to cannot be listed,
+ * attributed, or found again once the row that referenced it changes — so the
+ * media library had to be assembled by scanning four tables for non-null image
+ * columns, and a file nothing pointed at was invisible. This row is what makes
+ * an upload findable afterwards.
+ *
+ * Best-effort by design: the file is already stored, and failing to write the
+ * bookkeeping must not fail the upload that succeeded.
+ */
+const recordMedia = async (url, file, folder, meta: any = {}) => {
+  try {
+    const prisma = require('../config/db');
+    await prisma.media.create({
+      data: {
+        url,
+        mimeType: file?.mimetype || 'image/webp',
+        bytes: file?.size ?? 0,
+        ownerType: meta.ownerType || folder,
+        ownerId: meta.ownerId ?? null,
+        purpose: meta.purpose || null,
+        uploadedById: meta.uploadedById ?? null,
+      },
+    });
+  } catch (error) {
+    console.log(`Media record skipped for ${url}: ${error.message}`);
+  }
+};
+
+const uploadImage = async (file, folder, width = 400, height = 400, meta: any = {}) => {
   try {
     const buffer = await toWebp(file.buffer, width, height);
-    return env.STORAGE_DRIVER === 'local'
-      ? uploadLocal(buffer, folder)
-      : uploadCloudinary(buffer, folder);
+    const url = env.STORAGE_DRIVER === 'local'
+      ? await uploadLocal(buffer, folder)
+      : await uploadCloudinary(buffer, folder);
+
+    await recordMedia(url, file, folder, meta);
+    return url;
   } catch (error) {
     throw new Error(`Failed to upload image: ${error.message}`);
   }
@@ -76,4 +110,4 @@ const deleteImage = async (url) => {
   return deleteCloudinary(url);
 };
 
-module.exports = { uploadImage, deleteImage };
+module.exports = { uploadImage, recordMedia, deleteImage };

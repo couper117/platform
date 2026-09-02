@@ -51,8 +51,22 @@ const serveSuspensions = async (fixture) => {
   const pids = players.map((p) => p.id);
   if (!pids.length) return;
 
+  // A ban is served by sitting out a match — except the one it was issued in,
+  // where the player was sent off rather than absent.
+  //
+  // `originFixtureId: { not: fixture.id }` alone silently excluded every ban with
+  // no origin at all: in SQL, `NULL <> 5` is NULL rather than true, so the row
+  // never matches. Every manually-imposed suspension has a null origin, which
+  // made all of them permanent — counted down never, and enforced forever.
   const active = await prisma.suspension.findMany({
-    where: { playerId: { in: pids }, active: true, originFixtureId: { not: fixture.id } },
+    where: {
+      playerId: { in: pids },
+      active: true,
+      OR: [
+        { originFixtureId: null },
+        { originFixtureId: { not: fixture.id } },
+      ],
+    },
   });
   for (const s of active) {
     const served = s.matchesServed + 1;

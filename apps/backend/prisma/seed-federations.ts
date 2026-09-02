@@ -99,6 +99,25 @@ async function main() {
     }
   }
 
+  // Attach the seeded FEDERATION_ADMIN to a federation.
+  //
+  // The role means nothing without this row: protect() reads the assignment to
+  // work out which sport the account is scoped to, and an unassigned federation
+  // admin has sportId null — which every scope check then has to treat as "no
+  // sport", not "all sports". Seeding the account without the assignment would
+  // leave that path as the only one anyone ever exercised.
+  const fedAdmin = await prisma.user.findUnique({ where: { username: 'federation_admin' } });
+  if (fedAdmin) {
+    const football = await prisma.federation.findFirst({ where: { sport: { slug: 'football' } } });
+    if (football) {
+      const existing = await prisma.federationAdminAssignment.findFirst({ where: { userId: fedAdmin.id } });
+      if (!existing) {
+        await prisma.federationAdminAssignment.create({ data: { federationId: football.id, userId: fedAdmin.id } });
+        console.log(`   linked federation_admin to ${football.name}`);
+      }
+    }
+  }
+
   const totals = {
     sports: await prisma.sport.count(),
     federations: await prisma.federation.count(),

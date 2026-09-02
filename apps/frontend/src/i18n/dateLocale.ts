@@ -61,4 +61,43 @@ export const useDateFormat = () => {
   };
 };
 
+/**
+ * Re-express an instant so its LOCAL fields read as its UTC fields.
+ *
+ * date-fns formats in the browser's timezone, which is right for a moment in
+ * time and wrong for a calendar date. A Prisma `@db.Date` column arrives as
+ * "2026-08-29T00:00:00.000Z" — a day, not an instant — and formatting that
+ * anywhere west of Greenwich gives 28 August, because 00:00 UTC is the previous
+ * evening there. Umuganda is the last Saturday of the month; rendering it as a
+ * Friday is not a rounding error, it names the wrong day.
+ *
+ * Shifting the value so its local components equal its UTC ones lets date-fns
+ * keep doing the formatting and the localisation, and simply stops it applying
+ * an offset that a date-only value never had.
+ */
+const asUtcFields = (d: Date) =>
+  new Date(
+    d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(),
+    d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds(),
+  );
+
+/**
+ * Format a date-only value — an Umuganda day, a birth date, a season start.
+ *
+ * Use this whenever the value came from a DATE column. For a real instant (a
+ * kick-off time), use useDateFormat, which correctly shows it in the viewer's
+ * own timezone.
+ */
+export const useDayFormat = () => {
+  const { i18n } = useTranslation();
+  const locale = getDateLocale(i18n.language);
+
+  return (value, pattern) => {
+    if (!value) return '';
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return formatDate(asUtcFields(date), pattern, { locale });
+  };
+};
+
 export default useDateFormat;

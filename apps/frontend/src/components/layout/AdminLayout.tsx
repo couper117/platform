@@ -6,10 +6,12 @@ import useAuthStore from '../../store/authStore';
 import { Menu, ShieldAlert } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { isAdminPathAllowed } from '../../lib/adminAccess';
+import { useCapabilities } from '../../hooks/useCan';
 
 const AdminLayout = () => {
   const { t } = useTranslation();
   const { isAuthenticated, role } = useAuthStore();
+  const capabilities = useCapabilities();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const location = useLocation();
 
@@ -18,7 +20,7 @@ const AdminLayout = () => {
     return <Navigate to="/auth/login" />;
   }
 
-  const pageAllowed = isAdminPathAllowed(role, location.pathname);
+  const pageAllowed = isAdminPathAllowed(capabilities, location.pathname);
 
   return (
     <div className="flex flex-col min-h-screen">

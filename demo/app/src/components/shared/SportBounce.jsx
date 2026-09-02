@@ -8,17 +8,17 @@ import cn from '../ui/cn';
  * A ball that bounces and changes sport.
  *
  * Two things are happening, and they are deliberately on separate clocks:
- *   · a 900ms bounce loop — up on ease-out, down on ease-in, so it accelerates
+ *   Â· a 900ms bounce loop â€” up on ease-out, down on ease-in, so it accelerates
  *     into the floor the way a ball does, with a squash on contact and a shadow
  *     that spreads and darkens as it lands
- *   · a 2.4s cycle swapping the glyph, so the mark says "every sport" rather than
+ *   Â· a 2.4s cycle swapping the glyph, so the mark says "every sport" rather than
  *     "football"
  *
  * The swap is timed to land mid-air, at the apex, where the ball is smallest and
- * moving slowest — a cross-fade at floor level reads as a glitch.
+ * moving slowest â€” a cross-fade at floor level reads as a glitch.
  *
  * THIS IS AN AMBIENT LOOP, NOT A TRANSITION, so the system's 240ms budget does not
- * apply to it — the same exemption the live pulse and the skeleton shimmer get. It
+ * apply to it â€” the same exemption the live pulse and the skeleton shimmer get. It
  * is decoration on an otherwise empty auth screen, which is the one place in the
  * product where decoration is the point.
  *
@@ -33,7 +33,7 @@ const DEFAULT_SLUGS = ['football', 'basketball', 'volleyball', 'athletics', 'cyc
 const BOUNCE_MS = 900;
 const SWAP_MS = 2400;
 
-const SportBounce = ({ slugs = DEFAULT_SLUGS, size = 34, className }) => {
+const SportBounce = ({ slugs = DEFAULT_SLUGS, size = 34, className = '' }) => {
   const safe = useMotionSafe();
   const [i, setI] = useState(0);
   const list = slugs.length ? slugs : DEFAULT_SLUGS;
@@ -94,7 +94,7 @@ const SportBounce = ({ slugs = DEFAULT_SLUGS, size = 34, className }) => {
           {/* A fixed box with the glyphs stacked absolutely inside it.
               `mode="wait"` was used here and it was wrong: it finishes the exit
               before starting the enter, so for ~220ms every swap rendered NO ball
-              at all — just a shadow bouncing on its own. Overlapping them gives a
+              at all â€” just a shadow bouncing on its own. Overlapping them gives a
               true cross-fade, and absolute positioning keeps the swap from
               nudging the layout. */}
           <div className="relative" style={{ width: size, height: size }}>

@@ -4,16 +4,7 @@
 // Base URL only — width is chosen per-device by utils/responsiveImage.js, which
 // builds a srcSet from this. Never hardcode a width here (it used to be 1920,
 // which every phone downloaded in full).
-// In the static showcase build (VITE_DEMO) nothing may touch the network, so the
-// stock backdrops are swapped for an original, locally-generated gradient. The
-// data URI is self-contained, so it works from a USB stick with no wifi — which
-// is the whole point of the offline pitch demo. Production is untouched.
-const DEMO = true; // demo/app always uses generated, offline backdrops
-const demoBg = (accent: string) => {
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 800'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='${accent}'/><stop offset='0.55' stop-color='#0d1b12'/><stop offset='1' stop-color='#05070a'/></linearGradient><radialGradient id='h' cx='0.7' cy='0.15' r='0.9'><stop offset='0' stop-color='${accent}' stop-opacity='0.5'/><stop offset='1' stop-color='${accent}' stop-opacity='0'/></radialGradient></defs><rect width='1200' height='800' fill='url(#g)'/><rect width='1200' height='800' fill='url(#h)'/><g opacity='0.1' stroke='#ffffff' stroke-width='3' fill='none'><circle cx='860' cy='200' r='150'/><path d='M0 620 L1200 380'/><path d='M0 720 L1200 480'/></g></svg>`;
-  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
-};
-const U = (id, accent = '#0B6E3F') => (DEMO ? demoBg(accent) : `https://images.unsplash.com/${id}?auto=format&fit=crop&q=75`);
+const U = (id) => `https://images.unsplash.com/${id}?auto=format&fit=crop&q=75`;
 
 /**
  * Backdrops per sport. DEFAULTS ONLY — a sport's `coverImage` from the database
@@ -50,17 +41,29 @@ const U = (id, accent = '#0B6E3F') => (DEMO ? demoBg(accent) : `https://images.u
  */
 const BRAND = '#008848';
 
+// Every ID below was visually verified (rendered and eyeballed) to be the right
+// sport — a wrong photograph is worse than none, so nothing here is guessed.
 export const SPORT_THEMES = {
-  football:   { bg: U('photo-1522778119026-d647f0596c20', '#0B6E3F'), accent: BRAND, venue: 'Pitch' },
-  basketball: { bg: U('photo-1546519638-68e109498ffc', '#C81E1E'),    accent: BRAND, venue: 'Court' },
-  volleyball: { bg: U('photo-1592656094267-764a45160876', '#1D4ED8'), accent: BRAND, venue: 'Court' },
-  cycling:    { bg: U('photo-1541625602330-2277a4c46182', '#F59E0B'), accent: BRAND, venue: 'Road' },
-  cricket:    { bg: U('photo-1531415074968-036ba1b575da', '#0D9488'), accent: BRAND, venue: 'Pitch' },
-  // bg null: the stock ID here was a fish and chips shop. Awaiting a real photo.
-  rugby:      { bg: null, accent: BRAND, venue: 'Field' },
-  // bg null: the stock ID here was volleyball, not handball. Awaiting a real photo.
-  handball:   { bg: null, accent: BRAND, venue: 'Court' },
-  athletics:  { bg: U('photo-1461896836934-ffe607ba8211'), accent: BRAND, venue: 'Track' },
+  football:      { bg: U('photo-1522778119026-d647f0596c20'), accent: BRAND, venue: 'Pitch' },
+  basketball:    { bg: U('photo-1546519638-68e109498ffc'),    accent: BRAND, venue: 'Court' },
+  volleyball:    { bg: U('photo-1592656094267-764a45160876'), accent: BRAND, venue: 'Court' },
+  cycling:       { bg: U('photo-1541625602330-2277a4c46182'), accent: BRAND, venue: 'Road' },
+  cricket:       { bg: U('photo-1531415074968-036ba1b575da'), accent: BRAND, venue: 'Pitch' },
+  athletics:     { bg: U('photo-1461896836934-ffe607ba8211'), accent: BRAND, venue: 'Track' },
+  rugby:         { bg: U('photo-1480099225005-2513c8947aec'), accent: BRAND, venue: 'Field' },
+  handball:      { bg: U('photo-1587384474964-3a06ce1ce699'), accent: BRAND, venue: 'Court' },
+  swimming:      { bg: U('photo-1560090995-01632a28895b'),    accent: BRAND, venue: 'Pool' },
+  tennis:        { bg: U('photo-1545151414-8a948e1ea54f'),    accent: BRAND, venue: 'Court' },
+  'table-tennis': { bg: U('photo-1609710228159-0fa9bd7c0827'), accent: BRAND, venue: 'Table' },
+  badminton:     { bg: U('photo-1599391398131-cd12dfc6c24e'), accent: BRAND, venue: 'Court' },
+  judo:          { bg: U('photo-1555597673-b21d5c935865'),    accent: BRAND, venue: 'Dojo' },
+  karate:        { bg: U('photo-1555597408-26bc8e548a46'),    accent: BRAND, venue: 'Dojo' },
+  taekwondo:     { bg: U('photo-1555597673-b21d5c935865'),    accent: BRAND, venue: 'Dojo' },
+  boxing:        { bg: U('photo-1546711076-85a7923432ab'),    accent: BRAND, venue: 'Ring' },
+  kickboxing:    { bg: U('photo-1549719386-74dfcbf7dbed'),    accent: BRAND, venue: 'Ring' },
+  wrestling:     { bg: U('photo-1541337082051-5959dbb57d5d'), accent: BRAND, venue: 'Mat' },
+  netball:       { bg: U('photo-1729963421538-31c333335b3c'), accent: BRAND, venue: 'Court' },
+  chess:         { bg: U('photo-1586165368502-1bad197a6461'), accent: BRAND, venue: 'Board' },
 };
 
 /**

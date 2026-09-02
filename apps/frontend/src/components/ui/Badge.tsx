@@ -31,10 +31,16 @@ export default Badge;
  * StatusPill so they render the real live pill instead of the legacy red one, and
  * is deleted when those screens are rewritten in Phases 4 and 8.
  */
-export const LiveBadge = ({ minute, className }: { minute?: number; className?: string }) => (
+export const LiveBadge = ({ minute, className }: { minute?: number | string; className?: string }) => (
   <StatusPill
     status="LIVE"
-    label={typeof minute === 'number' ? `Live ${minute}’` : 'Live'}
+    // A number is a bare minute and needs the tick appended; a string is already
+    // a formatted clock reading such as "45+2'" and is shown as it arrives.
+    label={
+      typeof minute === 'number' ? `Live ${minute}’`
+        : minute ? `Live ${minute}`
+        : 'Live'
+    }
     className={className}
   />
 );

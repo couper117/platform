@@ -55,6 +55,17 @@ const recalcStandings = async (leagueId) => {
         })
       )
     );
+
+    // Drop rows for teams no longer in this competition.
+    //
+    // The upsert above can add and update but never remove, so a team withdrawn
+    // from a league kept its place in the table indefinitely — still ranked,
+    // still counted, with a points total nobody could change. A standings table
+    // is the list of who is in the competition, so it has to be able to shrink.
+    const teamIds = leagueTeams.map((lt) => lt.teamId);
+    await prisma.standing.deleteMany({
+      where: { leagueId, ...(teamIds.length ? { teamId: { notIn: teamIds } } : {}) },
+    });
   } catch (error) {
     console.error(`Failed to recalculate standings for league ${leagueId}:`, error);
   }

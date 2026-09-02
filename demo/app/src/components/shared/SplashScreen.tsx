@@ -1,39 +1,51 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import SportBounce from './SportBounce';
 import { useMotionSafe } from '../../lib/motion';
 
 /**
- * Cold-start curtain, modelled on the reference's preloader.
+ * Cold-start curtain.
  *
- * THE MOVES, all from Tembera's #preloader:
- *   · a full-bleed matte-dark panel above everything
- *   · "Rwa" filled, "Sport" drawn as OUTLINED text that then fills left-to-right
- *     behind a bright cursor edge
- *   · a line that grows underneath
- *   · and the signature exit: the whole panel slides UP like a curtain, revealing
- *     the app behind it, then unmounts
+ * THE BALL LEADS, NOT THE WORDMARK. This screen used to be pure typography — "Rwa"
+ * set solid and "Sport" drawn as outlined text that filled left to right. Handsome,
+ * but nothing about it was sport, and it spoke a language used nowhere else in the
+ * product. Loader already declares the rule: a product should have ONE loading
+ * gesture, and here it is the bouncing ball that changes sport. The splash was the
+ * only place not saying it, so now it does — same component, same clock, just
+ * larger. Someone who waits here once recognises every route wait afterwards.
  *
- * WHERE IT DIFFERS, and why
- * The reference holds its curtain for a flat 3000ms via setTimeout, then leaves. This
- * one leaves when the app is READY — `document.fonts.ready` — with a 1400ms floor so
- * the fill animation is actually seen rather than cut off mid-stroke, and a 3000ms
- * ceiling so a failed font request can never trap someone behind it. Fast machine:
- * ~1.4s. Slow connection: as long as it genuinely needs, and no longer.
+ * THE FLOOR IS LOAD-BEARING, not decoration. SportBounce draws its own contact
+ * shadow in `bg-primary/20`, which is tuned for the light auth screens and is
+ * effectively invisible on a near-black panel. Without a ground plane the ball
+ * reads as drifting rather than striking, so the hairline supplies the floor the
+ * shadow cannot. It fades at both ends so it reads as a court line, not a rule.
+ *
+ * THE RAIL IS THE FLAG, and it is the one bold stroke on the screen. Blue, yellow
+ * and green travel along the bottom edge — the national colours doing the job of a
+ * progress indicator rather than sitting somewhere as ornament. It also pays off on
+ * the way out: the panel exits by sliding UP, so the stripe sweeps the full height
+ * of the viewport and leaves last.
+ *
+ * Still INDETERMINATE, and deliberately so. We have no idea how far along a font
+ * request is, so a segment travels rather than filling to a percentage. Faking
+ * progress is the most common way a loader lies.
+ *
+ * TIMING IS UNCHANGED and still owned here: it leaves when the app is READY —
+ * `document.fonts.ready` — with a 1400ms floor so the gesture is actually seen
+ * rather than flashing, and a 3000ms ceiling so a failed font request can never
+ * trap anyone behind it. Fast machine: ~1.4s. Slow connection: as long as it
+ * genuinely needs, no longer.
  *
  * COLD START ONLY. This is an entrance, not a loading indicator — route waits use
- * Loader, which is quiet, unbranded and usually invisible. Playing a 1.4s title
- * sequence on every navigation would be intolerable.
+ * Loader, which is quieter and usually invisible.
  *
- * Under prefers-reduced-motion the text is simply present, the line is full, and the
- * panel fades rather than sliding. Nothing draws itself.
- *
- * The stroke-then-fill is built from two stacked spans rather than the reference's
- * ::before, because a pseudo-element cannot be animated from React — the outlined
- * copy sits underneath and a clipped, width-animated copy fills over it.
+ * Under prefers-reduced-motion SportBounce renders a single static ball, the rail
+ * is shown full rather than travelling, and the panel fades instead of sliding.
+ * Nothing draws itself.
  */
 
-const MIN_MS = 1400; // long enough to watch the fill finish
+const MIN_MS = 1400; // long enough for the ball to land at least once
 const MAX_MS = 3000; // safety net if fonts never resolve
 
 const SplashScreen = ({ onReady }) => {
@@ -41,7 +53,7 @@ const SplashScreen = ({ onReady }) => {
   const safe = useMotionSafe();
 
   /**
-   * Decide WHEN to go; AnimatePresence in App.jsx owns the going.
+   * Decide WHEN to go; AnimatePresence in App owns the going.
    *
    * An earlier version drove the exit from an `animate` prop plus
    * onAnimationComplete and unmounted itself. That silently never slid — measuring the
@@ -81,58 +93,44 @@ const SplashScreen = ({ onReady }) => {
       transition={{ duration: safe ? 0.75 : 0.2, ease: [0.76, 0, 0.24, 1] }}
       className="fixed inset-0 z-[300] flex flex-col items-center justify-center bg-[#0F0F0F]"
     >
-      <h1 className="flex flex-col items-center gap-1 text-center font-display font-extrabold leading-none">
-        <motion.span
-          initial={safe ? { opacity: 0, y: 20 } : false}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55, delay: 0.1, ease: 'easeOut' }}
-          className="text-[clamp(3rem,11vw,6rem)] tracking-tight text-white"
-        >
-          Rwa
-        </motion.span>
+      {/* The ball, and the floor it strikes. The `-mt-3` is not a nudge: SportBounce
+          holds its ball 12px clear of its own box, so without pulling the line up by
+          exactly that much the bounce lands in mid-air and the floor means nothing. */}
+      <div className="flex flex-col items-center">
+        <SportBounce size={60} className="h-28" />
+        <span
+          aria-hidden="true"
+          className="-mt-3 h-px w-32 bg-gradient-to-r from-transparent via-white/25 to-transparent"
+        />
+      </div>
 
-        {/* Outlined, then filled. */}
-        <motion.span
-          initial={safe ? { opacity: 0, y: 20 } : false}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55, delay: 0.25, ease: 'easeOut' }}
-          className="relative text-[clamp(3rem,11vw,6rem)] tracking-tight"
-        >
-          {/* The outline underneath. */}
-          <span
-            aria-hidden="true"
-            className="text-transparent"
-            style={{ WebkitTextStroke: '2px rgb(var(--brand-bright))' }}
-          >
-            Sport
-          </span>
+      {/* The wordmark, now supporting the ball rather than carrying the screen.
+          One entrance for the whole block — the ball is already the motion here. */}
+      <motion.div
+        initial={safe ? { opacity: 0, y: 12 } : false}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2, ease: 'easeOut' }}
+        className="mt-8 flex flex-col items-center"
+      >
+        <p className="font-display text-3xl font-extrabold tracking-tight text-white">
+          Rwa<span className="text-brand-bright">Sport</span>
+        </p>
+        <p className="mt-2.5 text-[11px] font-bold uppercase tracking-[0.35em] text-white/40">
+          Rwanda · MINISPORTS
+        </p>
+      </motion.div>
 
-          {/* The fill, clipped and swept across, with a bright leading edge. */}
-          <motion.span
-            aria-hidden="true"
-            initial={safe ? { width: '0%' } : { width: '100%' }}
-            animate={{ width: '100%' }}
-            transition={{ duration: 1, delay: 0.5, ease: [0.19, 1, 0.22, 1] }}
-            className="absolute inset-0 overflow-hidden whitespace-nowrap text-brand-bright"
-            style={{ borderRight: safe ? '3px solid rgba(255,255,255,0.9)' : 'none' }}
-          >
-            Sport
-          </motion.span>
-        </motion.span>
-      </h1>
-
-      {/* The growing line. */}
-      <motion.span
-        aria-hidden="true"
-        initial={safe ? { width: 0, opacity: 0 } : { width: 160, opacity: 1 }}
-        animate={{ width: 160, opacity: 1 }}
-        transition={{ duration: 1.3, ease: 'easeInOut' }}
-        className="mt-8 h-1 rounded-pill bg-white/85"
-      />
-
-      <p className="mt-6 text-xs font-bold uppercase tracking-[0.35em] text-white/40">
-        Rwanda · MINISPORTS
-      </p>
+      {/* The flag, doing the work of a progress bar. Sits on the bottom edge so the
+          curtain's exit sweeps it up the full height of the screen. */}
+      <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1 overflow-hidden bg-white/5">
+        <span
+          className={
+            safe
+              ? 'absolute inset-y-0 left-0 w-1/3 animate-indeterminate bg-gradient-to-r from-rwanda-blue via-rwanda-yellow to-brand-bright'
+              : 'absolute inset-0 bg-gradient-to-r from-rwanda-blue via-rwanda-yellow to-brand-bright'
+          }
+        />
+      </div>
 
       {/* The visual is decorative; this is what assistive tech is told. */}
       <span className="sr-only" role="status">

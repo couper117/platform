@@ -1,7 +1,7 @@
 const prisma = require('../config/db');
 const logActivity = require('../utils/activityLogger');
 const { uniqueSlug } = require('../utils/slug');
-const { enforceSportScope } = require('../utils/scope');
+const { enforceSportScope, enforceLeagueScope } = require('../utils/scope');
 const { getRules, validateTeamForLeague } = require('../services/eligibility.service');
 
 // @desc    Get all active leagues
@@ -113,6 +113,16 @@ const createLeague = async (req, res, next) => {
       },
     });
 
+    // A league admin who creates a competition is assigned to it. Without this
+    // they would create a league and immediately be unable to touch it, now that
+    // every write path checks the assignment — the new league would be
+    // unreachable until a super admin assigned someone to it by hand.
+    if (req.user.role === 'LEAGUE_ADMIN') {
+      await prisma.leagueAdminAssignment.create({
+        data: { leagueId: league.id, userId: req.user.id },
+      });
+    }
+
     await logActivity({
       userId: req.user.id,
       action: 'Create League',
@@ -144,6 +154,8 @@ const updateLeague = async (req, res, next) => {
     if (!existing) return res.status(404).json({ success: false, message: 'League not found' });
     if (!enforceSportScope(req, res, existing.sportId)) return;
     if (sportId && !enforceSportScope(req, res, parseInt(sportId))) return;
+    // ...and a league admin only one they were assigned to.
+    if (!(await enforceLeagueScope(req, res, existing.id))) return;
 
     const league = await prisma.league.update({
       where: { id: parseInt(req.params.id) },
@@ -188,6 +200,7 @@ const deleteLeague = async (req, res, next) => {
     const existing = await prisma.league.findUnique({ where: { id: parseInt(req.params.id) } });
     if (!existing) return res.status(404).json({ success: false, message: 'League not found' });
     if (!enforceSportScope(req, res, existing.sportId)) return;
+    if (!(await enforceLeagueScope(req, res, existing.id))) return;
 
     const league = await prisma.league.update({
       where: { id: parseInt(req.params.id) },
@@ -220,6 +233,7 @@ const addTeamToLeague = async (req, res, next) => {
     const league = await prisma.league.findUnique({ where: { id: leagueId } });
     if (!league) return res.status(404).json({ success: false, message: 'League not found' });
     if (!enforceSportScope(req, res, league.sportId)) return;
+    if (!(await enforceLeagueScope(req, res, leagueId))) return;
 
     const team = await prisma.team.findUnique({ where: { id: teamId } });
     if (!team) return res.status(404).json({ success: false, message: 'Team not found' });
@@ -282,6 +296,15 @@ const removeTeamFromLeague = async (req, res, next) => {
   try {
     const leagueId = parseInt(req.params.id);
     const teamId = parseInt(req.params.teamId);
+
+    // This had no authorisation check at all — not the sport one its sibling
+    // addTeamToLeague already had, and not the league one. Removing a team from
+    // a competition is the more damaging half of the pair: it drops their
+    // fixtures and their place in the table.
+    const league = await prisma.league.findUnique({ where: { id: leagueId }, select: { id: true, sportId: true } });
+    if (!league) return res.status(404).json({ success: false, message: 'League not found' });
+    if (!enforceSportScope(req, res, league.sportId)) return;
+    if (!(await enforceLeagueScope(req, res, leagueId))) return;
 
     await prisma.leagueTeam.delete({
       where: {

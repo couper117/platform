@@ -1,9 +1,12 @@
 /**
  * Zero-dependency static server for the RwaSport showcase demo.
  *
- * Serves the pre-built static site in ./dist and falls back to index.html for
- * unknown paths so the single-page app's client-side routes (deep links,
- * refreshes) keep working. No npm install required — just Node.js.
+ * Serves the pre-built static site in ./dist. No npm install required — just Node.
+ *
+ * The demo itself does not need this server: it routes on the hash, so every URL
+ * the browser requests is just /index.html and any static host will do. The
+ * index.html fallback below is kept anyway — it costs nothing and makes this
+ * usable for the real app's path-routed build too.
  *
  *   node serve.js            → http://localhost:4173
  *   node serve.js 8080       → http://localhost:8080

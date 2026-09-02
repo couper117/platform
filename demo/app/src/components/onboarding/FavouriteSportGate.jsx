@@ -53,8 +53,9 @@ const FavouriteSportGate = ({ children }) => {
     <>
       {children}
       <SportChooser
-        // Demo: the landing shows directly (matches the pitch design); the
-        // first-visit chooser is not auto-opened. Real app opens on !hasAnswered.
+        // The redesigned landing is the front door — show it directly rather than
+        // popping the chooser over it. The favourite-sport preference still drives
+        // the redirect above when one is already set.
         open={false}
         onSkip={skip}
         onChoose={(chosen) => {

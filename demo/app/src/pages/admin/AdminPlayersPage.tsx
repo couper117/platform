@@ -47,9 +47,9 @@ const AdminPlayersPage = () => {
   });
 
   const createPlayerMutation = useMutation({
-    mutationFn: async (payload) => {
+    mutationFn: async (payload: any) => {
       const fd = new FormData();
-      Object.entries(payload).forEach(([k, v]) => { if (v !== '' && v != null) fd.append(k, v); });
+      Object.entries(payload).forEach(([k, v]: any) => { if (v !== '' && v != null) fd.append(k, v as any); });
       if (photoFile) fd.append('photo', photoFile);
       const { data } = await apiClient.post('/players', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       return data;
@@ -61,13 +61,13 @@ const AdminPlayersPage = () => {
       setPhotoFile(null);
       setFormError('');
     },
-    onError: (err) => {
+    onError: (err: any) => {
       setFormError(err.response?.data?.message || 'Failed to register player');
     },
   });
 
   const deletePlayerMutation = useMutation({
-    mutationFn: async (id) => { await apiClient.delete(`/players/${id}`); },
+    mutationFn: async (id: any) => { await apiClient.delete(`/players/${id}`); },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-players'] });
     },
@@ -125,13 +125,13 @@ const AdminPlayersPage = () => {
                   </div>
                   <div>
                     <p className="font-bold text-sm uppercase tracking-tight">{player.fullName}</p>
-                    <p className="text-[8px] opacity-40 uppercase tracking-widest">{player.nationality}{player.licenseNo ? ` · Lic ${player.licenseNo}` : ''}</p>
+                    <p className="text-[8px] opacity-40 uppercase tracking-widest">{player.nationality}{player.licenseNo ? ` Â· Lic ${player.licenseNo}` : ''}</p>
                   </div>
                 </div>
               </td>
               <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{player.team?.name}</td>
               <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{player.position || 'N/A'}</td>
-              <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{player.jerseyNumber ?? '—'}</td>
+              <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{player.jerseyNumber ?? 'â€”'}</td>
               <td className="px-6 py-5">
                 <span className={`text-[8px] font-bold px-2 py-1 rounded border uppercase ${player.status === 'VERIFIED' ? 'bg-green/5 text-green border-green/10' : 'bg-gold/5 text-gold border-gold/20'}`}>
                   {player.status}

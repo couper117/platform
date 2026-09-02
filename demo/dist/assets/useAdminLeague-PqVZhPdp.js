@@ -1,0 +1,1 @@
+import{u as o}from"./vendor-data-gLeU7WS7.js";import{Q as r,c as d}from"./index-wb2Ar1yc.js";function i(){const{user:a}=r(),{data:s}=o({queryKey:["admin-leagues"],queryFn:()=>d()}),e=s?.data||[],u=a?.leagueId??e[0]?.id??null,t=e.find(n=>n.id===u)||null;return{leagueId:u,league:t,leagues:e}}export{i as u};

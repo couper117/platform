@@ -92,10 +92,13 @@ const ExplorePage = () => {
 
       {/* Hero */}
       <section className="relative overflow-hidden">
-        {/* Real photo background. Swap /public/landing-hero.jpg for a higher-res
-            image any time — the overlays keep the copy legible in light & dark. */}
+        {/* Real photo background. Swap public/landing-hero.jpg for a higher-res
+            image any time — the overlays keep the copy legible in light & dark.
+            Built through BASE_URL so the same line works in the real app, served
+            from the domain root, and in the demo, which builds with base './' and
+            may sit in a sub-path. */}
         <div className="absolute inset-0">
-          <img src="/landing-hero.jpg" alt="" className="h-full w-full object-cover object-center" />
+          <img src={`${import.meta.env.BASE_URL}landing-hero.jpg`} alt="" className="h-full w-full object-cover object-center" />
           <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/65 to-black/40" />
           <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(90% 80% at 78% 12%, rgba(16,110,60,0.35), transparent 62%)' }} />
           {/* Seamless fade into the page background below the hero. */}

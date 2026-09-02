@@ -46,6 +46,13 @@ const envSchema = z.object({
     z.enum(['rwanda', 'offshore']).optional()
   ),
   NCSA_REGISTRATION_NUMBER: z.string().optional(),
+  // Close matches a reporter left live. Off unless explicitly enabled: ending a
+  // match is publicly visible and hard to walk back, so it follows the same
+  // opt-in shape as the retention purge. See services/staleMatches.logic.ts.
+  AUTO_END_STALLED_MATCHES: z.preprocess(
+    (v) => String(v).toLowerCase() === 'true',
+    z.boolean().default(false),
+  ),
 });
 
 const CRITICAL_FIELDS = ['DATABASE_URL', 'JWT_SECRET'];

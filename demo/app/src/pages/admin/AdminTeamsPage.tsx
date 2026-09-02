@@ -21,26 +21,26 @@ const AdminTeamsPage = () => {
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, status }) => {
+    mutationFn: async ({ id, status }: any) => {
       await apiClient.put(`/teams/${id}/status`, { status });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-teams'] });
     },
-    onError: (err) => {
+    onError: (err: any) => {
       alert(err.response?.data?.message || 'Failed to update team status');
     }
   });
 
   const deleteTeamMutation = useMutation({
-    mutationFn: async (id) => {
+    mutationFn: async (id: any) => {
       await apiClient.delete(`/teams/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-teams'] });
       alert('Team deleted successfully');
     },
-    onError: (err) => {
+    onError: (err: any) => {
       alert(err.response?.data?.message || 'Failed to delete team');
     }
   });

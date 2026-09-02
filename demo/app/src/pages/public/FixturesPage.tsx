@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { CalendarDays } from 'lucide-react';
+import { ArrowRight, CalendarDays } from 'lucide-react';
 import { getFixtures } from '../../api/endpoints/fixtures';
 import { getLeagues, getLeague } from '../../api/endpoints/leagues';
 import MatchRow, { pickFeatured } from '../../components/match/MatchRow';
@@ -246,6 +246,22 @@ const FixturesPage = () => {
           {/* ─── list column ─── */}
           <div className="lg:space-y-3">
             <AdSlot position="fixtures-leaderboard" variant="leaderboard" className="hidden lg:block" />
+
+            {/* Way through to the month view. This list answers "what is on";
+                the calendar answers "is it still on" — which is the question
+                once Umuganda has moved something. Nothing else on this page
+                points there, and the home-page card that does hides itself on a
+                month with no Umuganda in it. */}
+            <div className="flex justify-end px-4 py-2 lg:px-0">
+              <Link
+                to="/calendar"
+                className="inline-flex min-h-tap items-center gap-1.5 rounded-pill px-3 text-sm font-semibold text-brand-text transition-colors duration-150 ease-standard hover:bg-brand/10"
+              >
+                <CalendarDays size={15} aria-hidden="true" />
+                {t('nav.calendar')}
+                <ArrowRight size={14} aria-hidden="true" />
+              </Link>
+            </div>
 
             {/* Deliberately an unstyled wrapper. Rows and cards both carry their own
                 borders, so a bordered container would double the frame — and

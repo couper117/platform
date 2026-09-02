@@ -10,7 +10,7 @@ import cn from '../ui/cn';
  * the blue/yellow palette is what differentiates it from RwaSport's red.
  * Eyebrow defaults to the translated tagline when not provided.
  */
-const AmashuriHero = ({ eyebrow, title, accent, subtitle, children, compact = false }) => {
+const AmashuriHero = ({ eyebrow, title, accent, subtitle, children, compact = false }: { eyebrow?: React.ReactNode; title?: React.ReactNode; accent?: React.ReactNode; subtitle?: React.ReactNode; children?: React.ReactNode; compact?: boolean }) => {
   const { t } = useTranslation();
   const resolvedEyebrow = eyebrow === undefined ? t('amashuri.tagline') : eyebrow;
   return (

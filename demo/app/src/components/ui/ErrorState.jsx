@@ -19,8 +19,8 @@ import cn from './cn';
 const ErrorState = ({
   title = 'Could not load this',
   hint = 'Check your connection and try again.',
-  onRetry,
-  className,
+  onRetry = undefined,
+  className = '',
 }) => (
   <div
     role="alert"

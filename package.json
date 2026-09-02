@@ -1,7 +1,7 @@
 {
   "name": "rnsp-platform",
   "version": "1.0.0",
-  "description": "Rwanda National Sports Platform (RNSP / RwaSport) — monorepo",
+  "description": "Rwanda National Sports Platform (RNSP / RwaSport) \u2014 monorepo",
   "private": true,
   "workspaces": [
     "apps/frontend",
@@ -27,6 +27,8 @@
     "db:backup": "node scripts/backup-db.mjs",
     "privacy:purge": "tsx scripts/purge-expired-data.mjs",
     "privacy:purge:apply": "tsx scripts/purge-expired-data.mjs --apply",
+    "matches:end-stalled": "tsx scripts/end-stalled-matches.mjs",
+    "matches:end-stalled:apply": "tsx scripts/end-stalled-matches.mjs --apply",
     "install:all": "npm install",
     "prepare": "husky || true"
   },

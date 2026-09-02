@@ -1,203 +1,87 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
-  LayoutDashboard, Trophy, Users, UserSquare2, FileText, Newspaper, Settings, Activity,
-  School, X, Megaphone, Eye, ShieldCheck, Radio, ClipboardList, Medal, LayoutTemplate,
-  Image as ImageIcon, Users2, KeyRound, Lock, Landmark, CalendarDays, Layers, GraduationCap, BarChart3,
-  Target, TrendingUp, ClipboardCheck, MessageSquare, ExternalLink, HelpCircle, Shield,
+  LayoutDashboard, Trophy, Users, UserSquare2, FileText, Newspaper, Settings, Activity, HeartHandshake,
+  School, X, Megaphone, ClipboardList, ShieldCheck, Radio, Lock, Landmark, GraduationCap,
+  Medal, Shield, ExternalLink, HelpCircle, Users2, KeyRound, LayoutTemplate, Image as ImageIcon,
+  ClipboardCheck, BarChart3, Target, TrendingUp, CalendarDays, Layers,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import useAuthStore from '../../store/authStore';
 import useSportScope from '../../hooks/useSportScope';
 import { ADMIN_PAGES } from '../../lib/adminAccess';
 
-const ADMIN_ICONS = {
-  '/admin/dashboard': <LayoutDashboard size={18} />,
-  '/admin/sport-admins': <ShieldCheck size={18} />,
-  '/admin/leagues': <Trophy size={18} />,
-  '/admin/fixtures': <Activity size={18} />,
-  '/admin/teams': <Users size={18} />,
-  '/admin/players': <UserSquare2 size={18} />,
-  '/admin/documents': <FileText size={18} />,
-  '/admin/news': <Newspaper size={18} />,
-  '/admin/ads': <Megaphone size={18} />,
-  '/admin/visitors': <Eye size={18} />,
-  '/admin/akc3': <School size={18} />,
-  '/admin/championships': <Trophy size={18} />,
-  '/admin/settings': <Settings size={18} />,
+/**
+ * Role-aware admin/team/reporter sidebar — the demo's grouped, role-branded design
+ * (Ministry / Federation / Amashuri / League / Team / Reporter), driven by the
+ * REAL ADMIN_PAGES access list so it mirrors the backend authorize() and never
+ * links to a page that does not exist. Fully translated (EN/FR/RW).
+ *
+ * A sport-scoped federation admin gets its nav relabelled to the sport's language
+ * (a cycling admin sees "Races", a judo admin "Bouts") via useSportScope().profile.
+ */
+
+// path → { i18n key, section, icon }. Only real routes appear here.
+const PATH_META = {
+  '/admin/dashboard': { key: 'portal.nav_dashboard', section: 'main', icon: <LayoutDashboard size={18} /> },
+  '/admin/akc3': { key: 'portal.nav_akc3', section: 'main', icon: <School size={18} /> },
+  '/admin/sport-admins': { key: 'portal.nav_sport_admins', section: 'management', icon: <ShieldCheck size={18} /> },
+  '/admin/leagues': { key: 'portal.nav_leagues', section: 'management', icon: <Trophy size={18} /> },
+  '/admin/teams': { key: 'portal.nav_teams', section: 'management', icon: <Users size={18} /> },
+  '/admin/players': { key: 'portal.nav_players', section: 'management', icon: <UserSquare2 size={18} /> },
+  '/admin/documents': { key: 'portal.nav_documents', section: 'management', icon: <FileText size={18} /> },
+  '/admin/fixtures': { key: 'portal.nav_fixtures', section: 'operations', icon: <Activity size={18} /> },
+  '/admin/umuganda': { key: 'portal.nav_umuganda', section: 'operations', icon: <HeartHandshake size={18} /> },
+  '/admin/championships': { key: 'portal.nav_championships', section: 'competitions', icon: <Medal size={18} /> },
+  '/admin/news': { key: 'portal.nav_news', section: 'content', icon: <Newspaper size={18} /> },
+  '/admin/ads': { key: 'portal.nav_ads', section: 'content', icon: <Megaphone size={18} /> },
+  '/admin/content': { key: 'portal.nav_content', section: 'content', icon: <LayoutTemplate size={18} /> },
+  '/admin/media': { key: 'portal.nav_media', section: 'content', icon: <ImageIcon size={18} /> },
+  '/admin/users': { key: 'portal.nav_users', section: 'system', icon: <Users2 size={18} /> },
+  '/admin/roles': { key: 'portal.nav_roles', section: 'system', icon: <KeyRound size={18} /> },
+  '/admin/system-health': { key: 'portal.nav_system_health', section: 'system', icon: <Activity size={18} /> },
+  '/admin/visitors': { key: 'portal.nav_visitors', section: 'system', icon: <ClipboardList size={18} /> },
+  '/admin/settings': { key: 'portal.nav_settings', section: 'system', icon: <Settings size={18} /> },
+
+  // League Admin sub-sections
+  '/admin/league/match-reports': { key: 'portal.nav_match_reports', section: 'operations', icon: <ClipboardCheck size={18} /> },
+  '/admin/league/standings': { key: 'portal.nav_standings', section: 'operations', icon: <BarChart3 size={18} /> },
+  '/admin/league/top-scorers': { key: 'portal.nav_top_scorers', section: 'operations', icon: <Target size={18} /> },
+  '/admin/league/statistics': { key: 'portal.nav_statistics', section: 'operations', icon: <TrendingUp size={18} /> },
+  '/admin/league/officials': { key: 'portal.nav_officials', section: 'management', icon: <Users2 size={18} /> },
+  '/admin/league/reporters': { key: 'portal.nav_reporters', section: 'management', icon: <Radio size={18} /> },
+
+  // Amashuri sub-sections
+  '/admin/amashuri/seasons': { key: 'portal.nav_seasons', section: 'competitions', icon: <CalendarDays size={18} /> },
+  '/admin/amashuri/stages': { key: 'portal.nav_stages', section: 'competitions', icon: <Layers size={18} /> },
+  '/admin/amashuri/sports': { key: 'portal.nav_sports', section: 'competitions', icon: <Medal size={18} /> },
+  '/admin/amashuri/schools': { key: 'portal.nav_schools', section: 'management', icon: <School size={18} /> },
+  '/admin/amashuri/teams': { key: 'portal.nav_teams', section: 'management', icon: <Users size={18} /> },
+  '/admin/amashuri/athletes': { key: 'portal.nav_athletes', section: 'management', icon: <UserSquare2 size={18} /> },
+  '/admin/amashuri/approvals': { key: 'portal.nav_approvals', section: 'management', icon: <ClipboardList size={18} /> },
+  '/admin/amashuri/officials': { key: 'portal.nav_officials', section: 'management', icon: <Users2 size={18} /> },
+  '/admin/amashuri/fixtures': { key: 'portal.nav_fixtures', section: 'operations', icon: <Activity size={18} /> },
+  '/admin/amashuri/live': { key: 'portal.nav_live_matches', section: 'operations', icon: <Radio size={18} /> },
+  '/admin/amashuri/results': { key: 'portal.nav_results', section: 'operations', icon: <FileText size={18} /> },
+  '/admin/amashuri/standings': { key: 'portal.nav_standings', section: 'operations', icon: <BarChart3 size={18} /> },
 };
 
-// The Ministry of Sport (Super Admin) navigation — grouped by remit and marking
-// the read-only oversight sections (leagues/teams/championships) with a lock.
-const MINISTRY_NAV = [
-  { section: null, items: [{ to: '/admin/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> }] },
-  { section: 'Management', items: [
-    { to: '/admin/sport-admins', label: 'Assign Sport Admins', icon: <ShieldCheck size={18} /> },
-    { to: '/admin/leagues', label: 'Leagues', icon: <Trophy size={18} />, readOnly: true },
-    { to: '/admin/teams', label: 'Teams', icon: <Users size={18} />, readOnly: true },
-    { to: '/admin/championships', label: 'Championships', icon: <Medal size={18} />, readOnly: true },
-  ] },
-  { section: 'Content Management', items: [
-    { to: '/admin/news', label: 'News', icon: <Newspaper size={18} /> },
-    { to: '/admin/ads', label: 'Advertisements', icon: <Megaphone size={18} /> },
-    { to: '/admin/content', label: 'Website Content', icon: <LayoutTemplate size={18} /> },
-    { to: '/admin/media', label: 'Media Library', icon: <ImageIcon size={18} /> },
-  ] },
-  { section: 'System', items: [
-    { to: '/admin/users', label: 'Users', icon: <Users2 size={18} /> },
-    { to: '/admin/roles', label: 'Roles & Permissions', icon: <KeyRound size={18} /> },
-    { to: '/admin/visitors', label: 'Audit Logs', icon: <ClipboardList size={18} /> },
-    { to: '/admin/system-health', label: 'System Health', icon: <Activity size={18} /> },
-    { to: '/admin/settings', label: 'Settings', icon: <Settings size={18} /> },
-  ] },
-];
+const SECTION_ORDER = ['main', 'management', 'operations', 'competitions', 'content', 'system', 'amashuri'];
+const SECTION_KEY = {
+  main: null, management: 'portal.sec_management', operations: 'portal.sec_operations',
+  competitions: 'portal.sec_competitions', content: 'portal.sec_content', system: 'portal.sec_system', amashuri: 'portal.sec_amashuri',
+};
 
-// Federation (single-sport) navigation. Fixtures are read-only (lock), and there
-// is no Ministry/system-wide functionality. Everything is scoped to the sport.
-const FEDERATION_NAV = [
-  { section: null, items: [{ to: '/admin/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> }] },
-  { section: 'Management', items: [
-    { to: '/admin/leagues', label: 'Leagues', icon: <Trophy size={18} /> },
-    { to: '/admin/users', label: 'League Admins', icon: <ShieldCheck size={18} /> },
-    { to: '/admin/teams', label: 'Teams', icon: <Users size={18} /> },
-    { to: '/admin/players', label: 'Players', icon: <UserSquare2 size={18} /> },
-    { to: '/admin/championships', label: 'Championships', icon: <Medal size={18} /> },
-  ] },
-  { section: 'Operations', items: [
-    { to: '/admin/fixtures', label: 'Fixtures', icon: <Activity size={18} />, readOnly: true },
-    { to: '/admin/visitors', label: 'Statistics', icon: <ClipboardList size={18} /> },
-  ] },
-  { section: 'Content', items: [
-    { to: '/admin/news', label: 'News', icon: <Newspaper size={18} /> },
-    { to: '/admin/content', label: 'Sport Content', icon: <LayoutTemplate size={18} /> },
-    { to: '/admin/media', label: 'Media Library', icon: <ImageIcon size={18} /> },
-  ] },
-  { section: 'System', items: [
-    { to: '/admin/settings', label: 'Settings', icon: <Settings size={18} /> },
-  ] },
-];
-
-// Amashuri (school-sports ecosystem) admin nav — the full ecosystem grouped by area.
-const AMASHURI_NAV = [
-  { section: null, items: [{ to: '/admin/akc3', label: 'Dashboard', icon: <LayoutDashboard size={18} /> }] },
-  { section: 'Competitions', items: [
-    { to: '/admin/championships', label: 'Competitions', icon: <Trophy size={18} /> },
-    { to: '/admin/amashuri/seasons', label: 'Seasons', icon: <CalendarDays size={18} /> },
-    { to: '/admin/amashuri/stages', label: 'Stages', icon: <Layers size={18} /> },
-  ] },
-  { section: 'Sports', items: [{ to: '/admin/amashuri/sports', label: 'Sports', icon: <Medal size={18} /> }] },
-  { section: 'Schools', items: [
-    { to: '/admin/amashuri/schools', label: 'Schools', icon: <School size={18} /> },
-    { to: '/admin/amashuri/approvals', label: 'Pending Approvals', icon: <ClipboardList size={18} /> },
-  ] },
-  { section: 'Teams', items: [
-    { to: '/admin/amashuri/teams', label: 'Teams', icon: <Users size={18} /> },
-    { to: '/admin/amashuri/athletes', label: 'Athletes', icon: <UserSquare2 size={18} /> },
-  ] },
-  { section: 'Matches', items: [
-    { to: '/admin/amashuri/fixtures', label: 'Fixtures', icon: <Activity size={18} /> },
-    { to: '/admin/amashuri/live', label: 'Live Matches', icon: <Radio size={18} /> },
-    { to: '/admin/amashuri/results', label: 'Results', icon: <FileText size={18} /> },
-    { to: '/admin/amashuri/standings', label: 'Standings', icon: <BarChart3 size={18} /> },
-  ] },
-  { section: 'Content', items: [
-    { to: '/admin/news', label: 'News', icon: <Newspaper size={18} /> },
-    { to: '/admin/championships', label: 'Championships', icon: <Medal size={18} /> },
-  ] },
-  { section: 'Management', items: [
-    { to: '/admin/amashuri/officials', label: 'Officials', icon: <Users2 size={18} /> },
-    { to: '/admin/roles', label: 'Users & Roles', icon: <KeyRound size={18} /> },
-    { to: '/admin/visitors', label: 'Audit Logs', icon: <ClipboardList size={18} /> },
-    { to: '/admin/settings', label: 'Settings', icon: <Settings size={18} /> },
-  ] },
-];
-
-// League (single-competition) admin nav — the operational level.
-const LEAGUE_NAV = [
-  { section: 'Main', items: [
-    { to: '/admin/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
-    { to: '/admin/fixtures', label: 'Fixtures', icon: <Activity size={18} /> },
-    { to: '/admin/league/match-reports', label: 'Match Reports', icon: <ClipboardCheck size={18} /> },
-    { to: '/admin/league/standings', label: 'Standings', icon: <BarChart3 size={18} /> },
-    { to: '/admin/league/top-scorers', label: 'Top Scorers', icon: <Target size={18} /> },
-    { to: '/admin/league/statistics', label: 'Statistics', icon: <TrendingUp size={18} /> },
-  ] },
-  { section: 'Management', items: [
-    { to: '/admin/teams', label: 'Teams', icon: <Users size={18} /> },
-    { to: '/admin/players', label: 'Players', icon: <UserSquare2 size={18} /> },
-    { to: '/admin/league/officials', label: 'Officials', icon: <Users2 size={18} /> },
-    { to: '/admin/league/reporters', label: 'Reporter Assignment', icon: <Radio size={18} /> },
-  ] },
-  { section: 'Content', items: [
-    { to: '/admin/news', label: 'News', icon: <Newspaper size={18} /> },
-    { to: '/admin/content', label: 'League Content', icon: <LayoutTemplate size={18} /> },
-    { to: '/admin/media', label: 'Media Library', icon: <ImageIcon size={18} /> },
-  ] },
-  { section: 'System', items: [
-    { to: '/admin/visitors', label: 'Audit Logs', icon: <ClipboardList size={18} /> },
-    { to: '/admin/settings', label: 'Settings', icon: <Settings size={18} /> },
-  ] },
-];
-
-// Team (single-club) admin nav — the club-management portal.
-const TEAM_NAV = [
-  { section: 'Main', items: [
-    { to: '/team/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
-    { to: '/team/profile', label: 'Team Profile', icon: <Shield size={18} /> },
-    { to: '/team/players', label: 'Players', icon: <UserSquare2 size={18} /> },
-    { to: '/team/fixtures', label: 'Fixtures', icon: <Activity size={18} /> },
-    { to: '/team/lineups', label: 'Lineups', icon: <ClipboardCheck size={18} /> },
-    { to: '/team/staff', label: 'Staff', icon: <Users2 size={18} /> },
-    { to: '/team/documents', label: 'Documents', icon: <FileText size={18} /> },
-  ] },
-  { section: 'Content', items: [
-    { to: '/team/content', label: 'Team Content', icon: <LayoutTemplate size={18} /> },
-    { to: '/team/media', label: 'Media Library', icon: <ImageIcon size={18} /> },
-    { to: '/team/news', label: 'News', icon: <Newspaper size={18} /> },
-  ] },
-  { section: 'Communication', items: [
-    { to: '/team/messages', label: 'Messages', icon: <MessageSquare size={18} />, badge: 2 },
-  ] },
-  { section: 'Analytics', items: [
-    { to: '/team/statistics', label: 'Team Statistics', icon: <BarChart3 size={18} /> },
-  ] },
-  { section: 'System', items: [
-    { to: '/team/settings', label: 'Settings', icon: <Settings size={18} /> },
-  ] },
-];
+// Super admin oversees leagues/teams/championships read-only; a federation admin's
+// fixtures are managed by league admins, so read-only there too.
+const isReadOnly = (role, path) =>
+  (role === 'SUPERADMIN' && ['/admin/leagues', '/admin/teams', '/admin/championships'].includes(path)) ||
+  (role === 'FEDERATION_ADMIN' && path === '/admin/fixtures');
 
 const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
+  const { t } = useTranslation();
   const { role } = useAuthStore();
-  const { profile } = useSportScope();
-  const isSuper = type === 'admin' && role === 'SUPERADMIN';
-  const isFed = type === 'admin' && role === 'FEDERATION_ADMIN';
-  const isAma = type === 'admin' && role === 'AMASHURI_ADMIN';
-  const isLeague = type === 'admin' && role === 'LEAGUE_ADMIN';
-  const isTeam = type === 'team';
-
-  const labelFor = (link) => {
-    if (!profile) return link.label;
-    return ({
-      '/admin/leagues': profile.competitionPlural,
-      '/admin/fixtures': profile.eventPlural,
-      '/admin/teams': profile.competitorPlural,
-      '/admin/players': profile.rosterPlural,
-    })[link.to] || link.label;
-  };
-
-  const adminLinks = ADMIN_PAGES
-    .filter((page) => page.roles.includes(role))
-    .map((page) => ({ to: page.path, icon: ADMIN_ICONS[page.path], label: page.label }));
-
-  const teamLinks = [
-    { to: '/team/dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
-    { to: '/team/players', icon: <UserSquare2 size={18} />, label: 'My Players' },
-    { to: '/team/fixtures', icon: <Activity size={18} />, label: 'Fixtures' },
-    { to: '/team/lineups', icon: <ClipboardList size={18} />, label: 'Lineups' },
-    { to: '/team/documents', icon: <FileText size={18} />, label: 'Documents' },
-    { to: '/team/profile', icon: <Users size={18} />, label: 'Team Profile' },
-  ];
-  const reporterLinks = [{ to: '/reporter/dashboard', icon: <Radio size={18} />, label: 'Live Reporting' }];
+  const { profile, sport } = useSportScope();
 
   const closeOnMobile = () => { if (window.innerWidth < 1024) onClose(); };
 
@@ -206,239 +90,151 @@ const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
       isActive ? 'bg-brand-strong text-white shadow-lg' : 'text-white/50 hover:bg-white/5 hover:text-white'
     }`;
 
-  /* ── Ministry (Super Admin) grouped nav ── */
-  const ministryContent = (
+  // Sport-scoped relabelling (federation admin only): leagues→competitions, etc.
+  const labelFor = (path, fallbackKey) => {
+    if (profile) {
+      const scoped = {
+        '/admin/leagues': profile.competitionPlural,
+        '/admin/fixtures': profile.eventPlural,
+        '/admin/teams': profile.competitorPlural,
+        '/admin/players': profile.rosterPlural,
+      }[path];
+      if (scoped) return scoped;
+    }
+    return t(fallbackKey);
+  };
+
+  // ── build grouped admin nav from the real access list ──
+  // The Super Admin can *reach* every route (god mode), but the league/amashuri
+  // operational sub-sections belong to those admins' portals — keep them out of
+  // the Ministry nav so it stays governance-focused, matching the reference.
+  const adminItems = ADMIN_PAGES
+    .filter((page) => page.roles.includes(role))
+    .filter((page) => !(role === 'SUPERADMIN' && (page.path.startsWith('/admin/league/') || page.path.startsWith('/admin/amashuri/'))))
+    .map((page) => ({ to: page.path, ...PATH_META[page.path], readOnly: isReadOnly(role, page.path) }))
+    .filter((i) => i.section);
+  const adminGroups = SECTION_ORDER
+    .map((section) => ({ section, items: adminItems.filter((i) => i.section === section) }))
+    .filter((g) => g.items.length);
+
+  const teamGroups = [
+    { section: 'main', items: [
+      { to: '/team/dashboard', key: 'portal.nav_dashboard', icon: <LayoutDashboard size={18} /> },
+      { to: '/team/profile', key: 'portal.nav_profile', icon: <Shield size={18} /> },
+      { to: '/team/players', key: 'portal.nav_my_players', icon: <UserSquare2 size={18} /> },
+      { to: '/team/fixtures', key: 'portal.nav_fixtures', icon: <Activity size={18} /> },
+      { to: '/team/lineups', key: 'portal.nav_lineups', icon: <ClipboardList size={18} /> },
+      { to: '/team/documents', key: 'portal.nav_documents', icon: <FileText size={18} /> },
+    ] },
+  ];
+  const schoolGroups = [
+    { section: 'main', items: [
+      { to: '/school/dashboard', key: 'portal.nav_dashboard', icon: <LayoutDashboard size={18} /> },
+      { to: '/school/athletes', key: 'portal.nav_my_athletes', icon: <UserSquare2 size={18} /> },
+    ] },
+  ];
+  const reporterGroups = [
+    { section: 'main', items: [{ to: '/reporter/dashboard', key: 'portal.nav_live_reporting', icon: <Radio size={18} /> }] },
+  ];
+
+  const groups = type === 'team' ? teamGroups
+    : type === 'reporter' ? reporterGroups
+    : type === 'school' ? schoolGroups
+    : adminGroups;
+
+  // ── role-branded header ──
+  const headerFor = () => {
+    if (type === 'team') return { icon: <Shield size={18} />, title: t('portal.role_team'), sub: null, accent: 'text-brand bg-brand/15' };
+    if (type === 'reporter') return { icon: <Radio size={18} />, title: t('portal.role_reporter'), sub: null, accent: 'text-brand bg-brand/15' };
+    if (type === 'school') return { icon: <GraduationCap size={18} />, title: t('portal.role_school'), sub: t('portal.role_school_sub'), accent: 'text-[#F5B301] bg-[#F5B301]/15' };
+    if (role === 'SUPERADMIN') return { icon: <Landmark size={18} />, title: t('portal.role_ministry'), sub: t('portal.role_ministry_sub'), accent: 'text-brand bg-brand/15' };
+    if (role === 'FEDERATION_ADMIN') return { icon: <ShieldCheck size={18} />, title: t('portal.role_federation'), sub: sport?.name || null, accent: 'text-brand bg-brand/15' };
+    if (role === 'AMASHURI_ADMIN') return { icon: <GraduationCap size={18} />, title: t('portal.role_amashuri'), sub: t('portal.role_amashuri_sub'), accent: 'text-[#F5B301] bg-[#F5B301]/15' };
+    if (role === 'LEAGUE_ADMIN') return { icon: <Trophy size={18} />, title: t('portal.role_league'), sub: '2025/2026', accent: 'text-brand bg-brand/15' };
+    return { icon: <LayoutDashboard size={18} />, title: t('portal.role_admin'), sub: null, accent: 'text-brand bg-brand/15' };
+  };
+  const header = headerFor();
+
+  // ── role footer panel ──
+  const footer = (() => {
+    if (type === 'team') {
+      return (
+        <div className="space-y-3 border-t border-white/10 p-4">
+          <div>
+            <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-white/30">{t('portal.current_season')}</p>
+            <p className="font-display text-lg text-brand">2025/2026</p>
+          </div>
+          <Link to="/teams" onClick={closeOnMobile} className="flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/10">
+            {t('portal.view_team_page')} <ExternalLink size={13} />
+          </Link>
+          <div className="flex items-center gap-2 rounded-xl bg-white/5 p-3 text-white/50">
+            <HelpCircle size={16} className="shrink-0" />
+            <div className="leading-tight"><p className="text-[11px] font-bold text-white">{t('portal.need_help')}</p><p className="text-[10px]">{t('portal.contact_support')}</p></div>
+          </div>
+        </div>
+      );
+    }
+    if (role === 'FEDERATION_ADMIN' && type === 'admin') {
+      return (
+        <div className="space-y-3 border-t border-white/10 p-4">
+          <div>
+            <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-white/30">{t('portal.current_season')}</p>
+            <p className="font-display text-lg text-brand">2025/2026</p>
+          </div>
+          <div className="rounded-xl bg-white/5 p-3">
+            <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-white/30">{t('portal.your_sport')}</p>
+            <p className="mt-0.5 flex items-center gap-1.5 text-sm font-bold text-white"><Trophy size={13} className="text-brand" /> {sport?.name || '—'}</p>
+          </div>
+        </div>
+      );
+    }
+    if (role === 'SUPERADMIN' && type === 'admin') {
+      return (
+        <div className="border-t border-white/10 p-4">
+          <div className="rounded-xl bg-white/5 p-3">
+            <p className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-white/50">
+              <span className="h-1.5 w-1.5 rounded-full bg-brand" /> {t('portal.system_status')}
+            </p>
+            <p className="text-[11px] text-brand">{t('portal.all_operational')}</p>
+            <p className="mt-2 text-[10px] text-white/30">v1.0.0 · {t('portal.role_ministry')}</p>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  })();
+
+  const content = (
     <>
       <div className="flex items-center justify-between gap-2 border-b border-white/10 p-5">
         <div className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand/15 text-brand"><Landmark size={18} /></span>
+          <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${header.accent}`}>{header.icon}</span>
           <div className="leading-tight">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-white">Ministry of Sport</p>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-brand">Rwanda</p>
+            <p className="text-[13px] font-display font-bold uppercase tracking-tight text-white">{header.title}</p>
+            {header.sub && <p className="text-[10px] font-semibold uppercase tracking-wider text-brand">{header.sub}</p>}
           </div>
         </div>
-        <button onClick={onClose} className="p-1 text-white/40 hover:text-white lg:hidden"><X size={20} /></button>
+        <button onClick={onClose} className="p-1 text-white/40 hover:text-white lg:hidden" aria-label="Close"><X size={20} /></button>
       </div>
 
       <nav className="flex-1 space-y-5 overflow-y-auto p-4">
-        {MINISTRY_NAV.map((group, gi) => (
-          <div key={gi} className="space-y-1">
-            {group.section && <p className="px-3 pb-1 text-[9px] font-bold uppercase tracking-[0.25em] text-white/30">{group.section}</p>}
+        {groups.map((group) => (
+          <div key={group.section} className="space-y-1">
+            {SECTION_KEY[group.section] && <p className="px-3 pb-1 text-[9px] font-bold uppercase tracking-[0.25em] text-white/30">{t(SECTION_KEY[group.section])}</p>}
             {group.items.map((link) => (
               <NavLink key={link.to} to={link.to} end onClick={closeOnMobile} className={navItemClass}>
                 {link.icon}
-                <span className="flex-1 truncate">{link.label}</span>
-                {link.readOnly && <Lock size={12} className="shrink-0 opacity-40" aria-label="Read only" />}
+                <span className="flex-1 truncate">{labelFor(link.to, link.key)}</span>
+                {link.readOnly && <Lock size={12} className="shrink-0 opacity-40" aria-label={t('portal.read_only')} />}
               </NavLink>
             ))}
           </div>
         ))}
       </nav>
 
-      <div className="border-t border-white/10 p-4">
-        <div className="rounded-xl bg-white/5 p-3">
-          <p className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-white/50">
-            <span className="h-1.5 w-1.5 rounded-full bg-brand" /> System Status
-          </p>
-          <p className="text-[11px] text-brand">All systems operational</p>
-          <p className="mt-2 text-[10px] text-white/30">Version 1.0.0 · Ministry Portal</p>
-        </div>
-      </div>
+      {footer}
     </>
   );
-
-  /* ── Federation (single-sport) grouped nav ── */
-  const federationContent = (
-    <>
-      <div className="flex items-center justify-between gap-2 border-b border-white/10 p-5">
-        <div className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand/15 text-brand"><ShieldCheck size={18} /></span>
-          <div className="leading-tight">
-            <p className="text-[13px] font-display font-bold uppercase tracking-tight text-white">FERWAFA</p>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-brand">Football Federation</p>
-          </div>
-        </div>
-        <button onClick={onClose} className="p-1 text-white/40 hover:text-white lg:hidden"><X size={20} /></button>
-      </div>
-
-      <nav className="flex-1 space-y-5 overflow-y-auto p-4">
-        {FEDERATION_NAV.map((group, gi) => (
-          <div key={gi} className="space-y-1">
-            {group.section && <p className="px-3 pb-1 text-[9px] font-bold uppercase tracking-[0.25em] text-white/30">{group.section}</p>}
-            {group.items.map((link) => (
-              <NavLink key={link.to} to={link.to} end onClick={closeOnMobile} className={navItemClass}>
-                {link.icon}
-                <span className="flex-1 truncate">{link.label}</span>
-                {link.readOnly && <Lock size={12} className="shrink-0 opacity-40" aria-label="Read only" />}
-              </NavLink>
-            ))}
-          </div>
-        ))}
-      </nav>
-
-      <div className="space-y-3 border-t border-white/10 p-4">
-        <div>
-          <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-white/30">Current Season</p>
-          <p className="font-display text-lg text-brand">2025/2026</p>
-        </div>
-        <div className="rounded-xl bg-white/5 p-3">
-          <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-white/30">Your Sport</p>
-          <p className="mt-0.5 flex items-center gap-1.5 text-sm font-bold text-white"><Trophy size={13} className="text-brand" /> Football</p>
-          <p className="mt-0.5 text-[10px] text-white/40">All football data under your federation</p>
-        </div>
-      </div>
-    </>
-  );
-
-  /* ── Amashuri (school-sports ecosystem) grouped nav ── */
-  const amashuriContent = (
-    <>
-      <div className="flex items-center justify-between gap-2 border-b border-white/10 p-5">
-        <div className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#F5B301]/15 text-[#F5B301]"><GraduationCap size={18} /></span>
-          <div className="leading-tight">
-            <p className="text-[13px] font-display font-bold uppercase tracking-tight text-white">Amashuri Admin</p>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#F5B301]">School Sports</p>
-          </div>
-        </div>
-        <button onClick={onClose} className="p-1 text-white/40 hover:text-white lg:hidden"><X size={20} /></button>
-      </div>
-
-      <nav className="flex-1 space-y-5 overflow-y-auto p-4">
-        {AMASHURI_NAV.map((group, gi) => (
-          <div key={gi} className="space-y-1">
-            {group.section && <p className="px-3 pb-1 text-[9px] font-bold uppercase tracking-[0.25em] text-white/30">{group.section}</p>}
-            {group.items.map((link) => (
-              <NavLink key={link.to + link.label} to={link.to} end onClick={closeOnMobile} className={navItemClass}>
-                {link.icon}
-                <span className="flex-1 truncate">{link.label}</span>
-              </NavLink>
-            ))}
-          </div>
-        ))}
-      </nav>
-
-      <div className="border-t border-white/10 p-4">
-        <div className="rounded-xl bg-white/5 p-3">
-          <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-white/30">Ecosystem</p>
-          <p className="mt-0.5 flex items-center gap-1.5 text-sm font-bold text-white"><GraduationCap size={13} className="text-[#F5B301]" /> Rwandan School Sports</p>
-          <p className="mt-0.5 text-[10px] text-white/40">Schools · Sports · Competitions</p>
-        </div>
-      </div>
-    </>
-  );
-
-  /* ── League (single-competition) admin grouped nav ── */
-  const leagueContent = (
-    <>
-      <div className="border-b border-white/10 p-5">
-        <div className="mb-3 flex items-center justify-between">
-          <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-white/40">League Admin</p>
-          <button onClick={onClose} className="p-1 text-white/40 hover:text-white lg:hidden"><X size={20} /></button>
-        </div>
-        <div className="flex items-center gap-2.5 rounded-xl bg-white/5 p-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand/15 text-brand"><Trophy size={18} /></span>
-          <div className="min-w-0 leading-tight">
-            <p className="truncate text-[12px] font-display font-bold uppercase tracking-tight text-white">Rwanda Premier League</p>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-brand">2025/2026 Season</p>
-          </div>
-        </div>
-      </div>
-
-      <nav className="flex-1 space-y-5 overflow-y-auto p-4">
-        {LEAGUE_NAV.map((group, gi) => (
-          <div key={gi} className="space-y-1">
-            {group.section && <p className="px-3 pb-1 text-[9px] font-bold uppercase tracking-[0.25em] text-white/30">{group.section}</p>}
-            {group.items.map((link) => (
-              <NavLink key={link.to} to={link.to} end onClick={closeOnMobile} className={navItemClass}>
-                {link.icon}
-                <span className="flex-1 truncate">{link.label}</span>
-              </NavLink>
-            ))}
-          </div>
-        ))}
-      </nav>
-    </>
-  );
-
-  /* ── Team (single-club) grouped nav ── */
-  const teamGroupedContent = (
-    <>
-      <div className="border-b border-white/10 p-5">
-        <div className="mb-3 flex items-center justify-between">
-          <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-white/40">Team Portal</p>
-          <button onClick={onClose} className="p-1 text-white/40 hover:text-white lg:hidden"><X size={20} /></button>
-        </div>
-        <div className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand/15 text-brand"><Shield size={18} /></span>
-          <div className="min-w-0 leading-tight">
-            <p className="truncate text-[13px] font-display font-bold uppercase tracking-tight text-white">APR FC</p>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-brand">Team Administrator</p>
-          </div>
-        </div>
-      </div>
-
-      <nav className="flex-1 space-y-5 overflow-y-auto p-4">
-        {TEAM_NAV.map((group, gi) => (
-          <div key={gi} className="space-y-1">
-            {group.section && <p className="px-3 pb-1 text-[9px] font-bold uppercase tracking-[0.25em] text-white/30">{group.section}</p>}
-            {group.items.map((link) => (
-              <NavLink key={link.to} to={link.to} end onClick={closeOnMobile} className={navItemClass}>
-                {link.icon}
-                <span className="flex-1 truncate">{link.label}</span>
-                {link.badge && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-bold text-white">{link.badge}</span>}
-              </NavLink>
-            ))}
-          </div>
-        ))}
-      </nav>
-
-      <div className="space-y-3 border-t border-white/10 p-4">
-        <div>
-          <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-white/30">Current Season</p>
-          <p className="font-display text-lg text-brand">2025/2026</p>
-        </div>
-        <Link to="/teams" onClick={closeOnMobile} className="flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/10">
-          View Team Page <ExternalLink size={13} />
-        </Link>
-        <div className="flex items-center gap-2 rounded-xl bg-white/5 p-3 text-white/50">
-          <HelpCircle size={16} className="shrink-0" />
-          <div className="leading-tight"><p className="text-[11px] font-bold text-white">Need Help?</p><p className="text-[10px]">Contact Support</p></div>
-        </div>
-      </div>
-    </>
-  );
-
-  /* ── legacy flat nav for other admin roles / team / reporter ── */
-  const flatLinks = type === 'admin' ? adminLinks : type === 'reporter' ? reporterLinks : teamLinks;
-  const portalLabel = type === 'admin' ? 'Admin Portal' : type === 'reporter' ? 'Reporter Portal' : 'Team Portal';
-  const flatContent = (
-    <>
-      <div className="flex items-center justify-between border-b border-surface-dark2 p-6">
-        <h2 className="font-display text-xl uppercase tracking-tighter text-red">{portalLabel}</h2>
-        <button onClick={onClose} className="p-1 text-white/40 hover:text-white lg:hidden"><X size={20} /></button>
-      </div>
-      <nav className="space-y-1 p-4">
-        {flatLinks.map((link) => (
-          <NavLink
-            key={link.to}
-            to={link.to}
-            onClick={closeOnMobile}
-            className={({ isActive }) =>
-              `flex items-center space-x-3 rounded px-4 py-2.5 font-display text-[13px] uppercase tracking-widest transition-all ${
-                isActive ? 'bg-red text-white shadow-lg shadow-red-glow' : 'text-white/50 hover:bg-surface-dark2 hover:text-white'
-              }`
-            }
-          >
-            {link.icon}
-            <span>{labelFor(link)}</span>
-          </NavLink>
-        ))}
-      </nav>
-    </>
-  );
-
-  const content = isSuper ? ministryContent : isFed ? federationContent : isAma ? amashuriContent : isLeague ? leagueContent : isTeam ? teamGroupedContent : flatContent;
 
   return (
     <>
