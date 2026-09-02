@@ -17,7 +17,21 @@ import i18n from 'i18next';
 import { crest, avatar, cover } from './assets';
 
 const now = Date.now();
-const days = (n) => new Date(now + n * 86400000).toISOString();
+/**
+ * `n` days from now, at a REAL KICK-OFF TIME.
+ *
+ * This used to carry the current clock forward, so every upcoming fixture in the
+ * demo showed whatever time the page happened to be opened — a whole schedule
+ * reading "21:10", which looks broken rather than scheduled. Kick-offs now land on
+ * the hours Rwandan football and basketball actually play, varied by the day so a
+ * matchday has a shape.
+ */
+const KICKOFFS = [16, 19, 18, 20, 15, 17];
+const days = (n, hour?) => {
+  const d = new Date(now + n * 86400000);
+  d.setHours(hour ?? KICKOFFS[Math.abs(n) % KICKOFFS.length], (Math.abs(n) % 2) * 30, 0, 0);
+  return d.toISOString();
+};
 const hours = (n) => new Date(now + n * 3600000).toISOString();
 const mins = (n) => new Date(now + n * 60000).toISOString();
 const yearsAgo = (n) => new Date(now - n * 365.25 * 86400000).toISOString();
@@ -44,11 +58,17 @@ const SKILLS = ['PROFESSIONAL', 'PROFESSIONAL', 'SEMI_PROFESSIONAL', 'AMATEUR'];
 /* ── sports ────────────────────────────────────────────────────────────── */
 export const sports = [
   { id: 1, name: 'Football', icon: '⚽', slug: 'football', category: 'FIELD', type: 'TEAM', sortOrder: 1, active: true, coverImage: cover('football', '#0B6E3F'), description: 'The national game — 16 clubs across the Rwanda Premier League.', _count: { teams: 48, leagues: 18, matches: 142 } },
-  { id: 2, name: 'Basketball', icon: '🏀', slug: 'basketball', category: 'COURT', type: 'TEAM', sortOrder: 2, active: true, coverImage: cover('basketball', '#C81E1E'), description: 'Home of the BAL — the Rwanda National Basketball League at BK Arena.', _count: { teams: 24, leagues: 6, matches: 48 } },
+  { id: 2, name: 'Basketball', icon: '🏀', slug: 'basketball', category: 'COURT', type: 'TEAM', sortOrder: 2, active: true, coverImage: cover('basketball', '#C81E1E'), description: 'Home of the BAL — the Rwanda Basketball League at BK Arena.', _count: { teams: 24, leagues: 6, matches: 48 } },
   { id: 3, name: 'Volleyball', icon: '🏐', slug: 'volleyball', category: 'COURT', type: 'TEAM', sortOrder: 3, active: true, coverImage: cover('volleyball', '#1D4ED8'), description: 'Men’s and women’s national leagues.', _count: { teams: 20, leagues: 4, matches: 31 } },
   { id: 4, name: 'Cycling', icon: '🚴', slug: 'cycling', category: 'TRACK', type: 'RACING', sortOrder: 4, active: true, coverImage: cover('cycling', '#F59E0B'), description: 'The Tour du Rwanda and the national road calendar.', _count: { teams: 8, leagues: 2, matches: 8 } },
   { id: 5, name: 'Athletics', icon: '🏃', slug: 'athletics', category: 'TRACK', type: 'RACING', sortOrder: 5, active: true, coverImage: cover('athletics', '#7C3AED'), description: 'Track, field and road running.', _count: { teams: 40, leagues: 3, matches: 12 } },
   { id: 6, name: 'Handball', icon: '🤾', slug: 'handball', category: 'COURT', type: 'TEAM', sortOrder: 6, active: true, coverImage: cover('handball', '#0D9488'), description: 'National handball championship.', _count: { teams: 44, leagues: 3, matches: 22 } },
+  { id: 7, name: 'Netball', icon: 'ð', slug: 'netball', category: 'COURT', type: 'TEAM', sortOrder: 7, active: true, coverImage: null, description: 'The national netball league, played across Kigali and the provinces.', _count: { teams: 16, leagues: 2, matches: 26 } },
+  { id: 8, name: 'Swimming', icon: 'ð', slug: 'swimming', category: 'AQUATIC', type: 'RACING', sortOrder: 8, active: true, coverImage: null, description: 'National championships and age-group galas.', _count: { teams: 12, leagues: 2, matches: 9 } },
+  { id: 9, name: 'Tennis', icon: 'ð¾', slug: 'tennis', category: 'COURT', type: 'TEAM', sortOrder: 9, active: true, coverImage: null, description: 'The Rwanda Tennis Federation circuit.', _count: { teams: 10, leagues: 2, matches: 14 } },
+  { id: 10, name: 'Judo', icon: 'ð¥', slug: 'judo', category: 'COMBAT', type: 'RACING', sortOrder: 10, active: true, coverImage: null, description: 'National judo championships and continental qualifiers.', _count: { teams: 9, leagues: 1, matches: 7 } },
+  { id: 11, name: 'Boxing', icon: 'ð¥', slug: 'boxing', category: 'COMBAT', type: 'RACING', sortOrder: 11, active: true, coverImage: null, description: 'Amateur and elite national boxing cards.', _count: { teams: 11, leagues: 1, matches: 8 } },
+  { id: 12, name: 'Chess', icon: 'â', slug: 'chess', category: 'INDOOR', type: 'TEAM', sortOrder: 12, active: true, coverImage: null, description: 'The national chess championship and school olympiads.', _count: { teams: 18, leagues: 2, matches: 21 } },
 ];
 const sportRef = (id) => { const s = sports.find((x) => x.id === id); return { id: s.id, name: s.name, slug: s.slug, icon: s.icon }; };
 
@@ -74,7 +94,7 @@ export const venues = [
 ];
 
 /* ── teams ─────────────────────────────────────────────────────────────── */
-const T = (id, name, shortName, sportId, primary, secondary, opts = {}) => ({
+const T = (id, name, shortName, sportId, primary, secondary, opts: any = {}) => ({
   id, name, shortName, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
   sportId, sport: sportRef(sportId),
   primaryColor: primary, secondaryColor: secondary,
@@ -105,7 +125,7 @@ export const teams = [
   T(10, 'Bugesera FC', 'BUG', 1, '#0D9488', '#FFFFFF', { city: 'Nyamata', district: 'Bugesera', province: 'Eastern', foundedYear: 2013 }),
   T(11, 'Marines FC', 'MAR', 1, '#0369A1', '#FFD200', { city: 'Rubavu', district: 'Rubavu', province: 'Western', foundedYear: 2011, homeVenue: 'Umuganda Stadium' }),
   T(12, 'Gorilla FC', 'GOR', 1, '#334155', '#F59E0B', { city: 'Rubavu', district: 'Rubavu', province: 'Western', foundedYear: 2015, homeVenue: 'Umuganda Stadium', status: 'PENDING' }),
-  // Basketball — National Basketball League
+  // Basketball — Rwanda Basketball League
   T(20, 'Patriots BBC', 'PAT', 2, '#1D4ED8', '#FFD200', { foundedYear: 2005, homeVenue: 'BK Arena', squad: 14 }),
   T(21, 'REG BBC', 'REG', 2, '#0B6E3F', '#FFD200', { foundedYear: 2015, homeVenue: 'BK Arena', squad: 14 }),
   T(22, 'APR BBC', 'APR', 2, '#0B6E3F', '#FFFFFF', { foundedYear: 1993, homeVenue: 'BK Arena', squad: 14 }),
@@ -190,7 +210,7 @@ const coachOf = (teamId) => officials.find((o) => o.teamId === teamId && o.role 
 /* ── leagues ───────────────────────────────────────────────────────────── */
 export const leagues = [
   { id: 1, name: 'Rwanda Premier League', slug: 'rpl', season: '2025/2026', gender: 'MALE', ageCategory: 'SENIOR', status: 'ACTIVE', level: 'NATIONAL', format: 'LEAGUE', maxTeams: 16, sport: sportRef(1), federation: { id: 1, name: 'FERWAFA' }, startDate: days(-120), endDate: days(120), description: 'Rwanda’s top flight, contested by 16 clubs.', _count: { teams: 12, fixtures: 240 } },
-  { id: 2, name: 'National Basketball League', slug: 'nbl', season: '2025/2026', gender: 'MALE', ageCategory: 'SENIOR', status: 'ACTIVE', level: 'NATIONAL', format: 'LEAGUE', maxTeams: 12, sport: sportRef(2), federation: { id: 2, name: 'FERWABA' }, startDate: days(-60), endDate: days(90), description: 'The men’s national basketball championship at BK Arena.', _count: { teams: 4, fixtures: 90 } },
+  { id: 2, name: 'Rwanda Basketball League', slug: 'nbl', season: '2025/2026', gender: 'MALE', ageCategory: 'SENIOR', status: 'ACTIVE', level: 'NATIONAL', format: 'LEAGUE', maxTeams: 12, sport: sportRef(2), federation: { id: 2, name: 'FERWABA' }, startDate: days(-60), endDate: days(90), description: 'The men’s national basketball championship at BK Arena.', _count: { teams: 4, fixtures: 90 } },
   { id: 3, name: "Women's Volleyball League", slug: 'wvl', season: '2025/2026', gender: 'FEMALE', ageCategory: 'SENIOR', status: 'ACTIVE', level: 'NATIONAL', format: 'LEAGUE', maxTeams: 10, sport: sportRef(3), federation: { id: 3, name: 'FRVB' }, startDate: days(-40), endDate: days(100), description: 'The women’s national volleyball league.', _count: { teams: 4, fixtures: 60 } },
   { id: 4, name: 'Peace Cup', slug: 'peace-cup', season: '2025/2026', gender: 'MALE', ageCategory: 'SENIOR', status: 'UPCOMING', level: 'NATIONAL', format: 'KNOCKOUT', maxTeams: 32, sport: sportRef(1), federation: { id: 1, name: 'FERWAFA' }, startDate: days(30), description: 'The national football knockout cup.', _count: { teams: 32, fixtures: 31 } },
   { id: 5, name: 'Second Division', slug: 'division-two', season: '2025/2026', gender: 'MALE', ageCategory: 'SENIOR', status: 'ACTIVE', level: 'NATIONAL', format: 'LEAGUE', maxTeams: 16, sport: sportRef(1), federation: { id: 1, name: 'FERWAFA' }, startDate: days(-120), description: 'Rwanda’s second tier of football.', _count: { teams: 16, fixtures: 240 } },
@@ -234,7 +254,7 @@ export const scorersByLeague = {
 
 /* ── fixtures ──────────────────────────────────────────────────────────── */
 const REFS = ['P. Mukasine', 'J. Habineza', 'S. Nkurunziza', 'A. Mutabazi', 'D. Uwimana'];
-const fx = (id, leagueId, leagueName, homeId, awayId, status, whenIso, venue, hs, as, matchday, opts = {}) => ({
+const fx = (id, leagueId, leagueName, homeId, awayId, status, whenIso, venue, hs, as, matchday, opts: any = {}) => ({
   id, leagueId, league: { id: leagueId, name: leagueName },
   homeTeamId: homeId, awayTeamId: awayId, homeTeam: teamRef(homeId), awayTeam: teamRef(awayId),
   status, matchDate: whenIso, venue, referee: REFS[id % REFS.length], matchday,
@@ -252,24 +272,24 @@ export const fixtures = [
   // Live now
   fx(101, 1, 'Rwanda Premier League', 2, 1, 'LIVE', mins(-52), 'Nyanza Stadium', 1, 1, 19, { stream: true, statusLabel: "67'" }),
   fx(102, 1, 'Rwanda Premier League', 3, 4, 'LIVE', mins(-33), 'Kigali Pelé Stadium', 0, 2, 19, { statusLabel: "38'" }),
-  fx(110, 2, 'National Basketball League', 20, 21, 'LIVE', mins(-20), 'BK Arena', 58, 61, 11, { stream: true, statusLabel: 'Q4' }),
+  fx(110, 2, 'Rwanda Basketball League', 20, 21, 'LIVE', mins(-20), 'BK Arena', 58, 61, 11, { stream: true, statusLabel: 'Q4' }),
   // Upcoming
   fx(103, 1, 'Rwanda Premier League', 1, 5, 'SCHEDULED', days(2), 'Kigali Pelé Stadium', null, null, 20),
   fx(104, 1, 'Rwanda Premier League', 6, 2, 'SCHEDULED', days(3), 'Kigali Pelé Stadium', null, null, 20),
   fx(105, 1, 'Rwanda Premier League', 4, 3, 'SCHEDULED', days(5), 'Amahoro National Stadium', null, null, 20),
   fx(106, 1, 'Rwanda Premier League', 9, 10, 'SCHEDULED', days(2), 'Umuganda Stadium', null, null, 20),
-  fx(111, 2, 'National Basketball League', 22, 23, 'SCHEDULED', days(1), 'BK Arena', null, null, 12),
+  fx(111, 2, 'Rwanda Basketball League', 22, 23, 'SCHEDULED', days(1), 'BK Arena', null, null, 12),
   fx(120, 3, "Women's Volleyball League", 30, 31, 'SCHEDULED', days(2), 'Petit Stade Remera', null, null, 8),
   // Results
   fx(107, 1, 'Rwanda Premier League', 1, 3, 'COMPLETED', days(-3), 'Kigali Pelé Stadium', 2, 0, 18),
   fx(108, 1, 'Rwanda Premier League', 5, 6, 'COMPLETED', days(-4), 'Huye Stadium', 3, 1, 18),
   fx(109, 1, 'Rwanda Premier League', 2, 4, 'COMPLETED', days(-6), 'Nyanza Stadium', 1, 1, 17),
-  fx(112, 2, 'National Basketball League', 21, 23, 'COMPLETED', days(-2), 'BK Arena', 82, 74, 10),
+  fx(112, 2, 'Rwanda Basketball League', 21, 23, 'COMPLETED', days(-2), 'BK Arena', 82, 74, 10),
   fx(121, 3, "Women's Volleyball League", 33, 32, 'COMPLETED', days(-3), 'Petit Stade Remera', 3, 1, 7),
   fx(122, 3, "Women's Volleyball League", 34, 35, 'SCHEDULED', days(3), 'Petit Stade Remera', null, null, 8),
   // Basketball — extra
-  fx(113, 2, 'National Basketball League', 24, 25, 'COMPLETED', days(-3), 'BK Arena', 78, 71, 10),
-  fx(114, 2, 'National Basketball League', 20, 24, 'SCHEDULED', days(2), 'BK Arena', null, null, 12),
+  fx(113, 2, 'Rwanda Basketball League', 24, 25, 'COMPLETED', days(-3), 'BK Arena', 78, 71, 10),
+  fx(114, 2, 'Rwanda Basketball League', 20, 24, 'SCHEDULED', days(2), 'BK Arena', null, null, 12),
   // Handball — National Handball League
   fx(130, 8, 'National Handball League', 60, 61, 'COMPLETED', days(-2), 'Amahoro Indoor Arena', 31, 28, 9),
   fx(131, 8, 'National Handball League', 62, 63, 'LIVE', mins(-24), 'Amahoro Indoor Arena', 14, 12, 10, { stream: true, statusLabel: "45'" }),
@@ -370,25 +390,32 @@ export const documents = players.slice(0, 18).map((p, i) => ({
 }));
 
 /* ── news ──────────────────────────────────────────────────────────────── */
-const article = (id, slug, key, seed, ageInDays, authorName, category) => ({
-  id, slug, category, coverImage: cover(seed), createdAt: days(ageInDays), published: true, views: 400 + id * 137,
+/**
+ * `photo` is a sport slug with a real photograph in /public/hero. News used to
+ * take `cover(seed)` — a generated gradient — for every story, which is why the
+ * news rail rendered as a row of coloured blobs. A story about the Kigali derby
+ * now carries the football photograph.
+ */
+const newsPhoto = (photo, seed) => (photo ? `/hero/${photo}.jpg` : cover(seed));
+const article = (id, slug, key, seed, ageInDays, authorName, category, photo) => ({
+  id, slug, category, coverImage: newsPhoto(photo, seed), createdAt: days(ageInDays), published: true, views: 400 + id * 137,
   author: { fullName: authorName },
   get title() { return i18n.t(`demo.news.${key}.title`); },
   get excerpt() { return i18n.t(`demo.news.${key}.excerpt`); },
   get body() { return i18n.t(`demo.news.${key}.body`); },
 });
-const plainArticle = (id, slug, title, excerpt, body, seed, ageInDays, authorName, category) => ({
-  id, slug, category, coverImage: cover(seed), createdAt: days(ageInDays), published: true, views: 300 + id * 91,
+const plainArticle = (id, slug, title, excerpt, body, seed, ageInDays, authorName, category, photo) => ({
+  id, slug, category, coverImage: newsPhoto(photo, seed), createdAt: days(ageInDays), published: true, views: 300 + id * 91,
   author: { fullName: authorName }, title, excerpt, body,
 });
 export const news = [
-  article(1, 'apr-clinch-derby', 'derby', 'derby-kigali', -1, 'Eric Niyonzima', 'RESULT'),
-  article(2, 'rayon-sign-striker', 'striker', 'transfer-window', -2, 'Aline Uwase', 'TRANSFER'),
-  article(3, 'kagame-cup-preview', 'kagame_cup', 'kagame-cup', -3, 'Jean Damascene', 'ANNOUNCEMENT'),
-  article(4, 'volleyball-league-roundup', 'volleyball', 'volleyball-roundup', -5, 'Claudine Mukamana', 'NEWS'),
-  plainArticle(5, 'bk-arena-hosts-final', 'BK Arena to host national basketball final', 'The championship series returns to Kigali’s 10,000-seat arena this month.', 'The National Basketball League play-off final will be staged at BK Arena, with tip-off scheduled for the weekend. Organisers expect a sell-out crowd as the top two seeds meet for the title.', 'basketball-final', -6, 'Patrick Habimana', 'ANNOUNCEMENT'),
-  plainArticle(6, 'tour-du-rwanda-route', 'Tour du Rwanda unveils 2026 route', 'Eight stages will cross all five provinces, finishing in Kigali.', 'The Rwanda Cycling Federation has confirmed the 2026 Tour du Rwanda route, taking the peloton through the Northern Province climbs before a final circuit in the capital.', 'cycling-tour', -8, 'Samuel Rwema', 'NEWS'),
-  plainArticle(7, 'grassroots-investment', 'Ministry launches grassroots pitch programme', 'Twelve district pitches to be upgraded ahead of next season.', 'A new national programme will resurface and floodlight community pitches in twelve districts, widening access to organised football for young players across the country.', 'grassroots', -12, 'Grace Ingabire', 'ANNOUNCEMENT'),
+  article(1, 'apr-clinch-derby', 'derby', 'derby-kigali', -1, 'Eric Niyonzima', 'RESULT', 'football'),
+  article(2, 'rayon-sign-striker', 'striker', 'transfer-window', -2, 'Aline Uwase', 'TRANSFER', 'football'),
+  article(3, 'kagame-cup-preview', 'kagame_cup', 'kagame-cup', -3, 'Jean Damascene', 'ANNOUNCEMENT', 'amashuri'),
+  article(4, 'volleyball-league-roundup', 'volleyball', 'volleyball-roundup', -5, 'Claudine Mukamana', 'NEWS', 'volleyball'),
+  plainArticle(5, 'bk-arena-hosts-final', 'BK Arena to host national basketball final', 'The championship series returns to Kigali’s 10,000-seat arena this month.', 'The Rwanda Basketball League play-off final will be staged at BK Arena, with tip-off scheduled for the weekend. Organisers expect a sell-out crowd as the top two seeds meet for the title.', 'basketball-final', -6, 'Patrick Habimana', 'ANNOUNCEMENT', 'basketball'),
+  plainArticle(6, 'tour-du-rwanda-route', 'Tour du Rwanda unveils 2026 route', 'Eight stages will cross all five provinces, finishing in Kigali.', 'The Rwanda Cycling Federation has confirmed the 2026 Tour du Rwanda route, taking the peloton through the Northern Province climbs before a final circuit in the capital.', 'cycling-tour', -8, 'Samuel Rwema', 'NEWS', 'cycling'),
+  plainArticle(7, 'grassroots-investment', 'Ministry launches grassroots pitch programme', 'Twelve district pitches to be upgraded ahead of next season.', 'A new national programme will resurface and floodlight community pitches in twelve districts, widening access to organised football for young players across the country.', 'grassroots', -12, 'Grace Ingabire', 'ANNOUNCEMENT', 'athletics'),
 ];
 
 /* ── ads ───────────────────────────────────────────────────────────────── */
@@ -479,7 +506,7 @@ export const schools = [
 ];
 const schoolRef = (id) => { const s = schools.find((x) => x.id === id); return { id: s.id, name: s.name, shortName: s.shortName, logo: s.logo, sector: s.sector }; };
 
-const akcRosterFor = (teamId, n, female) => Array.from({ length: n }, (_, i) => ({
+const akcRosterFor = (teamId, n, female?) => Array.from({ length: n }, (_, i) => ({
   id: teamId * 100 + i + 1, fullName: nameAt(teamId * 9 + i, female),
   photo: avatar(nameAt(teamId * 9 + i, female)),
   position: (female ? VB_POS : FB_POS)[i % (female ? VB_POS.length : FB_POS.length)],
@@ -604,8 +631,26 @@ export const buildFixtureDetail = (fixture) => {
     { teamId: fixture.homeTeamId, possession: 54, shots: 12, shotsOnTarget: 6, shotsInsideBox: 8, shotsOutsideBox: 4, corners: 7, offsides: 2, fouls: 11, yellowCards: 1, redCards: 0, gkSaves: 3, passAccuracy: 84, xg: 1.8 },
     { teamId: fixture.awayTeamId, possession: 46, shots: 9, shotsOnTarget: 4, shotsInsideBox: 5, shotsOutsideBox: 4, corners: 3, offsides: 3, fouls: 14, yellowCards: 2, redCards: 0, gkSaves: 5, passAccuracy: 79, xg: 1.1 },
   ] : [];
+  // A running clock for live matches, shaped exactly like the API's derived clock
+  // so the shared tickClock() has something to count from. `minute` is taken from
+  // the fixture, and elapsedSeconds is back-dated to that minute, which makes the
+  // demo tick forward from a plausible point instead of sitting on 0'.
+  const liveMinute = fixture.minute ?? 37;
+  const secondHalf = liveMinute > 45;
+  const clock = fixture.status === 'LIVE'
+    ? {
+        period: secondHalf ? 'SECOND_HALF' : 'FIRST_HALF',
+        running: true,
+        minute: liveMinute,
+        stoppage: 0,
+        addedMinutes: secondHalf ? 4 : 2,
+        elapsedSeconds: liveMinute * 60,
+        display: `${liveMinute}'`,
+      }
+    : { period: fixture.status === 'COMPLETED' ? 'FULL_TIME' : 'PRE', running: false, minute: fixture.status === 'COMPLETED' ? 90 : 0, stoppage: 0, addedMinutes: 0, elapsedSeconds: 0, display: fixture.status === 'COMPLETED' ? "90'" : "0'" };
+
   return {
-    ...fixture, referee: fixture.referee || 'TBD', events, stats,
+    ...fixture, referee: fixture.referee || 'TBD', events, stats, clock,
     lineups: [...lineupFor(fixture.homeTeamId), ...lineupFor(fixture.awayTeamId)],
     teamSheets: [
       { teamId: fixture.homeTeamId, formation: '4-3-3', coachName: coachOf(fixture.homeTeamId), published: true },

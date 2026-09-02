@@ -1,0 +1,231 @@
+/**
+ * Data-subject rights, Law N° 058/2021 arts. 18–24.
+ *
+ * Each of those articles gives a person a right and gives the controller thirty
+ * days to answer. A right nobody can exercise is not a right, so this provides
+ * the two things that were missing: a way to lodge a request without needing an
+ * account (a parent asking about their child has no login here), and a register
+ * an administrator works from, with the statutory deadline attached to each row.
+ *
+ * A signed-in user can also pull their own record immediately, which satisfies
+ * arts. 18 and 20 without anyone waiting thirty days.
+ */
+
+const express = require('express');
+const prisma = require('../config/db');
+const { protect, requireCapability } = require('../middleware/auth');
+const logActivity = require('../utils/activityLogger');
+
+const router = express.Router();
+
+const REQUEST_TYPES = ['ACCESS', 'RECTIFICATION', 'ERASURE', 'OBJECTION', 'PORTABILITY', 'RESTRICTION'];
+const RELATIONSHIPS = ['SELF', 'PARENT_OR_GUARDIAN', 'LEGAL_REPRESENTATIVE'];
+const STATUSES = ['RECEIVED', 'IN_PROGRESS', 'COMPLETED', 'REJECTED'];
+
+/** Arts. 18–24 each give the controller thirty days from receipt. */
+const RESPONSE_DAYS = 30;
+
+/**
+ * Lodge a request. Deliberately unauthenticated: the people most likely to use
+ * it are parents and guardians of registered schoolchildren, who have no account.
+ * Identity is verified out of band before anything is disclosed or erased — this
+ * endpoint only opens a case, it never returns personal data.
+ */
+router.post('/requests', async (req, res, next) => {
+  try {
+    const type = String(req.body?.type || '').trim().toUpperCase();
+    if (!REQUEST_TYPES.includes(type)) {
+      return res.status(400).json({ success: false, message: `type must be one of ${REQUEST_TYPES.join(', ')}` });
+    }
+
+    const subjectName = String(req.body?.subjectName || '').trim();
+    if (subjectName.length < 2) {
+      return res.status(400).json({ success: false, message: 'Tell us the name of the person the request is about.' });
+    }
+
+    const subjectEmail = String(req.body?.subjectEmail || '').trim() || null;
+    const subjectPhone = String(req.body?.subjectPhone || '').trim() || null;
+    if (!subjectEmail && !subjectPhone) {
+      return res.status(400).json({ success: false, message: 'Leave an email address or a phone number so we can reply.' });
+    }
+
+    const relationship = String(req.body?.relationship || 'SELF').trim().toUpperCase();
+    if (!RELATIONSHIPS.includes(relationship)) {
+      return res.status(400).json({ success: false, message: `relationship must be one of ${RELATIONSHIPS.join(', ')}` });
+    }
+
+    const request = await prisma.dataSubjectRequest.create({
+      data: {
+        type,
+        subjectName,
+        subjectEmail,
+        subjectPhone,
+        relationship,
+        details: String(req.body?.details || '').trim() || null,
+        dueAt: new Date(Date.now() + RESPONSE_DAYS * 24 * 60 * 60 * 1000),
+      },
+      // Echo back only the reference and the deadline — never the stored contact
+      // details, so an unauthenticated caller cannot use this to confirm someone
+      // else's data by probing.
+      select: { id: true, type: true, status: true, createdAt: true, dueAt: true },
+    });
+
+    res.status(201).json({
+      success: true,
+      message: `Request received. We will respond within ${RESPONSE_DAYS} days, as required by law N° 058/2021.`,
+      data: request,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * A signed-in user's own record, in a portable structured form (arts. 18 and 20).
+ * Scoped to the caller's own id — this never accepts a user id as a parameter.
+ */
+router.get('/me/export', protect, async (req, res, next) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: {
+        id: true, username: true, fullName: true, email: true, phone: true,
+        role: true, active: true, verified: true, avatar: true,
+        lastLogin: true, createdAt: true,
+        akcSchool: { select: { id: true, name: true, code: true } },
+        managedTeam: { select: { id: true, name: true } },
+      },
+    });
+
+    // Requests are matched on the address they were lodged under. An account with
+    // no email has none by definition, so the query is skipped rather than given
+    // an impossible value to match against.
+    //
+    // The sentinel here used to be a literal NUL byte. PostgreSQL rejects NUL in
+    // text outright, so this export — which exists to satisfy arts. 18 and 20 —
+    // failed with a 500 for exactly the users it was meant to serve. The byte also
+    // made this file read as binary, so `grep` skipped it without saying so, which
+    // is a poor property for the file that implements data-subject rights.
+    const [activity, requests] = await Promise.all([
+      prisma.activityLog.findMany({
+        where: { userId: req.user.id },
+        select: { action: true, module: true, detail: true, createdAt: true },
+        orderBy: { createdAt: 'desc' },
+        take: 1000,
+      }),
+      user?.email
+        ? prisma.dataSubjectRequest.findMany({
+            where: { subjectEmail: user.email },
+            select: { id: true, type: true, status: true, createdAt: true, dueAt: true, closedAt: true },
+          })
+        : Promise.resolve([]),
+    ]);
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Personal Data Export',
+      detail: 'Data subject exported their own record (art. 18/20)',
+      module: 'privacy',
+      ip: req.ip,
+    });
+
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="my-personal-data.json"');
+    res.status(200).send(JSON.stringify({
+      exportedAt: new Date().toISOString(),
+      law: 'Law N° 058/2021 of 13/10/2021 (Rwanda), arts. 18 and 20',
+      account: user,
+      activityLog: activity,
+      dataSubjectRequests: requests,
+    }, null, 2));
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ── Administration of the register ──
+
+const privacyAdmin = requireCapability('privacy.dsr');
+
+/**
+ * Where the platform stands against the law, as a live reading rather than a
+ * document. Everything countable is counted; the rest is reported as
+ * configuration, so a checklist never implies work that has not been done.
+ */
+router.get('/compliance', protect, privacyAdmin, async (req, res, next) => {
+  try {
+    const { complianceStatus } = require('../services/compliance.service');
+    res.status(200).json({ success: true, data: await complianceStatus() });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/requests', protect, privacyAdmin, async (req, res, next) => {
+  try {
+    const where: any = {};
+    if (req.query.status) where.status = String(req.query.status).toUpperCase();
+    if (req.query.overdue === 'true') {
+      where.dueAt = { lt: new Date() };
+      where.status = { in: ['RECEIVED', 'IN_PROGRESS'] };
+    }
+
+    const requests = await prisma.dataSubjectRequest.findMany({
+      where,
+      orderBy: [{ status: 'asc' }, { dueAt: 'asc' }],
+      take: 500,
+    });
+
+    const now = Date.now();
+    res.status(200).json({
+      success: true,
+      count: requests.length,
+      data: requests.map((r) => ({
+        ...r,
+        // Surfaced so an overdue request is visible without date arithmetic in
+        // the UI — passing the deadline is itself a breach of arts. 18–24.
+        daysRemaining: Math.ceil((new Date(r.dueAt).getTime() - now) / (24 * 60 * 60 * 1000)),
+        overdue: !r.closedAt && new Date(r.dueAt).getTime() < now,
+      })),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.patch('/requests/:id', protect, privacyAdmin, async (req, res, next) => {
+  try {
+    const status = String(req.body?.status || '').trim().toUpperCase();
+    if (!STATUSES.includes(status)) {
+      return res.status(400).json({ success: false, message: `status must be one of ${STATUSES.join(', ')}` });
+    }
+
+    const closing = status === 'COMPLETED' || status === 'REJECTED';
+    const request = await prisma.dataSubjectRequest.update({
+      where: { id: parseInt(req.params.id) },
+      data: {
+        status,
+        handledBy: req.user.id,
+        responseNote: req.body?.responseNote ?? undefined,
+        closedAt: closing ? new Date() : null,
+      },
+    });
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Data Subject Request Updated',
+      detail: `Request ${request.id} (${request.type}) → ${status}`,
+      module: 'privacy',
+      ip: req.ip,
+    });
+
+    res.status(200).json({ success: true, data: request });
+  } catch (error) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ success: false, message: 'Request not found' });
+    }
+    next(error);
+  }
+});
+
+module.exports = router;

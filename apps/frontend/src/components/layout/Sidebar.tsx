@@ -2,19 +2,20 @@ import React from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  LayoutDashboard, Trophy, Users, UserSquare2, FileText, Newspaper, Settings, Activity,
+  LayoutDashboard, Trophy, Users, UserSquare2, FileText, Newspaper, Settings, Activity, HeartHandshake,
   School, X, Megaphone, ClipboardList, ShieldCheck, Radio, Lock, Landmark, GraduationCap,
   Medal, Shield, ExternalLink, HelpCircle, Users2, KeyRound, LayoutTemplate, Image as ImageIcon,
-  ClipboardCheck, BarChart3, Target, TrendingUp, CalendarDays, Layers,
+  ClipboardCheck, BarChart3, Target, TrendingUp, CalendarDays, Layers, Inbox,
 } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
 import useSportScope from '../../hooks/useSportScope';
 import { ADMIN_PAGES } from '../../lib/adminAccess';
+import { useCapabilities } from '../../hooks/useCan';
 
 /**
  * Role-aware admin/team/reporter sidebar — the demo's grouped, role-branded design
  * (Ministry / Federation / Amashuri / League / Team / Reporter), driven by the
- * REAL ADMIN_PAGES access list so it mirrors the backend authorize() and never
+ * REAL ADMIN_PAGES access list so it mirrors the capabilities the server grants and never
  * links to a page that does not exist. Fully translated (EN/FR/RW).
  *
  * A sport-scoped federation admin gets its nav relabelled to the sport's language
@@ -26,11 +27,13 @@ const PATH_META = {
   '/admin/dashboard': { key: 'portal.nav_dashboard', section: 'main', icon: <LayoutDashboard size={18} /> },
   '/admin/akc3': { key: 'portal.nav_akc3', section: 'main', icon: <School size={18} /> },
   '/admin/sport-admins': { key: 'portal.nav_sport_admins', section: 'management', icon: <ShieldCheck size={18} /> },
+  '/admin/sports': { key: 'portal.nav_sports', section: 'management', icon: <Medal size={18} /> },
   '/admin/leagues': { key: 'portal.nav_leagues', section: 'management', icon: <Trophy size={18} /> },
   '/admin/teams': { key: 'portal.nav_teams', section: 'management', icon: <Users size={18} /> },
   '/admin/players': { key: 'portal.nav_players', section: 'management', icon: <UserSquare2 size={18} /> },
   '/admin/documents': { key: 'portal.nav_documents', section: 'management', icon: <FileText size={18} /> },
   '/admin/fixtures': { key: 'portal.nav_fixtures', section: 'operations', icon: <Activity size={18} /> },
+  '/admin/umuganda': { key: 'portal.nav_umuganda', section: 'operations', icon: <HeartHandshake size={18} /> },
   '/admin/championships': { key: 'portal.nav_championships', section: 'competitions', icon: <Medal size={18} /> },
   '/admin/news': { key: 'portal.nav_news', section: 'content', icon: <Newspaper size={18} /> },
   '/admin/ads': { key: 'portal.nav_ads', section: 'content', icon: <Megaphone size={18} /> },
@@ -38,6 +41,8 @@ const PATH_META = {
   '/admin/media': { key: 'portal.nav_media', section: 'content', icon: <ImageIcon size={18} /> },
   '/admin/users': { key: 'portal.nav_users', section: 'system', icon: <Users2 size={18} /> },
   '/admin/roles': { key: 'portal.nav_roles', section: 'system', icon: <KeyRound size={18} /> },
+  '/admin/requests': { key: 'portal.nav_requests', section: 'system', icon: <Inbox size={18} /> },
+  '/admin/compliance': { key: 'portal.nav_compliance', section: 'system', icon: <ShieldCheck size={18} /> },
   '/admin/system-health': { key: 'portal.nav_system_health', section: 'system', icon: <Activity size={18} /> },
   '/admin/visitors': { key: 'portal.nav_visitors', section: 'system', icon: <ClipboardList size={18} /> },
   '/admin/settings': { key: 'portal.nav_settings', section: 'system', icon: <Settings size={18} /> },
@@ -80,6 +85,11 @@ const isReadOnly = (role, path) =>
 const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
   const { t } = useTranslation();
   const { role } = useAuthStore();
+  // What this account may actually do, as the server resolved it. An empty list
+  // means it has not arrived yet (a session predating capabilities, or the first
+  // render before syncUser returns) — the filter below falls back to showing the
+  // nav rather than blanking it, and every page is gated server-side regardless.
+  const capabilities = useCapabilities();
   const { profile, sport } = useSportScope();
 
   const closeOnMobile = () => { if (window.innerWidth < 1024) onClose(); };
@@ -108,7 +118,7 @@ const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
   // operational sub-sections belong to those admins' portals — keep them out of
   // the Ministry nav so it stays governance-focused, matching the reference.
   const adminItems = ADMIN_PAGES
-    .filter((page) => page.roles.includes(role))
+    .filter((page) => !capabilities.length || capabilities.includes(page.capability))
     .filter((page) => !(role === 'SUPERADMIN' && (page.path.startsWith('/admin/league/') || page.path.startsWith('/admin/amashuri/'))))
     .map((page) => ({ to: page.path, ...PATH_META[page.path], readOnly: isReadOnly(role, page.path) }))
     .filter((i) => i.section);
@@ -126,16 +136,29 @@ const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
       { to: '/team/documents', key: 'portal.nav_documents', icon: <FileText size={18} /> },
     ] },
   ];
+  const schoolGroups = [
+    { section: 'main', items: [
+      { to: '/school/dashboard', key: 'portal.nav_dashboard', icon: <LayoutDashboard size={18} /> },
+      { to: '/school/athletes', key: 'portal.nav_my_athletes', icon: <UserSquare2 size={18} /> },
+    ] },
+  ];
   const reporterGroups = [
-    { section: 'main', items: [{ to: '/reporter/dashboard', key: 'portal.nav_live_reporting', icon: <Radio size={18} /> }] },
+    { section: 'main', items: [
+      { to: '/reporter/dashboard', key: 'portal.nav_live_reporting', icon: <Radio size={18} /> },
+      { to: '/reporter/profile', key: 'portal.nav_my_profile', icon: <UserSquare2 size={18} /> },
+    ] },
   ];
 
-  const groups = type === 'team' ? teamGroups : type === 'reporter' ? reporterGroups : adminGroups;
+  const groups = type === 'team' ? teamGroups
+    : type === 'reporter' ? reporterGroups
+    : type === 'school' ? schoolGroups
+    : adminGroups;
 
   // ── role-branded header ──
   const headerFor = () => {
     if (type === 'team') return { icon: <Shield size={18} />, title: t('portal.role_team'), sub: null, accent: 'text-brand bg-brand/15' };
     if (type === 'reporter') return { icon: <Radio size={18} />, title: t('portal.role_reporter'), sub: null, accent: 'text-brand bg-brand/15' };
+    if (type === 'school') return { icon: <GraduationCap size={18} />, title: t('portal.role_school'), sub: t('portal.role_school_sub'), accent: 'text-[#F5B301] bg-[#F5B301]/15' };
     if (role === 'SUPERADMIN') return { icon: <Landmark size={18} />, title: t('portal.role_ministry'), sub: t('portal.role_ministry_sub'), accent: 'text-brand bg-brand/15' };
     if (role === 'FEDERATION_ADMIN') return { icon: <ShieldCheck size={18} />, title: t('portal.role_federation'), sub: sport?.name || null, accent: 'text-brand bg-brand/15' };
     if (role === 'AMASHURI_ADMIN') return { icon: <GraduationCap size={18} />, title: t('portal.role_amashuri'), sub: t('portal.role_amashuri_sub'), accent: 'text-[#F5B301] bg-[#F5B301]/15' };

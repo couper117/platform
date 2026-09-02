@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { CalendarDays } from 'lucide-react';
+import { ArrowRight, CalendarDays } from 'lucide-react';
 import { getFixtures } from '../../api/endpoints/fixtures';
 import { getLeagues, getLeague } from '../../api/endpoints/leagues';
+import { getSports } from '../../api/endpoints/sports';
+import useFavouriteSport from '../../hooks/useFavouriteSport';
 import MatchRow, { pickFeatured } from '../../components/match/MatchRow';
 import FixtureFilters from '../../components/match/FixtureFilters';
 import StandingsTable from '../../components/match/StandingsTable';
@@ -56,6 +58,23 @@ const FixturesPage = () => {
   const isDesktop = useIsDesktop();
   const safe = useMotionSafe();
 
+  /**
+   * WHICH SPORT THIS SCREEN IS SHOWING, and it is remembered.
+   *
+   * Matches, Live and Results used to pour every sport into one list — a football
+   * fixture, a basketball quarter and a volleyball set stacked together, which is
+   * not how anyone follows sport. The rail scopes the screen to one sport, and
+   * "Make this my sport" stores it, so the next visit opens where you left off.
+   *
+   * It reuses `useFavouriteSport` — the same preference the rest of the app already
+   * keeps — rather than inventing a second, competing memory of the same fact.
+   */
+  const { slug: favouriteSlug, choose, skip } = useFavouriteSport();
+  const { data: sportsRes } = useQuery({ queryKey: ['nav-sports'], queryFn: getSports, staleTime: 300000 });
+  const sports = sportsRes?.data ?? [];
+  const [sportSlug, setSportSlug] = useState(favouriteSlug || '');
+  const activeSport = sports.find((s) => s.slug === sportSlug) ?? null;
+
   const [filters, setFilters] = useState({
     status: defaultStatus,
     leagueId: '',
@@ -68,9 +87,25 @@ const FixturesPage = () => {
     queryFn: () => getLeagues(),
   });
 
+  /**
+   * A LIVE LIST THAT DOES NOT UPDATE IS NOT A LIVE LIST.
+   *
+   * This screen previously fetched once and then sat there — open `/live` during a
+   * match and the score you saw was the score when the page loaded. Every scores
+   * product polls; 30s is the interval LiveScore-class sites settle on, fast enough
+   * that a goal appears while you are still looking and slow enough not to punish a
+   * Rwandan mobile connection.
+   *
+   * Polling ONLY while the live filter is showing, and `refetchIntervalInBackground`
+   * left at its default so a backgrounded tab stops asking.
+   */
+  const isLiveList = filters.status === 'LIVE';
   const { data: fixtures, isLoading, isError, refetch } = useQuery({
-    queryKey: ['fixtures-list', filters],
-    queryFn: () => getFixtures(filters),
+    // The sport is part of the key, so switching sport refetches rather than
+    // showing the previous sport's list under the new heading.
+    queryKey: ['fixtures-list', filters, activeSport?.id ?? 'all'],
+    queryFn: () => getFixtures(activeSport ? { ...filters, sportId: activeSport.id } : filters),
+    refetchInterval: isLiveList ? 30000 : false,
   });
 
   useEffect(() => {
@@ -197,24 +232,34 @@ const FixturesPage = () => {
           // 20px row. With real data most days have a single match per league.
           const solo = group.competitions.length === 1;
           return (
-            <section key={group.date ?? `tbd-${gi}`}>
-              <MatchdayDivider
-                date={group.date}
-                competition={solo ? group.competitions[0].name : undefined}
-              />
-              {group.competitions.map((comp) => (
-                <div key={comp.name}>
-                  {!solo && (
-                    <CompetitionHeader
-                      name={comp.name}
-                      meta={comp.fixtures.length > 1 ? `${comp.fixtures.length}` : undefined}
-                    />
-                  )}
-                  {comp.fixtures.map((fixture) => (
-                    <MatchRow key={fixture.id} fixture={fixture} />
-                  ))}
-                </div>
-              ))}
+            <section key={group.date ?? `tbd-${gi}`} className="mb-4 last:mb-0">
+              {/* ONE CARD PER MATCHDAY.
+                  The list used to be an edge-to-edge run of rows with a 24px grey
+                  strip between days — dense, but it read as a spreadsheet and gave
+                  the eye nothing to hold on to. A card per day gives each matchday
+                  a boundary, and the divider becomes its header rather than a rule
+                  floating in the middle of the page. */}
+              <div className="overflow-hidden rounded-card border border-hairline bg-surface">
+                <MatchdayDivider
+                  date={group.date}
+                  competition={solo ? group.competitions[0].name : undefined}
+                  className="h-8 border-y-0 border-b border-hairline px-4"
+                />
+                {group.competitions.map((comp) => (
+                  <div key={comp.name}>
+                    {!solo && (
+                      <CompetitionHeader
+                        name={comp.name}
+                        meta={comp.fixtures.length > 1 ? `${comp.fixtures.length}` : undefined}
+                        className="h-7 bg-surface-2 px-4"
+                      />
+                    )}
+                    {comp.fixtures.map((fixture) => (
+                      <MatchRow key={fixture.id} fixture={fixture} />
+                    ))}
+                  </div>
+                ))}
+              </div>
               {/* Mobile only: desktop carries its inventory in the leaderboard and
                   the rail, so the list itself stays uninterrupted. */}
               {gi === adAfterGroup && <AdSlot position="fixtures" className="lg:hidden" />}
@@ -234,6 +279,17 @@ const FixturesPage = () => {
       />
 
       <FixtureFilters
+        sports={sports}
+        sportSlug={sportSlug}
+        onSport={(slug) => {
+          setSportSlug(slug);
+          // Changing which sport you are LOOKING at is not the same as changing
+          // which sport you follow, so the stored preference is left alone here.
+          setFilters((prev) => ({ ...prev, leagueId: '' }));
+        }}
+        isFavourite={!!sportSlug && sportSlug === favouriteSlug}
+        onPin={() => (sportSlug === favouriteSlug ? skip() : sportSlug && choose(sportSlug))}
+        title={isLivePage ? t('nav.live') : isResultsPage ? t('nav.results') : t('nav.matches')}
         status={filters.status}
         leagueId={filters.leagueId}
         leagues={leagues?.data ?? []}
@@ -247,11 +303,27 @@ const FixturesPage = () => {
           <div className="lg:space-y-3">
             <AdSlot position="fixtures-leaderboard" variant="leaderboard" className="hidden lg:block" />
 
+            {/* Way through to the month view. This list answers "what is on";
+                the calendar answers "is it still on" — which is the question
+                once Umuganda has moved something. Nothing else on this page
+                points there, and the home-page card that does hides itself on a
+                month with no Umuganda in it. */}
+            <div className="flex justify-end px-4 py-2 lg:px-0">
+              <Link
+                to="/calendar"
+                className="inline-flex min-h-tap items-center gap-1.5 rounded-pill px-3 text-sm font-semibold text-brand-text transition-colors duration-150 ease-standard hover:bg-brand/10"
+              >
+                <CalendarDays size={15} aria-hidden="true" />
+                {t('nav.calendar')}
+                <ArrowRight size={14} aria-hidden="true" />
+              </Link>
+            </div>
+
             {/* Deliberately an unstyled wrapper. Rows and cards both carry their own
                 borders, so a bordered container would double the frame — and
                 `overflow-hidden` here would turn this into a sticky containing block
                 and park any sticky child on top of the first row. */}
-            <div>{listBody}</div>
+            <div className="px-4 pb-6 pt-3 lg:px-0">{listBody}</div>
           </div>
 
           {/* ─── rail ─── */}

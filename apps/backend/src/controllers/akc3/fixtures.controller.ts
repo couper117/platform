@@ -1,6 +1,7 @@
 const prisma = require('../../config/db');
 const { recalcAkcStandings } = require('../../services/akc3/standings.service');
 const logActivity = require('../../utils/activityLogger');
+const { syncFixtureConflict } = require('../../services/umuganda.service');
 
 const getFixtures = async (req, res, next) => {
   try {
@@ -54,6 +55,10 @@ const createFixture = async (req, res, next) => {
     }
 
     const fixture = await prisma.akcFixture.create({ data });
+
+    // Umuganda awareness — flags a clash for the admin, never blocks the fixture.
+    const { conflict, fixture: checked } = await syncFixtureConflict('AMASHURI', fixture);
+
     await logActivity({
       userId: req.user.id,
       action: 'Create AKC Fixture',
@@ -61,7 +66,7 @@ const createFixture = async (req, res, next) => {
       module: 'akc3',
       ip: req.ip,
     });
-    res.status(201).json({ success: true, data: fixture });
+    res.status(201).json({ success: true, data: checked, umugandaConflict: conflict });
   } catch (error) {
     next(error);
   }

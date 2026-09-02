@@ -43,6 +43,28 @@ async function main() {
     create: { username: 'coach1', password: hashedPassword, fullName: 'Head Coach', email: 'coach@rwasport.rw', role: 'TEAM_MANAGER', active: true, verified: true }
   });
 
+  // School sport has its own administrator, and there was no account for one:
+  // every AMASHURI_ADMIN route was reachable only by the super admin, so the
+  // role could not be exercised or tested. Amashuri runs the school
+  // competitions and approves athletes' documents; it is not the same job as
+  // reporting a match, and it should not need the keys to the whole platform.
+  // Likewise there was no FEDERATION_ADMIN account. That role is sport-scoped —
+  // every query it makes is filtered to its federation's sport — and with nobody
+  // holding it, none of that scoping was ever exercised. The federations
+  // themselves are created by seed-federations.ts, which is also where this
+  // account is attached to one.
+  const federationAdminUser = await prisma.user.upsert({
+    where: { username: 'federation_admin' },
+    update: {},
+    create: { username: 'federation_admin', password: hashedPassword, fullName: 'Football Federation Admin', email: 'federation@rwasport.rw', role: 'FEDERATION_ADMIN', active: true, verified: true }
+  });
+
+  const amashuriAdminUser = await prisma.user.upsert({
+    where: { username: 'amashuri_admin' },
+    update: {},
+    create: { username: 'amashuri_admin', password: hashedPassword, fullName: 'Amashuri Administrator', email: 'amashuri@rwasport.rw', role: 'AMASHURI_ADMIN', active: true, verified: true }
+  });
+
   // 3. SPORTS
   console.log('Creating Sports...');
   const football = await prisma.sport.upsert({

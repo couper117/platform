@@ -3,9 +3,28 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
-const useAuthStore = create((set, get) => ({
-  user: JSON.parse(localStorage.getItem('rnsp-user')) || null,
-  token: localStorage.getItem('rnsp-token') || null,
+export interface AuthUser {
+  id: string | number;
+  role: string;
+  fullName?: string;
+  email?: string;
+  username?: string;
+  [key: string]: unknown;
+}
+
+interface AuthState {
+  user: AuthUser | null;
+  token: string | null;
+  role: string;
+  isAuthenticated: boolean;
+  setAuth: (user: AuthUser, token: string) => void;
+  logout: () => void;
+  refresh: () => Promise<string>;
+}
+
+const useAuthStore = create<AuthState>((set, get) => ({
+  user: JSON.parse(localStorage.getItem('rnsp-user') || 'null'),
+  token: localStorage.getItem('rnsp-token'),
   role: localStorage.getItem('rnsp-role') || 'PUBLIC',
   isAuthenticated: !!localStorage.getItem('rnsp-token'),
 

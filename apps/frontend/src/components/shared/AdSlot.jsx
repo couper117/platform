@@ -62,6 +62,7 @@ const AdSlot = ({ position, variant = 'inline', className = '' }) => {
       {ad?.imageUrl ? (
         <a
           href={ad.targetUrl || '#'}
+      onClick={() => { apiClient.post(`/ads/${ad.id}/click`).catch(() => {}); }}
           target="_blank"
           rel="noopener noreferrer sponsored"
           className="block h-full"

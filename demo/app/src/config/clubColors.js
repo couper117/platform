@@ -1,5 +1,5 @@
 /**
- * ⚠️ TEMPORARY STOPGAP — delete this file once the backend ships colours.
+ * TEMPORARY STOPGAP — delete this file once the backend ships colours.
  *
  * Club identity colour is runtime data that the API does not yet expose. The
  * `Team` model has no `primaryColor`; `jerseyHome`/`jerseyAway` exist but are

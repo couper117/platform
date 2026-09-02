@@ -8,9 +8,9 @@ const {
   updateRace,
   upsertClassification,
 } = require('../controllers/races.controller');
-const { protect, authorize } = require('../middleware/auth');
+const { protect, requireCapability } = require('../middleware/auth');
 
-const raceAdmin = authorize('SUPERADMIN', 'FEDERATION_ADMIN');
+const raceAdmin = requireCapability('races.write');
 
 // Public racing endpoints — race calendar + classification for RACING sports.
 router.get('/', getRaces);

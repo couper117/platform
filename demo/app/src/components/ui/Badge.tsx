@@ -10,7 +10,7 @@ import StatusPill from './StatusPill';
  * If you are tempted to give a Badge a colour to mean something, you want
  * StatusPill instead.
  */
-const Badge = ({ className, children, ...props }) => (
+const Badge = ({ className, children, ...props }: { className?: string; children?: React.ReactNode } & Record<string, any>) => (
   <span
     className={cn(
       'inline-flex items-center rounded-pill border border-hairline px-2 py-0.5',
@@ -31,10 +31,16 @@ export default Badge;
  * StatusPill so they render the real live pill instead of the legacy red one, and
  * is deleted when those screens are rewritten in Phases 4 and 8.
  */
-export const LiveBadge = ({ minute, className }) => (
+export const LiveBadge = ({ minute, className }: { minute?: number | string; className?: string }) => (
   <StatusPill
     status="LIVE"
-    label={typeof minute === 'number' ? `Live ${minute}’` : 'Live'}
+    // A number is a bare minute and needs the tick appended; a string is already
+    // a formatted clock reading such as "45+2'" and is shown as it arrives.
+    label={
+      typeof minute === 'number' ? `Live ${minute}’`
+        : minute ? `Live ${minute}`
+        : 'Live'
+    }
     className={className}
   />
 );

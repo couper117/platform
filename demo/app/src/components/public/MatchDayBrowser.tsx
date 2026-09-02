@@ -45,7 +45,7 @@ const StatusCell = ({ f, t }) => {
   );
 };
 
-const TeamRow = ({ team, score, bold }) => (
+const TeamRow = ({ team, score, bold }: { team?: any; score?: any; bold?: boolean }) => (
   <div className="flex items-center gap-2.5 flex-1 min-w-0">
     <div className="w-7 h-7 rounded-full bg-surface-3 dark:bg-white/10 flex items-center justify-center overflow-hidden shrink-0 text-[9px] font-bold">
       {team?.logo ? <img src={team.logo} alt="" className="w-full h-full object-cover" /> : initials(team?.name)}
@@ -88,10 +88,9 @@ const MatchDayBrowser = ({ sportId, accent = '#E8002D', leagues = [], showSideba
   }, [matches]);
 
   return (
-    <div className={showSidebar ? 'grid grid-cols-1 gap-6 lg:grid-cols-[260px_minmax(0,1fr)]' : 'space-y-4'}>
-      {/* Competition filter: a left sidebar (legacy full-width) OR a single row of
-          search + horizontal chips (embedded two-column layout — the reference). */}
-      {showSidebar ? (
+    <div className={showSidebar ? 'grid grid-cols-1 gap-6 lg:grid-cols-[260px_minmax(0,1fr)]' : ''}>
+      {/* Left: league sidebar */}
+      {showSidebar && (
       // min-w-0 is load-bearing: without it this grid item keeps its default
       // min-width:auto and the horizontal league rail below (a row of shrink-0
       // chips) forces the whole column to its content width — ~958px — which
@@ -130,38 +129,6 @@ const MatchDayBrowser = ({ sportId, accent = '#E8002D', leagues = [], showSideba
           ))}
         </div>
       </aside>
-      ) : (
-        <div className="space-y-3">
-          <div className="flex items-center rounded-xl border border-hairline bg-surface px-3">
-            <Search size={15} className="text-tertiary" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={t('browser.search_leagues')}
-              aria-label={t('browser.search_leagues')}
-              className="w-full bg-transparent p-2.5 text-sm text-primary outline-none"
-            />
-          </div>
-          <div className="scroll-contain flex gap-2 overflow-x-auto pb-1">
-            <button
-              onClick={() => setLeagueId(null)}
-              className={`shrink-0 rounded-pill border px-3 py-2 text-xs font-bold uppercase tracking-wide transition-colors ${leagueId === null ? 'border-transparent text-white' : 'border-hairline text-secondary hover:text-primary'}`}
-              style={leagueId === null ? { background: accent } : undefined}
-            >
-              {t('browser.all')} {leagues.length ? `(${leagues.length})` : ''}
-            </button>
-            {filteredLeagues.map((l) => (
-              <button
-                key={l.id}
-                onClick={() => setLeagueId(l.id)}
-                className={`shrink-0 rounded-pill border px-3 py-2 text-xs font-bold uppercase tracking-wide transition-colors ${leagueId === l.id ? 'border-transparent text-white' : 'border-hairline text-secondary hover:text-primary'}`}
-                style={leagueId === l.id ? { background: accent } : undefined}
-              >
-                {l.name}
-              </button>
-            ))}
-          </div>
-        </div>
       )}
 
       {/* Right: day selector + matches */}
@@ -209,7 +176,7 @@ const MatchDayBrowser = ({ sportId, accent = '#E8002D', leagues = [], showSideba
                         <TeamRow team={f.homeTeam} bold={f.status !== 'SCHEDULED' && (f.homeScore ?? 0) >= (f.awayScore ?? 0)} />
                         <TeamRow team={f.awayTeam} bold={f.status !== 'SCHEDULED' && (f.awayScore ?? 0) >= (f.homeScore ?? 0)} />
                       </div>
-                      {f.streamUrl && <span className="text-[8px] font-bold uppercase tracking-widest text-red border border-red/30 rounded px-1.5 py-0.5">▶ Live</span>}
+                      {f.streamUrl && <span className="text-[8px] font-bold uppercase tracking-widest text-red border border-red/30 rounded px-1.5 py-0.5">Live</span>}
                     </Link>
                   ))}
                 </div>

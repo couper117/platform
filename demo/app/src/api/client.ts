@@ -14,11 +14,10 @@ const apiClient = axios.create({
 // served from the local mock dataset (src/api/demo) — there is no backend and no
 // network. Unlike the real system, the adapter is ALWAYS installed here.
 //
-// The adapter is installed synchronously and defers to the module promise per
-// request. Awaiting the import at the top level instead would make the whole
-// entry graph block on this module, so anything the demo dataset imports that
-// also lives in the entry chunk would deadlock evaluation and leave the app
-// mounted-but-empty.
+// Installed synchronously, deferring to the module promise per request. Awaiting
+// the import at the top level would make the whole entry graph block on this
+// module, so anything the demo dataset imports that also lives in the entry chunk
+// would deadlock evaluation and leave the app mounted-but-empty.
 const mockAdapterReady = import('./demo/mockAdapter').then((m) => m.default);
 apiClient.defaults.adapter = (config) => mockAdapterReady.then((adapter) => adapter(config));
 
@@ -28,6 +27,20 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // File uploads must not inherit the instance-wide JSON content type. Axios only
+    // auto-negotiates multipart when no Content-Type is set, so leaving the default
+    // in place sends the body as application/json — multer then parses no file and
+    // the upload silently arrives empty. Clearing it lets the browser set
+    // multipart/form-data together with the boundary it generates.
+    if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+      if (typeof config.headers?.delete === 'function') {
+        config.headers.delete('Content-Type');
+      } else {
+        delete config.headers['Content-Type'];
+      }
+    }
+
     return config;
   },
   (error) => Promise.reject(error)

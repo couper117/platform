@@ -23,7 +23,7 @@ const RW_DAYS_ABBREVIATED = ['Cyu', 'Mbe', 'Kab', 'Gat', 'Kan', 'Gtn', 'Gtd'];
 
 const RW_DAYS_NARROW = ['C', 'M', 'K', 'G', 'K', 'G', 'G'];
 
-const pick = (narrow, abbreviated, wide) => (index, options = {}) => {
+const pick = (narrow, abbreviated, wide) => (index, options: any = {}) => {
   switch (options.width) {
     case 'narrow':
       return narrow[index];

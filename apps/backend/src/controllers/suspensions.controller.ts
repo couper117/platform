@@ -1,4 +1,5 @@
 const prisma = require('../config/db');
+const { enforcePlayerScope } = require('../utils/scope');
 const logActivity = require('../utils/activityLogger');
 
 const getSuspensions = async (req, res, next) => {
@@ -40,6 +41,11 @@ const createSuspension = async (req, res, next) => {
     if (!player) {
       return res.status(404).json({ success: false, message: 'Player not found' });
     }
+
+    // Banning someone is a decision taken under a competition's rules, so it
+    // belongs to whoever administers that competition — not to any league admin
+    // on the platform.
+    if (!(await enforcePlayerScope(req, res, player.id))) return;
 
     const [suspension] = await prisma.$transaction([
       prisma.suspension.create({

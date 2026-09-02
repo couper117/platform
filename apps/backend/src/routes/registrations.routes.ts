@@ -4,12 +4,12 @@ const {
   createRegistration,
   reviewRegistration,
 } = require('../controllers/registrations.controller');
-const { protect, authorize } = require('../middleware/auth');
+const { protect, requireCapability } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.get('/', protect, authorize('SUPERADMIN', 'LEAGUE_ADMIN', 'FEDERATION_ADMIN'), getRegistrations);
+router.get('/', protect, requireCapability('registrations.read'), getRegistrations);
 router.post('/', protect, createRegistration);
-router.patch('/:id/review', protect, authorize('SUPERADMIN', 'LEAGUE_ADMIN'), reviewRegistration);
+router.patch('/:id/review', protect, requireCapability('registrations.review'), reviewRegistration);
 
 module.exports = router;

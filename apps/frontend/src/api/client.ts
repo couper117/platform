@@ -1,6 +1,7 @@
 import axios from 'axios';
 import useAuthStore from '../store/authStore';
 import useUiStore from '../store/uiStore';
+import { getAnonId } from '../lib/anonId';
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1',
@@ -10,12 +11,59 @@ const apiClient = axios.create({
   },
 });
 
+/**
+ * DEMO MODE — run the real app with no backend.
+ *
+ * `.env.example` has advertised `VITE_DEMO=true` since before this was written,
+ * but `src/api/demo/` was an empty directory, so the flag did nothing: every
+ * request went to localhost:5000 and the app rendered blank whenever the API was
+ * down. The dataset is now here, ported from demo/app, and the flag works.
+ *
+ * GATED, NOT ALWAYS ON. demo/app installs this adapter unconditionally because it
+ * IS the sandbox. This is the real system, so it must still be able to talk to a
+ * real backend — the flag is the only thing that swaps it out, and a normal
+ * `vite build` tree-shakes the dataset away entirely because the import sits
+ * behind a compile-time-constant condition.
+ *
+ * INSTALLED SYNCHRONOUSLY, RESOLVED PER REQUEST. Awaiting the import at the top
+ * level would make the whole entry graph block on this module, so anything the
+ * dataset imports that also lives in the entry chunk would deadlock evaluation
+ * and leave the app mounted but empty.
+ */
+if (import.meta.env.VITE_DEMO === 'true') {
+  const mockAdapterReady = import('./demo/mockAdapter').then((m) => m.default);
+  apiClient.defaults.adapter = (config) => mockAdapterReady.then((adapter) => adapter(config));
+}
+
 apiClient.interceptors.request.use(
   (config) => {
     const { token } = useAuthStore.getState();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Identify the browser to endpoints that work without an account — following
+    // a team, chiefly. Sent alongside the token rather than instead of it: the
+    // server prefers the account when both are present, and POST /favorites/claim
+    // moves whatever this browser followed onto the account at sign-in.
+    const anonId = getAnonId();
+    if (anonId) {
+      config.headers['X-Anon-Id'] = anonId;
+    }
+
+    // File uploads must not inherit the instance-wide JSON content type. Axios only
+    // auto-negotiates multipart when no Content-Type is set, so leaving the default
+    // in place sends the body as application/json — multer then parses no file and
+    // the upload silently arrives empty. Clearing it lets the browser set
+    // multipart/form-data together with the boundary it generates.
+    if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+      if (typeof config.headers?.delete === 'function') {
+        config.headers.delete('Content-Type');
+      } else {
+        delete config.headers['Content-Type'];
+      }
+    }
+
     return config;
   },
   (error) => Promise.reject(error)

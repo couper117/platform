@@ -11,6 +11,8 @@ import NewsCard from '../../components/shared/NewsCard';
 import Skeleton from '../../components/shared/Skeleton';
 import AdBanner from '../../components/shared/AdBanner';
 import Seo from '../../components/shared/Seo';
+import UpcomingUmuganda from '../../components/umuganda/UpcomingUmuganda';
+import UmugandaNotices from '../../components/umuganda/UmugandaNotices';
 
 const HomePage = () => {
   const { t } = useTranslation();
@@ -105,7 +107,17 @@ const HomePage = () => {
         </ResponsiveWrapper>
       </section>
 
-      {/* 3. SECONDARY AD SPOTLIGHT */}
+      {/* 3. UMUGANDA — the community-work day and anything it moved.
+             Both children self-hide when there is nothing to report, so this
+             section adds no empty chrome on a quiet month. */}
+      <section className="bg-page py-10 sm:py-14">
+        <ResponsiveWrapper className="space-y-4">
+          <UpcomingUmuganda />
+          <UmugandaNotices limit={3} />
+        </ResponsiveWrapper>
+      </section>
+
+      {/* 4. SECONDARY AD SPOTLIGHT */}
       <section className="py-12 bg-surface-2 dark:bg-surface-dark">
         <ResponsiveWrapper>
             <AdBanner position="SPOTLIGHT_BANNER" />

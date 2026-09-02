@@ -1,4 +1,5 @@
 const prisma = require('../config/db');
+const { enforceLeagueScope } = require('../utils/scope');
 const logActivity = require('../utils/activityLogger');
 
 // @desc    List team registrations (newest first), optional leagueId / status filters
@@ -101,6 +102,9 @@ const reviewRegistration = async (req, res, next) => {
     if (!registration) {
       return res.status(404).json({ success: false, message: 'Registration not found' });
     }
+
+    // Accepting a club into a competition is that competition's decision.
+    if (!(await enforceLeagueScope(req, res, registration.leagueId))) return;
 
     const [updated] = await prisma.$transaction([
       prisma.teamRegistration.update({

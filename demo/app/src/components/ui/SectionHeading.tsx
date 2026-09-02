@@ -14,7 +14,7 @@ import cn from './cn';
  * `accent` and `eyebrow` are accepted for the two un-swept call sites and folded
  * into the title / a Badge rather than getting their own treatment.
  */
-const SectionHeading = ({ title, accent, eyebrow, action, actionTo, className }) => (
+const SectionHeading = ({ title, accent, eyebrow, action, actionTo, className }: { title?: React.ReactNode; accent?: React.ReactNode; eyebrow?: React.ReactNode; action?: React.ReactNode; actionTo?: string; className?: string }) => (
   <div className={cn('flex items-baseline justify-between gap-3', className)}>
     <h2 className="min-w-0 truncate font-display text-lg font-semibold text-primary">
       {eyebrow && <span className="text-secondary">{eyebrow} </span>}

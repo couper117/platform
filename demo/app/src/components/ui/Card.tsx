@@ -13,6 +13,15 @@ import cn from './cn';
  * Touch devices never fire hover, so an interactive card also darkens its border
  * to brand — a state that reads on both pointer and touch.
  */
+type CardProps = {
+  as?: any;
+  to?: string;
+  flat?: boolean;
+  className?: string;
+  children?: React.ReactNode;
+  hover?: boolean;
+} & Record<string, any>;
+
 const Card = ({
   as = 'div',
   to,
@@ -23,7 +32,7 @@ const Card = ({
   // API; leaking it to the DOM makes React warn about a non-boolean attribute.
   hover: _deprecatedHover,
   ...props
-}) => {
+}: CardProps) => {
   const classes = cn(
     'rounded-card border border-hairline bg-surface',
     !flat && 'shadow-md',

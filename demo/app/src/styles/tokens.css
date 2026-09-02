@@ -66,7 +66,7 @@
   --text: 17 17 17; /* #111111 — 18.9:1 */
   --text-2: 85 85 85; /* #555555 —  7.5:1 */
   --text-3: 113 113 113; /* #717171 —  4.9:1  safe at 11px */
-  --text-disabled: 170 170 170; /* #AAAAAA — 2.3:1 ⚠ NON-TEXT ONLY */
+  --text-disabled: 170 170 170; /* #AAAAAA — 2.3:1 NON-TEXT ONLY */
 
   /* ─── Semantic ────────────────────────────────────────────────── */
   /* Green is the brand now, so it also carries "verified / approved" — the two
@@ -112,7 +112,7 @@ html.dark {
   --text: 242 242 240; /* #F2F2F0 — 15.9:1 */
   --text-2: 154 154 150; /* #9A9A96 —  6.3:1 */
   --text-3: 130 130 126; /* #82827E —  4.6:1 */
-  --text-disabled: 94 94 92; /* #5E5E5C — 2.8:1 ⚠ NON-TEXT ONLY */
+  --text-disabled: 94 94 92; /* #5E5E5C — 2.8:1 NON-TEXT ONLY */
 
   --success: 15 191 106;
   --live: 232 89 12; /* #E8590C — 5.0:1 on dark */
@@ -135,15 +135,15 @@ html.dark {
  * The /design-system route recomputes every ratio live. Do not hand-estimate
  * these; check that page.
  *
- * ⚠ --brand (#00A859) is 3.11:1 on white. It is NOT a text colour and NOT a
+ * --brand (#00A859) is 3.11:1 on white. It is NOT a text colour and NOT a
  *   fill for a white label. Use --brand-text for green type and --brand-strong
  *   for a filled control. The raw brand is for dark-labelled fills, icon
  *   circles, borders, tints and glows.
  *
- * ⚠ --text-disabled must never carry information a user needs to read.
+ * --text-disabled must never carry information a user needs to read.
  *   Real metadata — kickoff times, venues, matchday — uses --text-3, which
  *   clears 4.5:1 and is safe at 11px.
  *
- * ⚠ --danger in DARK is 4.09:1: a fill, not small text. Red text on dark uses
+ * --danger in DARK is 4.09:1: a fill, not small text. Red text on dark uses
  *   --danger-text.
  */

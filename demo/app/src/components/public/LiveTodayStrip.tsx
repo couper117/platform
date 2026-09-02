@@ -73,7 +73,7 @@ const LiveTodayStrip = () => {
   }
   items.sort((a, b) => {
     if ((a.status === 'LIVE') !== (b.status === 'LIVE')) return a.status === 'LIVE' ? -1 : 1;
-    return new Date(a.matchDate || 0) - new Date(b.matchDate || 0);
+    return +new Date(a.matchDate || 0) - +new Date(b.matchDate || 0);
   });
 
   if (!items.length) return null;

@@ -57,6 +57,7 @@ All use the password `Manager@123` (log in with the email **or** username):
 | `league@rwasport.rw` | LEAGUE_ADMIN |
 | `reporter@rwasport.rw` | AMASHURI_ADMIN |
 | `match.reporter@rwasport.rw` | MATCH_REPORTER |
+| `school.coordinator` (username) | SCHOOL_COORDINATOR — school portal, scoped to one school |
 
 ## Quality gates
 
@@ -81,6 +82,10 @@ change needed. See `apps/backend/.env.example`.
 
 ## Documentation
 
+- [`docs/DATA_PROTECTION.md`](docs/DATA_PROTECTION.md) — Law N° 058/2021 compliance: record of processing, retention, data-subject rights, breach procedure, and what remains outstanding
+  - [`docs/privacy/DPIA.md`](docs/privacy/DPIA.md) — impact assessment (art. 15)
+  - [`docs/privacy/PROCESSORS.md`](docs/privacy/PROCESSORS.md) — processor register and required contract terms (art. 49)
+  - [`docs/privacy/DPO-AND-REGISTRATION.md`](docs/privacy/DPO-AND-REGISTRATION.md) — DPO terms of reference (art. 40) and the NCSA registration pack (art. 29)
 - [`SECURITY.md`](SECURITY.md) — secret handling (rotate + move off OneDrive) and what's already in place
 - [`docs/RESILIENCE.md`](docs/RESILIENCE.md) — vendor dependencies, failover, backups (`npm run db:backup`), recovery runbook
 - [`DESIGN.md`](DESIGN.md) — design system (the `/design-system` route is the living reference)

@@ -8,7 +8,7 @@ import cn from './cn';
  * ('card' | 'table-row' | 'stat') and hardcoded a layout per type, which meant
  * the skeleton and the real component drifted apart the moment either changed.
  * Instead: primitives here, and each domain component ships its OWN skeleton
- * built from them — MatchRow.Skeleton lives next to MatchRow and shares its
+ * built from them Ã¢â‚¬â€ MatchRow.Skeleton lives next to MatchRow and shares its
  * metrics, so it cannot drift.
  *
  *   <Skeleton className="h-4 w-24" />        one block
@@ -21,8 +21,11 @@ import cn from './cn';
  * child, so it never affects layout.
  *
  * This is the one sanctioned gradient in the system. The no-gradients rule exists
- * to stop decorative surface treatment; here the soft edge IS the affordance — a
+ * to stop decorative surface treatment; here the soft edge IS the affordance Ã¢â‚¬â€ a
  * hard-edged band sweeping past looks like a rendering fault.
+ */
+/**
+ * @param {{ circle?: boolean, className?: string } & Record<string, any>} props
  */
 const Skeleton = ({ circle = false, className, ...props }) => (
   <div
@@ -39,7 +42,7 @@ const Skeleton = ({ circle = false, className, ...props }) => (
 );
 
 /** Multi-line text placeholder. The short last line reads as prose, not bars. */
-export const SkeletonText = ({ lines = 3, className }) => (
+export const SkeletonText = ({ lines = 3, className = '' }) => (
   <div className={cn('space-y-2', className)}>
     {Array.from({ length: lines }).map((_, i) => (
       <Skeleton key={i} className={cn('h-3', i === lines - 1 ? 'w-2/3' : 'w-full')} />
@@ -51,9 +54,9 @@ export const SkeletonText = ({ lines = 3, className }) => (
  * Wraps a list of skeletons with the right semantics: assistive tech is told the
  * region is busy rather than reading out a pile of empty boxes.
  */
-export const SkeletonList = ({ count = 6, children, className }) => (
+export const SkeletonList = ({ count = 6, children, className = '' }) => (
   <div role="status" aria-busy="true" aria-live="polite" className={className}>
-    <span className="sr-only">Loading…</span>
+    <span className="sr-only">LoadingÃ¢â‚¬Â¦</span>
     {Array.from({ length: count }).map((_, i) => (
       <React.Fragment key={i}>{children}</React.Fragment>
     ))}

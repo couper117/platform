@@ -12,6 +12,12 @@ import cn from './cn';
  * selector because the real validation lives in Zod, and the browser's own idea of
  * validity does not match it.
  */
+/**
+ * Forwards every native input attribute. Annotated because this is a .jsx file:
+ * without it TypeScript infers the props from the destructure alone and rejects
+ * `type`, `value`, `placeholder` and friends at .tsx call sites.
+ * @type {any}
+ */
 const Input = React.forwardRef(({ invalid = false, className, ...props }, ref) => (
   <input
     ref={ref}

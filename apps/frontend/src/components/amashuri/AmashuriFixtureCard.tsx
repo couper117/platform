@@ -1,113 +1,171 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Calendar, School } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useDateFormat } from '../../i18n/dateLocale';
-import { useEnumLabel } from '../../i18n/enums';
+import { format } from 'date-fns';
+import useDateFormat from '../../i18n/dateLocale';
 import useSportLookup from '../../hooks/useSportLookup';
 import SportIcon from '../shared/SportIcon';
-import { LiveBadge } from '../ui/Badge';
+import ClubCrest from '../ui/ClubCrest';
+import StatusPill from '../ui/StatusPill';
+import Skeleton from '../ui/Skeleton';
+import cn from '../ui/cn';
 
-const initials = (name = '') =>
-  name.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase();
+/**
+ * Fixture card for Amashuri Games (AkcFixture model — teams belong to schools).
+ *
+ * Mirrors components/match/MatchTile's approved card anatomy (competition row,
+ * two team rows, venue footer, same spacing/tokens) rather than inventing a
+ * second card shape. It is a sibling, not a re-export of MatchTile, for two
+ * reasons neither component can absorb: an AkcFixture's team carries its school
+ * two levels down (`team.school.name`, not `team.name`), and this card must
+ * link to `/amashuri/matches/:id`, not MatchTile's hardcoded `/matches/:id`.
+ *
+ * AkcFixture status enum: SCHEDULED | ONGOING | COMPLETED | POSTPONED | CANCELLED
+ * — a different vocabulary from FixtureStatus's LIVE, so the live/full-time/
+ * upcoming split is re-derived locally instead of importing MatchRow's matchState.
+ */
 
-const SchoolSide = ({ team }) => {
-  const { t } = useTranslation();
-  const enumLabel = useEnumLabel();
+const fixtureState = (fixture: any) => {
+  switch (fixture.status) {
+    case 'ONGOING':
+      return 'live';
+    case 'COMPLETED':
+      return 'fulltime';
+    case 'POSTPONED':
+      return 'postponed';
+    case 'CANCELLED':
+      return 'abandoned';
+    default:
+      return 'upcoming';
+  }
+};
+
+const TopState = ({ state, fixture, t }: { state: string; fixture: any; t: any }) => {
+  if (state === 'live') {
+    return <StatusPill status="ONGOING" label={fixture.statusLabel || t('match.live')} className="shrink-0" />;
+  }
+  if (state === 'fulltime') {
+    return <span className="shrink-0 text-xs font-semibold text-tertiary">FT</span>;
+  }
+  if (state === 'postponed' || state === 'abandoned') {
+    return <StatusPill status={fixture.status} className="shrink-0" />;
+  }
+  const d = fixture.matchDate ? new Date(fixture.matchDate) : null;
+  return (
+    <time
+      dateTime={d ? d.toISOString() : undefined}
+      className="shrink-0 text-xs font-semibold tabular-nums text-secondary"
+    >
+      {d ? format(d, 'HH:mm') : t('common.tbd')}
+    </time>
+  );
+};
+
+const SchoolRow = ({ team, score, showScore, bold, dim, t }: { team: any; score: any; showScore: boolean; bold: boolean; dim: boolean; t: any }) => {
   const school = team?.school;
   return (
-    <div className="flex-1 flex flex-col items-center text-center gap-2">
-      <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-surface-3 dark:bg-white/10 flex items-center justify-center overflow-hidden border-2 border-transparent group-hover:border-rwanda-blue/30 transition-all">
-        {school?.logo ? (
-          <img src={school.logo} alt={school.name} className="w-full h-full object-cover" />
-        ) : (
-          <span className="font-display text-lg sm:text-xl opacity-40">{initials(school?.name || 'SC')}</span>
+    <div className="flex min-w-0 items-center gap-2">
+      <ClubCrest team={school} size="md" />
+      <span
+        className={cn(
+          'min-w-0 flex-1 truncate text-base',
+          dim ? 'text-secondary' : 'text-primary',
+          bold && 'font-semibold'
         )}
-      </div>
-      <h3 className="font-display text-xs sm:text-sm uppercase tracking-tight line-clamp-1">
+      >
         {school?.name || t('amashuri.school')}
-      </h3>
-      <span className="text-[9px] uppercase tracking-widest opacity-40">
-        {enumLabel('age_category', team?.ageCategory)} · {enumLabel('gender', team?.gender)}
       </span>
+      {showScore && (
+        <span
+          data-numeric
+          className={cn(
+            'min-w-[1.5rem] shrink-0 text-right text-base tabular-nums',
+            bold ? 'font-semibold text-primary' : dim ? 'text-secondary' : 'text-primary'
+          )}
+        >
+          {score ?? 0}
+        </span>
+      )}
     </div>
   );
 };
 
-/**
- * Fixture card for Amashuri Games (AkcFixture model — teams belong to schools).
- * Blue-accented sibling of RwaSport's FixtureCard.
- */
-const AmashuriFixtureCard = ({ fixture, showCompetition = true }) => {
+const AmashuriFixtureCard = ({ fixture, className = '' }: { fixture: any; className?: string }) => {
   const { t } = useTranslation();
-  const formatDate = useDateFormat();
-  const enumLabel = useEnumLabel();
   const { forFixture } = useSportLookup();
-  const isLive = fixture.status === 'ONGOING';
-  const isCompleted = fixture.status === 'COMPLETED';
+  const state = fixtureState(fixture);
+  const showScore = state === 'live' || state === 'fulltime';
+  const off = state === 'postponed' || state === 'abandoned';
+  const finished = state === 'fulltime';
   const sport = forFixture(fixture);
+
+  const hs = fixture.homeScore;
+  const as = fixture.awayScore;
+  const homeLeads = finished && (hs ?? 0) > (as ?? 0);
+  const awayLeads = finished && (as ?? 0) > (hs ?? 0);
+
+  const homeName = fixture.homeTeam?.school?.name;
+  const awayName = fixture.awayTeam?.school?.name;
+  const label = [homeName, showScore ? `${hs ?? 0}–${as ?? 0}` : 'versus', awayName, state === 'live' ? 'live now' : state]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <Link
       to={`/amashuri/matches/${fixture.id}`}
-      className="block group bg-white dark:bg-surface-dark2 rounded-2xl border border-surface-3 dark:border-white/5 overflow-hidden transition-all hover:shadow-2xl hover:shadow-rwanda-blue/10 hover:-translate-y-1"
-    >
-      {showCompetition && (
-        <div className="px-4 py-2 bg-surface-2 dark:bg-white/5 border-b border-surface-3 dark:border-white/5 flex justify-between items-center">
-          {/* Sport first: two schools and a scoreline are meaningless without the discipline. */}
-          <span className="text-[10px] uppercase font-bold tracking-widest text-rwanda-blue min-w-0 flex items-center gap-1.5">
-            {sport
-              ? <SportIcon slug={sport.slug} size={11} className="shrink-0" />
-              : <School size={11} className="shrink-0" />}
-            {sport && <span className="shrink-0">{sport.name}</span>}
-            {sport && <span className="opacity-30 shrink-0">·</span>}
-            <span className="line-clamp-1">
-              {fixture.competition?.name || (fixture.stage ? enumLabel('stage', fixture.stage) : t('amashuri.schools_championship'))}
-            </span>
-          </span>
-          {isLive && <LiveBadge />}
-        </div>
+      aria-label={label}
+      className={cn(
+        'flex h-full flex-col gap-2 rounded-card border border-hairline bg-surface p-3',
+        'transition-colors duration-150 ease-standard hover:bg-surface-2',
+        off && 'opacity-60',
+        className
       )}
-
-      <div className="p-4 sm:p-6 flex flex-col items-center">
-        <div className="w-full flex items-center justify-between gap-2 sm:gap-4">
-          <SchoolSide team={fixture.homeTeam} />
-
-          <div className="flex flex-col items-center justify-center min-w-[80px] sm:min-w-[110px]">
-            {isLive || isCompleted ? (
-              <div className="flex flex-col items-center gap-1">
-                <div className="flex items-center gap-3 sm:gap-4">
-                  <span className={`text-3xl sm:text-5xl font-display ${fixture.homeScore > fixture.awayScore ? 'text-rwanda-blue' : ''}`}>{fixture.homeScore ?? 0}</span>
-                  <span className="text-xl font-display opacity-20">—</span>
-                  <span className={`text-3xl sm:text-5xl font-display ${fixture.awayScore > fixture.homeScore ? 'text-rwanda-blue' : ''}`}>{fixture.awayScore ?? 0}</span>
-                </div>
-                <span className="text-[10px] uppercase font-bold tracking-[0.2em] opacity-30">{isCompleted ? t('match.full_time') : t('match.live')}</span>
-              </div>
-            ) : (
-              <div className="bg-surface-2 dark:bg-white/5 px-4 py-2 rounded-xl border border-surface-3 dark:border-white/10 flex flex-col items-center">
-                <span className="text-xl sm:text-2xl font-display text-rwanda-blue leading-none">
-                  {formatDate(fixture.matchDate, 'HH:mm') || t('common.tbd')}
-                </span>
-                <span className="text-[8px] uppercase font-bold tracking-widest opacity-40 mt-1">{t('match.kick_off')}</span>
-              </div>
-            )}
-          </div>
-
-          <SchoolSide team={fixture.awayTeam} />
-        </div>
-
-        <div className="mt-6 w-full pt-4 border-t border-surface-3 dark:border-white/5 flex items-center justify-between text-[10px] uppercase font-bold tracking-widest opacity-50">
-          <div className="flex items-center gap-1">
-            <Calendar size={12} className="text-rwanda-blue" />
-            <span>{formatDate(fixture.matchDate, 'dd MMM') || t('common.tbd')}</span>
-          </div>
-          <div className="flex items-center gap-1 min-w-0">
-            <MapPin size={12} className="text-rwanda-blue" />
-            <span className="line-clamp-1">{fixture.venue || t('common.tbd')}</span>
-          </div>
-        </div>
+    >
+      <div className="flex h-5 items-center justify-between gap-2">
+        <span className="flex min-w-0 flex-1 items-center gap-1.5 truncate text-xs text-tertiary">
+          {sport && <SportIcon slug={sport.slug} size={11} className="shrink-0" />}
+          <span className="truncate">
+            {fixture.competition?.name || t('amashuri.schools_championship')}
+          </span>
+        </span>
+        <TopState state={state} fixture={fixture} t={t} />
       </div>
+
+      <div className="flex flex-col gap-1.5">
+        <SchoolRow team={fixture.homeTeam} score={hs} showScore={showScore} bold={homeLeads} dim={off} t={t} />
+        <SchoolRow team={fixture.awayTeam} score={as} showScore={showScore} bold={awayLeads} dim={off} t={t} />
+      </div>
+
+      {fixture.venue && (
+        <p className="flex items-center gap-1 text-xs text-tertiary">
+          <MapPin size={11} className="shrink-0" aria-hidden="true" />
+          <span className="truncate">{fixture.venue}</span>
+        </p>
+      )}
     </Link>
+  );
+};
+
+/** Skeleton lives here, next to the card, and reuses its exact metrics. */
+AmashuriFixtureCard.Skeleton = function AmashuriFixtureCardSkeleton() {
+  return (
+    <div className="flex h-full flex-col gap-2 rounded-card border border-hairline bg-surface p-3">
+      <div className="flex h-5 items-center justify-between gap-2">
+        <Skeleton className="h-3 w-24" />
+        <Skeleton className="h-4 w-12" />
+      </div>
+      <div className="flex flex-col gap-1.5">
+        {[0, 1].map((i) => (
+          <div key={i} className="flex items-center gap-2">
+            <Skeleton className="h-8 w-8" />
+            <Skeleton className={cn('h-3 flex-1', i ? 'max-w-[60%]' : 'max-w-[80%]')} />
+            <Skeleton className="h-3 w-6" />
+          </div>
+        ))}
+      </div>
+      <Skeleton className="h-3 w-28" />
+    </div>
   );
 };
 

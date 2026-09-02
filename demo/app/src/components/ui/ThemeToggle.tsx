@@ -16,7 +16,7 @@ import cn from './cn';
  * morphs instead of popping. Pure CSS transitions, which means the global
  * prefers-reduced-motion rule in index.css neutralises them without a JS gate.
  */
-const ThemeToggle = ({ className }) => {
+const ThemeToggle = ({ className }: { className?: string }) => {
   const { t } = useTranslation();
   const theme = useTheme();
   if (!theme) return null;

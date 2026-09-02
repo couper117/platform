@@ -1,4 +1,5 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
+import useAuthStore from './store/authStore';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { AnimatePresence } from 'framer-motion';
@@ -14,6 +15,7 @@ import PublicLayout from './components/layout/PublicLayout';
 import AdminLayout from './components/layout/AdminLayout';
 import TeamLayout from './components/layout/TeamLayout';
 import ReporterLayout from './components/layout/ReporterLayout';
+import SchoolLayout from './components/layout/SchoolLayout';
 
 // Route pages are code-split so heavy deps (recharts, framer-motion) load on demand.
 // Public Pages
@@ -21,13 +23,30 @@ const HomePage = lazy(() => import('./pages/public/HomePage'));
 const LeaguesPage = lazy(() => import('./pages/public/LeaguesPage'));
 const LeagueDetailsPage = lazy(() => import('./pages/public/LeagueDetailsPage'));
 const FixturesPage = lazy(() => import('./pages/public/FixturesPage'));
+const CalendarPage = lazy(() => import('./pages/public/CalendarPage'));
 const TeamsIndexPage = lazy(() => import('./pages/public/TeamsIndexPage'));
 const MatchDetailsPage = lazy(() => import('./pages/public/MatchDetailsPage'));
 const NewsListPage = lazy(() => import('./pages/public/NewsListPage'));
 const NewsArticlePage = lazy(() => import('./pages/public/NewsArticlePage'));
 const ContactPage = lazy(() => import('./pages/public/ContactPage'));
 const LegalPage = lazy(() => import('./pages/public/LegalPage'));
-const SportHubPage = lazy(() => import('./pages/public/SportHubPage'));
+// Sport section: a shell with real routed tabs, not one page with anchor links.
+const SportsIndexPage = lazy(() => import('./pages/public/SportsIndexPage'));
+const SportLayout = lazy(() => import('./pages/public/sport/SportLayout'));
+const SportOverview = lazy(() => import('./pages/public/sport/SportOverview'));
+const SportMatches = lazy(() => import('./pages/public/sport/SportMatches'));
+const SportTeams = lazy(() => import('./pages/public/sport/SportTeams'));
+const SportStandings = lazy(() => import('./pages/public/sport/SportStandings'));
+const SportNews = lazy(() => import('./pages/public/sport/SportNews'));
+// A club gets its own section, same shape as a sport's: a shell plus routed tabs.
+// Named Club* deliberately: TeamLayout and TeamPlayersPage already exist for the
+// signed-in team PORTAL, and shadowing those silently breaks /team.
+const ClubLayout = lazy(() => import('./pages/public/club/ClubLayout'));
+const ClubOverview = lazy(() => import('./pages/public/club/ClubOverview'));
+const ClubMatches = lazy(() => import('./pages/public/club/ClubMatches'));
+const ClubRecord = lazy(() => import('./pages/public/club/ClubRecord'));
+const ClubStats = lazy(() => import('./pages/public/club/ClubStats'));
+const ClubPlayers = lazy(() => import('./pages/public/club/ClubPlayers'));
 const ExplorePage = lazy(() => import('./pages/public/ExplorePage'));
 
 // First-run sport preference. Eager, not lazy: it decides what the landing route
@@ -41,6 +60,11 @@ const RegisterTeamPage = lazy(() => import('./pages/auth/RegisterTeamPage'));
 // Admin Pages
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 const AkcAdminDashboard = lazy(() => import('./pages/admin/AkcAdminDashboard'));
+const AmashuriAdminSchoolDetail = lazy(() => import('./pages/admin/AmashuriAdminSchoolDetail'));
+
+// School coordinator portal
+const SchoolDashboard = lazy(() => import('./pages/school/SchoolDashboard'));
+const SchoolAthletesPage = lazy(() => import('./pages/school/SchoolAthletesPage'));
 const AdminLeaguesPage = lazy(() => import('./pages/admin/AdminLeaguesPage'));
 const AdminTeamsPage = lazy(() => import('./pages/admin/AdminTeamsPage'));
 const AdminFixturesPage = lazy(() => import('./pages/admin/AdminFixturesPage'));
@@ -48,12 +72,16 @@ const AdminPlayersPage = lazy(() => import('./pages/admin/AdminPlayersPage'));
 const AdminDocumentsPage = lazy(() => import('./pages/admin/AdminDocumentsPage'));
 const AdminNewsPage = lazy(() => import('./pages/admin/AdminNewsPage'));
 const AdminSettingsPage = lazy(() => import('./pages/admin/AdminSettingsPage'));
+const AdminUmugandaPage = lazy(() => import('./pages/admin/AdminUmugandaPage'));
 const AdminSportAdminsPage = lazy(() => import('./pages/admin/AdminSportAdminsPage'));
 const AdminAdsPage = lazy(() => import('./pages/admin/AdminAdsPage'));
 const AdminVisitorsPage = lazy(() => import('./pages/admin/AdminVisitorsPage'));
 const AdminChampionshipsPage = lazy(() => import('./pages/admin/AdminChampionshipsPage'));
 const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage'));
 const AdminRolesPage = lazy(() => import('./pages/admin/AdminRolesPage'));
+const AdminRequestsPage = lazy(() => import('./pages/admin/AdminRequestsPage'));
+const AdminCompliancePage = lazy(() => import('./pages/admin/AdminCompliancePage'));
+const AdminSportsPage = lazy(() => import('./pages/admin/AdminSportsPage'));
 const AdminSystemHealthPage = lazy(() => import('./pages/admin/AdminSystemHealthPage'));
 const AdminContentPage = lazy(() => import('./pages/admin/AdminContentPage'));
 const AdminMediaPage = lazy(() => import('./pages/admin/AdminMediaPage'));
@@ -78,6 +106,7 @@ const AmashuriAdminStages = lazy(() => import('./pages/admin/AmashuriAdminStages
 const AmashuriAdminSports = lazy(() => import('./pages/admin/AmashuriAdminSports'));
 const AmashuriAdminOfficials = lazy(() => import('./pages/admin/AmashuriAdminOfficials'));
 const LiveReportingPage = lazy(() => import('./pages/admin/LiveReportingPage'));
+const ReporterProfilePage = lazy(() => import('./pages/admin/ReporterProfilePage'));
 
 // Team Pages
 const TeamDashboard = lazy(() => import('./pages/team/TeamDashboard'));
@@ -138,6 +167,14 @@ function App() {
   // for its fill animation to be seen, caps itself, then slides away and calls back.
   // App only needs to know when it has finished leaving so it can unmount it.
 
+  // Re-read the signed-in account once per load. The stored copy is a snapshot
+  // taken at sign-in, so a role change or a revoked capability made since then
+  // would otherwise go unnoticed until the token expired. Fires and forgets:
+  // syncUser swallows its own failures and never signs anyone out.
+  useEffect(() => {
+    useAuthStore.getState().syncUser();
+  }, []);
+
   return (
     <HelmetProvider>
       <ThemeProvider>
@@ -167,13 +204,28 @@ function App() {
               />
               <Route path="/explore" element={<Navigate to="/" replace />} />
               <Route path="/home" element={<HomePage />} />
-              <Route path="/sports/:slug" element={<SportHubPage />} />
+              <Route path="/sports" element={<SportsIndexPage />} />
+              <Route path="/sports/:slug" element={<SportLayout />}>
+                <Route index element={<SportOverview />} />
+                <Route path="matches" element={<SportMatches />} />
+                <Route path="teams" element={<SportTeams />} />
+                <Route path="standings" element={<SportStandings />} />
+                <Route path="news" element={<SportNews />} />
+              </Route>
               <Route path="/leagues" element={<LeaguesPage />} />
               <Route path="/leagues/:id" element={<LeagueDetailsPage />} />
               <Route path="/fixtures" element={<FixturesPage />} />
+              <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/live" element={<FixturesPage />} />
               <Route path="/results" element={<FixturesPage />} />
               <Route path="/teams" element={<TeamsIndexPage />} />
+              <Route path="/teams/:id" element={<ClubLayout />}>
+                <Route index element={<ClubOverview />} />
+                <Route path="matches" element={<ClubMatches />} />
+                <Route path="record" element={<ClubRecord />} />
+                <Route path="stats" element={<ClubStats />} />
+                <Route path="players" element={<ClubPlayers />} />
+              </Route>
               <Route path="/news" element={<NewsListPage />} />
               <Route path="/news/:slug" element={<NewsArticlePage />} />
               <Route path="/matches/:id" element={<MatchDetailsPage />} />
@@ -220,11 +272,15 @@ function App() {
               <Route path="media" element={<AdminMediaPage />} />
               <Route path="users" element={<AdminUsersPage />} />
               <Route path="roles" element={<AdminRolesPage />} />
+              <Route path="requests" element={<AdminRequestsPage />} />
+              <Route path="compliance" element={<AdminCompliancePage />} />
+              <Route path="sports" element={<AdminSportsPage />} />
               <Route path="system-health" element={<AdminSystemHealthPage />} />
               <Route path="visitors" element={<AdminVisitorsPage />} />
               <Route path="akc3" element={<AkcAdminDashboard />} />
               <Route path="championships" element={<AdminChampionshipsPage />} />
               <Route path="sport-admins" element={<AdminSportAdminsPage />} />
+              <Route path="umuganda" element={<AdminUmugandaPage />} />
               <Route path="settings" element={<AdminSettingsPage />} />
 
               {/* League Admin sub-sections */}
@@ -241,6 +297,7 @@ function App() {
               <Route path="amashuri/results" element={<AmashuriAdminResults />} />
               <Route path="amashuri/standings" element={<AmashuriAdminStandings />} />
               <Route path="amashuri/schools" element={<AmashuriAdminSchools />} />
+              <Route path="amashuri/school/:id" element={<AmashuriAdminSchoolDetail />} />
               <Route path="amashuri/teams" element={<AmashuriAdminTeams />} />
               <Route path="amashuri/athletes" element={<AmashuriAdminAthletes />} />
               <Route path="amashuri/approvals" element={<AmashuriAdminApprovals />} />
@@ -251,6 +308,13 @@ function App() {
             </Route>
 
             {/* Team Manager Routes */}
+            {/* School Coordinator Portal — one school, scoped server-side */}
+            <Route path="/school" element={<SchoolLayout />}>
+              <Route index element={<Navigate to="/school/dashboard" replace />} />
+              <Route path="dashboard" element={<SchoolDashboard />} />
+              <Route path="athletes" element={<SchoolAthletesPage />} />
+            </Route>
+
             <Route path="/team" element={<TeamLayout />}>
               <Route index element={<Navigate to="/team/dashboard" replace />} />
               <Route path="dashboard" element={<TeamDashboard />} />
@@ -264,6 +328,7 @@ function App() {
             {/* Match Reporter Portal */}
             <Route element={<ReporterLayout />}>
               <Route path="/reporter/dashboard" element={<LiveReportingPage />} />
+              <Route path="/reporter/profile" element={<ReporterProfilePage />} />
             </Route>
             
             {/* Living styleguide — deliberately outside PublicLayout so the
