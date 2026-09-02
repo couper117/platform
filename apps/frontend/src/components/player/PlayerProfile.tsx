@@ -40,6 +40,7 @@ const STATS: Record<number, Stat[]> = {
     { key: 'appearances', label: 'appearances' },
     { key: 'minutes', label: 'minutes' },
     { key: 'cleanSheets', label: 'clean_sheets' },
+    { key: 'conceded', label: 'conceded' },
     { key: 'yellowCards', label: 'yellow_cards' },
     { key: 'redCards', label: 'red_cards' },
   ],
@@ -154,7 +155,7 @@ const PlayerProfile = ({ player, backTo, backLabel, affiliation, extraRows, matc
   // that say nothing about how they played. `keeperLead` promotes the stats that
   // do. Anything not named here keeps the sport's normal order.
   const keeperLead = show(season.cleanSheets)
-    ? ['appearances', 'cleanSheets', 'minutes']
+    ? ['appearances', 'cleanSheets', 'conceded']
     : show(season.saves)
       ? ['saves', 'matches', 'goals']
       : null;
@@ -166,6 +167,9 @@ const PlayerProfile = ({ player, backTo, backLabel, affiliation, extraRows, matc
     : spec;
 
   const hero = ordered.slice(0, 3);
+  // FIT THE TILES THAT EXIST. Fixed at three columns, a keeper with two numbers to
+  // show left a third of the row empty, which reads as a stat that failed to load.
+  const heroCols = hero.length === 1 ? 'grid-cols-1' : hero.length === 2 ? 'grid-cols-2' : 'grid-cols-3';
   const table = ordered.slice(3);
   const age = ageOf(player.dateOfBirth);
   const form = player.form ?? [];
@@ -209,7 +213,7 @@ const PlayerProfile = ({ player, backTo, backLabel, affiliation, extraRows, matc
       {hero.length > 0 && (
         <section className="space-y-3">
           <h2 className="font-display text-lg font-semibold text-primary">{t('player.this_season')}</h2>
-          <div className="grid grid-cols-3 gap-3">
+          <div className={cn('grid gap-3', heroCols)}>
             {hero.map((s) => (
               <StatTile
                 key={s.key}

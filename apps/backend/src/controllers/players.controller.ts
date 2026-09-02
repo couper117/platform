@@ -1,6 +1,7 @@
 const prisma = require('../config/db');
 const { assignedLeagueIds } = require('../utils/scope');
 const { canSeePersonalData, redactPlayer } = require('../services/privacy.service');
+const { getPlayerSeason } = require('../services/playerStats.service');
 const { getPagination } = require('../utils/paginate');
 const { uploadImage, deleteImage } = require('../services/storage.service');
 const logActivity = require('../utils/activityLogger');
@@ -124,7 +125,26 @@ const getPlayer = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Player not found' });
     }
 
-    res.status(200).json({ success: true, data: privileged ? player : redactPlayer(player) });
+    // The season sheet and recent form the profile page has always been built to
+    // show, and which no endpoint used to return. Derived from lineups and match
+    // events, so a player who has not played yet gets an empty object and the page
+    // hides the block rather than leading with a row of zeroes.
+    const { season, form } = await getPlayerSeason(player);
+
+    const body = privileged ? player : redactPlayer(player);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        ...body,
+        // The profile picks its stat vocabulary by sport — points and rebounds for
+        // a basketballer, goals and clean sheets for a footballer. That lives on
+        // the team, so without it every player fell back to a generic list.
+        sportId: player.team?.sportId ?? null,
+        season,
+        form,
+      },
+    });
   } catch (error) {
     next(error);
   }

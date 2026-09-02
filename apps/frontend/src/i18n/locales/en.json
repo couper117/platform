@@ -1019,7 +1019,8 @@
       "meets": "Meets",
       "national_rank": "National rank",
       "saves": "Saves",
-      "suspensions": "2-min suspensions"
+      "suspensions": "2-min suspensions",
+      "conceded": "Conceded"
     },
     "not_found": "Player not found",
     "not_found_hint": "This player may have been removed, or the link is out of date."

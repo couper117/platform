@@ -1019,7 +1019,8 @@
       "meets": "Meetings",
       "national_rank": "Rang national",
       "saves": "Arrêts",
-      "suspensions": "Exclusions 2 min"
+      "suspensions": "Exclusions 2 min",
+      "conceded": "Encaissés"
     },
     "not_found": "Joueur introuvable",
     "not_found_hint": "Ce joueur a peut-être été retiré, ou le lien n’est plus à jour."
