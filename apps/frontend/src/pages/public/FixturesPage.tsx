@@ -25,6 +25,7 @@ import Seo from '../../components/shared/Seo';
 import { Button, EmptyState, ErrorState, SectionHeading, SkeletonList } from '../../components/ui';
 import { useIsDesktop } from '../../hooks/useMediaQuery';
 import { useMotionSafe, listStack } from '../../lib/motion';
+import cn from '../../components/ui/cn';
 
 /**
  * Matches.
@@ -119,10 +120,42 @@ const FixturesPage = () => {
   const groups = groupFixtures(list); // mobile: by date
   const compGroups = groupByCompetition(list); // desktop: by competition
 
-  // The rail needs a league: the filtered one, else whichever league the lead
-  // match belongs to. `getLeague` already returns sorted, ranked standings and
-  // topScorers, so the rail costs one request rather than two.
-  const railLeagueId = filters.leagueId || featured?.leagueId;
+  /**
+   * THE RAIL NEEDS A LEAGUE THAT HAS A TABLE, not just any league.
+   *
+   * This used to be `filters.leagueId || featured.leagueId` — whichever league
+   * the soonest fixture happened to belong to. Against the demo dataset that was
+   * always football and always had a table. Against the real API the soonest
+   * fixture was a volleyball tie whose league has no standings seeded, so the
+   * rail fetched a league with nothing in it, rendered nothing, and left a dead
+   * 320px column beside the list.
+   *
+   * The order of preference is: the league the reader has filtered to (their
+   * choice wins even if its table is empty — the page should not quietly show
+   * a different league's table); then the featured match's league IF it has a
+   * table; then the league best represented in the list that does have one.
+   *
+   * `_count.standings` comes from the leagues list, which is already fetched, so
+   * this costs no extra request.
+   */
+  const railLeagueId = React.useMemo(() => {
+    if (filters.leagueId) return filters.leagueId;
+
+    const all = leagues?.data ?? [];
+    const hasTable = (id) => (all.find((l) => String(l.id) === String(id))?._count?.standings ?? 0) > 0;
+
+    if (featured?.leagueId && hasTable(featured.leagueId)) return featured.leagueId;
+
+    // Whichever league contributes the most fixtures to what is on screen — the
+    // most representative table for this list — provided it has one.
+    const byLeague = new Map();
+    for (const f of list) {
+      if (!f.leagueId) continue;
+      byLeague.set(f.leagueId, (byLeague.get(f.leagueId) ?? 0) + 1);
+    }
+    const ranked = [...byLeague.entries()].sort((a, b) => b[1] - a[1]).map(([id]) => id);
+    return ranked.find(hasTable) ?? all.find((l) => (l._count?.standings ?? 0) > 0)?.id;
+  }, [filters.leagueId, featured?.leagueId, leagues?.data, list]);
   const { data: railLeague, isLoading: railLoading } = useQuery({
     queryKey: ['league-details', String(railLeagueId)],
     queryFn: () => getLeague(railLeagueId),
@@ -136,6 +169,17 @@ const FixturesPage = () => {
   }[filters.status] ?? [t('fixtures.none'), t('fixtures.empty_generic_hint')];
 
   const rail = railLeague?.data;
+
+  /**
+   * Is there anything for the second column to hold? While the league request is
+   * in flight the answer is yes, so the skeletons have somewhere to sit and the
+   * layout does not jump from one column to two when they resolve.
+   */
+  const hasRail = isDesktop && (
+    railLoading
+    || rail?.standings?.length > 0
+    || rail?.topScorers?.length > 0
+  );
 
   // Which of the four states is showing. Doubles as the AnimatePresence key, so
   // every transition between them cross-fades — including loading → list.
@@ -286,7 +330,12 @@ const FixturesPage = () => {
       />
 
       <div className="mx-auto max-w-3xl lg:max-w-6xl lg:px-6 lg:py-4">
-        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-6">
+        {/* NO SECOND COLUMN WHEN THERE IS NOTHING TO PUT IN IT. The grid used to
+            reserve 320px unconditionally, so a league without a table left a
+            third of the screen blank and the fixture cards squeezed into the
+            remainder — which is what made the real API look broken next to the
+            demo. The list takes the full width instead. */}
+        <div className={cn('lg:items-start lg:gap-6', hasRail && 'lg:grid lg:grid-cols-[minmax(0,1fr)_320px]')}>
           {/* ─── list column ─── */}
           <div className="lg:space-y-3">
             <AdSlot position="fixtures-lg" variant="leaderboard" className="hidden lg:block" />
@@ -299,6 +348,7 @@ const FixturesPage = () => {
           </div>
 
           {/* ─── rail ─── */}
+          {hasRail && (
           <aside className="hidden space-y-4 lg:sticky lg:top-[calc(theme(spacing.tap)+1rem)] lg:block">
             {railLoading ? (
               <>
@@ -313,6 +363,7 @@ const FixturesPage = () => {
             )}
             <AdSlot position="fixtures-rail" variant="sidebar" />
           </aside>
+          )}
         </div>
       </div>
     </>

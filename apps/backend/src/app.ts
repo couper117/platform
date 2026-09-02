@@ -61,10 +61,19 @@ app.use(cors({
   credentials: true,
 }));
 
-// Rate Limiting — JSON response consistent with the API envelope.
+/**
+ * Rate limiting — JSON response consistent with the API envelope.
+ *
+ * THE CEILING IS LIFTED IN DEVELOPMENT, and only there. 300 requests per quarter
+ * hour is a sensible public ceiling and nowhere near enough for someone building
+ * against the API: a single page of this frontend makes a dozen calls, so
+ * clicking through the app for a few minutes exhausts the budget and every screen
+ * starts rendering its error state — which looks exactly like a broken backend
+ * and sends you hunting for a bug that is not there. Production is unchanged.
+ */
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 300,
+  max: env.NODE_ENV === 'production' ? 300 : 5000,
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => res.status(429).json({

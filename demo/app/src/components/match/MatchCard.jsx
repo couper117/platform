@@ -62,6 +62,19 @@ const Centre = ({ state, m, safe }) => {
   return null;
 };
 
+/**
+ * TWO LINES, NOT AN ELLIPSIS.
+ *
+ * The name used to `truncate`, which was fine against the demo's short names —
+ * "APR FC", "Rayon Sports" — and fell apart against the real register, where a
+ * club is "Rwanda Revenue Authority VC" or "Resilience Rugby Football Club". At
+ * half the width of a two-column grid that produced a card reading
+ * "Rwanda Re… VS Kigali Volle…", which tells a reader nothing at all.
+ *
+ * It wraps to at most two lines now and only then clips, with the leading tightened
+ * so two lines occupy little more than one did. `break-words` is there for the one
+ * club whose name is a single word longer than the column.
+ */
 const Side = ({ team, align }) => (
   <div
     className={cn(
@@ -70,7 +83,9 @@ const Side = ({ team, align }) => (
     )}
   >
     <ClubCrest team={team} size="md" />
-    <span className="min-w-0 flex-1 truncate text-base text-primary">{team?.name || 'TBD'}</span>
+    <span className="line-clamp-2 min-w-0 flex-1 break-words text-base leading-tight text-primary">
+      {team?.name || 'TBD'}
+    </span>
   </div>
 );
 

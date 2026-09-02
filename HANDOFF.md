@@ -1,41 +1,48 @@
 # HANDOFF
 
 ## Current Task
-Depth in the football data: recent form and head-to-head.
+Making the app work against the REAL API rather than the demo adapter.
 
 ## Status
-Solved — but the feature exposed that the dataset had no history to draw on, so
-most of the work was making the demo's numbers real.
+Solved. All 19 public routes render clean at 1440px and 390px with no JS errors.
 
-- **Head-to-head on the match page.** Previous meetings between the two clubs,
-  the aggregate record as a three-segment bar, and each side's last-five form.
-  Placed above the timeline, because a timeline is what happened and this is why
-  you would watch — and on a fixture that has not kicked off it is the only
-  content there.
-- **Form in the league table**, as a column rather than behind the expander.
-  `showForm` is a PROP, not a breakpoint: StandingsTable renders both full width
-  on a standings page and inside a 320px rail on /fixtures, and both are desktop,
-  so a `lg:` variant would have broken the no-horizontal-scroll rule the table was
-  written to protect. Verified: 12 strips on the standings tab, 0 in the rail.
-- **The dataset had no history.** 18 fixtures, 6 completed, exactly one repeated
-  pairing and neither leg played — so head-to-head said "these two have not met"
-  on every match in the app. `historyFixtures` now generates the matchweeks before
-  this one by round-robin rotation, dated backwards: 115 results instead of 6.
-- **The league table is computed from those results.** It used to be invented —
-  `played: 18` for everyone, a won/drawn curve from the row index, and a hard-coded
-  `forms[]` array dealt out round-robin. The table disagreed with the fixture list
-  beside it, the form strip disagreed with both, and a demo whose numbers do not
-  add up is one arithmetic question away from being caught. Table, form strips,
-  head-to-head and /results now all fold over the same games.
-- **Two corrections the derivation forced.** A flat random season put Marines FC
-  top of the Premier League, which nobody following Rwandan football would read
-  past; `STRENGTH` tilts the generator so APR and Rayon lead. And basketball was
-  being ranked on football's 3-1-0, awarding draws in a sport that cannot draw and
-  putting a -26 differential above a +36; `SCORING` gives each league its own
-  system (FIBA 2-1-0 and wins-first for basketball).
+RUNNING IT
+  npm run dev        backend + frontend (needs Postgres)
+  npm run dev:demo    frontend only, mock data, no backend — port 5174
+Local Postgres is `postgresql-x64-18` on port **5432**, not the 5433 the shared
+.env assumed. apps/backend/.env is machine-specific and gitignored; both URLs
+point at 5432 here. Database `rnsp` created, all migrations applied, seeded.
 
-Football now reads APR, Rayon, Police, Mukura, AS Kigali — a table a Rwandan
-recognises.
+WHAT WAS ACTUALLY BROKEN — none of it was the UI, which is the same code in both
+modes. Every difference was the data or the API:
+
+- Prisma client had never been generated, so the backend crashed on import.
+- The side rail attached itself to whichever league the SOONEST fixture belonged
+  to. In demo that was always football, which has a table; against real data it
+  was a volleyball tie whose league has no standings, so the rail fetched an
+  empty league and left a dead 320px column. It now prefers a league that has a
+  table (`_count.standings`, added to the leagues list) and the grid drops to one
+  column when there is nothing to put in the second.
+- `scroll-contain` never hid the scrollbar — it only set overscroll behaviour. On
+  a phone the bar is a fading overlay so nobody noticed; on Windows it is a
+  permanent grey trough, and it only appeared once the real API returned twenty
+  sports instead of twelve and the chip row began to overflow.
+- MatchCard truncated club names. Fine for "APR FC", useless for "Rwanda Revenue
+  Authority VC" — half-width cards read "Rwanda Re… VS Kigali Volle…". Two lines
+  now, then clip.
+- No ad inventory: the seed had four rows under the old HOME_BANNER names while
+  the app asks for 37 placements. `npm run seed:ads` books the lot.
+- `/akc3/teams/:id` and `/akc3/athletes/:id` did not exist, so both Amashuri
+  pages 404'd. Added, public, with a deliberate allowlist projection — AkcPlayer
+  holds guardian names and phones, ID numbers, consent records and a disability
+  flag for MINORS, none of which a spectator needs.
+- `/teams/:id` was `protect`ed while the public directory links straight to it,
+  so every visitor clicking a club got 401. Now `attachUser` + projection: it was
+  returning the manager's email and phone and every player WITH their
+  verification documents.
+- The dev rate limit (300 / 15 min) is now 5000 outside production. A single page
+  makes a dozen calls, so a few minutes of clicking exhausted it and every screen
+  rendered its error state — which looks exactly like a broken backend.
 
 ## Progress
 - [x] `scripts/make-ad-creatives.mjs` rebuilt: 6 sponsors x 3 shapes (-lg/-mb/-mr)

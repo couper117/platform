@@ -86,9 +86,30 @@
 
   /* Scroll containers: contain overscroll so a nested list can't trigger the
      browser's pull-to-refresh mid-match. */
+  /**
+   * A horizontal rail that scrolls without showing a scrollbar.
+   *
+   * THE BAR IS THE PROBLEM, NOT THE SCROLLING. Every chip rail in the app uses
+   * this — sport chips, state tabs, the Amashuri tab bar. On a phone the bar is
+   * an overlay that fades, so nobody noticed; on Windows it is a permanent 15px
+   * grey trough sitting under the row, and it only appeared once the real API
+   * returned twenty sports instead of the demo's twelve and the row began to
+   * overflow. A visible trough under a row of buttons reads as a broken layout.
+   *
+   * Scrolling itself is untouched: the row still scrolls by wheel, trackpad,
+   * touch and keyboard, and every chip remains reachable by Tab. Hiding the bar
+   * is why each of these rails also fades or is short enough to show it has
+   * more — the bar was never the affordance.
+   */
   .scroll-contain {
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* legacy Edge */
+  }
+
+  .scroll-contain::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, current Edge */
   }
 
   /* Bottom-nav and sticky-footer clearance in installed mode. */
