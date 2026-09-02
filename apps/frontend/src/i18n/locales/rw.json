@@ -1611,7 +1611,10 @@
     "col_gd": "GD",
     "col_pts": "Amanota",
     "col_form": "Imikorere",
-    "active": "Birakora"
+    "active": "Birakora",
+    "days_range": "Iminsi {{count}} ishize",
+    "days_short": "{{count}}d",
+    "events": "Ibikorwa"
   },
   "portal": {
     "sec_main": "Ibanze",
@@ -1981,5 +1984,13 @@
     "match_count_other": "Imikino {{count}}",
     "event_count_one": "Irushanwa {{count}}",
     "event_count_other": "Amarushanwa {{count}}"
+  },
+  "adminui": {
+    "admin": "Ubuyobozi",
+    "search_placeholder": "Shakisha urupapuro…",
+    "search_none": "Nta rupapuro ruhuye na \"{{q}}\"",
+    "view_site": "Reba urubuga rusanzwe",
+    "not_authorized": "Nta buruhushya bwo kubona uru rupapuro",
+    "not_authorized_hint": "Uruhare rwawe ntirukubiyemo uru rupapuro. Saba umuyobozi mukuru niba urukeneye."
   }
 }

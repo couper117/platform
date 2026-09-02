@@ -31,6 +31,21 @@ const SIZES = {
 const ICON_SIZE = { sm: 16, md: 20 };
 
 const IconButton = React.forwardRef(
+  /**
+   * The JSDoc sits on the INNER function, not the outer const: `forwardRef`
+   * infers its prop type from the render function it is handed, so a type on the
+   * const is ignored and a `.tsx` caller still sees bare `RefAttributes<any>`.
+   *
+   * @param {{
+   *   icon: any,
+   *   label: string,
+   *   to?: string,
+   *   href?: string,
+   *   variant?: 'ghost' | 'secondary' | 'danger',
+   *   size?: 'sm' | 'md',
+   *   className?: string,
+   * } & Record<string, any>} props
+   */
   (
     { icon: Icon, label, to, href, variant = 'ghost', size = 'md', className, ...props },
     ref

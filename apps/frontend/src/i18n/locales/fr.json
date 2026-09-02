@@ -1611,7 +1611,10 @@
     "col_gd": "Diff",
     "col_pts": "Pts",
     "col_form": "Forme",
-    "active": "Actif"
+    "active": "Actif",
+    "days_range": "{{count}} derniers jours",
+    "days_short": "{{count}} j",
+    "events": "Événements"
   },
   "portal": {
     "sec_main": "Principal",
@@ -1981,5 +1984,13 @@
     "match_count_other": "{{count}} matchs",
     "event_count_one": "{{count}} épreuve",
     "event_count_other": "{{count}} épreuves"
+  },
+  "adminui": {
+    "admin": "Admin",
+    "search_placeholder": "Rechercher une page…",
+    "search_none": "Aucune page ne correspond à « {{q}} »",
+    "view_site": "Voir le site public",
+    "not_authorized": "Vous n’avez pas accès à cette page",
+    "not_authorized_hint": "Votre rôle n’inclut pas cet écran. Demandez à un super administrateur si vous en avez besoin."
   }
 }

@@ -1611,7 +1611,10 @@
     "col_gd": "GD",
     "col_pts": "Pts",
     "col_form": "Form",
-    "active": "Active"
+    "active": "Active",
+    "days_range": "Last {{count}} days",
+    "days_short": "{{count}}d",
+    "events": "Events"
   },
   "portal": {
     "sec_main": "Main",
@@ -1981,5 +1984,13 @@
     "match_count_other": "{{count}} matches",
     "event_count_one": "{{count}} event",
     "event_count_other": "{{count}} events"
+  },
+  "adminui": {
+    "admin": "Admin",
+    "search_placeholder": "Search admin pages…",
+    "search_none": "No admin page matches \"{{q}}\"",
+    "view_site": "View public site",
+    "not_authorized": "You do not have access to this page",
+    "not_authorized_hint": "Your role does not include this screen. Ask a super administrator if you need it."
   }
 }

@@ -1,16 +1,20 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import {
   ShieldCheck, Trophy, Users, Newspaper, Megaphone, Clock, ArrowRight, Eye,
-  Database, Server, Cloud, Mail, Radio, LayoutTemplate, CheckCircle2, Lock,
+  Database, Server, Cloud, Radio, LayoutTemplate, Activity as ActivityIcon,
+  CheckCircle2, AlertCircle, Lock, Plus,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import apiClient from '../../api/client';
 import useAuthStore from '../../store/authStore';
 import EmptyState from '../../components/ui/EmptyState';
+import Button from '../../components/ui/Button';
+import { PageHeader, StatCard, Panel } from '../../components/admin/AdminUI';
+import cn from '../../components/ui/cn';
 import FederationDashboard from './FederationDashboard';
 import LeagueDashboard from './LeagueDashboard';
 
@@ -23,32 +27,29 @@ import LeagueDashboard from './LeagueDashboard';
  * route gets their own dashboard instead — delegated below. Fully translated;
  * every quick action that would create a league/team/championship is deliberately
  * absent (that belongs to Sport Admins, enforced by the backend authorize()).
+ *
+ * THIS IS THE TEMPLATE. Every other admin screen is being brought onto the same
+ * vocabulary — PageHeader, StatCard, Panel from components/admin/AdminUI — so the
+ * portal reads as one product. Nothing here invents a card, a heading style or a
+ * table shell of its own; if a screen needs a new piece, it belongs in the kit.
+ *
+ * NOTHING ON THIS PAGE IS INVENTED. Two things used to be: the activity chart
+ * drew a hard-coded array relabelled with today's dates, and the health panel
+ * listed five services all permanently "Operational" — including an email service
+ * the platform does not run. On a ministry's oversight screen a number that looks
+ * measured and isn't is worse than no number at all, so both now come from the
+ * API (/admin/activity-trend, /admin/system-health) and show what is really there.
  */
 
-const StatCard = ({ icon: Icon, value, label, sub }) => (
-  <div className="rounded-2xl border border-hairline bg-surface p-5 transition-shadow hover:shadow-md">
-    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10 text-brand">
-      <Icon size={18} />
-    </div>
-    <p className="font-display text-3xl font-bold tabular-nums text-primary">{value}</p>
-    <p className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-tertiary">{label}</p>
-    {sub && <p className="mt-1 text-[11px] text-tertiary">{sub}</p>}
-  </div>
-);
-
-const useTrend = () => React.useMemo(() => {
-  const base = [30, 38, 45, 52, 48, 58, 55, 50, 62, 66, 60, 68, 64, 70];
-  const today = new Date();
-  return base.map((v, i) => ({
-    day: format(new Date(today.getTime() - (base.length - 1 - i) * 86400000), 'MMM d'),
-    value: v,
-  }));
-}, []);
+const SERVICE_ICON: Record<string, any> = {
+  database: Database, api: Server, storage: Cloud, realtime: Radio,
+};
 
 const AdminDashboard = () => {
   const { t } = useTranslation();
   const { user, role } = useAuthStore();
   const [tab, setTab] = useState('admins');
+  const [days, setDays] = useState(14);
 
   // A federation admin governs one sport; a league admin runs one league —
   // different dashboards entirely. The Rules of Hooks require every hook below
@@ -56,14 +57,43 @@ const AdminDashboard = () => {
   // super-admin queries are gated with `enabled` instead of an early return
   // (so those roles never fire the requests).
   const isSuperAdmin = role !== 'FEDERATION_ADMIN' && role !== 'LEAGUE_ADMIN';
-  const trend = useTrend();
 
-  const { data: statsRes } = useQuery({ queryKey: ['admin-stats'], enabled: isSuperAdmin, queryFn: async () => (await apiClient.get('/admin/stats')).data });
+  const { data: statsRes, isPending: statsPending } = useQuery({ queryKey: ['admin-stats'], enabled: isSuperAdmin, queryFn: async () => (await apiClient.get('/admin/stats')).data });
   const { data: rosterRes } = useQuery({ queryKey: ['admin-roster'], enabled: isSuperAdmin, queryFn: async () => (await apiClient.get('/admin/roster')).data });
-  const { data: activityRes } = useQuery({ queryKey: ['admin-activity'], enabled: isSuperAdmin, queryFn: async () => (await apiClient.get('/activity', { params: { limit: 6 } })).data });
+  // The AUDIT trail, not the traffic log: the visitor tracker writes a row per
+  // request, so an unfiltered feed here read "page view · /api/v1/ads" six times
+  // over — the portal reporting on its own network calls. Excluding that module
+  // leaves what a ministry actually wants on an oversight screen: who assigned,
+  // published or deleted what.
+  const { data: activityRes } = useQuery({
+    queryKey: ['admin-activity'],
+    enabled: isSuperAdmin,
+    queryFn: async () => (await apiClient.get('/activity', { params: { limit: 6, excludeModule: 'VISITOR_TRACKING' } })).data,
+  });
   const { data: newsRes } = useQuery({ queryKey: ['admin-news-count'], enabled: isSuperAdmin, queryFn: async () => (await apiClient.get('/news')).data });
   const { data: adsRes } = useQuery({ queryKey: ['admin-ads-count'], enabled: isSuperAdmin, queryFn: async () => (await apiClient.get('/ads')).data });
   const { data: champRes } = useQuery({ queryKey: ['admin-champ-count'], enabled: isSuperAdmin, queryFn: async () => (await apiClient.get('/akc3/competitions')).data });
+  const { data: trendRes } = useQuery({
+    queryKey: ['admin-activity-trend', days],
+    enabled: isSuperAdmin,
+    queryFn: async () => (await apiClient.get('/admin/activity-trend', { params: { days } })).data,
+  });
+  // The health check does a real database round-trip, so it is polled rather than
+  // read once — a dashboard left open on a wall should notice an outage.
+  const { data: healthRes } = useQuery({
+    queryKey: ['admin-system-health'],
+    enabled: isSuperAdmin,
+    refetchInterval: 30000,
+    queryFn: async () => (await apiClient.get('/admin/system-health')).data,
+  });
+
+  const trend = useMemo(
+    () => (trendRes?.data || []).map((d: any) => ({
+      day: format(new Date(`${d.date}T00:00:00`), 'd MMM'),
+      value: d.count,
+    })),
+    [trendRes]
+  );
 
   if (role === 'FEDERATION_ADMIN') return <FederationDashboard />;
   if (role === 'LEAGUE_ADMIN') return <LeagueDashboard />;
@@ -74,6 +104,8 @@ const AdminDashboard = () => {
   const news = newsRes?.data || [];
   const ads = adsRes?.data || [];
   const champs = champRes?.data || [];
+  const services = healthRes?.data?.services || [];
+  const allOk = services.length > 0 && services.every((s: any) => s.ok);
 
   // Flatten the federation + Amashuri admins into one Sport Admins list.
   const admins = [
@@ -83,13 +115,14 @@ const AdminDashboard = () => {
     ...(roster.amashuriAdmins || []).map((u) => ({ id: `a${u.id}`, user: u, scope: t('dash.amashuri_games'), assignedAt: null })),
   ];
 
+  // Every number is a question with a page for an answer, so every card links.
   const cards = [
-    { icon: ShieldCheck, value: admins.length, label: t('dash.sport_admins'), sub: t('dash.active_admins') },
-    { icon: Trophy, value: stats.activeLeagues ?? 0, label: t('dash.total_leagues'), sub: t('dash.across_sports') },
-    { icon: Users, value: stats.totalTeams ?? 0, label: t('dash.total_teams'), sub: t('dash.registered_teams') },
-    { icon: Trophy, value: champs.length, label: t('dash.championships'), sub: t('dash.active_championships') },
-    { icon: Newspaper, value: news.length, label: t('dash.news_published'), sub: t('dash.total_news') },
-    { icon: Megaphone, value: ads.filter((a) => a.active).length, label: t('dash.active_ads'), sub: t('dash.running_ads') },
+    { icon: ShieldCheck, value: admins.length, label: t('dash.sport_admins'), hint: t('dash.active_admins'), to: '/admin/sport-admins', tone: 'brand' as const },
+    { icon: Trophy, value: stats.activeLeagues ?? 0, label: t('dash.total_leagues'), hint: t('dash.across_sports'), to: '/admin/leagues' },
+    { icon: Users, value: stats.totalTeams ?? 0, label: t('dash.total_teams'), hint: t('dash.registered_teams'), to: '/admin/teams' },
+    { icon: Trophy, value: champs.length, label: t('dash.championships'), hint: t('dash.active_championships'), to: '/admin/championships' },
+    { icon: Newspaper, value: news.length, label: t('dash.news_published'), hint: t('dash.total_news'), to: '/admin/news' },
+    { icon: Megaphone, value: ads.filter((a) => a.active).length, label: t('dash.active_ads'), hint: t('dash.running_ads'), to: '/admin/ads' },
   ];
 
   const QUICK_ACTIONS = [
@@ -99,104 +132,161 @@ const AdminDashboard = () => {
     { label: t('dash.q_manage_layout'), sub: t('dash.q_customize'), icon: LayoutTemplate, to: '/admin/settings' },
   ];
 
-  const HEALTH = [
-    { label: t('dash.h_database'), icon: Database },
-    { label: t('dash.h_server'), icon: Server },
-    { label: t('dash.h_api'), icon: Radio },
-    { label: t('dash.h_storage'), icon: Cloud },
-    { label: t('dash.h_email'), icon: Mail },
+  const TABS: Array<[string, string, string]> = [
+    ['admins', t('dash.sport_admins'), '/admin/sport-admins'],
+    ['leagues', t('dash.all_leagues'), '/admin/leagues'],
+    ['teams', t('dash.all_teams'), '/admin/teams'],
+    ['champs', t('dash.championships'), '/admin/championships'],
   ];
-
-  const TABS = [['admins', t('dash.sport_admins')], ['leagues', t('dash.all_leagues')], ['teams', t('dash.all_teams')], ['champs', t('dash.championships')]];
+  const activeTab = TABS.find(([id]) => id === tab)!;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="flex items-center gap-2 text-2xl font-display uppercase tracking-tight text-primary sm:text-3xl">
-          {t('dash.welcome_admin', { name: user?.fullName?.split(' ')[0] || t('dash.super_admin') })}
-          <CheckCircle2 size={20} className="text-brand" />
-        </h1>
-        <p className="mt-1 text-sm text-tertiary">{t('dash.ministry')}</p>
-      </div>
+    <div>
+      <PageHeader
+        title={t('dash.welcome_admin', { name: user?.fullName?.split(' ')[0] || t('dash.super_admin') })}
+        subtitle={t('dash.ministry')}
+        actions={
+          <Button to="/admin/sport-admins" size="sm" icon={Plus}>
+            {t('dash.q_assign_sport_admin')}
+          </Button>
+        }
+      />
 
-      {/* Stat cards */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
-        {cards.map((c) => <StatCard key={c.label} {...c} />)}
+        {statsPending
+          ? Array.from({ length: 6 }, (_, i) => <StatCard.Skeleton key={i} />)
+          : cards.map((c) => <StatCard key={String(c.label)} {...c} />)}
       </div>
 
-      {/* Overview + Quick actions + Recent activity */}
-      <div className="grid gap-4 lg:grid-cols-[1fr_300px_320px]">
-        <div className="rounded-2xl border border-hairline bg-surface p-5">
-          <div className="mb-4">
-            <h2 className="font-display text-lg uppercase tracking-tight text-primary">{t('dash.system_overview')}</h2>
-            <p className="text-xs text-tertiary">{t('dash.system_overview_sub')}</p>
+      {/* Activity + quick actions + what just happened */}
+      <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)]">
+        <Panel
+          title={t('dash.system_overview')}
+          hint={t('dash.days_range', { count: days })}
+          className="xl:col-span-1"
+        >
+          {/* The range picker is the one control on this panel, so it sits with
+              the chart rather than in the panel header where it would compete
+              with the title. */}
+          <div className="mb-3 flex gap-1">
+            {[7, 14, 30].map((d) => (
+              <button
+                key={d}
+                type="button"
+                onClick={() => setDays(d)}
+                aria-pressed={days === d}
+                className={cn(
+                  'rounded-pill px-2.5 py-1 text-xs font-semibold transition-colors duration-150 ease-standard',
+                  days === d ? 'bg-brand-tint text-brand-text' : 'text-tertiary hover:bg-surface-2 hover:text-primary'
+                )}
+              >
+                {t('dash.days_short', { count: d })}
+              </button>
+            ))}
           </div>
+
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={trend} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+              <AreaChart data={trend} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="ov" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#16a34a" stopOpacity={0.35} />
+                    <stop offset="0%" stopColor="#16a34a" stopOpacity={0.28} />
                     <stop offset="100%" stopColor="#16a34a" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="day" tick={{ fontSize: 10, fill: 'currentColor' }} className="text-tertiary" interval={2} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12 }} />
+                <CartesianGrid vertical={false} stroke="rgb(var(--hairline))" />
+                <XAxis
+                  dataKey="day" tick={{ fontSize: 11, fill: 'currentColor' }} className="text-tertiary"
+                  interval="preserveStartEnd" minTickGap={24} axisLine={false} tickLine={false}
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: 'currentColor' }} className="text-tertiary"
+                  width={40} allowDecimals={false} axisLine={false} tickLine={false}
+                  // A busy day runs to four figures; "1.2k" keeps the axis narrow
+                  // enough that it does not eat the plot.
+                  tickFormatter={(v: number) => (v >= 1000 ? `${(v / 1000).toFixed(v % 1000 === 0 ? 0 : 1)}k` : String(v))}
+                />
+                <Tooltip
+                  cursor={{ stroke: 'rgb(var(--hairline))' }}
+                  contentStyle={{
+                    borderRadius: 10, fontSize: 12, padding: '6px 10px',
+                    background: 'rgb(var(--surface))', border: '1px solid rgb(var(--hairline))',
+                    color: 'rgb(var(--text))',
+                  }}
+                  labelStyle={{ color: 'rgb(var(--text-3))' }}
+                  formatter={(v: any) => [v, t('dash.events')]}
+                />
                 <Area type="monotone" dataKey="value" stroke="#16a34a" strokeWidth={2} fill="url(#ov)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </Panel>
 
-        {/* Quick actions */}
-        <div className="rounded-2xl border border-hairline bg-surface p-5">
-          <h2 className="mb-4 font-display text-lg uppercase tracking-tight text-primary">{t('dash.quick_actions')}</h2>
+        <Panel title={t('dash.quick_actions')}>
           <div className="space-y-2">
             {QUICK_ACTIONS.map((a) => (
-              <Link key={a.label} to={a.to} className="group flex items-center gap-3 rounded-xl border border-hairline bg-surface-2 p-3 transition-colors hover:border-brand/40">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand"><a.icon size={16} /></span>
+              <Link
+                key={a.label}
+                to={a.to}
+                className="group flex min-h-tap items-center gap-3 rounded-control border border-hairline bg-surface-2 p-2.5 transition-colors duration-150 ease-standard hover:border-brand/40 hover:bg-surface"
+              >
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-control bg-brand-tint text-brand-text">
+                  <a.icon size={15} aria-hidden="true" />
+                </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-primary">{a.label}</p>
-                  <p className="truncate text-[11px] text-tertiary">{a.sub}</p>
+                  <p className="truncate text-sm font-medium text-primary">{a.label}</p>
+                  <p className="truncate text-xs text-tertiary">{a.sub}</p>
                 </div>
-                <ArrowRight size={14} className="shrink-0 text-tertiary transition-transform group-hover:translate-x-0.5" />
+                <ArrowRight size={14} className="shrink-0 text-tertiary transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
               </Link>
             ))}
           </div>
-        </div>
+        </Panel>
 
-        {/* Recent activity */}
-        <div className="rounded-2xl border border-hairline bg-surface p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-display text-lg uppercase tracking-tight text-primary">{t('dash.recent_activity')}</h2>
-            <Link to="/admin/visitors" className="text-[11px] font-bold uppercase tracking-wider text-brand-text">{t('dash.view_all')}</Link>
-          </div>
+        <Panel title={t('dash.recent_activity')} action={t('dash.view_all')} actionTo="/admin/visitors">
           {activity.length === 0 ? (
             <p className="py-4 text-sm text-tertiary">{t('dash.no_activity')}</p>
           ) : (
-            <div className="space-y-3">
+            <ul className="space-y-3">
               {activity.map((log) => (
-                <div key={log.id} className="flex items-start gap-3">
-                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-surface-2 text-tertiary"><Clock size={13} /></span>
+                <li key={log.id} className="flex items-start gap-3">
+                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-control bg-surface-2 text-tertiary">
+                    <Clock size={13} aria-hidden="true" />
+                  </span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-primary">{String(log.action || '').replace(/_/g, ' ')}</p>
-                    <p className="truncate text-[11px] text-tertiary">{log.detail || log.pagePath || (log.user?.fullName ?? t('dash.guest'))}</p>
+                    <p className="truncate text-sm font-medium capitalize text-primary">
+                      {String(log.action || '').replace(/_/g, ' ').toLowerCase()}
+                    </p>
+                    <p className="truncate text-xs text-tertiary">
+                      {log.user?.fullName || t('dash.guest')}
+                      {log.detail ? ` — ${log.detail}` : ''}
+                    </p>
                   </div>
-                  <span className="shrink-0 text-[10px] text-tertiary">{log.createdAt ? format(new Date(log.createdAt), 'HH:mm') : ''}</span>
-                </div>
+                  <span className="shrink-0 text-xs tabular-nums text-tertiary">
+                    {log.createdAt ? format(new Date(log.createdAt), 'HH:mm') : ''}
+                  </span>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
-        </div>
+        </Panel>
       </div>
 
-      {/* Oversight tables + Platform health */}
-      <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
-        <div className="rounded-2xl border border-hairline bg-surface p-5">
-          <div className="mb-4 flex items-center gap-1 border-b border-hairline">
+      {/* Oversight + health */}
+      <div className="mt-4 grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <Panel flush>
+          <div className="flex gap-1 overflow-x-auto border-b border-hairline px-2 scroll-contain">
             {TABS.map(([id, label]) => (
-              <button key={id} onClick={() => setTab(id)} className={`relative px-3 py-2.5 text-sm font-semibold transition-colors ${tab === id ? 'text-primary' : 'text-tertiary hover:text-primary'}`}>
+              <button
+                key={id}
+                type="button"
+                onClick={() => setTab(id)}
+                aria-selected={tab === id}
+                className={cn(
+                  'relative whitespace-nowrap px-3 py-3 text-sm transition-colors duration-150 ease-standard',
+                  tab === id ? 'font-semibold text-primary' : 'text-tertiary hover:text-primary'
+                )}
+              >
                 {label}
                 {tab === id && <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-brand" />}
               </button>
@@ -205,64 +295,101 @@ const AdminDashboard = () => {
 
           {tab === 'admins' ? (
             admins.length === 0 ? (
-              <EmptyState icon={ShieldCheck} title={t('dash.no_admins_title')} hint={t('dash.no_admins_hint')} />
-            ) : (
-              <div className="overflow-x-auto scrollbar-hide">
-                <table className="w-full min-w-[560px] text-left">
-                  <thead>
-                    <tr className="text-[9px] font-bold uppercase tracking-widest text-tertiary">
-                      <th className="pb-2 pr-2">{t('dash.col_administrator')}</th><th className="pb-2 px-2">{t('dash.col_sport')}</th>
-                      <th className="pb-2 px-2">{t('dash.col_email')}</th><th className="pb-2 px-2">{t('dash.col_status')}</th>
-                      <th className="pb-2 px-2">{t('dash.col_assigned')}</th><th className="pb-2 pl-2 text-right">{t('dash.col_actions')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {admins.map((a) => (
-                      <tr key={a.id} className="border-t border-hairline/60">
-                        <td className="py-2.5 pr-2 text-sm font-medium text-primary">{a.user?.fullName}</td>
-                        <td className="py-2.5 px-2 text-sm text-secondary">{a.scope}</td>
-                        <td className="py-2.5 px-2 text-sm text-secondary">{a.user?.email}</td>
-                        <td className="py-2.5 px-2"><span className="rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand-text">{t('dash.active')}</span></td>
-                        <td className="py-2.5 px-2 text-sm tabular-nums text-tertiary">{a.assignedAt ? format(new Date(a.assignedAt), 'd MMM yyyy') : '—'}</td>
-                        <td className="py-2.5 pl-2 text-right"><Link to="/admin/sport-admins" aria-label={t('dash.col_view')} className="text-tertiary hover:text-primary"><Eye size={15} className="ml-auto" /></Link></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <Link to="/admin/sport-admins" className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-brand-text">{t('dash.view_all_admins')} <ArrowRight size={13} /></Link>
+              <div className="p-4">
+                <EmptyState icon={ShieldCheck} title={t('dash.no_admins_title')} hint={t('dash.no_admins_hint')} />
               </div>
+            ) : (
+              <>
+                <div className="scroll-contain w-full overflow-x-auto">
+                  <table className="w-full min-w-[600px] text-left">
+                    <thead>
+                      <tr>
+                        {[t('dash.col_administrator'), t('dash.col_sport'), t('dash.col_email'), t('dash.col_status'), t('dash.col_assigned')].map((h) => (
+                          <th key={h} scope="col" className="whitespace-nowrap border-b border-hairline px-4 py-2.5 text-xs font-semibold text-tertiary">{h}</th>
+                        ))}
+                        <th scope="col" className="whitespace-nowrap border-b border-hairline px-4 py-2.5 text-right text-xs font-semibold text-tertiary">{t('dash.col_actions')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {admins.map((a) => (
+                        <tr key={a.id} className="transition-colors duration-150 ease-standard hover:bg-surface-2">
+                          <td className="border-b border-hairline px-4 py-3 text-sm font-medium text-primary">{a.user?.fullName}</td>
+                          <td className="border-b border-hairline px-4 py-3 text-sm text-secondary">{a.scope}</td>
+                          <td className="border-b border-hairline px-4 py-3 text-sm text-secondary">{a.user?.email}</td>
+                          <td className="border-b border-hairline px-4 py-3">
+                            <span className="rounded-pill bg-brand-tint px-2 py-0.5 text-xs font-semibold text-brand-text">{t('dash.active')}</span>
+                          </td>
+                          <td className="border-b border-hairline px-4 py-3 text-sm tabular-nums text-secondary">
+                            {a.assignedAt ? format(new Date(a.assignedAt), 'd MMM yyyy') : '—'}
+                          </td>
+                          <td className="border-b border-hairline px-4 py-3 text-right">
+                            <Link to="/admin/sport-admins" aria-label={t('dash.col_view')} className="inline-flex text-tertiary transition-colors hover:text-brand-text">
+                              <Eye size={16} aria-hidden="true" />
+                            </Link>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="px-4 py-3">
+                  <Link to="/admin/sport-admins" className="inline-flex items-center gap-1.5 text-xs font-semibold text-secondary transition-colors hover:text-brand-text">
+                    {t('dash.view_all_admins')} <ArrowRight size={13} aria-hidden="true" />
+                  </Link>
+                </div>
+              </>
             )
           ) : (
-            <div className="flex flex-col items-center gap-2 py-10 text-center">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-2 text-tertiary"><Lock size={18} /></span>
+            /* The Super Admin can SEE leagues, teams and championships but not run
+               them — the backend's authorize() says so, and a table full of
+               controls that all 403 would be a lie. The panel says why and hands
+               over to the read-only section. */
+            <div className="flex flex-col items-center gap-2 px-4 py-12 text-center">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-2 text-tertiary"><Lock size={18} aria-hidden="true" /></span>
               <p className="text-sm font-semibold text-primary">{t('dash.read_only_oversight')}</p>
-              <p className="max-w-xs text-xs text-tertiary">{t('dash.read_only_hint', { section: tab === 'leagues' ? t('dash.all_leagues') : tab === 'teams' ? t('dash.all_teams') : t('dash.championships') })}</p>
-              <Link to={tab === 'leagues' ? '/admin/leagues' : tab === 'teams' ? '/admin/teams' : '/admin/championships'} className="mt-1 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-brand-text">
-                {t('dash.open_section', { section: tab === 'leagues' ? t('dash.all_leagues') : tab === 'teams' ? t('dash.all_teams') : t('dash.championships') })} <ArrowRight size={13} />
+              <p className="max-w-xs text-sm text-tertiary">{t('dash.read_only_hint', { section: activeTab[1] })}</p>
+              <Link to={activeTab[2]} className="mt-1 inline-flex items-center gap-1.5 text-xs font-semibold text-secondary transition-colors hover:text-brand-text">
+                {t('dash.open_section', { section: activeTab[1] })} <ArrowRight size={13} aria-hidden="true" />
               </Link>
             </div>
           )}
-        </div>
+        </Panel>
 
-        {/* Platform health */}
-        <div className="rounded-2xl border border-hairline bg-surface p-5">
-          <h2 className="mb-4 font-display text-lg uppercase tracking-tight text-primary">{t('dash.platform_health')}</h2>
-          <div className="space-y-3">
-            {HEALTH.map((h) => (
-              <div key={h.label} className="flex items-center gap-3">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-2 text-tertiary"><h.icon size={15} /></span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-primary">{h.label}</p>
-                  <p className="text-[11px] text-tertiary">{t('dash.operational')}</p>
-                </div>
-                <CheckCircle2 size={17} className="shrink-0 text-brand" />
-              </div>
-            ))}
-          </div>
-          <p className="mt-4 flex items-center justify-center gap-1.5 rounded-xl bg-brand/5 py-2 text-xs font-bold uppercase tracking-wider text-brand-text">
-            {t('dash.all_operational')} <span className="h-1.5 w-1.5 rounded-full bg-brand" />
-          </p>
-        </div>
+        <Panel title={t('dash.platform_health')} action={t('dash.view_all')} actionTo="/admin/system-health">
+          {services.length === 0 ? (
+            <p className="py-4 text-sm text-tertiary">{t('dash.no_activity')}</p>
+          ) : (
+            <>
+              <ul className="space-y-3">
+                {services.map((s: any) => {
+                  const Icon = SERVICE_ICON[s.key] || ActivityIcon;
+                  return (
+                    <li key={s.key} className="flex items-center gap-3">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-control bg-surface-2 text-tertiary">
+                        <Icon size={15} aria-hidden="true" />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-primary">{String(t(`admin.health.svc_${s.key}`, s.key))}</p>
+                        {/* The real detail — "3 ms", "SSE active" — instead of the
+                            word "Operational" repeated five times. */}
+                        <p className="truncate text-xs tabular-nums text-tertiary">{s.detail}</p>
+                      </div>
+                      {s.ok
+                        ? <CheckCircle2 size={16} className="shrink-0 text-brand" aria-hidden="true" />
+                        : <AlertCircle size={16} className="shrink-0 text-danger-text" aria-hidden="true" />}
+                    </li>
+                  );
+                })}
+              </ul>
+              <p className={cn(
+                'mt-4 flex items-center justify-center gap-1.5 rounded-control py-2 text-xs font-semibold',
+                allOk ? 'bg-brand-tint text-brand-text' : 'bg-danger/10 text-danger-text'
+              )}>
+                {allOk ? t('admin.health.all_operational') : t('admin.health.degraded')}
+              </p>
+            </>
+          )}
+        </Panel>
       </div>
     </div>
   );

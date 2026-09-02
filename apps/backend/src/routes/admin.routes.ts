@@ -3,7 +3,8 @@ const { assignLeagueAdmin, assignFederationAdmin } = require('../controllers/adm
 const {
   getRoster, assignAmashuriAdmin, revokeAdmin,
   getUsers, updateUser, getCapabilityCatalogue,
-  getSystemHealth, getMediaLibrary,
+  getSystemHealth,
+  getActivityTrend, getMediaLibrary,
 } = require('../controllers/admin.controller');
 const { getStats } = require('../controllers/adminStats.controller');
 const { protect, requireCapability } = require('../middleware/auth');
@@ -18,6 +19,8 @@ router.get('/users', protect, requireCapability('users.read'), getUsers);
 router.patch('/users/:id', protect, requireCapability('users.write'), validate(schemas.updateUser), updateUser);
 router.get('/capabilities', protect, requireCapability('users.write'), getCapabilityCatalogue);
 router.get('/system-health', protect, requireCapability('system.health'), getSystemHealth);
+// Real numbers for the dashboard chart, which used to draw a hard-coded array.
+router.get('/activity-trend', protect, requireCapability('admin.stats'), getActivityTrend);
 router.get('/media', protect, requireCapability('media.read'), getMediaLibrary);
 router.post('/assign-league-admin', protect, requireCapability('leagues.admins'), assignLeagueAdmin);
 router.post('/assign-federation-admin', protect, requireCapability('federations.admins'), assignFederationAdmin);

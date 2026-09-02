@@ -5,7 +5,7 @@ const prisma = require('../config/db');
 // @access  Private/Admin
 const getActivityLogs = async (req, res, next) => {
   try {
-    const { userId, module, action, ip, page = 1, limit = 50 } = req.query;
+    const { userId, module, excludeModule, action, ip, page = 1, limit = 50 } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const where: any = {};
@@ -13,6 +13,14 @@ const getActivityLogs = async (req, res, next) => {
     if (module) where.module = module;
     if (action) where.action = action;
     if (ip) where.ip = ip;
+
+    // The visitor tracker writes a row per request, so an unfiltered feed is
+    // almost entirely "PAGE_VIEW /api/v1/ads" — which drowns the 77 real audit
+    // entries the controllers write (assignments, publishes, deletions). A caller
+    // that wants the audit trail rather than the traffic log asks for
+    // ?excludeModule=VISITOR_TRACKING; comma-separated for more than one.
+    const excluded = String(excludeModule || '').split(',').map((m) => m.trim()).filter(Boolean);
+    if (excluded.length && !module) where.module = { notIn: excluded };
 
     const [logs, total] = await prisma.$transaction([
       prisma.activityLog.findMany({
