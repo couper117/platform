@@ -942,9 +942,38 @@ export const buildLeagueDetail = (league) => {
   return { ...league, teams: teamsInLeague, standings: st, topScorers: sc, fixtures: fixtures.filter((f) => f.leagueId === league.id) };
 };
 
-const lineupFor = (teamId) => playersOf(teamId).slice(0, 11).map((p, i) => ({
-  id: teamId * 50 + i, teamId, jerseyNo: p.jerseyNumber, isStarter: i < 11, isCaptain: i === 0, position: p.position, player: { id: p.id, fullName: p.fullName, photo: p.photo },
-}));
+/**
+ * How many a sport actually puts on the surface, and what those places are
+ * called.
+ *
+ * Every team sheet named eleven, whatever the sport — so a basketball fixture
+ * fielded eleven players in football positions, and the demo showed a football
+ * line-up standing on a basketball court. Sports absent from this list keep
+ * whatever the roster gives them.
+ */
+const SQUAD: Record<string, { starters: number; positions?: string[] }> = {
+  football:   { starters: 11 },
+  rugby:      { starters: 15 },
+  basketball: { starters: 5, positions: ['Point Guard', 'Shooting Guard', 'Small Forward', 'Power Forward', 'Center'] },
+  volleyball: { starters: 6, positions: ['Outside Hitter', 'Setter', 'Opposite', 'Middle Blocker', 'Libero', 'Outside Hitter'] },
+  handball:   { starters: 7 },
+  netball:    { starters: 7, positions: ['GS', 'GA', 'WA', 'C', 'WD', 'GD', 'GK'] },
+  tennis:     { starters: 2 },
+  badminton:  { starters: 2 },
+};
+
+const lineupFor = (teamId, sportSlug?: string) => {
+  const spec = (sportSlug && SQUAD[sportSlug]) || SQUAD.football;
+  return playersOf(teamId).slice(0, spec.starters).map((p, i) => ({
+    id: teamId * 50 + i,
+    teamId,
+    jerseyNo: p.jerseyNumber,
+    isStarter: true,
+    isCaptain: i === 0,
+    position: spec.positions?.[i] ?? p.position,
+    player: { id: p.id, fullName: p.fullName, photo: p.photo },
+  }));
+};
 
 export const buildFixtureDetail = (fixture) => {
   const homePlayers = playersOf(fixture.homeTeamId);
@@ -1027,7 +1056,10 @@ export const buildFixtureDetail = (fixture) => {
 
   return {
     ...fixture, referee: fixture.referee || 'TBD', events, stats, clock,
-    lineups: [...lineupFor(fixture.homeTeamId), ...lineupFor(fixture.awayTeamId)],
+    lineups: [
+      ...lineupFor(fixture.homeTeamId, fixture.league?.sport?.slug),
+      ...lineupFor(fixture.awayTeamId, fixture.league?.sport?.slug),
+    ],
     teamSheets: [
       { teamId: fixture.homeTeamId, formation: '4-3-3', coachName: coachOf(fixture.homeTeamId), published: true },
       { teamId: fixture.awayTeamId, formation: '4-2-3-1', coachName: coachOf(fixture.awayTeamId), published: true },

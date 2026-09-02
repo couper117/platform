@@ -1,0 +1,1 @@
+import{u as n}from"./vendor-data-L5cZAEgz.js";import{f as a}from"./index-Cggq74kS.js";function m(){const{data:e}=n({queryKey:["nav-sports"],queryFn:a,staleTime:3e5}),r=e?.data??[],o=t=>{if(t!=null)return r.find(s=>String(s.id)===String(t))};return{sports:r,bySportId:o,forFixture:t=>o(t?.competition?.sportId)??o(t?.homeTeam?.sportId)??o(t?.awayTeam?.sportId)}}export{m as u};

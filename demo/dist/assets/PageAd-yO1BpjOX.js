@@ -1,1 +1,0 @@
-import{j as a}from"./vendor-motion-BbfDCxy9.js";import"./vendor-react-BQ53PF2o.js";import{q as e}from"./index-CxhdJMCS.js";const n=({position:r,className:s=""})=>a.jsxs(a.Fragment,{children:[a.jsx(e,{position:r,variant:"inline",className:`lg:hidden ${s}`}),a.jsx(e,{position:`${r}-lg`,variant:"leaderboard",className:`hidden lg:block ${s}`})]});export{n as P};

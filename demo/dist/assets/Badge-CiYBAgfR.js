@@ -1,1 +1,0 @@
-import{j as o}from"./vendor-motion-BbfDCxy9.js";import{c as s}from"./index-CxhdJMCS.js";import"./vendor-react-BQ53PF2o.js";const p=({className:e,children:r,...t})=>o.jsx("span",{className:s("inline-flex items-center rounded-pill border border-hairline px-2 py-0.5","text-xs font-medium text-secondary whitespace-nowrap",e),...t,children:r});export{p as B};

@@ -75,6 +75,18 @@ const roleRank = (pos?: string) => {
   return 2;
 };
 
+/** Trim a row layout so it never seats more players than the sport fields. */
+const clampRows = (rows: number[], starters: number) => {
+  const out: number[] = [];
+  let left = starters;
+  for (const n of rows) {
+    if (left <= 0) break;
+    out.push(Math.min(n, left));
+    left -= out[out.length - 1];
+  }
+  return out.length ? out : rows;
+};
+
 /** Formation strings only mean something where the sport uses them. */
 const parseFormation = (formation: string | undefined, fallback: number[]) => {
   const lines = String(formation || '').split(/[^0-9]+/).map((n) => parseInt(n, 10)).filter((n) => n > 0);
@@ -112,11 +124,20 @@ const Token = ({ slot, player, color, label }: any) => (
 );
 
 const TeamShape = ({ starters, formation, color, orientation, surface }: any) => {
-  const rows = surface.rows.length > 1 && formation
-    ? parseFormation(formation, surface.rows)
+  // The sport's shape wins over whatever string the team sheet carries.
+  //
+  // A formation only means something where the sport expresses one, so it is
+  // read only for those sports — and even then it may not add up to more players
+  // than the sport puts on the surface. Without this, a basketball fixture whose
+  // sheet says "4-3-3" laid out eleven players on a court that holds five, which
+  // is a football line-up wearing a basketball court.
+  const rows = surface.formations?.length && formation
+    ? clampRows(parseFormation(formation, surface.rows), surface.starters)
     : surface.rows;
   const slots = buildSlots(rows, orientation, surface.opposed, surface.band);
-  const ordered = [...starters].sort((a: any, b: any) => roleRank(a.position) - roleRank(b.position));
+  const ordered = [...starters]
+    .sort((a: any, b: any) => roleRank(a.position) - roleRank(b.position))
+    .slice(0, surface.starters);
   return (
     <>
       {slots.map((slot, i) =>
