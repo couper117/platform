@@ -7,6 +7,19 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      /**
+       * Two breakpoints that exist only for the gutter skyscrapers.
+       *
+       * They are not round numbers because they are not taste: every content
+       * column is 1152px centred, so the gutter is `(viewport - 1152) / 2`. A
+       * 120px unit with a 16px channel needs 1152 + 272 = 1424px, and a 160px one
+       * needs 1152 + 352 = 1504px. Rounded up to the nearest sensible laptop and
+       * desktop width so the rail appears with slack rather than exactly touching.
+       */
+      screens: {
+        rail: '1440px',
+        railwide: '1536px',
+      },
       fontFamily: {
         // Montserrat, matching the reference. Self-hosted — never a CDN, the
         // extra RTT is felt on Rwandan mobile networks.

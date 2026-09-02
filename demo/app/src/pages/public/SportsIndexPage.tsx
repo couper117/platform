@@ -11,6 +11,7 @@ import Seo from '../../components/shared/Seo';
 import EmptyState from '../../components/ui/EmptyState';
 import ErrorState from '../../components/ui/ErrorState';
 import Skeleton from '../../components/ui/Skeleton';
+import PageAd from '../../components/shared/PageAd';
 
 /**
  * Every sport on the platform. Route `/sports`.
@@ -119,6 +120,14 @@ const SportsIndexPage = () => {
             {sports.map((s) => <SportCard key={s.id ?? s.slug} sport={s} t={t} />)}
           </div>
         )}
+      </div>
+      {/* Advertising sits at the FOOT of the page, after the content, never
+          spliced into it. An advert dropped between two fixtures or two
+          paragraphs interrupts the thing the reader came for; down here it is
+          the last item on the screen and costs the page nothing. AdSlot
+          collapses to nothing when the position has no inventory. */}
+      <div className="mx-auto max-w-3xl px-4 pb-8 lg:max-w-6xl lg:px-6 lg:pb-12">
+        <PageAd position="sports" />
       </div>
     </div>
   );

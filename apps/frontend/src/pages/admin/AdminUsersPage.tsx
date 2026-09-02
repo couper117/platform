@@ -141,7 +141,7 @@ const CapabilityEditor = ({ user, catalogue, onSave, saving }) => {
 };
 
 /**
- * Super Admin â†’ Users. Every platform account with its role and active flag, both
+ * Super Admin → Users. Every platform account with its role and active flag, both
  * editable inline. Wired to GET /admin/users and PATCH /admin/users/:id; the
  * backend guards the last active super admin from being locked out.
  */

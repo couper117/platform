@@ -15,8 +15,12 @@ import cn from './cn';
  * into the title / a Badge rather than getting their own treatment.
  */
 const SectionHeading = ({ title, accent, eyebrow, action, actionTo, className }: { title?: React.ReactNode; accent?: React.ReactNode; eyebrow?: React.ReactNode; action?: React.ReactNode; actionTo?: string; className?: string }) => (
-  <div className={cn('flex items-baseline justify-between gap-3', className)}>
-    <h2 className="min-w-0 truncate font-display text-lg font-semibold text-primary">
+  <div className={cn('flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1', className)}>
+    {/* NOT `truncate`. A truncating title loses the fight with its own "view all"
+        link on a narrow screen, which is how "Popular competitions" became
+        "Popular competiti…". The row wraps instead: the action drops to the next
+        line when there is no room, and the heading is always readable. */}
+    <h2 className="min-w-0 font-display text-lg font-semibold text-primary">
       {eyebrow && <span className="text-secondary">{eyebrow} </span>}
       {title}
       {accent && <span className="text-secondary"> {accent}</span>}

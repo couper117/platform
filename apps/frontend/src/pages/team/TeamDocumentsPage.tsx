@@ -59,7 +59,7 @@ const TeamDocumentsPage = () => {
       setPlayerId('');
       setDocType('BIRTH_CERTIFICATE');
       setFile(null);
-      pushToast('Document uploaded â€” pending review.', 'success');
+      pushToast('Document uploaded — pending review.', 'success');
     },
     onError: (err: any) => pushToast(err.response?.data?.message || 'Failed to upload document'),
   });

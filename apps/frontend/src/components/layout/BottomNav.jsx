@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Compass, CalendarDays, Trophy, Newspaper, Radio } from 'lucide-react';
+import { Compass, CalendarDays, Trophy, Newspaper, Medal } from 'lucide-react';
 import { useMotionSafe, DUR, EASE } from '../../lib/motion';
 import cn from '../ui/cn';
 
@@ -29,10 +29,20 @@ import cn from '../ui/cn';
 
 // Five destinations — Live is promoted here because live sport is a core purpose
 // of the platform and must be one thumb-tap away.
+/**
+ * The first five destinations of the app's one navigation list, in its order.
+ *
+ * NO LIVE TAB. Live and Matches are the same screen with a different tab selected
+ * — /live IS the fixture list filtered to in-play — so carrying both put the same
+ * destination in the bar twice and left a phone with a nav the desktop bar did not
+ * have. The desktop bar dropped Live for this reason; the tab bar now matches.
+ * In-play matches are one tap away on the Matches screen, where Upcoming, Live and
+ * Results sit side by side.
+ */
 const TABS = [
   { to: '/', labelKey: 'nav.explore', icon: Compass, end: true },
-  { to: '/live', labelKey: 'nav.live', icon: Radio },
   { to: '/fixtures', labelKey: 'nav.matches', icon: CalendarDays },
+  { to: '/sports', labelKey: 'nav.sports', icon: Medal },
   { to: '/leagues', labelKey: 'nav.leagues', icon: Trophy },
   { to: '/news', labelKey: 'nav.news', icon: Newspaper },
 ];

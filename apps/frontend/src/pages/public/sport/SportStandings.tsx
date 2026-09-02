@@ -9,6 +9,7 @@ import TopScorers from '../../../components/match/TopScorers';
 import EmptyState from '../../../components/ui/EmptyState';
 import ErrorState from '../../../components/ui/ErrorState';
 import cn from '../../../components/ui/cn';
+import AdSlot from '../../../components/shared/AdSlot';
 
 /** Competition picker — the same outlined chip as FixtureFilters' Chip. */
 const CompetitionChip = ({ active, children, ...props }: { active: boolean; children: React.ReactNode } & Record<string, any>) => (
@@ -101,7 +102,12 @@ const SportStandings = () => {
       ) : (
         <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-6">
           <StandingsTable rows={rows} />
-          <TopScorers scorers={scorers} />
+          <div className="space-y-4">
+            <TopScorers scorers={scorers} />
+            {/* Desktop only: on a phone the rail stacks under the table and the
+                sport's own banner already sits at the foot of the layout. */}
+            <AdSlot position="sport-rail" variant="sidebar" className="hidden lg:block" />
+          </div>
         </div>
       )}
     </div>

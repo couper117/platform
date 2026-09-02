@@ -1,82 +1,82 @@
 # HANDOFF
 
 ## Current Task
-Redesign `/teams`. Client complaint (verbatim): "please redo /teams UI".
-Three defects confirmed at 1280 and 390: search box crushed to a ~40px circle
-(shared a flex row with 13 sport chips), no club showed its sport (so
-same-name-different-sport clubs like "APR FC"/"APR BBC"/"APR VC"/"APR
-Handball" were indistinguishable), and a flat 9-row grid of near-identical
-low cards.
+Rebuilding the Amashuri match page, and taking the gutter rails off pages they
+did not suit.
 
 ## Status
-Solved. New `TeamCard` (crest/name/meta + footer, LeagueCard's card shell)
-with a mandatory sport badge, search moved to its own capped row, and
-sport-sorted grid on `/teams`. `tsc --noEmit` and `vite build` both pass
-clean from `apps/frontend` (only pre-existing `*.test.ts(x)` errors,
-unrelated). Not committed — commits are the user's call.
+Solved.
+
+- **`/amashuri/matches/:id` was the last pre-redesign screen in the public app.**
+  Full-bleed saturated green-to-teal gradient, both school names in ALL-CAPS
+  display type wrapping to three lines, an empty "MATCH SUMMARY" card and a
+  four-row table floating in half a screen of green — plus its own private
+  `SchoolBadge` / `ScoreDigit` / `initials()`, a third implementation of a
+  scoreboard the app already had twice. It is the national match page now: same
+  MatchScoreboard, MatchEventTimeline, MatchComments, same tokens.
+- **`asFixture` is the whole trick.** The schools endpoint returns `competition`
+  where the league one returns `league`, and its `homeTeam` is
+  `{ id, school, ageCategory, gender }` with the name a level down. One adapter
+  maps it into the shape the shared components already read — nothing forked.
+- **Found on the way: `ONGOING` vs `LIVE`.** `matchState` only knows the league
+  feed's word, so a schools match in progress fell through to "upcoming" and the
+  scoreboard printed VS on a game being played. Now shows the live pill and 1-1.
+  Checked against all three states — live, completed, scheduled.
+- **The teams are destinations.** The old page's only outbound link was a "view
+  school" line; both squads are one tap away now.
+- **The gutter rails are opt-in per route.** Run-of-site looked wrong on half the
+  app. `RAIL_ROUTES` allows the browsing pages — fixtures, live, results, calendar,
+  leagues, teams, sports, news index, and the Amashuri list tabs. Everything else
+  gets none: a single match, a player, an athlete, an article, a school profile,
+  contact and the legal pages, where a column of advertising is the loudest thing
+  on a screen the reader opened for one thing. Verified across 16 routes.
 
 ## Progress
-- [x] `src/components/team/TeamCard.tsx` (new) — `ClubCrest` at 56px (size
-      `lg` + a className override; safe because every club logo here is a
-      generated SVG, so nothing rasterizes at the wrong size), a sport badge
-      beside it (icon + name, always shown — `team.sport` is `{ name, slug }`
-      per `src/api/demo/mockData.ts`'s `sportRef()`), the club name as the
-      strongest element, a `sport · city · founded year` meta line, and a
-      footer strip ("View club" + chevron) — same three-zone shell as
-      `LeagueCard`. Ships `TeamCard.Skeleton` next to it.
-- [x] `src/pages/public/TeamsIndexPage.tsx` — search is now its own row
-      (`min-h-tap`, `max-w-sm`, its own `<label>`) above the sport chip row,
-      so the 13-chip scroll row can never share flex space with it again;
-      chips match `FixtureFilters`' spec exactly. Grid `1 → sm:2 → lg:3`
-      (was `2 → 3 → 4`, too dense to give a card room to breathe). While "All
-      sports" is active, clubs are sorted (not grouped under headings — that
-      pattern was already tried and reverted on `/leagues` for leaving
-      near-empty rows) so each sport's clubs sit together; every card's own
-      badge carries the identity regardless of filter state. Empty state
-      gained a "Clear filters" action when search/sport narrowed the list to
-      nothing (mirrors `/leagues`).
-- [x] i18n: two new keys inside the existing `teams` object — `filter_sport`
-      ("Filter by sport" — aria-label on the chip row) and `view_club`
-      ("View club" — card footer). `TeamCard` also reuses the existing
-      `team.founded_year` key (`src/pages/public/club/ClubLayout.tsx`
-      already uses it) rather than adding a duplicate. Verified all three
-      locales parse and have exactly one top-level `teams` (11 keys) and one
-      top-level `team` (69 keys, untouched) object.
+- [x] `scripts/make-ad-creatives.mjs` rebuilt: 6 sponsors x 3 shapes (-lg/-mb/-mr)
+- [x] `PageAd` component; 15 page placements; 3 rail units
+- [x] FixturesPage moved off the old `-leaderboard`/`-sidebar` position names
+- [x] Ad book rewritten in mockData, generated from one PLACEMENTS table
+- [x] Client photos installed, resized, ad creatives regenerated from them
+- [x] Provenance recorded in both CREDITS.md files — these are NOT freely licensed
+- [x] tsc clean, demo build green, 14 routes x 2 breakpoints audited in Chrome
+- [ ] Commit and push to `Levi` (nothing pushed since the last batch)
 
 ## Working Notes
-Nothing outstanding on this task. Touched only the files the brief allowed:
-`TeamsIndexPage.tsx`, the new `TeamCard.tsx`, and the three locale JSONs
-(`teams` object only). `src/components/ui/`, `src/components/match/`,
-`src/pages/public/club/`, `src/pages/public/sport/`, `App.tsx`,
-`src/api/demo/mockData.ts`, `tokens.css`, `tailwind.config.js` were read for
-reference (`LeagueCard`'s card shell, `ClubLayout`'s location/founded-year
-formatting, `ClubCrest`'s size/className contract) but never edited. Note:
-this working tree has substantial *other* uncommitted changes from
-concurrent/prior sessions (visible in `git status` — App.tsx, akc3/,
-amashuri/, sport/, club/, news/, etc.) that predate and are unrelated to this
-task; left untouched.
+Verification runs against **the user's** dev server on `localhost:5174` — never
+start one. Puppeteer-core + installed Chrome; `localhost`, not `127.0.0.1`.
+`MSYS_NO_PATHCONV=1` for git-bash path mangling. A script that imports `sharp`
+must live in (or be copied to) the repo root — node will not resolve it from the
+scratchpad.
 
-## Other open work in this tree (unrelated — not touched, do not act on without asking)
-A separate, uncommitted hero/landing-page rebuild is also sitting in this
-working tree (real Rwandan photos in `apps/frontend/public/hero/`, credits in
-that folder's `CREDITS.md`). Its header sub-task is unresolved: **two attempts
-were already rejected and the header was reverted to byte-identical-with-main
-— do not guess at it again.** Get explicit sign-off on which defect to fix
-first: (1) the header overflows at 1280px — the "Register Team" pill clips and
-"Amashuri Games" wraps to two lines; (2) eight icon+label pairs in one row
-reads as a dashboard toolbar. Other known pre-existing issues noted from that
-thread: `Footer.tsx`'s newsletter button clips at 1280px; `FixtureFilters.jsx`
-pins under the header; `ReactQueryDevtools` ships unconditionally in
-`App.tsx`; several sport tiles still use Unsplash stock instead of real photos.
+LICENCE WATCH: `hero/football.jpg`, `hero/basketball.jpg`,
+`hero/basketball-finals.jpg`, `hero/basketball-women.jpg` and
+`amashuri/youth-basketball.jpg` are client-supplied PRESS photographs, not
+Commons. They carry `credit: null` so no false attribution is printed. The
+originals they replaced are in git history. Both CREDITS.md files say so.
+
+BEFORE COPYING A FILE INTO demo/app, check it was identical at HEAD. The demo's
+LoginPage carries one-tap role buttons, its BottomNav had hardcoded labels, its
+`api/endpoints/amashuri.ts` was a 12-export subset, and it has no CalendarPage at
+all. Five near-misses so far; the placement script now checks before copying.
+
+Long heredocs fail in this shell with "unexpected EOF" — write Python to a file
+and run it.
+
+rw/fr strings written here are demo-quality and have not been read by a speaker.
+
+`scripts/check-demo-drift.mjs` reports two pre-existing drifts
+(`src/styles/tokens.css`, `src/config/clubColors.js`) unrelated to this work.
+
+Next step: nothing outstanding the user has named.
 
 ## Recently Completed
-- Redesigned `/teams` (own-row search, per-card sport badge, sport-sorted
-  grid) (this session).
-- Redesigned `/leagues` (photo-led cards, sport chips + grouping) and
-  `/leagues/:id` (photo-band identity header) (prior session).
-- Rebuilt `/matches/:id` to the new design system: lineups, better live mode,
-  local comments (prior session).
-- Hero + "Pick your sport" grid rebuilt with real Rwandan photography (prior
-  session, uncommitted; header sub-task still open — see above).
-- Structural UI audit of all 71 pages:
-  https://claude.ai/code/artifact/907052ba-5793-413f-af55-aa2a751bd2dd
+- School -> team -> athlete: `/amashuri/teams/:id` and `/amashuri/athletes/:id`,
+  with `PlayerProfile` shared between club players and school athletes.
+- Amashuri restructured into a section with a photo hero and category tabs;
+  five verified Commons school photographs installed and credited.
+- One navigation list across desktop bar, mobile drawer and bottom tab bar.
+- All fourteen sport slugs have their own icon.
+- Login side panel cross-fades the hero photography (`useHeroRotation`).
+- Player pages with per-sport season stats and recent form.
+- `mockAdapter` reads URL query strings and rejects on 4xx.
+- Mobile fixtures density: first fixture 281px -> 237px, cards 148px -> 122px.

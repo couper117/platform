@@ -3,7 +3,7 @@ import NotificationBell from '../shared/NotificationBell';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
-  Home, CalendarDays, Trophy, Newspaper, Compass, Search, Menu, X, Radio, Users,
+  CalendarDays, Trophy, Newspaper, Compass, Medal, Search, Menu, X, Users,
   LogOut, UserPlus, Languages, GraduationCap, Mail, ChevronDown, Star, RefreshCw, Download, Share,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -38,9 +38,14 @@ import cn from '../ui/cn';
  * browsing site with no bottom bar and can afford the full height; a scores list
  * cannot.
  *
- * NAVIGATION SPLIT: the bottom tab bar owns the four primary destinations on
- * mobile, so this header's hamburger holds only what the tabs do not —
- * Amashuri, Contact, language, theme, account. No destination appears in both.
+ * ONE MAP, THREE SURFACES. The desktop bar, the mobile drawer and the bottom tab
+ * bar now list the SAME destinations in the SAME order — the drawer is the full
+ * list, the tab bar is the first five of it, the desktop bar is the full list
+ * again. It used to be three different products: the drawer carried Calendar and
+ * Contact that the bar did not, called `/` "Home" where the bar called it
+ * "Explore", and had no Sports entry at all, while the tab bar carried Live, which
+ * the desktop bar had already dropped. A visitor who learned the app on a phone
+ * could not find the same things on a laptop.
  */
 
 // Desktop nav order, per the platform spec:
@@ -58,25 +63,36 @@ const PRIMARY_RIGHT = [
 ];
 
 /**
- * The drawer's destinations, in the header's order with Home at the top.
+ * The drawer's destinations — the desktop bar, in the desktop bar's order.
  *
- * This used to be whatever the bottom tab bar did not carry — Calendar, Teams,
- * Amashuri, Home, Contact — which put Home fourth in a list with no discernible
- * logic. On a phone the drawer is the whole map of the product, so it shows the
- * whole map, in the same order as the desktop bar.
+ * It reads `PRIMARY_LEFT · Sports · PRIMARY_RIGHT` off the same two arrays the
+ * desktop bar renders, so the two cannot drift again: adding a destination to the
+ * bar adds it to the drawer, and an icon is the only thing this list adds.
  */
-const DRAWER_PRIMARY = [
-  { to: '/', labelKey: 'nav.home', icon: Home, end: true },
-  { to: '/fixtures', labelKey: 'nav.matches', icon: CalendarDays },
-  { to: '/leagues', labelKey: 'nav.leagues', icon: Trophy },
-  { to: '/teams', labelKey: 'nav.teams', icon: Users },
-  { to: '/news', labelKey: 'nav.news', icon: Newspaper },
-  { to: '/amashuri', labelKey: 'nav.amashuri', icon: GraduationCap },
-];
+const DRAWER_ICONS = {
+  '/': Compass,
+  '/fixtures': CalendarDays,
+  '/sports': Medal,
+  '/leagues': Trophy,
+  '/teams': Users,
+  '/news': Newspaper,
+  '/amashuri': GraduationCap,
+};
 
-/** Utility destinations, below a rule. */
+const DRAWER_PRIMARY = [
+  ...PRIMARY_LEFT,
+  { to: '/sports', labelKey: 'nav.sports' },
+  ...PRIMARY_RIGHT,
+].map((item) => ({ ...item, icon: DRAWER_ICONS[item.to] ?? Compass }));
+
+/**
+ * Utility destinations, below a rule.
+ *
+ * Contact only. Calendar used to sit here and nowhere on desktop, which is half of
+ * why the drawer was longer than the bar; it is reachable from the Matches page on
+ * both, which is where someone looking for a date actually goes.
+ */
 const DRAWER_SECONDARY = [
-  { to: '/calendar', labelKey: 'nav.calendar', icon: CalendarDays },
   { to: '/contact', labelKey: 'nav.contact', icon: Mail },
 ];
 

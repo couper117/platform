@@ -17,6 +17,7 @@ import EmptyState from '../../../components/ui/EmptyState';
 import ErrorState from '../../../components/ui/ErrorState';
 import Skeleton from '../../../components/ui/Skeleton';
 import cn from '../../../components/ui/cn';
+import PageAd from '../../../components/shared/PageAd';
 
 /**
  * The shell every sport page shares: identity, the four counters, and the tabs.
@@ -204,6 +205,14 @@ const SportLayout = () => {
 
       <div className="mx-auto max-w-3xl px-4 py-6 lg:max-w-6xl lg:px-6 lg:py-8">
         <Outlet context={{ sport, sportId, slug, leagues, primaryLeague, fixtures, live, upcoming, results, news, teams }} />
+      </div>
+      {/* Advertising sits at the FOOT of the page, after the content, never
+          spliced into it. An advert dropped between two fixtures or two
+          paragraphs interrupts the thing the reader came for; down here it is
+          the last item on the screen and costs the page nothing. AdSlot
+          collapses to nothing when the position has no inventory. */}
+      <div className="mx-auto max-w-3xl px-4 pb-8 lg:max-w-6xl lg:px-6 lg:pb-12">
+        <PageAd position="sport" />
       </div>
     </div>
   );

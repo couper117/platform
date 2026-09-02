@@ -109,7 +109,18 @@ const routes = [
   ['GET', /^\/news\/([^/]+)\/?$/, (m) => ok({ data: db.news.find((n) => n.slug === m[1] || String(n.id) === m[1]) || db.news[0] })],
   ['GET', /^\/news\/?$/, (_m, p) => ok({ data: p.limit ? db.news.slice(0, Number(p.limit)) : db.news })],
 
-  ['GET', /^\/players\/([^/]+)\/?$/, (m) => ok({ data: byId(db.players, m[1]) || db.players[0] })],
+  // The detail endpoint carries the season and the form; the list stays lean.
+  //
+  // NO `|| db.players[0]` HERE, unlike its neighbours. Falling back to the first
+  // record keeps a screen alive when a link is stale, which is the right trade for
+  // an embedded panel — but /players/:id is a page people link to directly, and
+  // serving somebody else's season under the requested id is worse than an error.
+  // The page has an ErrorState for exactly this.
+  ['GET', /^\/players\/([^/]+)\/?$/, (m) => {
+    const player = byId(db.players, m[1]);
+    if (!player) return { data: { message: 'Player not found' }, status: 404, statusText: 'Not Found', headers: {} };
+    return ok({ data: { ...player, season: db.seasonFor(player), form: db.formFor(player, db.fixtures) } });
+  }],
   ['GET', /^\/players\/?$/, (_m, p) => ok({ data: filterPlayers(p) })],
 
   ['GET', /^\/documents\/requirements\/?$/, () => ok({ data: ['NATIONAL_ID', 'BIRTH_CERTIFICATE', 'MEDICAL', 'PASSPORT'] })],
@@ -150,7 +161,25 @@ const routes = [
   // Amashuri Games (served under /akc3/*)
   ['GET', /^\/akc3\/(admin\/)?schools\/([^/]+)\/?$/, (m) => ok({ data: db.buildSchoolDetail(byId(db.schools, m[2]) || db.schools[0]) })],
   ['GET', /^\/akc3\/(admin\/)?schools\/?$/, (_m, p) => ok({ data: filterSchools(p) })],
+  // A school team is a destination now, not a row inside a school page.
+  ['GET', /^\/akc3\/teams\/([^/]+)\/?$/, (m) => {
+    const team = byId(db.akcTeams, m[1]);
+    if (!team) return { data: { message: 'Team not found' }, status: 404, statusText: 'Not Found', headers: {} };
+    return ok({ data: db.buildAkcTeamDetail(team) });
+  }],
   ['GET', /^\/akc3\/teams\/?$/, (_m, p) => ok({ data: p.schoolId ? db.akcTeams.filter((t) => String(t.schoolId) === String(p.schoolId)) : db.akcTeams })],
+  // Same shape /players/:id returns, so both feed the one PlayerProfile.
+  ['GET', /^\/akc3\/athletes\/([^/]+)\/?$/, (m) => {
+    const athlete = byId(db.akcAthletes, m[1]);
+    if (!athlete) return { data: { message: 'Athlete not found' }, status: 404, statusText: 'Not Found', headers: {} };
+    const team = byId(db.akcTeams, athlete.teamId);
+    return ok({ data: {
+      ...athlete,
+      season: db.seasonFor(athlete),
+      form: db.akcFormFor(athlete),
+      teamLabel: team,
+    } });
+  }],
   ['GET', /^\/akc3\/fixtures\/([^/]+)\/?$/, (m) => ok({ data: byId(db.akcFixtures, m[1]) || db.akcFixtures[0] })],
   ['GET', /^\/akc3\/(fixtures|results)\/?$/, (_m, p) => ok({ data: filterAkcFixtures(p) })],
   ['GET', /^\/akc3\/standings\/?$/, (_m, p) => ok({ data: p.competitionId ? db.akcStandings.filter((s) => String(s.competitionId) === String(p.competitionId)) : db.akcStandings })],
@@ -168,8 +197,15 @@ const routes = [
 
 export default function mockAdapter(config) {
   const method = (config.method || 'get').toUpperCase();
-  const url = (config.url || '').split('?')[0];
-  const params = config.params || {};
+  const raw = config.url || '';
+  const url = raw.split('?')[0];
+  // A QUERY STRING IN THE URL COUNTS TOO. This read only `config.params`, so a
+  // caller that wrote the query by hand — `get('/ads?position=SIDEBAR')`, which is
+  // how every ad slot asks — had its filter silently dropped and got the unfiltered
+  // list back. Every slot on the page then rendered `list[0]`: the same advert
+  // three times over. Axios params still win, since they are the typed form.
+  const query = Object.fromEntries(new URLSearchParams(raw.split('?')[1] || ''));
+  const params = { ...query, ...(config.params || {}) };
   let body = config.data;
   if (typeof body === 'string') {
     try { body = JSON.parse(body); } catch { /* leave as-is */ }
@@ -180,7 +216,16 @@ export default function mockAdapter(config) {
     const match = url.match(re);
     if (match) {
       const res = (handler as (m: any, p: any, b: any) => any)(match, params, body);
-      return Promise.resolve({ ...res, config, request: {} });
+      const response = { ...res, config, request: {} };
+      // An adapter settles its own status — axios does not apply validateStatus to
+      // what an adapter resolves with. Without this, a handler returning 404
+      // resolved as a success and the caller rendered the error body as data.
+      if (response.status >= 400) {
+        return Promise.reject(Object.assign(new Error(`Request failed with status code ${response.status}`), {
+          isAxiosError: true, config, request: {}, response,
+        }));
+      }
+      return Promise.resolve(response);
     }
   }
 

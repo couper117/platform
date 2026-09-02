@@ -8,6 +8,7 @@ import Seo from '../../components/shared/Seo';
 import useDateFormat from '../../i18n/dateLocale';
 import { useEnumLabel } from '../../i18n/enums';
 import { Badge, Button, EmptyState, ErrorState, Skeleton, SkeletonText } from '../../components/ui';
+import PageAd from '../../components/shared/PageAd';
 
 /**
  * Article.
@@ -144,6 +145,12 @@ const NewsArticlePage = () => {
           ].join(' ')}
           dangerouslySetInnerHTML={{ __html: article.body || '' }}
         />
+
+        {/* AFTER THE ARTICLE, not inside it. The body is injected as HTML, so
+            there is no seam to splice a unit into without parsing the markup —
+            and an advert between two paragraphs of a story is the placement
+            readers most resent anyway. */}
+        <PageAd position="article" className="mt-8" />
       </div>
     </article>
   );

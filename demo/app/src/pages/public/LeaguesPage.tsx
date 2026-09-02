@@ -9,6 +9,7 @@ import Seo from '../../components/shared/Seo';
 import LeagueCard from '../../components/league/LeagueCard';
 import { Button, EmptyState, ErrorState, SectionHeading, Select as SelectField, SkeletonList } from '../../components/ui';
 import cn from '../../components/ui/cn';
+import PageAd from '../../components/shared/PageAd';
 
 // `Select` is a plain .jsx primitive with an untyped forwardRef signature, so a
 // .tsx caller passing named props (label/value/onChange/...) fails the JSX
@@ -183,6 +184,14 @@ const LeaguesPage = () => {
             }
           />
         )}
+      </div>
+      {/* Advertising sits at the FOOT of the page, after the content, never
+          spliced into it. An advert dropped between two fixtures or two
+          paragraphs interrupts the thing the reader came for; down here it is
+          the last item on the screen and costs the page nothing. AdSlot
+          collapses to nothing when the position has no inventory. */}
+      <div className="mx-auto max-w-3xl px-4 pb-8 lg:max-w-6xl lg:px-6 lg:pb-12">
+        <PageAd position="leagues" />
       </div>
     </div>
   );

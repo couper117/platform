@@ -5,6 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { School, Search, ChevronRight } from 'lucide-react';
 import { getSchools } from '../../api/endpoints/amashuri';
 import { useEnumLabel } from '../../i18n/enums';
+import { schoolCover } from '../../config/amashuriMedia';
+import ClubCrest from '../../components/ui/ClubCrest';
 import Seo from '../../components/shared/Seo';
 import { Badge, EmptyState, ErrorState, Input as InputField, Skeleton, SkeletonList } from '../../components/ui';
 import cn from '../../components/ui/cn';
@@ -38,48 +40,72 @@ const CategoryChip = ({ active, children, ...props }: any) => (
   </button>
 );
 
+/**
+ * A school, as a card.
+ *
+ * IT LEADS WITH A PHOTOGRAPH NOW. Every card was a generic grey mortarboard icon
+ * in a rounded square, so a directory of forty schools was forty identical tiles
+ * — a database table with rounded corners. These are real Rwandan campuses and
+ * classrooms; a school keeps the same one every time (see config/amashuriMedia),
+ * and its own photo wins as soon as the API has one.
+ */
 const SchoolCard = ({ school, t, enumLabel }: { school: any; t: any; enumLabel: any }) => (
   <Link
     to={`/amashuri/schools/${school.id}`}
-    className="group flex h-full flex-col gap-4 rounded-card border border-hairline bg-surface p-4 transition-colors duration-150 ease-standard hover:border-brand/40 hover:bg-surface-2 sm:p-5"
+    className="group flex h-full flex-col overflow-hidden rounded-card border border-hairline bg-surface transition-colors duration-150 ease-standard hover:border-brand/40 hover:bg-surface-2"
   >
-    <div className="flex items-start justify-between gap-2">
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control bg-surface-2 text-tertiary transition-colors duration-150 ease-standard group-hover:bg-brand-tint group-hover:text-brand-text">
-        <School size={18} aria-hidden="true" />
-      </span>
-      <Badge>{enumLabel('school_category', school.category)}</Badge>
+    <div className="relative aspect-[16/9] shrink-0 overflow-hidden bg-surface-2">
+      <img
+        src={schoolCover(school)}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        className="h-full w-full object-cover transition-transform duration-700 ease-standard group-hover:scale-105"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />
+      <div className="absolute bottom-2 left-3">
+        <ClubCrest team={school} size="lg" />
+      </div>
+      <Badge className="absolute right-2 top-2 border-white/25 bg-black/45 text-white backdrop-blur-sm">
+        {enumLabel('school_category', school.category)}
+      </Badge>
     </div>
 
-    <div className="min-w-0 flex-1 space-y-1">
-      <h3 className="truncate font-display text-lg font-semibold text-primary">{school.name}</h3>
-      <p className="flex items-center gap-1.5 truncate text-xs text-tertiary">
-        {school.code && (
-          <>
-            <span>{t('amashuri.directory.code', { code: school.code })}</span>
-            <span aria-hidden="true">·</span>
-          </>
-        )}
-        <span className="truncate">{school.sector || t('amashuri.level.national')}</span>
-      </p>
-    </div>
+    {/* ONE PADDED COLUMN, not two siblings. The footer used to sit outside the
+        body and lean on the card's own `p-4`; once the padding moved inside to
+        let the photograph go full-bleed, "View School Teams" was left flush
+        against the card edge and clipped. */}
+    <div className="flex min-w-0 flex-1 flex-col p-4 sm:p-5">
+      <div className="min-w-0 space-y-1">
+        <h3 className="truncate font-display text-lg font-semibold text-primary">{school.name}</h3>
+        <p className="flex items-center gap-1.5 truncate text-xs text-tertiary">
+          {school.code && (
+            <>
+              <span>{t('amashuri.directory.code', { code: school.code })}</span>
+              <span aria-hidden="true">·</span>
+            </>
+          )}
+          <span className="truncate">{school.sector || t('amashuri.level.national')}</span>
+        </p>
+      </div>
 
-    <div className="mt-auto flex items-center justify-between border-t border-hairline pt-3 text-xs font-semibold text-secondary transition-colors duration-150 ease-standard group-hover:text-brand-text">
-      <span>{t('amashuri.directory.view_teams')}</span>
-      <ChevronRight size={15} aria-hidden="true" />
+      <div className="mt-auto flex items-center justify-between border-t border-hairline pt-3 text-xs font-semibold text-secondary transition-colors duration-150 ease-standard group-hover:text-brand-text">
+        <span>{t('amashuri.directory.view_teams')}</span>
+        <ChevronRight size={15} aria-hidden="true" />
+      </div>
     </div>
   </Link>
 );
 
 const SchoolCardSkeleton = () => (
-  <div className="h-full rounded-card border border-hairline bg-surface p-4 sm:p-5">
-    <div className="mb-4 flex items-start justify-between gap-2">
-      <Skeleton className="h-10 w-10" />
-      <Skeleton className="h-5 w-16" />
-    </div>
-    <Skeleton className="h-5 w-3/4" />
-    <Skeleton className="mt-2 h-3 w-1/2" />
-    <div className="mt-4 border-t border-hairline pt-3">
-      <Skeleton className="h-3 w-1/3" />
+  <div className="h-full overflow-hidden rounded-card border border-hairline bg-surface">
+    <Skeleton className="aspect-[16/9] w-full rounded-none" />
+    <div className="p-4 sm:p-5">
+      <Skeleton className="h-5 w-3/4" />
+      <Skeleton className="mt-2 h-3 w-1/2" />
+      <div className="mt-4 border-t border-hairline pt-3">
+        <Skeleton className="h-3 w-1/3" />
+      </div>
     </div>
   </div>
 );
@@ -100,14 +126,12 @@ const SchoolDirectory = () => {
   const list = schools?.data || [];
 
   return (
-    <div className="min-h-screen bg-page">
+    <>
       <Seo title={t('seo.amashuri_directory_title')} description={t('seo.amashuri_directory_desc')} />
 
       <div className="mx-auto max-w-3xl px-4 pt-4 lg:max-w-6xl lg:px-6 lg:pt-6">
-        <h1 className="mb-3 font-display text-xl font-extrabold tracking-[-0.02em] text-primary sm:mb-4 sm:text-3xl">
-          {t('amashuri.directory.title')} {t('amashuri.directory.accent')}
-        </h1>
-        <p className="mb-4 text-sm text-secondary sm:mb-6">{t('amashuri.directory.subtitle')}</p>
+        {/* NO H1. The tab bar in AmashuriLayout already names this page. */}
+        <p className="mb-4 text-sm text-secondary">{t('amashuri.directory.subtitle')}</p>
 
         <label htmlFor="school-search" className="sr-only">{t('common.search')}</label>
         <div className="relative mb-4">
@@ -148,7 +172,7 @@ const SchoolDirectory = () => {
           <EmptyState icon={School} title={t('amashuri.directory.not_found')} hint={t('amashuri.directory.not_found_hint')} />
         )}
       </div>
-    </div>
+    </>
   );
 };
 

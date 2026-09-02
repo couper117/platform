@@ -56,14 +56,11 @@ const AkcFixturesPage = () => {
   const list = fixtures?.data || [];
 
   return (
-    <div className="min-h-screen bg-page">
+    <>
       <Seo title={t('seo.amashuri_fixtures_title')} description={t('seo.amashuri_fixtures_desc')} />
 
       <div className="mx-auto max-w-3xl px-4 pt-4 lg:max-w-6xl lg:px-6 lg:pt-6">
-        <h1 className="mb-3 font-display text-xl font-extrabold tracking-[-0.02em] text-primary sm:mb-4 sm:text-3xl">
-          {t('amashuri.schedule.title')} {t('amashuri.schedule.accent')}
-        </h1>
-
+        {/* NO H1. The tab bar in AmashuriLayout already names this page. */}
         <nav aria-label={t('fixtures.filter_state', 'State')} className="flex items-stretch gap-6 border-b border-hairline">
           {TABS.map(([value, labelKey]) => (
             <Tab key={value} active={status === value} onClick={() => setStatus(value)}>
@@ -98,7 +95,7 @@ const AkcFixturesPage = () => {
           <EmptyState icon={Activity} title={t('amashuri.schedule.empty')} hint={t('amashuri.schedule.empty_hint')} />
         )}
       </div>
-    </div>
+    </>
   );
 };
 

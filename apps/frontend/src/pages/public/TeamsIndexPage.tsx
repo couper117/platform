@@ -9,6 +9,7 @@ import Seo from '../../components/shared/Seo';
 import TeamCard from '../../components/team/TeamCard';
 import { Button, EmptyState, ErrorState, SkeletonList } from '../../components/ui';
 import cn from '../../components/ui/cn';
+import PageAd from '../../components/shared/PageAd';
 
 /**
  * Public teams directory — a discovery entry point for the "Teams" nav item.
@@ -181,6 +182,14 @@ const TeamsIndexPage = () => {
             }
           />
         )}
+      </div>
+      {/* Advertising sits at the FOOT of the page, after the content, never
+          spliced into it. An advert dropped between two fixtures or two
+          paragraphs interrupts the thing the reader came for; down here it is
+          the last item on the screen and costs the page nothing. AdSlot
+          collapses to nothing when the position has no inventory. */}
+      <div className="mx-auto max-w-3xl px-4 pb-8 lg:max-w-6xl lg:px-6 lg:pb-12">
+        <PageAd position="teams" />
       </div>
     </div>
   );
