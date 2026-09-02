@@ -1,35 +1,41 @@
 # HANDOFF
 
 ## Current Task
-Rebuilding the Amashuri match page, and taking the gutter rails off pages they
-did not suit.
+Depth in the football data: recent form and head-to-head.
 
 ## Status
-Solved.
+Solved — but the feature exposed that the dataset had no history to draw on, so
+most of the work was making the demo's numbers real.
 
-- **`/amashuri/matches/:id` was the last pre-redesign screen in the public app.**
-  Full-bleed saturated green-to-teal gradient, both school names in ALL-CAPS
-  display type wrapping to three lines, an empty "MATCH SUMMARY" card and a
-  four-row table floating in half a screen of green — plus its own private
-  `SchoolBadge` / `ScoreDigit` / `initials()`, a third implementation of a
-  scoreboard the app already had twice. It is the national match page now: same
-  MatchScoreboard, MatchEventTimeline, MatchComments, same tokens.
-- **`asFixture` is the whole trick.** The schools endpoint returns `competition`
-  where the league one returns `league`, and its `homeTeam` is
-  `{ id, school, ageCategory, gender }` with the name a level down. One adapter
-  maps it into the shape the shared components already read — nothing forked.
-- **Found on the way: `ONGOING` vs `LIVE`.** `matchState` only knows the league
-  feed's word, so a schools match in progress fell through to "upcoming" and the
-  scoreboard printed VS on a game being played. Now shows the live pill and 1-1.
-  Checked against all three states — live, completed, scheduled.
-- **The teams are destinations.** The old page's only outbound link was a "view
-  school" line; both squads are one tap away now.
-- **The gutter rails are opt-in per route.** Run-of-site looked wrong on half the
-  app. `RAIL_ROUTES` allows the browsing pages — fixtures, live, results, calendar,
-  leagues, teams, sports, news index, and the Amashuri list tabs. Everything else
-  gets none: a single match, a player, an athlete, an article, a school profile,
-  contact and the legal pages, where a column of advertising is the loudest thing
-  on a screen the reader opened for one thing. Verified across 16 routes.
+- **Head-to-head on the match page.** Previous meetings between the two clubs,
+  the aggregate record as a three-segment bar, and each side's last-five form.
+  Placed above the timeline, because a timeline is what happened and this is why
+  you would watch — and on a fixture that has not kicked off it is the only
+  content there.
+- **Form in the league table**, as a column rather than behind the expander.
+  `showForm` is a PROP, not a breakpoint: StandingsTable renders both full width
+  on a standings page and inside a 320px rail on /fixtures, and both are desktop,
+  so a `lg:` variant would have broken the no-horizontal-scroll rule the table was
+  written to protect. Verified: 12 strips on the standings tab, 0 in the rail.
+- **The dataset had no history.** 18 fixtures, 6 completed, exactly one repeated
+  pairing and neither leg played — so head-to-head said "these two have not met"
+  on every match in the app. `historyFixtures` now generates the matchweeks before
+  this one by round-robin rotation, dated backwards: 115 results instead of 6.
+- **The league table is computed from those results.** It used to be invented —
+  `played: 18` for everyone, a won/drawn curve from the row index, and a hard-coded
+  `forms[]` array dealt out round-robin. The table disagreed with the fixture list
+  beside it, the form strip disagreed with both, and a demo whose numbers do not
+  add up is one arithmetic question away from being caught. Table, form strips,
+  head-to-head and /results now all fold over the same games.
+- **Two corrections the derivation forced.** A flat random season put Marines FC
+  top of the Premier League, which nobody following Rwandan football would read
+  past; `STRENGTH` tilts the generator so APR and Rayon lead. And basketball was
+  being ranked on football's 3-1-0, awarding draws in a sport that cannot draw and
+  putting a -26 differential above a +36; `SCORING` gives each league its own
+  system (FIBA 2-1-0 and wins-first for basketball).
+
+Football now reads APR, Rayon, Police, Mukura, AS Kigali — a table a Rwandan
+recognises.
 
 ## Progress
 - [x] `scripts/make-ad-creatives.mjs` rebuilt: 6 sponsors x 3 shapes (-lg/-mb/-mr)

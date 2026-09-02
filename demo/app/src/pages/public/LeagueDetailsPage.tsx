@@ -246,7 +246,7 @@ const LeagueDetailsPage = () => {
               <span className="shrink-0 text-xs text-tertiary">{t('league.last_updated_today')}</span>
             </div>
             {standingsRows.length > 0 ? (
-              <StandingsTable rows={standingsRows} />
+              <StandingsTable rows={standingsRows} showForm />
             ) : (
               <EmptyState icon={Trophy} title={t('standings.empty')} />
             )}

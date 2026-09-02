@@ -101,7 +101,7 @@ const SportStandings = () => {
         <EmptyState icon={Trophy} title={t('sporthub.standings_no_table')} hint={t('sporthub.standings_empty')} />
       ) : (
         <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-6">
-          <StandingsTable rows={rows} />
+          <StandingsTable rows={rows} showForm />
           <div className="space-y-4">
             <TopScorers scorers={scorers} />
             {/* Desktop only: on a phone the rail stacks under the table and the

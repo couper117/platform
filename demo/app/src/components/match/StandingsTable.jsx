@@ -9,17 +9,25 @@ import cn from '../ui/cn';
  * League table.
  *
  * SIX COLUMNS AND NO HORIZONTAL SCROLL, EVER. pos / crest / name / P / GD / Pts.
- * The rest — W, D, L, goals for and against, recent form — lives behind an inline
- * expansion, because a sideways-scrolling table hides the column you are looking
- * for and, in a 320px rail, would hide most of them.
+ * The rest — W, D, L, goals for and against — lives behind an inline expansion,
+ * because a sideways-scrolling table hides the column you are looking for and, in
+ * a 320px rail, would hide most of them.
  *
  * The four columns that got cut are the ones you can derive or rarely need; the
  * ones kept are what people actually read a table for: who is top, on how many
  * points, having played how many.
+ *
+ * `showForm` IS A PROP, NOT A BREAKPOINT, and that distinction matters. Recent
+ * form is the one cut column a reader genuinely scans a table for — it answers
+ * "who is actually playing well", which points-to-date cannot. But this component
+ * renders BOTH full width on a standings page and inside a 320px rail on
+ * /fixtures, and both of those are desktop. A `lg:` variant would put the strip in
+ * the rail too and break the no-scroll rule it was written to protect. The page
+ * knows how much room it has; the component cannot.
  */
 
 /** W/D/L from the `form` string, most recent last. Colour is the only signal. */
-export const FormStrip = ({ form = '', className }) => {
+export const FormStrip = ({ form = '', className = '' }) => {
   const marks = form.slice(-5).split('');
   if (marks.length === 0) return null;
   return (
@@ -45,7 +53,7 @@ const Stat = ({ label, value }) => (
   </div>
 );
 
-const StandingsRow = ({ row, expanded, onToggle, safe }) => {
+const StandingsRow = ({ row, expanded, onToggle, safe, showForm }) => {
   const gd = (row.goalsFor ?? 0) - (row.goalsAgainst ?? 0);
 
   return (
@@ -59,6 +67,7 @@ const StandingsRow = ({ row, expanded, onToggle, safe }) => {
         <span className="w-4 shrink-0 text-xs tabular-nums text-tertiary">{row.rank}</span>
         <ClubCrest team={row.team} size="sm" />
         <span className="min-w-0 flex-1 truncate text-sm text-primary">{row.team?.name}</span>
+        {showForm && row.form ? <FormStrip form={row.form} className="mr-2 hidden shrink-0 sm:flex" /> : null}
         <span className="w-5 shrink-0 text-right text-sm tabular-nums text-secondary">
           {row.played ?? 0}
         </span>
@@ -85,7 +94,7 @@ const StandingsRow = ({ row, expanded, onToggle, safe }) => {
               <Stat label="L" value={row.lost ?? 0} />
               <Stat label="GF" value={row.goalsFor ?? 0} />
               <Stat label="GA" value={row.goalsAgainst ?? 0} />
-              {row.form ? <FormStrip form={row.form} className="pb-1" /> : null}
+              {!showForm && row.form ? <FormStrip form={row.form} className="pb-1" /> : null}
             </div>
           </motion.div>
         )}
@@ -94,7 +103,7 @@ const StandingsRow = ({ row, expanded, onToggle, safe }) => {
   );
 };
 
-const StandingsTable = ({ rows = [], className }) => {
+const StandingsTable = ({ rows = [], className = '', showForm = false }) => {
   const safe = useMotionSafe();
   const [openId, setOpenId] = useState(null);
 
@@ -105,6 +114,7 @@ const StandingsTable = ({ rows = [], className }) => {
       <div className="flex items-center gap-2 border-b border-hairline px-3 py-2">
         <h2 className="flex-1 font-display text-base font-semibold text-primary">Table</h2>
         {/* Column key, so the three abbreviations are never a guess. */}
+        {showForm && <span className="mr-2 hidden w-[76px] text-xs text-tertiary sm:block">Form</span>}
         <span className="w-5 text-right text-xs text-tertiary">P</span>
         <span className="w-7 text-right text-xs text-tertiary">GD</span>
         <span className="w-6 text-right text-xs text-tertiary">Pts</span>
@@ -115,6 +125,7 @@ const StandingsTable = ({ rows = [], className }) => {
             key={row.id ?? row.teamId}
             row={row}
             safe={safe}
+            showForm={showForm}
             expanded={openId === (row.id ?? row.teamId)}
             onToggle={() =>
               setOpenId((cur) => (cur === (row.id ?? row.teamId) ? null : row.id ?? row.teamId))

@@ -279,7 +279,13 @@
     "time_days_ago": "il y a {{count}} j",
     "captain": "Capitaine",
     "show_all_events_one": "Afficher {{count}} événement précédent",
-    "show_all_events_other": "Afficher {{count}} événements précédents"
+    "show_all_events_other": "Afficher {{count}} événements précédents",
+    "head_to_head": "Confrontations",
+    "h2h_wins_one": "{{count}} victoire",
+    "h2h_wins_other": "{{count}} victoires",
+    "h2h_draws_one": "{{count}} nul",
+    "h2h_draws_other": "{{count}} nuls",
+    "h2h_none": "Ces deux équipes ne se sont encore jamais rencontrées en compétition."
   },
   "standings": {
     "col_pos": "Pos",

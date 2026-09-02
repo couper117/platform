@@ -279,7 +279,13 @@
     "time_days_ago": "{{count}}d ago",
     "captain": "Captain",
     "show_all_events_one": "Show {{count}} earlier event",
-    "show_all_events_other": "Show {{count}} earlier events"
+    "show_all_events_other": "Show {{count}} earlier events",
+    "head_to_head": "Head to head",
+    "h2h_wins_one": "{{count}} win",
+    "h2h_wins_other": "{{count}} wins",
+    "h2h_draws_one": "{{count}} draw",
+    "h2h_draws_other": "{{count}} draws",
+    "h2h_none": "These two have not met before in a competition on record."
   },
   "standings": {
     "col_pos": "Pos",

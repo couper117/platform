@@ -279,7 +279,13 @@
     "time_days_ago": "{{count}} iminsi ishize",
     "captain": "Kapiteni",
     "show_all_events_one": "Erekana ikindi {{count}} cyabaye mbere",
-    "show_all_events_other": "Erekana ibindi {{count}} byabaye mbere"
+    "show_all_events_other": "Erekana ibindi {{count}} byabaye mbere",
+    "head_to_head": "Uko bahuye",
+    "h2h_wins_one": "Intsinzi {{count}}",
+    "h2h_wins_other": "Intsinzi {{count}}",
+    "h2h_draws_one": "Kunganya {{count}}",
+    "h2h_draws_other": "Kunganya {{count}}",
+    "h2h_none": "Aya makipe ntiyigeze ahura mu marushanwa yanditswe."
   },
   "standings": {
     "col_pos": "Umw.",
