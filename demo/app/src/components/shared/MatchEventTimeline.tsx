@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Clock } from 'lucide-react';
+import { Clock, ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { eventMeta } from './matchEventMeta';
 import { useEnumLabel } from '../../i18n/enums';
@@ -10,9 +10,19 @@ import EmptyState from '../ui/EmptyState';
  * Vertical, home/away-aligned match event feed. New events animate in (used by the
  * live match center). `homeTeamId` decides which side an event renders on.
  */
+/**
+ * How many events show before the feed is capped.
+ *
+ * Nothing bounded this, so a long match buried the rest of the page under its own
+ * timeline. Eight covers the recent run of play, which is what anyone opening a
+ * match is actually reading; the whole feed is one tap away.
+ */
+const VISIBLE = 8;
+
 const MatchEventTimeline = ({ events = [], homeTeamId }) => {
   const { t } = useTranslation();
   const enumLabel = useEnumLabel();
+  const [showAll, setShowAll] = useState(false);
 
   if (!events.length) {
     return <EmptyState icon={Clock} title={t('match.awaiting_kickoff')} hint={t('match.awaiting_hint')} />;
@@ -20,12 +30,14 @@ const MatchEventTimeline = ({ events = [], homeTeamId }) => {
 
   // Newest first; if minutes are present, keep chronological-desc ordering.
   const sorted = [...events].sort((a, b) => (b.minute ?? 0) - (a.minute ?? 0));
+  const visible = showAll ? sorted : sorted.slice(0, VISIBLE);
+  const hidden = sorted.length - visible.length;
 
   return (
     <ol className="relative space-y-3">
-      <span className="absolute left-1/2 top-2 bottom-2 w-px -translate-x-1/2 bg-surface-3 dark:bg-white/10 hidden sm:block" />
+      <span className="absolute left-1/2 top-2 bottom-2 w-px -translate-x-1/2 bg-hairline hidden sm:block" />
       <AnimatePresence initial={false}>
-        {sorted.map((event, i) => {
+        {visible.map((event, i) => {
           const meta = eventMeta(event.eventType);
           const isHome = homeTeamId != null && event.teamId === homeTeamId;
           const { Icon } = meta;
@@ -73,6 +85,19 @@ const MatchEventTimeline = ({ events = [], homeTeamId }) => {
           );
         })}
       </AnimatePresence>
+
+      {hidden > 0 && (
+        <li className="pt-1">
+          <button
+            type="button"
+            onClick={() => setShowAll(true)}
+            className="flex min-h-tap w-full items-center justify-center gap-1.5 rounded-card border border-hairline bg-surface text-sm font-semibold text-secondary transition-colors duration-150 ease-standard hover:border-brand/40 hover:text-brand-text"
+          >
+            {t('match.show_all_events', { count: hidden })}
+            <ChevronDown size={15} aria-hidden="true" />
+          </button>
+        </li>
+      )}
     </ol>
   );
 };

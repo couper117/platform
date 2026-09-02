@@ -9,7 +9,7 @@ import cn from '../ui/cn';
  * League table.
  *
  * SIX COLUMNS AND NO HORIZONTAL SCROLL, EVER. pos / crest / name / P / GD / Pts.
- * The rest Ã¢â‚¬â€ W, D, L, goals for and against, recent form Ã¢â‚¬â€ lives behind an inline
+ * The rest — W, D, L, goals for and against, recent form — lives behind an inline
  * expansion, because a sideways-scrolling table hides the column you are looking
  * for and, in a 320px rail, would hide most of them.
  *

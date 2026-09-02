@@ -1,0 +1,1 @@
+import{r as a}from"./vendor-react-BQ53PF2o.js";function i(e){const[c,n]=a.useState(()=>typeof window<"u"&&window.matchMedia(e).matches);return a.useEffect(()=>{const t=window.matchMedia(e),s=o=>n(o.matches);return n(t.matches),t.addEventListener("change",s),()=>t.removeEventListener("change",s)},[e]),c}const d=()=>i("(min-width: 1024px)");export{i as a,d as u};

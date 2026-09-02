@@ -141,7 +141,7 @@ const LeagueReportersPage = () => {
                 <p className="text-[11px] text-tertiary">{r.user?.email}</p>
               </td>
               <td className="px-6 py-4 text-sm text-secondary">{r.fixture ? `${r.fixture.homeTeam?.name} v ${r.fixture.awayTeam?.name}` : t('ladmin.league_wide')}</td>
-              <td className="px-6 py-4 text-sm tabular-nums text-tertiary">{r.assignedAt ? format(new Date(r.assignedAt), 'd MMM yyyy') : 'â€”'}</td>
+              <td className="px-6 py-4 text-sm tabular-nums text-tertiary">{r.assignedAt ? format(new Date(r.assignedAt), 'd MMM yyyy') : '—'}</td>
             </tr>
           ))}
         </AdminTable>

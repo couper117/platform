@@ -24,10 +24,12 @@ import cn from '../ui/cn';
  * GREEN IS THE UNDERLINE AND NOTHING ELSE. One 2px rule under the active tab,
  * which is the entire colour budget this control needs.
  *
- * TWO CONTROLS FOR THE COMPETITION, ONE PER BREAKPOINT — mutually exclusive, not
- * duplicated. Chips on mobile (self-evident, full-height targets, and they show
- * what exists without a tap); a select on desktop, where a dozen chips would eat
- * the row that the tabs need.
+ * THE COMPETITION FILTER IS DESKTOP-ONLY. It used to be a row of chips on mobile
+ * and a select on desktop. On a phone that chip row sat under the sport rail and
+ * the state tabs, so the first fixture began 281px down an 844px screen — a third
+ * of the viewport spent on filters before a single score. The sport rail is the
+ * scope people actually change; competition stays as the select on desktop, where
+ * the row costs nothing.
  */
 
 const Tab = ({ active, children, ...props }) => (
@@ -185,23 +187,11 @@ const FixtureFilters = ({
         )}
       </div>
 
-      {/* Competition — mobile only, as chips. */}
-      {leagues.length > 0 && (
-        <div className="scroll-contain -mx-4 flex gap-2 overflow-x-auto px-4 pb-0.5 pt-2.5 lg:hidden">
-          <Chip active={!leagueId} onClick={() => onLeague('')}>
-            {t('fixtures.all_leagues')}
-          </Chip>
-          {leagues.map((l) => (
-            <Chip
-              key={l.id}
-              active={String(leagueId) === String(l.id)}
-              onClick={() => onLeague(String(l.id))}
-            >
-              {l.name}
-            </Chip>
-          ))}
-        </div>
-      )}
+      {/* There is no competition filter on mobile.
+          It used to be a third row of chips under the sport rail and the state
+          tabs, which put the first fixture 281px down an 844px screen. The sport
+          rail is the filter people actually reach for; competition stays on
+          desktop as the Select above, where the row costs nothing. */}
     </div>
   );
 };

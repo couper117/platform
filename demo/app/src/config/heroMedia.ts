@@ -16,6 +16,12 @@
  * which REQUIRES attribution, which is why the hero prints a credit line rather
  * than treating the photograph as anonymous decoration.
  *
+ * CLIENT-SUPPLIED PRESS PHOTOGRAPHY carries `credit: null` and is NOT Commons —
+ * football and the three basketball frames came from the client (see CREDITS.md
+ * for each source). They are the client's to clear; the credit line is suppressed
+ * because printing a Commons-style attribution on a press photo would be wrong,
+ * not because the photograph is unattributed.
+ *
  * TO SWAP IN MINISPORTS PRESS PHOTOGRAPHY: drop the file in /public/hero/ under the
  * same name and set `credit: null`. Nothing else changes. Landscape, ~1920 wide,
  * and framed with the action to the RIGHT — the copy sits over the left third.
@@ -35,9 +41,11 @@ export type HeroSlide = {
 export const HERO_SLIDES: HeroSlide[] = [
   // Credits are copied verbatim from public/hero/CREDITS.md, which is generated
   // from Commons' own metadata. Do not retype them from memory.
-  { id: 'football', labelKey: 'explore.shot_football', to: '/sports/football', credit: 'Annick green' },
+  { id: 'football', labelKey: 'explore.shot_football', to: '/sports/football', credit: null },
   { id: 'cycling', labelKey: 'explore.shot_cycling', to: '/sports/cycling', credit: 'Isma250' },
-  { id: 'basketball', labelKey: 'explore.shot_basketball', to: '/sports/basketball', credit: 'Claude Nizeyimana' },
+  { id: 'basketball', labelKey: 'explore.shot_basketball', to: '/sports/basketball', credit: null },
+  { id: 'basketball-finals', labelKey: 'explore.shot_bal_finals', to: '/sports/basketball', credit: null },
+  { id: 'basketball-women', labelKey: 'explore.shot_womens_basketball', to: '/sports/basketball', credit: null },
   { id: 'athletics', labelKey: 'explore.shot_athletics', to: '/sports/athletics', credit: 'Davyimage' },
   { id: 'volleyball', labelKey: 'explore.shot_volleyball', to: '/sports/volleyball', credit: 'Davyimage' },
   { id: 'amashuri', labelKey: 'explore.shot_amashuri', to: '/amashuri', credit: 'Claude Nizeyimana' },

@@ -360,8 +360,10 @@ async function main() {
   ];
   const schools = [];
   for (const s of schoolDefs) {
+    // girlsOnly is a marker for the football loop below, not a column on AkcSchool.
+    const { girlsOnly, ...schoolData } = s;
     const exists = await prisma.akcSchool.findFirst({ where: { code: s.code } });
-    schools.push(exists || await prisma.akcSchool.create({ data: { ...s, active: true, coordinator: 'School Sports Coordinator', coordPhone: '+250789000000' } }));
+    schools.push(exists || await prisma.akcSchool.create({ data: { ...schoolData, active: true, coordinator: 'School Sports Coordinator', coordPhone: '+250789000000' } }));
   }
   const akcTeams = [];
   // A school-coordinator login for the first seeded school, so the school portal

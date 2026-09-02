@@ -102,7 +102,7 @@ const AdminSportAdminsPage = () => {
                 <span className="w-11 h-11 rounded-xl bg-red/10 text-red flex items-center justify-center"><ShieldCheck size={18} /></span>
                 <div>
                   <h3 className="font-display text-xl uppercase tracking-tight leading-none">{fed.name}</h3>
-                  <p className="text-[10px] uppercase font-bold tracking-widest opacity-40 mt-1">{fed.abbreviation || 'â€”'} Â· {fed.sport?.name || 'No sport'}</p>
+                  <p className="text-[10px] uppercase font-bold tracking-widest opacity-40 mt-1">{fed.abbreviation || '—'} · {fed.sport?.name || 'No sport'}</p>
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -123,7 +123,7 @@ const AdminSportAdminsPage = () => {
               <span className="w-11 h-11 rounded-xl bg-red text-white flex items-center justify-center"><GraduationCap size={18} /></span>
               <div>
                 <h3 className="font-display text-xl uppercase tracking-tight leading-none">Amashuri Games</h3>
-                <p className="text-[10px] uppercase font-bold tracking-widest opacity-40 mt-1">Inter-school section Â· dedicated admin</p>
+                <p className="text-[10px] uppercase font-bold tracking-widest opacity-40 mt-1">Inter-school section · dedicated admin</p>
               </div>
             </div>
             <div className="flex flex-wrap gap-2">

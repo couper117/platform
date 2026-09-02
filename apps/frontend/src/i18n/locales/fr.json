@@ -277,7 +277,9 @@
     "time_minutes_ago": "il y a {{count}} min",
     "time_hours_ago": "il y a {{count}} h",
     "time_days_ago": "il y a {{count}} j",
-    "captain": "Capitaine"
+    "captain": "Capitaine",
+    "show_all_events_one": "Afficher {{count}} événement précédent",
+    "show_all_events_other": "Afficher {{count}} événements précédents"
   },
   "standings": {
     "col_pos": "Pos",
@@ -524,7 +526,29 @@
     "no_news": "Pas encore d actualités sur le sport scolaire.",
     "news_default": "Actualités",
     "error_title": "Impossible de charger les Jeux Scolaires",
-    "error_hint": "Vérifiez votre connexion et réessayez."
+    "error_hint": "Vérifiez votre connexion et réessayez.",
+    "tab_overview": "Aperçu",
+    "tab_championships": "Championnats",
+    "tab_fixtures": "Calendrier",
+    "tab_standings": "Classement",
+    "tab_schools": "Écoles",
+    "banner_title": "Chaque école, chaque sport, un calendrier national",
+    "banner_body": "Des éliminatoires de district aux finales nationales — les Jeux Amashuri, là où naît le sport rwandais.",
+    "team_page": {
+      "squad": "Effectif",
+      "verified": "Vérifiés",
+      "no_players": "Aucun athlète inscrit",
+      "no_players_hint": "Cette équipe n’a pas encore inscrit son effectif.",
+      "not_found": "Équipe introuvable",
+      "not_found_hint": "Cette équipe a peut-être été retirée, ou le lien n’est plus à jour.",
+      "seo": "Effectif, entraîneur et statut d’inscription de cette équipe de {{school}}."
+    },
+    "athlete": {
+      "age_group": "Catégorie d’âge",
+      "eligibility": "Éligibilité",
+      "verified": "Vérifiée",
+      "pending": "En cours de vérification"
+    }
   },
   "admin": {
     "portal": "Portail Admin",
@@ -923,6 +947,66 @@
     "players_empty_title": "Aucun joueur pour le moment",
     "players_empty_hint": "L'effectif de ce club apparaîtra ici une fois les joueurs inscrits."
   },
+  "player": {
+    "seo": "{{name}} — statistiques de la saison et profil, {{team}}.",
+    "this_season": "Cette saison",
+    "recent_form": "Forme récente",
+    "profile": "Profil",
+    "age": "Âge",
+    "years_one": "{{count}} an",
+    "years_other": "{{count}} ans",
+    "nationality": "Nationalité",
+    "height": "Taille",
+    "weight": "Poids",
+    "licence": "Licence",
+    "vs_home": "contre {{team}}",
+    "vs_away": "à {{team}}",
+    "result": {
+      "W": "V",
+      "D": "N",
+      "L": "D"
+    },
+    "contribution": {
+      "goals_one": "{{count}} but",
+      "goals_other": "{{count}} buts",
+      "pts_one": "{{count}} pt",
+      "pts_other": "{{count}} pts"
+    },
+    "stat": {
+      "goals": "Buts",
+      "assists": "Passes dé.",
+      "appearances": "Matchs joués",
+      "minutes": "Minutes",
+      "clean_sheets": "Clean sheets",
+      "yellow_cards": "Cartons jaunes",
+      "red_cards": "Cartons rouges",
+      "ppg": "Pts/match",
+      "rpg": "Reb/match",
+      "apg": "Pass/match",
+      "spg": "Int/match",
+      "bpg": "Contres/match",
+      "mpg": "Min/match",
+      "games": "Matchs",
+      "points": "Points",
+      "kills": "Attaques",
+      "blocks": "Blocs",
+      "matches": "Matchs",
+      "aces": "Aces",
+      "digs": "Réceptions",
+      "stage_wins": "Victoires d'étape",
+      "podiums": "Podiums",
+      "races": "Courses",
+      "kom_points": "Points KOM",
+      "season_best": "Meilleure perf.",
+      "wins": "Victoires",
+      "meets": "Meetings",
+      "national_rank": "Rang national",
+      "saves": "Arrêts",
+      "suspensions": "Exclusions 2 min"
+    },
+    "not_found": "Joueur introuvable",
+    "not_found_hint": "Ce joueur a peut-être été retiré, ou le lien n’est plus à jour."
+  },
   "reporter": {
     "title": "Reportage",
     "title_accent": "de Terrain",
@@ -1046,7 +1130,15 @@
       "KICKOFF": "Coup d'envoi",
       "HALFTIME": "Mi-temps",
       "FULLTIME": "Fin du match",
-      "EXTRA_TIME": "Prolongations"
+      "EXTRA_TIME": "Prolongations",
+      "THREE_POINTER": "Panier à trois points",
+      "FREE_THROW": "Lancer franc",
+      "FOUL": "Faute",
+      "TIMEOUT": "Temps mort",
+      "QUARTER_END": "Fin de quart-temps",
+      "SET_END": "Fin de set",
+      "SUSPENSION": "Exclusion 2 minutes",
+      "SEVEN_METRE": "Jet de 7 mètres"
     },
     "position": {
       "GOALKEEPER": "Gardien",
@@ -1183,13 +1275,15 @@
     "explore_all": "Tout explorer",
     "hero_title": "La maison du sport rwandais",
     "photo_credit": "Photo : {{author}}",
-    "shot_football": "Football · Deuxième division",
+    "shot_football": "Amavubi · Équipe nationale du Rwanda",
     "shot_cycling": "Cyclisme · Tour du Rwanda",
     "shot_basketball": "Basketball · Kigali",
     "shot_athletics": "Athlétisme · Stade Amahoro",
     "shot_volleyball": "Volleyball · Nyabarongo",
     "shot_amashuri": "Sport scolaire · Jeux Amashuri",
-    "hero_kicker": "Rwanda · MINISPORTS"
+    "hero_kicker": "Rwanda · MINISPORTS",
+    "shot_bal_finals": "Finales de la Basketball Africa League · BK Arena",
+    "shot_womens_basketball": "Ligue féminine de basketball · APR c. REG"
   },
   "matchstat": {
     "possession": "Possession %",

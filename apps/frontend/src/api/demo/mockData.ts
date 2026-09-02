@@ -68,7 +68,7 @@ export const sports = [
   { id: 9, name: 'Tennis', icon: 'ð¾', slug: 'tennis', category: 'COURT', type: 'TEAM', sortOrder: 9, active: true, coverImage: null, description: 'The Rwanda Tennis Federation circuit.', _count: { teams: 10, leagues: 2, matches: 14 } },
   { id: 10, name: 'Judo', icon: 'ð¥', slug: 'judo', category: 'COMBAT', type: 'RACING', sortOrder: 10, active: true, coverImage: null, description: 'National judo championships and continental qualifiers.', _count: { teams: 9, leagues: 1, matches: 7 } },
   { id: 11, name: 'Boxing', icon: 'ð¥', slug: 'boxing', category: 'COMBAT', type: 'RACING', sortOrder: 11, active: true, coverImage: null, description: 'Amateur and elite national boxing cards.', _count: { teams: 11, leagues: 1, matches: 8 } },
-  { id: 12, name: 'Chess', icon: 'â', slug: 'chess', category: 'INDOOR', type: 'TEAM', sortOrder: 12, active: true, coverImage: null, description: 'The national chess championship and school olympiads.', _count: { teams: 18, leagues: 2, matches: 21 } },
+  { id: 12, name: 'Chess', icon: '♟', slug: 'chess', category: 'INDOOR', type: 'TEAM', sortOrder: 12, active: true, coverImage: null, description: 'The national chess championship and school olympiads.', _count: { teams: 18, leagues: 2, matches: 21 } },
 ];
 const sportRef = (id) => { const s = sports.find((x) => x.id === id); return { id: s.id, name: s.name, slug: s.slug, icon: s.icon }; };
 
@@ -171,6 +171,7 @@ const rosterFor = (team, size, posPool, female = false) => Array.from({ length: 
     photo: avatar(fullName),
     nationality: (i % 9 === 0) ? ['Cameroon', 'Ghana', 'Uganda', 'Burundi', 'DR Congo'][(team.id + i) % 5] : 'Rwanda',
     team: { id: team.id, name: team.name, logo: team.logo }, teamId: team.id,
+    sportId: team.sportId,
     position: posPool[i % posPool.length],
     jerseyNumber: i + 1,
     dateOfBirth: yearsAgo(age),
@@ -194,6 +195,171 @@ export const players = [
   ...teams.filter((t) => t.sportId === 5).flatMap((t) => rosterFor(t, 10, ATH_EVENTS)),
 ];
 const playersOf = (teamId) => players.filter((p) => p.teamId === teamId);
+
+/* ── player season stats ───────────────────────────────────────────────── */
+/**
+ * A player's season, per sport.
+ *
+ * EVERY SPORT COUNTS DIFFERENT THINGS. A basketball guard has points, rebounds
+ * and assists; a cyclist has stage wins and KOM points; a sprinter has a season
+ * best, not a goal tally. One shared "goals / assists / cards" shape would have
+ * been football's stat sheet printed over every other sport, which is the same
+ * mistake the match timeline used to make.
+ *
+ * DETERMINISTIC, NOT RANDOM. `Math.random()` in mock data gives a player different
+ * numbers on every render and on every navigation back to their page, which reads
+ * as a bug. This is a hash of the player id, so a player's season is the same
+ * number every time it is asked for.
+ *
+ * POSITION SHAPES THE LINE. A goalkeeper who scores nine league goals is the one
+ * detail that tells a viewer the data is fake, so the weights below push output
+ * towards the players who actually produce it.
+ */
+const roll = (id, salt, min, max) =>
+  min + (((id * 2654435761 + salt * 40503) >>> 0) % (max - min + 1));
+
+const ATTACK = { Striker: 1, 'Right Wing': 0.75, 'Left Wing': 0.75, 'Attacking Midfield': 0.6, 'Central Midfield': 0.3, 'Defensive Midfield': 0.15, 'Centre-Back': 0.12, 'Right-Back': 0.1, 'Left-Back': 0.1, Goalkeeper: 0 };
+const CREATE = { 'Attacking Midfield': 1, 'Right Wing': 0.85, 'Left Wing': 0.85, 'Central Midfield': 0.7, 'Defensive Midfield': 0.35, Striker: 0.5, 'Right-Back': 0.4, 'Left-Back': 0.4, 'Centre-Back': 0.12, Goalkeeper: 0.02 };
+
+/** Per-game averages, to one decimal — how basketball and volleyball are read. */
+const avg = (total, games) => Math.round((total / Math.max(games, 1)) * 10) / 10;
+
+/**
+ * A SEASON BEST IS PER EVENT, not per "athletics".
+ *
+ * One shared range produced a 12:20 5000m and a 4.10 m high jump — marks that are
+ * either world-leading or a schoolchild's, and a federation reading the demo would
+ * spot both instantly. Each event carries its own base and spread, set around what
+ * a competitive Rwandan national-championship field actually runs and jumps.
+ */
+const clock = (id, secs) => (secs >= 60
+  ? `${Math.floor(secs / 60)}:${String(Math.floor(secs % 60)).padStart(2, '0')}.${String(roll(id, 9, 0, 99)).padStart(2, '0')}`
+  : `${secs.toFixed(2)}s`);
+
+const MARKS = {
+  '100m': (id) => clock(id, 10.4 + roll(id, 2, 0, 120) / 100),
+  '200m': (id) => clock(id, 20.9 + roll(id, 2, 0, 250) / 100),
+  '400m': (id) => clock(id, 46.5 + roll(id, 2, 0, 550) / 100),
+  '800m': (id) => clock(id, 106 + roll(id, 2, 0, 18)),
+  '1500m': (id) => clock(id, 218 + roll(id, 2, 0, 50)),
+  '5000m': (id) => clock(id, 790 + roll(id, 2, 0, 150)),
+  'Long Jump': (id) => `${(6.9 + roll(id, 2, 0, 130) / 100).toFixed(2)} m`,
+  'High Jump': (id) => `${(1.92 + roll(id, 2, 0, 28) / 100).toFixed(2)} m`,
+  Javelin: (id) => `${(58 + roll(id, 2, 0, 2400) / 100).toFixed(2)} m`,
+  'Shot Put': (id) => `${(14.2 + roll(id, 2, 0, 480) / 100).toFixed(2)} m`,
+};
+
+export const seasonFor = (player) => {
+  const id = player.id;
+  const pos = player.position;
+
+  switch (player.sportId) {
+    case 1: { // football
+      const appearances = roll(id, 1, 9, 22);
+      const share = ATTACK[pos] ?? 0.2;
+      return {
+        appearances,
+        goals: Math.round(roll(id, 2, 0, 17) * share),
+        assists: Math.round(roll(id, 3, 0, 12) * (CREATE[pos] ?? 0.3)),
+        minutes: appearances * roll(id, 4, 46, 90),
+        yellowCards: roll(id, 5, 0, 7),
+        redCards: roll(id, 6, 0, 20) === 0 ? 1 : 0,
+        cleanSheets: pos === 'Goalkeeper' ? roll(id, 7, 1, 9) : null,
+      };
+    }
+    case 2: { // basketball
+      const games = roll(id, 1, 8, 20);
+      const big = pos === 'Center' || pos === 'Power Forward';
+      const guard = pos === 'Point Guard' || pos === 'Shooting Guard';
+      return {
+        games,
+        points: avg(roll(id, 2, 40, 320), games),
+        rebounds: avg(roll(id, 3, 20, big ? 190 : 90), games),
+        assists: avg(roll(id, 4, 8, guard ? 130 : 45), games),
+        steals: avg(roll(id, 5, 4, 34), games),
+        blocks: avg(roll(id, 6, 0, big ? 40 : 12), games),
+        minutes: avg(roll(id, 7, 90, games * 32), games),
+      };
+    }
+    case 3: { // volleyball
+      const matches = roll(id, 1, 7, 18);
+      const libero = pos === 'Libero';
+      const blocker = pos === 'Middle Blocker';
+      return {
+        matches,
+        points: libero ? 0 : roll(id, 2, 20, 190),
+        kills: libero ? 0 : roll(id, 3, 15, 160),
+        blocks: roll(id, 4, 0, blocker ? 48 : 18),
+        aces: roll(id, 5, 0, 26),
+        digs: roll(id, 6, 10, libero ? 180 : 70),
+      };
+    }
+    case 6: { // handball
+      const matches = roll(id, 1, 8, 18);
+      const keeper = pos === 'Goalkeeper';
+      return {
+        matches,
+        goals: keeper ? roll(id, 2, 0, 2) : roll(id, 2, 12, 96),
+        assists: keeper ? roll(id, 3, 0, 4) : roll(id, 3, 4, 42),
+        saves: keeper ? roll(id, 4, 30, 140) : null,
+        suspensions: roll(id, 5, 0, 9),
+      };
+    }
+    case 4: { // cycling
+      const races = roll(id, 1, 6, 24);
+      const climber = pos === 'Climber';
+      const sprinter = pos === 'Sprinter';
+      return {
+        races,
+        stageWins: sprinter ? roll(id, 2, 0, 5) : roll(id, 2, 0, 2),
+        podiums: roll(id, 3, 0, 8),
+        points: roll(id, 4, 12, 260),
+        komPoints: climber ? roll(id, 5, 20, 140) : roll(id, 5, 0, 30),
+      };
+    }
+    case 5: { // athletics
+      const mark = MARKS[pos];
+      return {
+        meets: roll(id, 1, 3, 12),
+        wins: roll(id, 3, 0, 6),
+        podiums: roll(id, 4, 0, 9),
+        seasonBest: mark ? mark(id) : `${(4 + roll(id, 5, 0, 380) / 100).toFixed(2)} m`,
+        nationalRank: roll(id, 6, 1, 14),
+      };
+    }
+    default:
+      return { appearances: roll(id, 1, 4, 20), wins: roll(id, 2, 0, 12), podiums: roll(id, 3, 0, 8) };
+  }
+};
+
+/**
+ * The player's last completed matches for their club, with what they contributed.
+ *
+ * Built from the real fixture list rather than invented, so a player's form lines
+ * up with the results their club page shows.
+ */
+export const formFor = (player, allFixtures) => allFixtures
+  .filter((f) => f.status === 'COMPLETED' && (f.homeTeamId === player.teamId || f.awayTeamId === player.teamId))
+  .sort((a, b) => new Date(b.matchDate).getTime() - new Date(a.matchDate).getTime())
+  .slice(0, 5)
+  .map((f, i) => {
+    const home = f.homeTeamId === player.teamId;
+    const own = home ? f.homeScore : f.awayScore;
+    const other = home ? f.awayScore : f.homeScore;
+    return {
+      fixtureId: f.id,
+      date: f.matchDate,
+      opponent: home ? f.awayTeam : f.homeTeam,
+      home,
+      score: `${own}-${other}`,
+      result: own > other ? 'W' : own < other ? 'L' : 'D',
+      // One contribution line, in the sport's own units.
+      contribution: player.sportId === 2 || player.sportId === 3
+        ? { label: 'pts', value: roll(player.id, 20 + i, 2, 26) }
+        : { label: 'goals', value: (ATTACK[player.position] ?? 0.2) > 0.4 ? roll(player.id, 20 + i, 0, 2) : 0 },
+    };
+  });
+
 
 /* ── team officials ────────────────────────────────────────────────────── */
 const OFFICIAL_ROLES = ['PRESIDENT', 'MANAGER', 'HEAD_COACH', 'ASSISTANT_COACH', 'TEAM_DOCTOR'];
@@ -419,12 +585,120 @@ export const news = [
 ];
 
 /* ── ads ───────────────────────────────────────────────────────────────── */
-export const adsList = [
-  { id: 1, title: 'Inyange Industries — Official Hydration Partner', imageUrl: cover('inyange', '#1D4ED8'), targetUrl: 'https://example.com', position: 'HOME_BANNER', active: true, createdAt: days(-20) },
-  { id: 2, title: 'BK Arena — Matchday Experience', imageUrl: cover('bk-arena', '#0B6E3F'), targetUrl: 'https://example.com', position: 'SPOTLIGHT_BANNER', active: true, createdAt: days(-15) },
-  { id: 3, title: 'MTN Rwanda — Powering the League', imageUrl: cover('mtn', '#F59E0B'), targetUrl: 'https://example.com', position: 'SIDEBAR', active: true, createdAt: days(-9) },
-  { id: 4, title: 'Skol Brewery — Proud Sponsor', imageUrl: cover('skol', '#C81E1E'), targetUrl: 'https://example.com', position: 'SIDEBAR', active: false, createdAt: days(-30) },
+/**
+ * The ad book.
+ *
+ * REAL CREATIVES, NOT `cover()`. These used to carry the same generated abstract
+ * gradient the app shows for a missing article photo, so every ad slot read as an
+ * image that had failed to load. The files under public/ads are built by
+ * scripts/make-ad-creatives.mjs — a Rwandan sport photograph cropped to the size
+ * the placement is sold at, with a wordmark, a line of copy and a call to action.
+ *
+ * THREE SHAPES, BECAUSE A PLACEMENT IS A SHAPE. `-mb` is the 320x100 mobile
+ * banner, `-lg` the 728x90 leaderboard, `-mr` the 300x250 rail rectangle. A
+ * placement named `news` resolves `news` for the phone unit and `news-lg` for the
+ * desktop one; PageAd asks for both and hides one per breakpoint.
+ *
+ * THE SPONSOR ROTATES BY PLACEMENT. Nine screens carrying the same banner reads as
+ * one house ad rather than as sold space, so `PLACEMENTS` walks the sponsor book
+ * and every page gets a different advertiser.
+ *
+ * NOTHING HERE IS A REAL BOOKING. Every target is example.com, and the wordmarks
+ * are plain type rather than the sponsors' actual logos — illustrative inventory,
+ * like every other record in this file.
+ */
+const AD_SPONSORS = [
+  { key: 'inyange', title: 'Inyange Industries — Official Hydration Partner' },
+  { key: 'bk-arena', title: 'BK Arena — Matchday Experience' },
+  { key: 'mtn', title: 'MTN Rwanda — Powering the League' },
+  { key: 'bank-of-kigali', title: 'Bank of Kigali — Backing Rwandan Athletes' },
+  { key: 'rwandair', title: 'RwandAir — Official Airline Partner' },
+  { key: 'skol', title: 'Skol Brewery — Proud Sponsor' },
 ];
+
+/**
+ * Every placement the app declares, in the order pages were given inventory.
+ *
+ * `rail: true` also mints a `<name>-rail` position carrying the 300x250 rectangle,
+ * for the three screens that have a desktop sidebar.
+ */
+const PLACEMENTS = [
+  { name: 'home', rail: false },
+  { name: 'fixtures', rail: true },
+  { name: 'sports', rail: false },
+  { name: 'sport', rail: true },
+  { name: 'leagues', rail: false },
+  { name: 'league', rail: false },
+  { name: 'teams', rail: false },
+  { name: 'club', rail: false },
+  { name: 'news', rail: false },
+  { name: 'article', rail: false },
+  { name: 'match', rail: false },
+  { name: 'player', rail: false },
+  { name: 'calendar', rail: false },
+  { name: 'amashuri', rail: true },
+  { name: 'school', rail: false },
+];
+
+let AD_ID = 0;
+const adFor = (position, sponsor, shape) => {
+  AD_ID += 1;
+  return {
+    id: 900 + AD_ID,
+    title: sponsor.title,
+    imageUrl: `/ads/${sponsor.key}-${shape}.jpg`,
+    targetUrl: 'https://example.com',
+    position,
+    active: true,
+    createdAt: days(-((AD_ID % 25) + 3)),
+  };
+};
+
+export const adsList = PLACEMENTS.flatMap((p, i) => {
+  const sponsor = AD_SPONSORS[i % AD_SPONSORS.length];
+  // The rail takes the NEXT sponsor along, so a page with both a leaderboard and a
+  // sidebar is not the same advertiser twice on one screen.
+  const railSponsor = AD_SPONSORS[(i + 3) % AD_SPONSORS.length];
+  return [
+    adFor(p.name, sponsor, 'mb'),
+    adFor(`${p.name}-lg`, sponsor, 'lg'),
+    ...(p.rail ? [adFor(`${p.name}-rail`, railSponsor, 'mr')] : []),
+  ];
+});
+
+/**
+ * The gutter skyscrapers, sold as a run-of-site pair rather than per page — see
+ * SideRails.
+ *
+ * THEIR TWO ADVERTISERS ARE NOT IN `AD_SPONSORS`. The rails are beside every page,
+ * so drawing them from the same six the pages rotate through guaranteed a
+ * collision: /fixtures ran BK Arena in its banner and BK Arena down the left
+ * gutter on the same screen. These two are takeover-only, which is also how a
+ * gutter pair is actually sold.
+ */
+const AD_TAKEOVER = [
+  { key: 'primus', title: 'Primus — The Beer of Rwandan Football' },
+  { key: 'canal-plus', title: 'CANAL+ — Every Match, Live' },
+];
+
+adsList.push(
+  adFor('side-left', AD_TAKEOVER[0], 'sk'),
+  adFor('side-right', AD_TAKEOVER[1], 'sk'),
+  // The 120x600 cut of the same two, for a gutter too narrow for the 160.
+  adFor('side-left-narrow', AD_TAKEOVER[0], 'skn'),
+  adFor('side-right-narrow', AD_TAKEOVER[1], 'skn'),
+);
+
+/**
+ * The legacy HOME_BANNER / SPOTLIGHT_BANNER / SIDEBAR names, which AdBanner on the
+ * retired /home route still asks for. Kept so that page does not go blank; delete
+ * with AdBanner.
+ */
+adsList.push(
+  adFor('HOME_BANNER', AD_SPONSORS[0], 'lg'),
+  adFor('SPOTLIGHT_BANNER', AD_SPONSORS[1], 'lg'),
+  adFor('SIDEBAR', AD_SPONSORS[2], 'mr'),
+);
 
 /* ── settings ──────────────────────────────────────────────────────────── */
 export const settings = {
@@ -524,6 +798,33 @@ export const akcTeams = [
   { id: 7, schoolId: 6, school: schoolRef(6), sport: sportRef(3), gender: 'FEMALE', ageCategory: 'U19', level: 'NATIONAL', coachName: 'Solange Mutesi', players: akcRosterFor(7, 14, true) },
   { id: 8, schoolId: 7, school: schoolRef(7), sport: sportRef(1), gender: 'MALE', ageCategory: 'U15', level: 'DISTRICT', coachName: 'Norbert Kagabo', players: akcRosterFor(8, 15) },
 ];
+/**
+ * ONE ATHLETE, LOOKED UP ACROSS EVERY SCHOOL TEAM.
+ *
+ * `akcRosterFor` builds each squad inline inside `akcTeams`, so an athlete only
+ * ever existed as an element of one team's `players` array — there was no way to
+ * ask for athlete 507 without knowing which team owned them, which is exactly what
+ * a linkable athlete page needs to do. This flattens the rosters once and stamps
+ * each athlete with their team, school and sport, so the detail endpoint can serve
+ * them the same way /players/:id serves a club player.
+ */
+export const akcAthletes = akcTeams.flatMap((tm) => tm.players.map((p) => ({
+  ...p,
+  teamId: tm.id,
+  team: { id: tm.id, gender: tm.gender, ageCategory: tm.ageCategory, sport: tm.sport, coachName: tm.coachName },
+  school: tm.school,
+  sportId: tm.sport?.id,
+  // The profile block reads these names; school records carry the other spelling.
+  dateOfBirth: p.dob,
+  jerseyNumber: p.jersey,
+})));
+
+/** A school team with its squad, its school and its competition context. */
+export const buildAkcTeamDetail = (team) => ({
+  ...team,
+  players: akcAthletes.filter((a) => a.teamId === team.id),
+});
+
 const akcTeamRef = (id) => { const tm = akcTeams.find((x) => x.id === id); return { id: tm.id, school: schoolRef(tm.schoolId), ageCategory: tm.ageCategory, gender: tm.gender }; };
 
 export const akcCompetitions = [
@@ -544,6 +845,36 @@ export const akcSports = [
   { slug: 'rugby', name: 'Rugby', icon: '🏉', competitions: 4 },
   { slug: 'table-tennis', name: 'Table Tennis', icon: '🏓', competitions: 3 },
 ];
+
+/**
+ * A school athlete's recent form, from the Games' own fixture list.
+ *
+ * NOT `formFor`. That one reads `fixture.awayTeam.name`, which a club has and a
+ * school team does not — an Amashuri team is identified by its SCHOOL, so the
+ * opponent's name lives one level down at `awayTeam.school.name`. Feeding school
+ * fixtures through the club version produced five rows reading "vs undefined",
+ * which is why the athlete page shipped with no form section at all rather than a
+ * broken one.
+ */
+export const akcFormFor = (athlete) => akcFixtures
+  .filter((f) => f.status === 'COMPLETED' && (f.homeTeamId === athlete.teamId || f.awayTeamId === athlete.teamId))
+  .sort((a, b) => new Date(b.matchDate).getTime() - new Date(a.matchDate).getTime())
+  .slice(0, 5)
+  .map((f, i) => {
+    const home = f.homeTeamId === athlete.teamId;
+    const own = home ? f.homeScore : f.awayScore;
+    const other = home ? f.awayScore : f.homeScore;
+    const opponent = home ? f.awayTeam : f.homeTeam;
+    return {
+      fixtureId: f.id,
+      date: f.matchDate,
+      opponent: { id: opponent?.id, name: opponent?.school?.name },
+      home,
+      score: `${own}-${other}`,
+      result: own > other ? 'W' : own < other ? 'L' : 'D',
+      contribution: { label: 'goals', value: roll(athlete.id, 40 + i, 0, 2) },
+    };
+  });
 
 export const akcStandings = [1, 3, 6, 4, 8].map((tid, i) => ({
   id: i + 1, competitionId: 1, teamId: tid, team: akcTeamRef(tid),
@@ -616,10 +947,51 @@ export const buildFixtureDetail = (fixture) => {
   const awayPlayers = playersOf(fixture.awayTeamId);
   const events = [];
   if (fixture.status === 'COMPLETED' || fixture.status === 'LIVE') {
-    for (let i = 0; i < (fixture.homeScore || 0); i++) events.push({ id: `${fixture.id}-h-${i}`, eventType: 'GOAL', minute: 12 + i * 20, teamId: fixture.homeTeamId, player: { fullName: homePlayers[(i * 3) % homePlayers.length]?.fullName || 'Player' } });
-    for (let i = 0; i < (fixture.awayScore || 0); i++) events.push({ id: `${fixture.id}-a-${i}`, eventType: 'GOAL', minute: 20 + i * 18, teamId: fixture.awayTeamId, player: { fullName: awayPlayers[(i * 2) % awayPlayers.length]?.fullName || 'Player' } });
-    events.push({ id: `${fixture.id}-yc`, eventType: 'YELLOW_CARD', minute: 55, teamId: fixture.awayTeamId, player: { fullName: awayPlayers[0]?.fullName || 'Player' } });
-    events.push({ id: `${fixture.id}-sub`, eventType: 'SUBSTITUTION', minute: 66, teamId: fixture.homeTeamId, player: { fullName: homePlayers[9]?.fullName }, player2: { fullName: homePlayers[12]?.fullName } });
+    /**
+     * A SCORING EVENT PER POINT ONLY MAKES SENSE WHERE POINTS ARE RARE.
+     *
+     * This emitted one GOAL per point for every sport, so a basketball game at
+     * 58-61 produced 119 timeline entries and a volleyball set score produced a
+     * timeline of "goals" that do not exist in volleyball. Football and handball
+     * score in ones and a per-goal feed is exactly right; basketball and
+     * volleyball are read by quarter and by set, which the scoreboard already
+     * shows. Those sports get the match's incidents, not its arithmetic.
+     */
+    const sportSlug = leagues.find((l) => l.id === fixture.leagueId)?.sport?.slug;
+    const scoresInOnes = !sportSlug || sportSlug === 'football' || sportSlug === 'handball';
+    if (scoresInOnes) {
+      for (let i = 0; i < (fixture.homeScore || 0); i++) events.push({ id: `${fixture.id}-h-${i}`, eventType: 'GOAL', minute: 12 + i * 20, teamId: fixture.homeTeamId, player: { fullName: homePlayers[(i * 3) % homePlayers.length]?.fullName || 'Player' } });
+      for (let i = 0; i < (fixture.awayScore || 0); i++) events.push({ id: `${fixture.id}-a-${i}`, eventType: 'GOAL', minute: 20 + i * 18, teamId: fixture.awayTeamId, player: { fullName: awayPlayers[(i * 2) % awayPlayers.length]?.fullName || 'Player' } });
+    }
+    /**
+     * INCIDENTS BELONG TO THE SPORT.
+     *
+     * Every match used to end up with a yellow card and a football substitution
+     * bolted on, so a basketball game showed a booking and a volleyball set showed
+     * a football sub. Basketball has fouls, timeouts and quarter ends; volleyball
+     * has sets and timeouts; handball punishes with two minutes, not a card.
+     */
+    const homeName = homePlayers[0]?.fullName || 'Player';
+    const awayName = awayPlayers[0]?.fullName || 'Player';
+    const ev = (key, eventType, minute, teamId, player?, player2?) =>
+      events.push({ id: `${fixture.id}-${key}`, eventType, minute, teamId, player: player ? { fullName: player } : undefined, player2: player2 ? { fullName: player2 } : undefined });
+
+    if (sportSlug === 'basketball') {
+      ev('foul', 'FOUL', 14, fixture.awayTeamId, awayName);
+      ev('to', 'TIMEOUT', 22, fixture.homeTeamId);
+      ev('q3', 'QUARTER_END', 30, null);
+      ev('three', 'THREE_POINTER', 34, fixture.homeTeamId, homePlayers[4]?.fullName || homeName);
+    } else if (sportSlug === 'volleyball') {
+      ev('set1', 'SET_END', 24, null);
+      ev('to', 'TIMEOUT', 31, fixture.awayTeamId);
+      ev('sub', 'SUBSTITUTION', 38, fixture.homeTeamId, homePlayers[6]?.fullName, homePlayers[9]?.fullName);
+    } else if (sportSlug === 'handball') {
+      ev('susp', 'SUSPENSION', 19, fixture.awayTeamId, awayName);
+      ev('7m', 'SEVEN_METRE', 27, fixture.homeTeamId, homePlayers[3]?.fullName || homeName);
+    } else {
+      ev('yc', 'YELLOW_CARD', 55, fixture.awayTeamId, awayName);
+      ev('sub', 'SUBSTITUTION', 66, fixture.homeTeamId, homePlayers[9]?.fullName, homePlayers[12]?.fullName);
+    }
   }
   events.sort((a, b) => (a.minute || 0) - (b.minute || 0));
   const home = teams.find((t) => t.id === fixture.homeTeamId);

@@ -1,42 +1,84 @@
 import React from 'react';
 import {
   Goal, Square, RefreshCw, AlertTriangle, Video, Flag, Timer, Activity,
+  Hand, PauseCircle, CircleDot, Target,
 } from 'lucide-react';
 
 /**
- * Maps a MatchEvent.eventType (see Prisma EventType enum) to display metadata:
- * icon and accent color class. Falls back to a neutral activity dot.
+ * Maps a MatchEvent.eventType to display metadata: icon, ink colour and ring.
  *
- * The visible label is deliberately not returned here — callers resolve it
- * through `enums.event_type.*` so the timeline follows the active language.
+ * EVERY SPORT HAS ITS OWN INCIDENTS. This map used to be football's vocabulary
+ * applied to everything — a basketball game showed yellow cards and a volleyball
+ * set showed substitutions in football's sense. Basketball has fouls, timeouts and
+ * quarter ends; volleyball has sets and timeouts; handball punishes with a
+ * two-minute suspension, not a card. They are all here now, and anything unknown
+ * still falls back to a neutral dot rather than borrowing a football icon.
+ *
+ * COLOUR, AND A BUG THIS FIXES. The old map used `text-green` for a goal and
+ * `text-red` for a red card and an own goal — but tailwind.config.js remaps the
+ * legacy `red` key onto the brand green, so a red card rendered in exactly the
+ * same colour as a goal. It also used `text-gold`, `text-cyan`, `rwanda-blue` and
+ * hand-written `dark:` twins. Everything below is on tokens: `--brand` for a
+ * score, `--danger` for a dismissal, `--live` for a caution, and neutral ink for
+ * period markers, which is the only palette this component needs.
  */
+
+/* `major` is declared on EVERY variant, not just the ones that set it true.
+   Omitting it made the return a union where half the members had no `major`, so
+   the timeline could not read it without a cast. */
+const SCORE = { color: 'text-brand-text', ring: 'border-brand/30 bg-brand-tint', major: true };
+const DANGER = { color: 'text-danger-text', ring: 'border-danger/30 bg-danger/10', major: true };
+const CAUTION = { color: 'text-live', ring: 'border-live/30 bg-live/10', major: false };
+const NEUTRAL = { color: 'text-tertiary', ring: 'border-hairline bg-surface-2', major: false };
+const INFO = { color: 'text-secondary', ring: 'border-hairline bg-surface-2', major: false };
+
 export const eventMeta = (type) => {
   switch (type) {
+    /* ── scoring ─────────────────────────────────────────────── */
     case 'GOAL':
     case 'PENALTY':
-      return { Icon: Goal, color: 'text-green', ring: 'border-green/30 bg-green/10', major: true };
+      return { Icon: Goal, ...SCORE };
+    case 'SEVEN_METRE': // handball's penalty throw
+      return { Icon: Target, ...SCORE };
+    case 'THREE_POINTER':
+      return { Icon: Target, ...SCORE };
+    case 'FREE_THROW':
+      return { Icon: CircleDot, ...SCORE };
     case 'OWN_GOAL':
-      return { Icon: Goal, color: 'text-red', ring: 'border-red/30 bg-red/10', major: true };
+      return { Icon: Goal, ...DANGER };
+
+    /* ── discipline ──────────────────────────────────────────── */
     case 'YELLOW_CARD':
-      return { Icon: Square, color: 'text-gold', ring: 'border-gold/30 bg-gold/10' };
+      return { Icon: Square, ...CAUTION };
     case 'RED_CARD':
-      return { Icon: Square, color: 'text-red', ring: 'border-red/30 bg-red/10', major: true };
+      return { Icon: Square, ...DANGER };
+    case 'FOUL': // basketball
+      return { Icon: Hand, ...CAUTION };
+    case 'SUSPENSION': // handball's two minutes
+      return { Icon: Timer, ...CAUTION };
+
+    /* ── stoppages and personnel ─────────────────────────────── */
     case 'SUBSTITUTION':
-      return { Icon: RefreshCw, color: 'text-rwanda-blue', ring: 'border-rwanda-blue/30 bg-rwanda-blue/10' };
+      return { Icon: RefreshCw, ...INFO };
+    case 'TIMEOUT':
+      return { Icon: PauseCircle, ...INFO };
     case 'INJURY':
-      return { Icon: AlertTriangle, color: 'text-gold', ring: 'border-gold/30 bg-gold/10' };
+      return { Icon: AlertTriangle, ...CAUTION };
     case 'VAR':
-      return { Icon: Video, color: 'text-cyan', ring: 'border-cyan/30 bg-cyan/10' };
+      return { Icon: Video, ...INFO };
+
+    /* ── period markers ──────────────────────────────────────── */
     case 'KICKOFF':
-      return { Icon: Flag, color: 'text-surface-dark/60 dark:text-white/60', ring: 'border-surface-3 dark:border-white/10 bg-surface-2 dark:bg-white/5' };
-    case 'HALFTIME':
-      return { Icon: Timer, color: 'text-surface-dark/60 dark:text-white/60', ring: 'border-surface-3 dark:border-white/10 bg-surface-2 dark:bg-white/5' };
     case 'FULLTIME':
-      return { Icon: Flag, color: 'text-surface-dark/60 dark:text-white/60', ring: 'border-surface-3 dark:border-white/10 bg-surface-2 dark:bg-white/5' };
+      return { Icon: Flag, ...NEUTRAL };
+    case 'HALFTIME':
     case 'EXTRA_TIME':
-      return { Icon: Timer, color: 'text-gold', ring: 'border-gold/30 bg-gold/10' };
+    case 'QUARTER_END':
+    case 'SET_END':
+      return { Icon: Timer, ...NEUTRAL };
+
     default:
-      return { Icon: Activity, color: 'text-surface-dark/50 dark:text-white/50', ring: 'border-surface-3 dark:border-white/10 bg-surface-2 dark:bg-white/5' };
+      return { Icon: Activity, ...NEUTRAL };
   }
 };
 

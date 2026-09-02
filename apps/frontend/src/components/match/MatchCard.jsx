@@ -14,7 +14,7 @@ import cn from '../ui/cn';
 const MotionLink = motion.create(Link);
 
 /**
- * MatchCard â€” the desktop grid unit. Never rendered below lg.
+ * MatchCard — the desktop grid unit. Never rendered below lg.
  *
  * WHY A CARD HERE AND A ROW ON MOBILE
  * A 68px row is the right answer at 360px because vertical space is the scarce
@@ -24,11 +24,11 @@ const MotionLink = motion.create(Link);
  * distance and the two teams read as opposing rather than stacked.
  *
  * THE CENTRE SLOT CARRIES THE STATE
- *   live / halftime / full time â†’ the score
- *   upcoming                    â†’ "VS"
- *   postponed / abandoned       â†’ empty
+ *   live / halftime / full time → the score
+ *   upcoming                    → "VS"
+ *   postponed / abandoned       → empty
  *
- * Kickoff time and status live in the top corners, never the centre â€” the centre is
+ * Kickoff time and status live in the top corners, never the centre — the centre is
  * reserved so that scanning a grid of twelve cards means reading one column.
  *
  * Vertical padding is deliberately tight: at ~112px, twelve cards fit a 900px
@@ -45,7 +45,7 @@ const Centre = ({ state, m, safe }) => {
         <motion.span key={`h${m.homeScore ?? 0}`} {...scorePop(safe && live)}>
           {m.homeScore ?? 0}
         </motion.span>
-        <span className="text-tertiary">â€“</span>
+        <span className="text-tertiary">–</span>
         <motion.span key={`a${m.awayScore ?? 0}`} {...scorePop(safe && live)}>
           {m.awayScore ?? 0}
         </motion.span>
@@ -58,7 +58,7 @@ const Centre = ({ state, m, safe }) => {
   }
 
   // Postponed / abandoned: deliberately empty. The corner pill says why, and an
-  // em-dash here would read as a 0â€“0 draw at a glance.
+  // em-dash here would read as a 0–0 draw at a glance.
   return null;
 };
 
@@ -104,12 +104,12 @@ const MatchCard = ({ fixture, className = '' }) => {
       {/* Corners: time on the left, state on the right.
           The pill is OMITTED for upcoming matches. "Scheduled" is the default
           expectation, so printing it on every card in a twelve-card grid is twelve
-          repetitions of no information â€” and the kickoff time beside it plus the
+          repetitions of no information — and the kickoff time beside it plus the
           "VS" in the centre already say exactly that. The pill appears only when
           the state is worth reporting. */}
       <div className="mb-1.5 flex h-5 items-center justify-between gap-2">
         <span className="text-xs tabular-nums text-tertiary">
-          {d ? format(d, 'EEE d MMM Â· HH:mm') : 'Date TBC'}
+          {d ? format(d, 'EEE d MMM · HH:mm') : 'Date TBC'}
         </span>
         {state !== 'upcoming' && (
           <StatusPill

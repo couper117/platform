@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import AppHeader from './AppHeader';
 import BottomNav from './BottomNav';
 import Footer from './Footer';
+import SideRails from '../shared/SideRails';
 
 /**
  * Public shell, following the Tembera reference's page frame.
@@ -20,7 +21,9 @@ import Footer from './Footer';
  * and a footer sitting below a fixed tab bar is unreachable furniture.
  */
 const PublicLayout = () => (
-  <div className="flex min-h-screen flex-col bg-page">
+  // `relative` so SideRails can position against the whole page rather than
+  // against the viewport — the rails scroll away with the content.
+  <div className="relative flex min-h-screen flex-col bg-page">
     <AppHeader />
 
     {/* Clears the fixed header (56px mobile / 72px desktop) and, on mobile, the
@@ -32,6 +35,12 @@ const PublicLayout = () => (
     <div className="hidden md:block">
       <Footer />
     </div>
+
+    {/* The gutter skyscrapers. Rendered once for the whole public shell rather
+        than per page: they are a run-of-site takeover, and a page that forgot to
+        include them would leave a paid slot dark. Absolutely positioned against
+        this container, so they sit at the top of the page and scroll away. */}
+    <SideRails />
 
     <BottomNav />
   </div>
