@@ -110,7 +110,9 @@ const getFixture = async (req, res, next) => {
         },
         homeTeam: true,
         awayTeam: true,
-        league: true,
+        // The sport, not just its id: the lineup view has to know which surface
+        // to draw, and a basketball court is not a smaller football pitch.
+        league: { include: { sport: { select: { id: true, name: true, slug: true, type: true } } } },
         competition: true,
         events: {
           include: { player: true, player2: true },

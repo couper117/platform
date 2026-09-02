@@ -194,7 +194,66 @@ async function main() {
   console.log(`Seeded showcase fixture ${fixture.id} (LIVE): ${fixture.homeTeam.name} vs ${fixture.awayTeam.name}`);
   console.log(' home:', JSON.stringify(home));
   console.log(' away:', JSON.stringify(away));
+
+  await seedBasketball();
 }
+
+/**
+ * A basketball showcase, so the court is not an untested code path.
+ *
+ * The lineup view draws the surface each sport is actually played on, and with
+ * football the only sport that had a team sheet, every court in
+ * config/playingSurfaces.ts was unreachable — the one thing that would have
+ * shown a basketball court rendering as a football pitch is a basketball match
+ * with five players named.
+ *
+ * Five a side, on real clubs. Nothing is invented: if the basketball teams or
+ * their league are missing, this says so and moves on.
+ */
+const BASKETBALL_POSITIONS = ['Point Guard', 'Shooting Guard', 'Small Forward', 'Power Forward', 'Center'];
+
+async function seedBasketball() {
+  const sport = await prisma.sport.findFirst({ where: { slug: 'basketball' } });
+  if (!sport) return console.log('No basketball sport — skipping the court showcase.');
+
+  const fixture = await prisma.fixture.findFirst({
+    where: { league: { sportId: sport.id } },
+    include: { homeTeam: true, awayTeam: true },
+    orderBy: { id: 'asc' },
+  });
+  if (!fixture) return console.log('No basketball fixture — skipping the court showcase.');
+
+  for (const teamId of [fixture.homeTeamId, fixture.awayTeamId]) {
+    const existing = await prisma.player.findMany({ where: { teamId }, take: 5 });
+    const roster = [...existing];
+    for (let i = roster.length; i < 5; i += 1) {
+      roster.push(await prisma.player.create({
+        data: {
+          fullName: `${FIRST[(i + teamId) % FIRST.length]} ${LAST[(i * 3 + teamId) % LAST.length]}`,
+          teamId,
+          position: BASKETBALL_POSITIONS[i],
+          jerseyNumber: i + 4,
+        },
+      }));
+    }
+    await prisma.matchTeamSheet.upsert({
+      where: { fixtureId_teamId: { fixtureId: fixture.id, teamId } },
+      update: { published: true },
+      create: { fixtureId: fixture.id, teamId, published: true },
+    });
+    await prisma.lineup.deleteMany({ where: { fixtureId: fixture.id, teamId } });
+    await prisma.lineup.createMany({
+      data: roster.slice(0, 5).map((pl, i) => ({
+        fixtureId: fixture.id, teamId, playerId: pl.id,
+        position: BASKETBALL_POSITIONS[i], jerseyNo: i + 4, isStarter: true,
+      })),
+    });
+  }
+  console.log(`Seeded basketball showcase ${fixture.id}: ${fixture.homeTeam?.name} vs ${fixture.awayTeam?.name}`);
+}
+
+const FIRST = ['Eric', 'Jean', 'Olivier', 'Pacifique', 'Thierry', 'Kevin', 'Dieudonne', 'Aime'];
+const LAST = ['Mugisha', 'Habimana', 'Niyonzima', 'Uwase', 'Iradukunda', 'Nkurunziza', 'Bizimana', 'Mutesi'];
 
 main()
   .catch((e) => { console.error(e); process.exit(1); })
