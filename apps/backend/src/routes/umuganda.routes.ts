@@ -4,7 +4,7 @@ const {
   createUmugandaDay, updateUmugandaDay, deleteUmugandaDay, regenerate, createAnnouncement,
   setEventDecision,
 } = require('../controllers/umuganda.controller');
-const { protect, authorize } = require('../middleware/auth');
+const { protect, requireCapability } = require('../middleware/auth');
 const validate = require('../middleware/validate');
 const schemas = require('../validators/schemas');
 
@@ -19,22 +19,22 @@ const CURATORS = ['SUPERADMIN', 'FEDERATION_ADMIN', 'LEAGUE_ADMIN', 'AMASHURI_AD
 router.get('/', getUmugandaDays);
 router.get('/calendar', getUmugandaCalendar);
 router.get('/notices', getNotices);
-router.get('/conflicts', protect, authorize(...CURATORS), getConflicts);
+router.get('/conflicts', protect, requireCapability('umuganda.write'), getConflicts);
 router.get('/:id', getUmugandaDay);
 
-router.post('/', protect, authorize(...CURATORS), validate(schemas.createUmuganda), createUmugandaDay);
-router.post('/generate', protect, authorize(...CURATORS), regenerate);
+router.post('/', protect, requireCapability('umuganda.write'), validate(schemas.createUmuganda), createUmugandaDay);
+router.post('/generate', protect, requireCapability('umuganda.write'), regenerate);
 // The admin's ruling on a clashing match. ':kind' is 'league' or 'amashuri';
 // per-fixture ownership is enforced inside the handler, not by role alone.
 router.post(
   '/events/:kind/:id/decision',
   protect,
-  authorize(...CURATORS),
+  requireCapability('umuganda.write'),
   validate(schemas.umugandaDecision),
   setEventDecision,
 );
-router.post('/:id/announcement', protect, authorize(...CURATORS), validate(schemas.umugandaAnnouncement), createAnnouncement);
-router.patch('/:id', protect, authorize(...CURATORS), validate(schemas.updateUmuganda), updateUmugandaDay);
-router.delete('/:id', protect, authorize('SUPERADMIN'), deleteUmugandaDay);
+router.post('/:id/announcement', protect, requireCapability('umuganda.write'), validate(schemas.umugandaAnnouncement), createAnnouncement);
+router.patch('/:id', protect, requireCapability('umuganda.write'), validate(schemas.updateUmuganda), updateUmugandaDay);
+router.delete('/:id', protect, requireCapability('umuganda.delete'), deleteUmugandaDay);
 
 module.exports = router;

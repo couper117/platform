@@ -6,6 +6,13 @@
  * environment. Requires the API to be running.
  *
  *   npm test            (backend must be up on :5000, or set API_URL)
+ *
+ * RATE LIMIT: the API allows 20 authentication attempts per IP per 15 minutes.
+ * This suite spends seven of them per run — one per seeded role, plus the
+ * deliberate wrong-password attempt — and caches the resulting tokens, so two
+ * back-to-back runs fit comfortably and a third will start seeing 401s. That is
+ * the limiter doing its job, not a broken guard: wait out the window, or restart
+ * the API, which resets the in-memory counter.
  */
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
@@ -19,10 +26,26 @@ const post = (p, body, token) => fetch(`${API}${p}`, {
   headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
   body: JSON.stringify(body),
 });
-const login = async (email) => {
+/**
+ * Sign in, once per account.
+ *
+ * The API rate-limits authentication to 20 attempts per quarter hour, and this
+ * suite has a dozen tests that each used to sign in again — so a second run
+ * inside the window exhausted the budget and later tests failed with 401s that
+ * looked like authorisation bugs. Caching the token per address keeps the suite
+ * well inside the limit and makes a failure mean what it says.
+ *
+ * `fresh` forces a real request for the tests that are about signing in itself.
+ */
+const tokenCache = new Map();
+const login = async (email, { fresh = false } = {}) => {
+  if (!fresh && tokenCache.has(email)) return tokenCache.get(email);
+
   const r = await post('/auth/login', { email, password: PASS });
   const j = await r.json();
-  return { status: r.status, token: j.accessToken, role: j.user?.role };
+  const result = { status: r.status, token: j.accessToken, role: j.user?.role };
+  if (r.status === 200) tokenCache.set(email, result);
+  return result;
 };
 
 before(async () => {
@@ -46,14 +69,21 @@ test('public: fixtures, races and akc sports respond', async () => {
 });
 
 test('auth: every seeded role logs in with the expected role', async () => {
+  // These addresses are what prisma/seed.ts actually creates. The suite used to
+  // expect reporter@rwasport.rw to be an AMASHURI_ADMIN and a separate
+  // match.reporter@ account to exist — neither was true of the seed, so three
+  // tests here failed for want of a user rather than for want of working code,
+  // and had been failing long enough to stop being read.
   const expected = {
     'admin@rwasport.rw': 'SUPERADMIN',
     'league@rwasport.rw': 'LEAGUE_ADMIN',
-    'reporter@rwasport.rw': 'AMASHURI_ADMIN',
-    'match.reporter@rwasport.rw': 'MATCH_REPORTER',
+    'amashuri@rwasport.rw': 'AMASHURI_ADMIN',
+    'reporter@rwasport.rw': 'MATCH_REPORTER',
+    'coach@rwasport.rw': 'TEAM_MANAGER',
+    'coordinator@rwasport.rw': 'SCHOOL_COORDINATOR',
   };
   for (const [email, role] of Object.entries(expected)) {
-    const r = await login(email);
+    const r = await login(email, { fresh: true });
     assert.equal(r.status, 200, `${email} login`);
     assert.ok(r.token, `${email} should return a token`);
     assert.equal(r.role, role, `${email} role`);
@@ -67,7 +97,7 @@ test('auth: wrong password is rejected (401)', async () => {
 
 test('authz: /admin/roster requires auth (401) and super-admin (403)', async () => {
   assert.equal((await get('/admin/roster')).status, 401);
-  const { token } = await login('reporter@rwasport.rw'); // AMASHURI_ADMIN
+  const { token } = await login('amashuri@rwasport.rw'); // AMASHURI_ADMIN
   assert.equal((await get('/admin/roster', token)).status, 403);
 });
 
@@ -79,13 +109,13 @@ test('authz: super-admin reaches /admin/roster and /admin/stats', async () => {
 });
 
 test('validation: creating a school with no name is rejected (400)', async () => {
-  const { token } = await login('reporter@rwasport.rw');
+  const { token } = await login('amashuri@rwasport.rw');
   const r = await post('/akc3/admin/schools', { code: 'NO-NAME' }, token);
   assert.equal(r.status, 400);
 });
 
 test('reporter: assigned fixtures are scoped to the reporter', async () => {
-  const { token, role } = await login('match.reporter@rwasport.rw');
+  const { token, role } = await login('reporter@rwasport.rw');
   assert.equal(role, 'MATCH_REPORTER');
   const me = await (await get('/auth/me', token)).json();
   const r = await get(`/fixtures?reporterId=${me.data?.id || me.user?.id}`, token);

@@ -604,8 +604,26 @@ export const buildFixtureDetail = (fixture) => {
     { teamId: fixture.homeTeamId, possession: 54, shots: 12, shotsOnTarget: 6, shotsInsideBox: 8, shotsOutsideBox: 4, corners: 7, offsides: 2, fouls: 11, yellowCards: 1, redCards: 0, gkSaves: 3, passAccuracy: 84, xg: 1.8 },
     { teamId: fixture.awayTeamId, possession: 46, shots: 9, shotsOnTarget: 4, shotsInsideBox: 5, shotsOutsideBox: 4, corners: 3, offsides: 3, fouls: 14, yellowCards: 2, redCards: 0, gkSaves: 5, passAccuracy: 79, xg: 1.1 },
   ] : [];
+  // A running clock for live matches, shaped exactly like the API's derived clock
+  // so the shared tickClock() has something to count from. `minute` is taken from
+  // the fixture, and elapsedSeconds is back-dated to that minute, which makes the
+  // demo tick forward from a plausible point instead of sitting on 0'.
+  const liveMinute = fixture.minute ?? 37;
+  const secondHalf = liveMinute > 45;
+  const clock = fixture.status === 'LIVE'
+    ? {
+        period: secondHalf ? 'SECOND_HALF' : 'FIRST_HALF',
+        running: true,
+        minute: liveMinute,
+        stoppage: 0,
+        addedMinutes: secondHalf ? 4 : 2,
+        elapsedSeconds: liveMinute * 60,
+        display: `${liveMinute}'`,
+      }
+    : { period: fixture.status === 'COMPLETED' ? 'FULL_TIME' : 'PRE', running: false, minute: fixture.status === 'COMPLETED' ? 90 : 0, stoppage: 0, addedMinutes: 0, elapsedSeconds: 0, display: fixture.status === 'COMPLETED' ? "90'" : "0'" };
+
   return {
-    ...fixture, referee: fixture.referee || 'TBD', events, stats,
+    ...fixture, referee: fixture.referee || 'TBD', events, stats, clock,
     lineups: [...lineupFor(fixture.homeTeamId), ...lineupFor(fixture.awayTeamId)],
     teamSheets: [
       { teamId: fixture.homeTeamId, formation: '4-3-3', coachName: coachOf(fixture.homeTeamId), published: true },

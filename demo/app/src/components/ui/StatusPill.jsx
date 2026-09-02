@@ -41,6 +41,13 @@ const STATUS = {
   // Fixtures
   LIVE: ['live', 'Live'],
   SCHEDULED: ['neutral', 'Scheduled'],
+  // Umuganda-aware states. CONFIRMED is a positive assertion ("this is going
+  // ahead"), so it takes success. UMUGANDA_CONFLICT is deliberately NOT danger —
+  // a clash is a question for an admin, not a failure, and danger red is
+  // reserved for red cards and rejections.
+  CONFIRMED: ['success', 'Confirmed'],
+  UMUGANDA_CONFLICT: ['neutral', 'Umuganda conflict'],
+  RESCHEDULED: ['neutral', 'Rescheduled'],
   COMPLETED: ['neutral', 'Full time'],
   POSTPONED: ['danger', 'Postponed'],
   CANCELLED: ['danger', 'Cancelled'],
@@ -53,9 +60,11 @@ const STATUS = {
 };
 
 /**
- * @param {string}  status   backend enum, case-insensitive
- * @param {string}  [label]  override the mapped label (e.g. "Live 67’")
- * @param {boolean} [dot]    show the leading dot (default true)
+ * props.status  — backend enum, case-insensitive
+ * props.label   — override the mapped label (e.g. "Live 67’")
+ * props.dot     — show the leading dot (default true)
+ * props.className, plus any span attributes, pass through.
+ * @param {any} props
  */
 const StatusPill = ({ status, label, dot = true, className, ...props }) => {
   const key = String(status || '').toUpperCase();

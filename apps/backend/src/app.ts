@@ -33,6 +33,10 @@ const suspensionRoutes = require('./routes/suspensions.routes');
 const registrationRoutes = require('./routes/registrations.routes');
 const privacyRoutes = require('./routes/privacy.routes');
 const umugandaRoutes = require('./routes/umuganda.routes');
+const requestRoutes = require('./routes/requests.routes');
+const reporterRoutes = require('./routes/reporters.routes');
+const favoriteRoutes = require('./routes/favorites.routes');
+const notificationRoutes = require('./routes/notifications.routes');
 
 const app = express();
 
@@ -120,6 +124,10 @@ app.use('/api/v1/registrations', registrationRoutes);
 // Data-subject rights under Law N° 058/2021 arts. 18–24.
 app.use('/api/v1/privacy', privacyRoutes);
 app.use('/api/v1/umuganda', umugandaRoutes);
+app.use('/api/v1/requests', requestRoutes);
+app.use('/api/v1/reporters', reporterRoutes);
+app.use('/api/v1/favorites', favoriteRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
 
 // Health check
 app.get('/api/v1/health', (req, res) => {

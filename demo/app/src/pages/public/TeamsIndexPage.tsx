@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { Search, Users, MapPin } from 'lucide-react';
 import apiClient from '../../api/client';
 import { getSports } from '../../api/endpoints/sports';
@@ -11,11 +12,12 @@ import { EmptyState, Skeleton } from '../../components/ui';
 
 /**
  * Public teams directory — a discovery entry point for the "Teams" nav item.
- * Reuses the existing /teams data and <ClubCrest>; a team card leads to its
+ * Reads the real /teams endpoint and reuses <ClubCrest>; a team card leads to its
  * sport hub for now (a dedicated public team profile can slot in later without
- * changing this page). Theme-aware, so it reads correctly in dark and light.
+ * changing this page). Theme-aware and fully translated (EN/FR/RW).
  */
 const TeamsIndexPage = () => {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [sportId, setSportId] = useState('');
 
@@ -36,13 +38,13 @@ const TeamsIndexPage = () => {
 
   return (
     <div className="min-h-screen bg-page py-8 lg:py-12">
-      <Seo title="Teams" description="Every registered club and team on RwaSport." />
+      <Seo title={t('teams.title')} description={t('teams.seo_description')} />
       <ResponsiveWrapper>
         <div className="mb-6 flex flex-col gap-2">
           <h1 className="flex items-center gap-2.5 text-3xl font-display uppercase tracking-tight text-primary">
-            <Users size={26} className="text-brand" /> Teams
+            <Users size={26} className="text-brand" /> {t('teams.title')}
           </h1>
-          <p className="text-secondary">Every registered club, across every sport.</p>
+          <p className="text-secondary">{t('teams.subtitle')}</p>
         </div>
 
         {/* Filters */}
@@ -52,8 +54,8 @@ const TeamsIndexPage = () => {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search teams…"
-              aria-label="Search teams"
+              placeholder={t('teams.search_placeholder')}
+              aria-label={t('teams.search_placeholder')}
               className="w-full rounded-pill border border-hairline bg-surface py-2.5 pl-10 pr-4 text-sm text-primary outline-none focus-visible:border-brand"
             />
           </div>
@@ -63,7 +65,7 @@ const TeamsIndexPage = () => {
               onClick={() => setSportId('')}
               className={`shrink-0 rounded-pill border px-3 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${!sportId ? 'border-brand bg-brand-tint text-brand-text' : 'border-hairline text-secondary hover:text-primary'}`}
             >
-              All sports
+              {t('teams.all_sports')}
             </button>
             {sports.map((s) => (
               <button
@@ -83,7 +85,7 @@ const TeamsIndexPage = () => {
             {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-2xl" />)}
           </div>
         ) : teams.length === 0 ? (
-          <EmptyState icon={Users} title="No teams found" hint="Try a different sport or search term." />
+          <EmptyState icon={Users} title={t('teams.none_title')} hint={t('teams.none_hint')} />
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {teams.map((tm) => (

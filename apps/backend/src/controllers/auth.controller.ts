@@ -5,6 +5,7 @@ const { generateAccessToken, generateRefreshToken, verifyToken, hashToken } = re
 const { sendMail } = require('../utils/sendMail');
 const logActivity = require('../utils/activityLogger');
 const env = require('../config/env');
+const { capabilitiesFor } = require('../services/capabilities.rules');
 
 // Attach the sport a federation admin is scoped to, so the frontend can filter
 // its admin views to that sport.
@@ -17,6 +18,49 @@ const withAdminSport = async (user) => {
     user.sportId = fa?.federation?.sportId ?? null;
     user.sport = fa?.federation?.sport ?? null;
   }
+
+  // A league admin is scoped to the leagues they were assigned to, the same way
+  // a federation admin is scoped to a sport — but nothing ever sent that, so the
+  // frontend's useAdminLeague() fell through to "the first league in the list".
+  // Their whole portal then operated on somebody else's competition: standings,
+  // reporters and match reports for a league they do not administer, and — now
+  // that the write paths check the assignment — a 403 on their own pages.
+  if (user?.role === 'LEAGUE_ADMIN') {
+    const assignments = await prisma.leagueAdminAssignment.findMany({
+      where: { userId: user.id },
+      include: { league: { select: { id: true, name: true, slug: true, sportId: true, season: true } } },
+      orderBy: { leagueId: 'asc' },
+    });
+    user.leagues = assignments.map((a) => a.league).filter(Boolean);
+    user.leagueId = user.leagues[0]?.id ?? null;
+  }
+
+  return user;
+};
+
+/**
+ * Send the account with the list of what it may do.
+ *
+ * The frontend has been deciding which admin menus to draw from the role name,
+ * which means the same policy is written twice — once here and once in the
+ * browser — and the two drift the moment a role changes. Sending the resolved
+ * capabilities makes the server the only place the policy lives; the UI just
+ * renders it.
+ *
+ * This is presentation only. Hiding a button is a courtesy, not a control: every
+ * route still gates on requireCapability, so a capability list edited in a
+ * console buys nothing.
+ *
+ * The raw grant/revoke arrays are dropped from the payload — they are the
+ * mechanism, and only capabilitiesFor() knows how to combine them correctly.
+ */
+const withCapabilities = (user) => {
+  if (!user) return user;
+  user.capabilities = capabilitiesFor(user);
+  delete user.grantedCapabilities;
+  delete user.revokedCapabilities;
+  delete user.resetTokenHash;
+  delete user.resetTokenExpiry;
   return user;
 };
 
@@ -181,6 +225,7 @@ const login = async (req, res, next) => {
     // Remove password from response
     user.password = undefined;
     await withAdminSport(user);
+    withCapabilities(user);
 
     res.status(200).json({
       success: true,
@@ -281,6 +326,7 @@ const getMe = async (req, res, next) => {
 
     user.password = undefined;
     await withAdminSport(user);
+    withCapabilities(user);
     res.status(200).json({ success: true, user });
   } catch (error) {
     next(error);

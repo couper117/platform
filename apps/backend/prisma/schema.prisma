@@ -51,20 +51,36 @@ model User {
   resetTokenHash   String?   @db.VarChar(128)
   resetTokenExpiry DateTime?
 
-  managedTeam   Team?          @relation("TeamManager")
-  newsArticles  News[]
+  managedTeam  Team?  @relation("TeamManager")
+  newsArticles News[]
 
   // A SCHOOL_COORDINATOR registers athletes for exactly one school. Every query
   // that role makes is scoped to this id — see middleware/auth.ts.
-  akcSchoolId Int?
-  akcSchool   AkcSchool? @relation(fields: [akcSchoolId], references: [id], onDelete: SetNull)
+  akcSchoolId   Int?
+  akcSchool     AkcSchool?     @relation(fields: [akcSchoolId], references: [id], onDelete: SetNull)
   activityLogs  ActivityLog[]
   refreshTokens RefreshToken[]
 
   leaguesManaged     LeagueAdminAssignment[]
   federationsManaged FederationAdminAssignment[]
   matchAssignments   ReporterAssignment[]
-  umugandaDays       UmugandaDay[]              @relation("UmugandaAuthor")
+  umugandaDays       UmugandaDay[]               @relation("UmugandaAuthor")
+
+  // ── Capabilities ──
+  // The role stays the coarse grain, so every existing authorize() call keeps
+  // working. These two lists are per-account exceptions on top of it: a grant
+  // adds a capability the role lacks, a revoke takes away one it would otherwise
+  // have. Deliberately not a Permission/RolePermission matrix — the role to
+  // capability map belongs in code where it can be read, diffed and unit-tested,
+  // and only the exceptions need a row.
+  grantedCapabilities String[] @default([])
+  revokedCapabilities String[] @default([])
+
+  reporterProfile  ReporterProfile?
+  notifications    Notification[]
+  favorites        Favorite[]
+  uploadedMedia    Media[]           @relation("MediaUploader")
+  reviewedRequests PlatformRequest[] @relation("RequestReviewer")
 }
 
 enum Role {
@@ -307,6 +323,7 @@ model Team {
   transfersFrom Transfer[]         @relation("TransferFrom")
   transfersTo   Transfer[]         @relation("TransferTo")
   officials     TeamOfficial[]
+  favorites     Favorite[]
 
   @@index([sportId])
 }
@@ -615,6 +632,10 @@ model MatchEvent {
 }
 
 enum EventType {
+  /// Free-text commentary from the reporter — carries no scoring or disciplinary
+  /// meaning, only a `description`. Kept distinct so match logic that sums goals
+  /// or counts cards never has to exclude it by name.
+  COMMENTARY
   GOAL
   OWN_GOAL
   PENALTY
@@ -647,12 +668,37 @@ model Lineup {
 model LiveMatchState {
   fixtureId Int      @id
   fixture   Fixture  @relation(fields: [fixtureId], references: [id], onDelete: Cascade)
+  /// Last minute an event was logged at. Kept for clients that only read a number;
+  /// the authoritative clock is derived from periodStartedAt below.
   minute    Int      @default(0) @db.SmallInt
   homeScore Int      @default(0) @db.SmallInt
   awayScore Int      @default(0) @db.SmallInt
   status    String   @default("live") @db.VarChar(30)
   lastEvent String?  @db.VarChar(300)
   updatedAt DateTime @updatedAt
+
+  // ── Match clock ──
+  // The clock runs from a timestamp rather than being ticked and stored, so it is
+  // correct after a refresh, on a second device, and for a viewer who loads the
+  // page mid-half. Reporters were previously typing the minute on every event.
+  period           MatchPeriod @default(PRE)
+  /// When the current period kicked off. Null while the clock is stopped
+  /// (before kick-off, at half time, after full time).
+  periodStartedAt  DateTime?
+  /// Minute the current period counts up from: 0 in the first half, 45 in the
+  /// second, so the second half resumes at 45' rather than restarting at 0.
+  periodBaseMinute Int         @default(0) @db.SmallInt
+  /// Stoppage time the referee signalled for the current period. Entered by the
+  /// reporter; it does not stop the clock, it tells everyone how long is left.
+  addedMinutes     Int         @default(0) @db.SmallInt
+}
+
+enum MatchPeriod {
+  PRE
+  FIRST_HALF
+  HALF_TIME
+  SECOND_HALF
+  FULL_TIME
 }
 
 model Standing {
@@ -891,33 +937,33 @@ enum AkcLevel {
 }
 
 model AkcPlayer {
-  id             Int            @id @default(autoincrement())
-  teamId         Int
-  team           AkcTeam        @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  fullName       String         @db.VarChar(200)
-  dob            DateTime?      @db.Date
-  gender         PlayerGender   @default(MALE)
-  ageCategory    AkcAgeCategory @default(U17)
-  position       String?        @db.VarChar(100)
-  jersey         Int?           @db.SmallInt
-  idNumber       String?        @db.VarChar(100)
-  idType         AkcIdType      @default(NATIONAL_ID)
+  id                Int            @id @default(autoincrement())
+  teamId            Int
+  team              AkcTeam        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  fullName          String         @db.VarChar(200)
+  dob               DateTime?      @db.Date
+  gender            PlayerGender   @default(MALE)
+  ageCategory       AkcAgeCategory @default(U17)
+  position          String?        @db.VarChar(100)
+  jersey            Int?           @db.SmallInt
+  idNumber          String?        @db.VarChar(100)
+  idType            AkcIdType      @default(NATIONAL_ID)
   // Collected on the school roster form the coordinator fills in.
-  nationality    String?        @db.VarChar(100)
-  guardianPhone  String?        @db.VarChar(50)
-  schoolClass    String?        @db.VarChar(50)
-  studentCode    String?        @db.VarChar(100)
+  nationality       String?        @db.VarChar(100)
+  guardianPhone     String?        @db.VarChar(50)
+  schoolClass       String?        @db.VarChar(50)
+  studentCode       String?        @db.VarChar(100)
   // Law N° 058/2021 art. 9: a child under 16 may only have their data processed
   // with the consent of a holder of parental responsibility. The school records
   // who gave it and when, so the basis for processing is evidenced per child.
-  guardianName      String?     @db.VarChar(200)
-  guardianConsent   Boolean     @default(false)
+  guardianName      String?        @db.VarChar(200)
+  guardianConsent   Boolean        @default(false)
   guardianConsentAt DateTime?
-  docVerified    Boolean        @default(false)
-  hasDisability  Boolean        @default(false)
-  disabilityType String?        @db.VarChar(200)
-  active         Boolean        @default(true)
-  createdAt      DateTime       @default(now())
+  docVerified       Boolean        @default(false)
+  hasDisability     Boolean        @default(false)
+  disabilityType    String?        @db.VarChar(200)
+  active            Boolean        @default(true)
+  createdAt         DateTime       @default(now())
 
   @@index([teamId])
   @@index([studentCode])
@@ -1110,25 +1156,24 @@ enum TxStatus {
   FAILED
 }
 
-
 // ── Data protection (Law N° 058/2021) ──
 
 /// A request from a data subject exercising a right under arts. 18–24. Logged so
 /// the statutory thirty-day response deadline is visible and auditable.
 model DataSubjectRequest {
-  id           Int       @id @default(autoincrement())
+  id           Int             @id @default(autoincrement())
   type         DsrType
-  subjectName  String    @db.VarChar(200)
-  subjectEmail String?   @db.VarChar(200)
-  subjectPhone String?   @db.VarChar(50)
+  subjectName  String          @db.VarChar(200)
+  subjectEmail String?         @db.VarChar(200)
+  subjectPhone String?         @db.VarChar(50)
   /// Who is asking: the person themselves, or a parent/guardian acting for a child.
   relationship DsrRelationship @default(SELF)
   /// Which records the request concerns, in the requester's own words.
-  details      String?   @db.Text
-  status       DsrStatus @default(RECEIVED)
+  details      String?         @db.Text
+  status       DsrStatus       @default(RECEIVED)
   handledBy    Int?
-  responseNote String?   @db.Text
-  createdAt    DateTime  @default(now())
+  responseNote String?         @db.Text
+  createdAt    DateTime        @default(now())
   /// createdAt + 30 days (arts. 18, 19, 20, 23, 24).
   dueAt        DateTime
   closedAt     DateTime?
@@ -1170,12 +1215,12 @@ enum DsrStatus {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model UmugandaDay {
-  id     Int @id @default(autoincrement())
+  id    Int      @id @default(autoincrement())
   // Stored as a DATE (no clock component) so equality with a fixture's calendar
   // day is not at the mercy of the server's timezone offset.
-  date   DateTime @db.Date
-  month  Int      @db.SmallInt
-  year   Int      @db.SmallInt
+  date  DateTime @db.Date
+  month Int      @db.SmallInt
+  year  Int      @db.SmallInt
 
   title       String? @db.VarChar(200)
   description String? @db.Text
@@ -1209,24 +1254,24 @@ model UmugandaDay {
 }
 
 enum UmugandaStatus {
-  EXPECTED  // auto-calculated last Saturday, not yet confirmed by an admin
+  EXPECTED // auto-calculated last Saturday, not yet confirmed by an admin
   CONFIRMED // an admin has confirmed this is the official date
-  MOVED     // authorities moved it; this row carries the corrected date
-  DISABLED  // no Umuganda this month (or a generated row an admin switched off)
+  MOVED // authorities moved it; this row carries the corrected date
+  DISABLED // no Umuganda this month (or a generated row an admin switched off)
 }
 
 enum UmugandaSource {
   GENERATED // produced by the last-Saturday calculation
-  ADMIN     // created by hand (special / extra Umuganda date)
+  ADMIN // created by hand (special / extra Umuganda date)
 }
 
 // What an administrator decided about a match that collides with Umuganda.
 // The system NEVER decides this on its own and never auto-cancels a match.
 enum UmugandaDecision {
-  CONTINUE        // goes ahead as scheduled
-  MOVED           // rescheduled to another date/time
-  AFTER_UMUGANDA  // same day, kicks off after community work
-  AFFECTED        // flagged as affected, resolution still pending
+  CONTINUE // goes ahead as scheduled
+  MOVED // rescheduled to another date/time
+  AFTER_UMUGANDA // same day, kicks off after community work
+  AFFECTED // flagged as affected, resolution still pending
 }
 
 // A public-facing announcement generated when Umuganda affects a match.
@@ -1268,4 +1313,200 @@ enum UmugandaNoticeKind {
   RESCHEDULED
   AFTER_UMUGANDA
   AFFECTED
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Reporter / agent
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// The reporter as a person, as distinct from ReporterAssignment, which is the
+/// link between one reporter and one fixture.
+///
+/// A league admin deciding who to send to a match needs to know what sports the
+/// reporter covers, where they are, and whether they are free. The assignment
+/// table cannot answer any of that, because it only exists once the decision has
+/// already been made.
+model ReporterProfile {
+  id     Int  @id @default(autoincrement())
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Sports this reporter can cover. A basketball reporter should not be offered
+  /// for a cycling stage — the console adapts to the sport, the person does not.
+  sportIds     Int[]                @default([])
+  location     String?              @db.VarChar(200)
+  bio          String?              @db.Text
+  yearsActive  Int?                 @db.SmallInt
+  availability ReporterAvailability @default(AVAILABLE)
+  /// Set alongside BUSY so an admin sees when the reporter frees up.
+  busyUntil    DateTime?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  @@index([availability])
+}
+
+enum ReporterAvailability {
+  AVAILABLE
+  BUSY
+  UNAVAILABLE
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Notifications
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// An in-app notification, addressed either to a signed-in user or to an
+/// anonymous device token — so someone who followed a team without creating an
+/// account can still be told their match is about to start.
+model Notification {
+  id        Int     @id @default(autoincrement())
+  userId    Int?
+  user      User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Anonymous recipient. The same opaque token the Favorite table uses; never
+  /// an IP address or anything else that identifies a person (Law 058/2021 art. 3).
+  anonToken String? @db.VarChar(64)
+
+  kind  NotificationKind
+  title String           @db.VarChar(200)
+  body  String?          @db.Text
+  /// Where tapping it goes, e.g. /matches/12. Relative, so it survives a move
+  /// between hosts and works identically in the mobile shell.
+  link  String?          @db.VarChar(300)
+
+  /// What it concerns. Lets a postponed match withdraw its own reminders, and
+  /// stops the same reminder being queued twice.
+  subjectType String? @db.VarChar(40)
+  subjectId   Int?
+
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, readAt])
+  @@index([anonToken, readAt])
+  @@index([subjectType, subjectId])
+}
+
+enum NotificationKind {
+  MATCH_UPCOMING
+  MATCH_STARTING
+  MATCH_RESULT
+  MATCH_UPDATE
+  MATCH_POSTPONED
+  MATCH_CANCELLED
+  LINEUP_PUBLISHED
+  FIXTURE_ASSIGNED
+  DOCUMENT_REVIEWED
+  ORGANISATION_STATUS
+  GENERAL
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Favourites
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// A followed team. Owned by either a signed-in user or an anonymous device
+/// token — never both — so following a team never forces an account. The two
+/// unique constraints are what keep a follower count honest when a flaky
+/// connection retries the same request.
+model Favorite {
+  id     Int  @id @default(autoincrement())
+  teamId Int
+  team   Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  userId    Int?
+  user      User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  anonToken String? @db.VarChar(64)
+
+  createdAt DateTime @default(now())
+
+  @@unique([teamId, userId])
+  @@unique([teamId, anonToken])
+  @@index([anonToken])
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Onboarding requests
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// A club, school, federation or sport asking to join the platform. Nothing is
+/// created from one of these until a Super Admin approves it, so a request is a
+/// queue entry and never a half-made organisation.
+model PlatformRequest {
+  id           Int         @id @default(autoincrement())
+  kind         RequestKind
+  organisation String      @db.VarChar(200)
+  contactName  String      @db.VarChar(200)
+  contactEmail String      @db.VarChar(200)
+  contactPhone String?     @db.VarChar(50)
+  sportId      Int?
+  details      String?     @db.Text
+
+  status       RequestStatus @default(PENDING)
+  reviewedById Int?
+  reviewedBy   User?         @relation("RequestReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt   DateTime?
+  decisionNote String?       @db.Text
+  createdAt    DateTime      @default(now())
+
+  @@index([status])
+}
+
+enum RequestKind {
+  CLUB
+  SCHOOL
+  FEDERATION
+  SPORT
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Media
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// A record of an uploaded file, so it can be listed, attributed, replaced and
+/// deleted. The bytes live wherever STORAGE_DRIVER puts them (local disk or
+/// Cloudinary); this row is what makes them findable afterwards, which an
+/// orphaned URL in a VarChar column never is.
+model Media {
+  id       Int    @id @default(autoincrement())
+  url      String @db.VarChar(500)
+  mimeType String @db.VarChar(100)
+  bytes    Int
+
+  /// What it belongs to — "team", "federation", "ad", "player". A string rather
+  /// than a foreign key per type, so a new owner kind needs no migration.
+  ownerType String  @db.VarChar(40)
+  ownerId   Int?
+  purpose   String? @db.VarChar(40) // logo | cover | avatar | banner | document
+
+  uploadedById Int?
+  uploadedBy   User? @relation("MediaUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([ownerType, ownerId])
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AI models
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Registry of AI models the platform is allowed to call. Configuration only —
+/// credentials stay in the environment and are deliberately absent here.
+model AiModel {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique @db.VarChar(120)
+  provider  String   @db.VarChar(60)
+  modelId   String   @db.VarChar(120)
+  purpose   String?  @db.VarChar(200)
+  enabled   Boolean  @default(false)
+  config    String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

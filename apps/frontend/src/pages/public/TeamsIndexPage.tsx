@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import FollowButton from '../../components/shared/FollowButton';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Search, Users, MapPin } from 'lucide-react';
@@ -95,11 +96,16 @@ const TeamsIndexPage = () => {
                 className="group flex items-center gap-3 rounded-2xl border border-hairline bg-surface p-3.5 transition-all hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-md"
               >
                 <ClubCrest team={tm} size="lg" />
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="truncate font-bold text-primary group-hover:text-brand-text">{tm.name}</p>
                   <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-tertiary">
                     {tm.city ? <><MapPin size={11} /> {tm.city}</> : tm.sport?.name}
                   </p>
+                  {/* Inside the card but outside the link's job: the button stops
+                      the click propagating, so following never navigates away. */}
+                  <div className="mt-2">
+                    <FollowButton teamId={tm.id} size="sm" />
+                  </div>
                 </div>
               </Link>
             ))}

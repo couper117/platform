@@ -7,7 +7,7 @@ const {
 } = require('../controllers/leagues.controller');
 const { assignReporter } = require('../controllers/adminAssignments.controller');
 const { generateFixtures } = require('../controllers/fixtures.controller');
-const { protect, authorize } = require('../middleware/auth');
+const { protect, requireCapability } = require('../middleware/auth');
 const validate = require('../middleware/validate');
 const schemas = require('../validators/schemas');
 
@@ -18,19 +18,19 @@ router.get('/:id/standings', getLeagueStandings);
 router.get('/:id/scorers', getLeagueScorers);
 router.get('/:id', getLeague);
 
-router.post('/', protect, authorize('SUPERADMIN', 'FEDERATION_ADMIN', 'LEAGUE_ADMIN'), validate(schemas.createLeague), createLeague);
-router.put('/:id', protect, authorize('SUPERADMIN', 'FEDERATION_ADMIN', 'LEAGUE_ADMIN'), updateLeague);
-router.delete('/:id', protect, authorize('SUPERADMIN', 'FEDERATION_ADMIN'), deleteLeague);
+router.post('/', protect, requireCapability('leagues.write'), validate(schemas.createLeague), createLeague);
+router.put('/:id', protect, requireCapability('leagues.write'), updateLeague);
+router.delete('/:id', protect, requireCapability('leagues.delete'), deleteLeague);
 
-router.post('/:id/teams/:teamId', protect, authorize('SUPERADMIN', 'FEDERATION_ADMIN', 'LEAGUE_ADMIN'), addTeamToLeague);
-router.delete('/:id/teams/:teamId', protect, authorize('SUPERADMIN', 'FEDERATION_ADMIN', 'LEAGUE_ADMIN'), removeTeamFromLeague);
+router.post('/:id/teams/:teamId', protect, requireCapability('leagues.write'), addTeamToLeague);
+router.delete('/:id/teams/:teamId', protect, requireCapability('leagues.write'), removeTeamFromLeague);
 
-router.post('/:id/generate-fixtures', protect, authorize('SUPERADMIN', 'FEDERATION_ADMIN', 'LEAGUE_ADMIN'), generateFixtures);
+router.post('/:id/generate-fixtures', protect, requireCapability('leagues.write'), generateFixtures);
 
-router.post('/:leagueId/assign-reporter', protect, authorize('SUPERADMIN', 'LEAGUE_ADMIN'), assignReporter);
+router.post('/:leagueId/assign-reporter', protect, requireCapability('reporters.assign'), assignReporter);
 
 // Reporters assigned to a league (the League Admin "Reporters" view).
-router.get('/:leagueId/reporters', protect, authorize('SUPERADMIN', 'LEAGUE_ADMIN', 'FEDERATION_ADMIN'), async (req, res, next) => {
+router.get('/:leagueId/reporters', protect, requireCapability('reporters.read'), async (req, res, next) => {
   try {
     const leagueId = parseInt(req.params.leagueId);
     const assignments = await prisma.reporterAssignment.findMany({

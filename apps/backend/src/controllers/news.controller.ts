@@ -77,7 +77,7 @@ const createArticle = async (req, res, next) => {
     let coverImage = null;
 
     if (req.file) {
-      coverImage = await uploadImage(req.file, 'news', 800, 450);
+      coverImage = await uploadImage(req.file, 'news', 800, 450, { uploadedById: req.user?.id, purpose: 'cover' });
     }
 
     // Federation admins publish news only for their own sport (default to it
@@ -134,7 +134,7 @@ const updateArticle = async (req, res, next) => {
     let coverImage = news.coverImage;
     if (req.file) {
       if (news.coverImage) await deleteImage(news.coverImage);
-      coverImage = await uploadImage(req.file, 'news', 800, 450);
+      coverImage = await uploadImage(req.file, 'news', 800, 450, { uploadedById: req.user?.id, purpose: 'cover' });
     }
 
     news = await prisma.news.update({

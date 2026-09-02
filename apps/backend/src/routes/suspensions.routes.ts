@@ -4,12 +4,12 @@ const {
   createSuspension,
   liftSuspension,
 } = require('../controllers/suspensions.controller');
-const { protect, authorize } = require('../middleware/auth');
+const { protect, requireCapability } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.get('/', protect, authorize('SUPERADMIN', 'LEAGUE_ADMIN', 'FEDERATION_ADMIN'), getSuspensions);
-router.post('/', protect, authorize('SUPERADMIN', 'LEAGUE_ADMIN'), createSuspension);
-router.patch('/:id/lift', protect, authorize('SUPERADMIN', 'LEAGUE_ADMIN'), liftSuspension);
+router.get('/', protect, requireCapability('suspensions.read'), getSuspensions);
+router.post('/', protect, requireCapability('suspensions.write'), createSuspension);
+router.patch('/:id/lift', protect, requireCapability('suspensions.write'), liftSuspension);
 
 module.exports = router;

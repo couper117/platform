@@ -1,19 +1,30 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { Activity, Plus, Calendar, MapPin, Trophy, Clock, Search, Trash2, Edit2, Loader2, Tv, BarChart3 } from 'lucide-react';
+import { Activity, Plus, Calendar, MapPin, Trophy, Clock, Search, Trash2, Edit2, Loader2, Tv, BarChart3, AlertTriangle } from 'lucide-react';
 import apiClient from '../../api/client';
 import AdminTable from '../../components/admin/AdminTable';
 import AdminModal from '../../components/admin/AdminModal';
 import Skeleton from '../../components/shared/Skeleton';
 import useSportScope from '../../hooks/useSportScope';
+import useUmugandaLookup from '../../components/umuganda/useUmuganda';
+import UmugandaConflictDialog from '../../components/umuganda/UmugandaConflictDialog';
+import UmugandaMark from '../../components/umuganda/UmugandaMark';
+import { isUmugandaTouched } from '../../utils/umuganda';
 
 const AdminFixturesPage = () => {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const scope = useSportScope();
 
-  const { register, handleSubmit, reset } = useForm();
+  const { register, handleSubmit, reset, watch } = useForm();
+
+  // Umuganda awareness. `lookup` is indexed client-side so the warning appears
+  // while the admin is still choosing the date; the server re-checks on save.
+  const { lookup } = useUmugandaLookup();
+  const [decisionFor, setDecisionFor] = useState<any>(null);
+  const pendingDate = watch('matchDate');
+  const pendingUmuganda = pendingDate ? lookup(pendingDate) : null;
   const p = scope.profile;
   const evOne = p?.event || 'Fixture';
   const evMany = p?.eventPlural || 'Fixtures';
@@ -48,19 +59,25 @@ const AdminFixturesPage = () => {
   });
 
   const createFixtureMutation = useMutation({
-    mutationFn: async (data) => {
-      await apiClient.post('/fixtures', data);
+    mutationFn: async (data: any) => {
+      const { data: body } = await apiClient.post('/fixtures', data);
+      return body;
     },
-    onSuccess: () => {
+    onSuccess: (res: any) => {
       queryClient.invalidateQueries({ queryKey: ['admin-fixtures'] });
+      queryClient.invalidateQueries({ queryKey: ['umuganda'] });
       setIsModalOpen(false);
       reset();
-      alert('Match scheduled successfully!');
+      // The fixture is always created. If it landed on Umuganda, ask the admin
+      // what to do rather than deciding for them.
+      if (res?.umugandaConflict) {
+        setDecisionFor({ kind: 'league', fixture: res.data, umugandaDay: res.umugandaConflict.umugandaDay });
+      }
     }
   });
 
   const deleteFixtureMutation = useMutation({
-    mutationFn: async (id) => {
+    mutationFn: async (id: any) => {
       await apiClient.delete(`/fixtures/${id}`);
     },
     onSuccess: () => {
@@ -73,16 +90,16 @@ const AdminFixturesPage = () => {
     createFixtureMutation.mutate(data);
   };
 
-  // ── Streaming URL ──
+  // â”€â”€ Streaming URL â”€â”€
   const [streamFixture, setStreamFixture] = useState(null);
   const [streamUrl, setStreamUrl] = useState('');
   const streamMutation = useMutation({
-    mutationFn: async ({ id, url }) => { await apiClient.patch(`/fixtures/${id}`, { streamUrl: url, streamActive: !!url }); },
+    mutationFn: async ({ id, url }: any) => { await apiClient.patch(`/fixtures/${id}`, { streamUrl: url, streamActive: !!url }); },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-fixtures'] }); setStreamFixture(null); },
-    onError: (err) => alert(err.response?.data?.message || 'Failed to save streaming URL'),
+    onError: (err: any) => alert(err.response?.data?.message || 'Failed to save streaming URL'),
   });
 
-  // ── Match statistics (both teams) ──
+  // â”€â”€ Match statistics (both teams) â”€â”€
   const STAT_FIELDS = [
     ['possession', 'Possession %'], ['shots', 'Shots'], ['shotsOnTarget', 'On target'],
     ['shotsInsideBox', 'Shots in box'], ['shotsOutsideBox', 'Shots out box'], ['corners', 'Corners'],
@@ -105,7 +122,7 @@ const AdminFixturesPage = () => {
       await apiClient.put(`/fixtures/${statsFixture.id}/stats`, { teamId: statsFixture.awayTeamId, ...awayStats });
     },
     onSuccess: () => { setStatsFixture(null); alert('Match statistics saved'); },
-    onError: (err) => alert(err.response?.data?.message || 'Failed to save statistics'),
+    onError: (err: any) => alert(err.response?.data?.message || 'Failed to save statistics'),
   });
 
   return (
@@ -150,9 +167,21 @@ const AdminFixturesPage = () => {
               </td>
               <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{f.venue || 'TBD'}</td>
               <td className="px-6 py-5">
-                <span className={`text-[8px] font-bold px-2 py-1 rounded border uppercase ${f.status === 'LIVE' ? 'bg-red text-white border-red' : 'bg-surface-3 dark:bg-white/5 opacity-40'}`}>
-                  {f.status}
-                </span>
+                <div className="flex flex-col items-start gap-1.5">
+                  <span className={`text-[8px] font-bold px-2 py-1 rounded border uppercase ${f.status === 'LIVE' ? 'bg-red text-white border-red' : 'bg-surface-3 dark:bg-white/5 opacity-40'}`}>
+                    {f.status}
+                  </span>
+                  {(isUmugandaTouched(f.status) || lookup(f.matchDate)) && (
+                    <button
+                      type="button"
+                      onClick={() => setDecisionFor({ kind: 'league', fixture: f, umugandaDay: lookup(f.matchDate) })}
+                      className="inline-flex items-center gap-1 rounded-pill border border-brand/30 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-brand-text transition-colors hover:bg-brand/10"
+                    >
+                      <AlertTriangle size={10} aria-hidden="true" />
+                      Umuganda
+                    </button>
+                  )}
+                </div>
               </td>
               <td className="px-6 py-5">
                 <div className="flex items-center space-x-2">
@@ -207,6 +236,18 @@ const AdminFixturesPage = () => {
             <div className="space-y-2">
               <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Match Date & Time</label>
               <input {...register('matchDate', { required: true })} type="datetime-local" className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none" />
+              {pendingUmuganda && (
+                <div className="mt-2 flex items-start gap-2 rounded-xl border border-brand/30 bg-brand/[0.07] p-3">
+                  <AlertTriangle size={15} className="mt-0.5 shrink-0 text-brand-text" aria-hidden="true" />
+                  <div className="min-w-0">
+                    <UmugandaMark size="sm" />
+                    <p className="mt-1 text-xs text-secondary">
+                      This date is an expected Umuganda day ({pendingUmuganda.startTime}-{pendingUmuganda.endTime}).
+                      The match will still be created — you will be asked to confirm, move, or schedule it after Umuganda.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -270,6 +311,17 @@ const AdminFixturesPage = () => {
           </div>
         )}
       </AdminModal>
+
+      {/* Umuganda decision — the four options, never an auto-cancel. */}
+      {decisionFor && (
+        <UmugandaConflictDialog
+          open
+          onClose={() => setDecisionFor(null)}
+          kind={decisionFor.kind}
+          fixture={decisionFor.fixture}
+          umugandaDay={decisionFor.umugandaDay}
+        />
+      )}
     </div>
   );
 };

@@ -47,7 +47,7 @@ const createFederation = async (req, res, next) => {
     let logo = null;
 
     if (req.file) {
-      logo = await uploadImage(req.file, 'federations', 200, 200);
+      logo = await uploadImage(req.file, 'federations', 200, 200, { uploadedById: req.user?.id, purpose: 'logo' });
     }
 
     const federation = await prisma.federation.create({
@@ -91,7 +91,7 @@ const updateFederation = async (req, res, next) => {
     let logo = federation.logo;
     if (req.file) {
       if (federation.logo) await deleteImage(federation.logo);
-      logo = await uploadImage(req.file, 'federations', 200, 200);
+      logo = await uploadImage(req.file, 'federations', 200, 200, { uploadedById: req.user?.id, purpose: 'logo' });
     }
 
     federation = await prisma.federation.update({

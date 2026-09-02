@@ -30,6 +30,9 @@ import cn from '../ui/cn';
  * global rule in index.css neutralises its CSS animation), leaving a calm, still
  * card that still says "loading".
  */
+/**
+ * @param {{ label?: string, sublabel?: React.ReactNode, delay?: number, fullscreen?: boolean, brand?: boolean, className?: string }} props
+ */
 const Loader = ({
   label = 'Loading',
   sublabel,

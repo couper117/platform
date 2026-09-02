@@ -24,12 +24,14 @@ const Modal = ({
   open,
   onClose,
   title,
-  description,
+  // Defaulted so TypeScript callers are not forced to pass them. Both were
+  // already optional at runtime; only the inferred type said otherwise.
+  description = null,
   dismissible = true,
   size = 'md',
   children,
-  footer,
-  className,
+  footer = null,
+  className = '',
 }) => {
   const panelRef = useRef(null);
   const restoreTo = useRef(null);

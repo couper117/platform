@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const env = require('../config/env');
 const prisma = require('../config/db');
+const { can, canAll, canAny, assertKnown, capabilitiesFor } = require('../services/capabilities.rules');
 
 const protect = async (req, res, next) => {
   let token;
@@ -91,4 +92,66 @@ const authorize = (...roles) => {
   };
 };
 
-module.exports = { protect, attachUser, authorize };
+/**
+ * Gate a route on what the caller may *do*, rather than on which role they hold.
+ *
+ * `authorize('SUPERADMIN', 'LEAGUE_ADMIN', ...)` states the answer instead of
+ * the question: every new role means editing every route that should include it,
+ * and the reason a role is on the list is nowhere in the code. A capability says
+ * why — and one account can be granted or refused it individually without
+ * inventing a role for one person.
+ *
+ * `authorize` is deliberately left in place and still used. Both are honoured
+ * where both appear, so this can be adopted route by route without a rewrite
+ * that risks opening something up in passing.
+ *
+ * Capability names are validated as the routes are built, so a typo throws at
+ * startup naming the string, rather than silently denying everyone at runtime.
+ */
+const requireCapability = (...capabilities) => {
+  capabilities.forEach(assertKnown);
+
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: 'Not authorized to access this route' });
+    }
+    if (canAll(req.user, capabilities)) return next();
+
+    const missing = capabilities.filter((c) => !can(req.user, c));
+    return res.status(403).json({
+      success: false,
+      message: 'You do not have permission to do this.',
+      // Named so an administrator can grant exactly what is missing rather than
+      // guessing, and so a developer sees which check failed.
+      required: missing,
+    });
+  };
+};
+
+/** As requireCapability, but any one of the listed capabilities is enough. */
+const requireAnyCapability = (...capabilities) => {
+  capabilities.forEach(assertKnown);
+
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: 'Not authorized to access this route' });
+    }
+    if (canAny(req.user, capabilities)) return next();
+
+    return res.status(403).json({
+      success: false,
+      message: 'You do not have permission to do this.',
+      required: capabilities,
+    });
+  };
+};
+
+module.exports = {
+  protect,
+  attachUser,
+  authorize,
+  requireCapability,
+  requireAnyCapability,
+  can,
+  capabilitiesFor,
+};

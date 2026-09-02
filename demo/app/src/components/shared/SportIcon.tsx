@@ -16,8 +16,17 @@ const MAP = {
   athletics: FaPersonRunning,
 };
 
-const SportIcon = ({ slug, className, size, style }) => {
-  const Icon = MAP[slug] || FaTrophy;
+type SportIconProps = {
+  slug?: string | null;
+  className?: string;
+  size?: number | string;
+  style?: React.CSSProperties;
+};
+
+// Every prop but the slug is optional — callers that only know the sport should
+// not have to pass `style={undefined}` to satisfy the compiler.
+const SportIcon = ({ slug, className, size, style }: SportIconProps) => {
+  const Icon = (slug && MAP[slug]) || FaTrophy;
   return <Icon className={className} size={size} style={style} aria-hidden="true" />;
 };
 

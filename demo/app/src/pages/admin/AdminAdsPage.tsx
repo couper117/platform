@@ -25,7 +25,7 @@ const AdminAdsPage = () => {
   });
 
   const createAdMutation = useMutation({
-    mutationFn: async (data) => {
+    mutationFn: async (data: any) => {
       await apiClient.post('/ads', data);
     },
     onSuccess: () => {
@@ -34,18 +34,18 @@ const AdminAdsPage = () => {
       setFormData({ title: '', imageUrl: '', targetUrl: '', position: 'HOME_BANNER' });
       pushToast('Ad banner created successfully!', 'success');
     },
-    onError: (err) => pushToast(err.response?.data?.message || 'Failed to create ad banner'),
+    onError: (err: any) => pushToast(err.response?.data?.message || 'Failed to create ad banner'),
   });
 
   const deleteAdMutation = useMutation({
-    mutationFn: async (id) => {
+    mutationFn: async (id: any) => {
       await apiClient.delete(`/ads/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-ads'] });
       pushToast('Ad banner deleted!', 'success');
     },
-    onError: (err) => pushToast(err.response?.data?.message || 'Failed to delete ad banner'),
+    onError: (err: any) => pushToast(err.response?.data?.message || 'Failed to delete ad banner'),
   });
 
   const canSubmit = formData.title.trim() && formData.imageUrl.trim() && formData.position;

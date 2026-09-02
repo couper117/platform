@@ -67,7 +67,7 @@ const createSport = async (req, res, next) => {
     let coverImage = null;
 
     if (req.file) {
-      coverImage = await uploadImage(req.file, 'sports', 800, 450);
+      coverImage = await uploadImage(req.file, 'sports', 800, 450, { uploadedById: req.user?.id, purpose: 'cover' });
     }
 
     const sport = await prisma.sport.create({
@@ -111,7 +111,7 @@ const updateSport = async (req, res, next) => {
     let coverImage = sport.coverImage;
     if (req.file) {
       if (sport.coverImage) await deleteImage(sport.coverImage);
-      coverImage = await uploadImage(req.file, 'sports', 800, 450);
+      coverImage = await uploadImage(req.file, 'sports', 800, 450, { uploadedById: req.user?.id, purpose: 'cover' });
     }
 
     sport = await prisma.sport.update({

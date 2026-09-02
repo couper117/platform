@@ -352,7 +352,9 @@ async function main() {
   const schoolDefs = [
     { name: 'Groupe Scolaire Officiel de Butare', shortName: 'GSOB', code: 'GSOB-01', sector: 'Ngoma', category: 'SECONDARY' },
     { name: 'Lycee de Kigali', shortName: 'LDK', code: 'LDK-02', sector: 'Nyarugenge', category: 'SECONDARY' },
-    { name: 'FAWE Girls School', shortName: 'FAWE', code: 'FAWE-03', sector: 'Gasabo', category: 'SECONDARY' },
+    // FAWE is a girls' school (Forum for African Women Educationalists), so it
+    // fields no boys' team — see the football loop below.
+    { name: 'FAWE Girls School', shortName: 'FAWE', code: 'FAWE-03', sector: 'Gasabo', category: 'SECONDARY', girlsOnly: true },
     { name: 'Ecole des Sciences Byimana', shortName: 'ESB', code: 'ESB-04', sector: 'Ruli', category: 'SECONDARY' },
     { name: 'IPRC Kigali (TVET)', shortName: 'IPRC', code: 'IPRC-05', sector: 'Kicukiro', category: 'TVET' },
   ];
@@ -383,7 +385,14 @@ async function main() {
     });
   }
 
+  // Codes of the single-sex schools, so the loops below can skip a squad that
+  // school could not field. The loop used to run over every school and create a
+  // MALE U17 football team for each, which gave FAWE Girls School a boys' team of
+  // fourteen boys and entered it in a competition marked `gender: 'male'`.
+  const girlsOnlyCodes = new Set(schoolDefs.filter((d) => d.girlsOnly).map((d) => d.code));
+
   for (const school of schools) {
+    if (girlsOnlyCodes.has(school.code)) continue;
     let t = await prisma.akcTeam.findFirst({ where: { schoolId: school.id, sportId: sports.football.id, ageCategory: 'U17' } });
     if (!t) t = await prisma.akcTeam.create({ data: { schoolId: school.id, sportId: sports.football.id, gender: 'MALE', ageCategory: 'U17', level: 'NATIONAL', coachName: 'Coach ' + school.shortName } });
     akcTeams.push(t);

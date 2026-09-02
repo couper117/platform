@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +16,7 @@ import FormationPitch from '../../components/match/FormationPitch';
 import Skeleton from '../../components/shared/Skeleton';
 import Seo from '../../components/shared/Seo';
 import { LiveBadge } from '../../components/ui/Badge';
+import { tickClock, PERIOD_LABEL } from '../../utils/matchClock';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import EmptyState from '../../components/ui/EmptyState';
@@ -94,6 +95,18 @@ const MatchDetailsPage = () => {
   // leaving fans on a stale score. See hooks/useLiveMatch.js.
   const { live, connected } = useLiveMatch(id, m, refetch);
   const isLive = live.status === 'LIVE';
+
+  // The clock ticks in the browser from the timestamp the server sent, so the
+  // minute here matches the reporter's console second for second — without
+  // polling, and without the viewer reloading. Real-time pushes correct it
+  // whenever a goal, an undo or a period change lands.
+  const [clockNow, setClockNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!live.clock?.running) return undefined;
+    const t = setInterval(() => setClockNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [live.clock?.running]);
+  const matchClock = tickClock(live.clock, clockNow);
   const isCompleted = live.status === 'COMPLETED';
 
   // Derive simple team stats from events (goals / cards) for the stats tab.
@@ -181,7 +194,11 @@ const MatchDetailsPage = () => {
               <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/30">{m.league?.name}</span>
               {isLive ? (
                 <div className="flex items-center gap-3">
-                  <LiveBadge minute={live.minute} />
+                  <LiveBadge minute={matchClock.display} />
+                  <span className="text-[9px] uppercase tracking-widest text-white/40">
+                    {PERIOD_LABEL[matchClock.period] || ''}
+                    {matchClock.addedMinutes > 0 && ` · +${matchClock.addedMinutes}`}
+                  </span>
                   {connected && (
                     <span className="flex items-center gap-1 text-[9px] uppercase tracking-widest text-green/80">
                       <Wifi size={11} /> Real-time

@@ -726,11 +726,11 @@
     "roles": {
       "title": "Rôles &",
       "title_accent": "Permissions",
-      "subtitle": "Quel rôle accède à quelle section admin",
-      "col_section": "Section",
+      "subtitle": "Ce que chaque rôle est autorisé à faire",
+      "col_section": "Capacité",
       "allowed": "Autorisé",
       "denied": "Pas d accès",
-      "note": "Cette matrice est dérivée de la même liste d accès qui pilote le menu et l autorisation du backend — jamais éditée à la main."
+      "note": "Fournie par l API à partir de la politique qu elle applique, donc jamais en désaccord avec ce que le serveur autorise. Les exceptions pour un compte se règlent sur ce compte, dans Utilisateurs."
     },
     "health": {
       "title": "État du",
@@ -1381,6 +1381,7 @@
     "nav_profile": "Profil de l équipe",
     "nav_lineups": "Compositions",
     "nav_live_reporting": "Reportage en direct",
+    "nav_my_profile": "Mon profil",
     "nav_my_players": "Mes joueurs",
     "role_ministry": "Ministère des Sports",
     "role_ministry_sub": "Rwanda",
@@ -1403,6 +1404,8 @@
     "nav_media": "Bibliothèque média",
     "nav_users": "Utilisateurs",
     "nav_roles": "Rôles & permissions",
+    "nav_requests": "Demandes d'adhésion",
+    "nav_compliance": "Protection des données",
     "nav_system_health": "État du système",
     "nav_match_reports": "Rapports de match",
     "nav_standings": "Classement",
@@ -1697,5 +1700,15 @@
       "after": "Ce match aura lieu après l'Umuganda.",
       "affected": "Ce match est affecté par l'Umuganda. Une décision finale est attendue."
     }
+  },
+  "follow": {
+    "follow": "Suivre",
+    "following": "Suivi",
+    "unfollow": "Ne plus suivre"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "mark_all": "Tout marquer comme lu",
+    "none": "Rien pour le moment."
   }
 }

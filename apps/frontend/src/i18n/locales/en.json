@@ -726,11 +726,11 @@
     "roles": {
       "title": "Roles &",
       "title_accent": "Permissions",
-      "subtitle": "Which role can reach which admin section",
-      "col_section": "Section",
+      "subtitle": "What each role is allowed to do",
+      "col_section": "Capability",
       "allowed": "Allowed",
       "denied": "No access",
-      "note": "This matrix is derived from the same access list that drives the sidebar and the backend authorization — it is never edited by hand."
+      "note": "Served by the API from the same policy it enforces with, so this can never disagree with what the server actually allows. Exceptions for a single account are set on that account, under Users."
     },
     "health": {
       "title": "System",
@@ -1381,6 +1381,7 @@
     "nav_profile": "Team Profile",
     "nav_lineups": "Lineups",
     "nav_live_reporting": "Live Reporting",
+    "nav_my_profile": "My Profile",
     "nav_my_players": "My Players",
     "role_ministry": "Ministry of Sport",
     "role_ministry_sub": "Rwanda",
@@ -1403,6 +1404,8 @@
     "nav_media": "Media Library",
     "nav_users": "Users",
     "nav_roles": "Roles & Permissions",
+    "nav_requests": "Join Requests",
+    "nav_compliance": "Data Protection",
     "nav_system_health": "System Health",
     "nav_match_reports": "Match Reports",
     "nav_standings": "Standings",
@@ -1697,5 +1700,15 @@
       "after": "This match will take place after Umuganda.",
       "affected": "This match is affected by Umuganda. A final decision is pending."
     }
+  },
+  "follow": {
+    "follow": "Follow",
+    "following": "Following",
+    "unfollow": "Unfollow"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "mark_all": "Mark all read",
+    "none": "Nothing yet."
   }
 }

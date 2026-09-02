@@ -3,8 +3,12 @@ const { recalcStandings } = require('../services/standings.service');
 const { emitMatchUpdate, emitMatchEvent, emitMatchStats } = require('../services/realtime.service');
 const sse = require('../services/sse.service');
 const { handleCardEvent, serveSuspensions } = require('../services/discipline.service');
+const { notifyKickOff, notifyLineup } = require('../services/notifications.service');
+const { completeFixture } = require('../services/matchCompletion.service');
 const { getPagination } = require('../utils/paginate');
 const { enforceSportScope, leagueSportId } = require('../utils/scope');
+const { transition, canTransition, readClock, eventMinuteAt } = require('../services/matchClock.logic');
+const { recomputeScore, recomputeTopScorer, deleteEventAndRecompute } = require('../services/matchEvents.service');
 const logActivity = require('../utils/activityLogger');
 const { syncFixtureConflict, detectConflict, raiseNotice } = require('../services/umuganda.service');
 
@@ -119,7 +123,12 @@ const getFixture = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Fixture not found' });
     }
 
-    res.status(200).json({ success: true, data: fixture });
+    // The clock is derived, never stored ticking, so every client that loads this
+    // fixture — reporter, public viewer, second device — reads the same minute.
+    res.status(200).json({
+      success: true,
+      data: { ...fixture, clock: readClock(fixture.liveState) },
+    });
   } catch (error) {
     next(error);
   }
@@ -230,8 +239,9 @@ const saveResult = async (req, res, next) => {
     });
 
     if (result.status === 'COMPLETED') {
-      await recalcStandings(result.leagueId);
-      await serveSuspensions(result); // advance/clear bans for both squads
+      // recount:false — an administrator has just typed the final score, and it
+      // is the authority here, not the event log.
+      await completeFixture(fixtureId, { recount: false });
     }
 
     // Keep live state in sync with the saved result.
@@ -272,12 +282,22 @@ const saveResult = async (req, res, next) => {
 
 const addMatchEvent = async (req, res, next) => {
   try {
-    const { eventType, minute, extraTime, teamId, playerId, player2Id, description, refereeName } = req.body;
+    const { eventType, teamId, playerId, player2Id, description, refereeName } = req.body;
+    let { minute, extraTime } = req.body;
     const fixtureId = parseInt(req.params.id);
     if (isNaN(fixtureId)) return res.status(400).json({ success: false, message: 'Invalid ID' });
 
     const fixture = await prisma.fixture.findUnique({ where: { id: fixtureId } });
     if (!fixture) return res.status(404).json({ success: false, message: 'Fixture not found' });
+
+    // No minute supplied means "now": read it off the running clock rather than
+    // making the reporter type a number they would have to keep correcting.
+    if (minute === undefined || minute === null || minute === '') {
+      const live = await prisma.liveMatchState.findUnique({ where: { fixtureId } });
+      const fromClock = eventMinuteAt(live);
+      minute = fromClock.minute;
+      if (extraTime === undefined || extraTime === null || extraTime === '') extraTime = fromClock.extraTime;
+    }
 
     // Authorization check
     if (req.user.role === 'MATCH_REPORTER') {
@@ -319,37 +339,18 @@ const addMatchEvent = async (req, res, next) => {
     // Score is DERIVED from goal events (single source of truth) so it can't
     // double-count and stays correct if an event is ever removed.
     if (['GOAL', 'PENALTY', 'OWN_GOAL'].includes(eventType)) {
-      const goalEvents = await prisma.matchEvent.findMany({
-        where: { fixtureId, eventType: { in: ['GOAL', 'PENALTY', 'OWN_GOAL'] } },
-      });
-      let home = 0;
-      let away = 0;
-      for (const g of goalEvents) {
-        const scoredForHome = g.eventType === 'OWN_GOAL'
-          ? g.teamId != fixture.homeTeamId
-          : g.teamId == fixture.homeTeamId;
-        if (scoredForHome) home += 1; else away += 1;
-      }
-
-      await prisma.fixture.update({ where: { id: fixtureId }, data: { homeScore: home, awayScore: away } });
-      await prisma.liveMatchState.upsert({
+      const { home, away } = await recomputeScore(fixtureId, fixture);
+      await prisma.liveMatchState.updateMany({
         where: { fixtureId },
-        update: { homeScore: home, awayScore: away, minute: minuteNum, lastEvent: description || eventType },
-        create: { fixtureId, homeScore: home, awayScore: away, minute: minuteNum, status: 'live', lastEvent: description || eventType },
+        data: { minute: minuteNum, lastEvent: description || eventType },
       });
-      emitMatchUpdate(fixtureId, { homeScore: home, awayScore: away, minute: minuteNum });
+      const liveNow = await prisma.liveMatchState.findUnique({ where: { fixtureId } });
+      emitMatchUpdate(fixtureId, { homeScore: home, awayScore: away, minute: minuteNum, clock: readClock(liveNow) });
 
-      // Credit the scorer (GOAL/PENALTY only — an OWN_GOAL doesn't count for the player).
+      // Credit the scorer (GOAL/PENALTY only — an OWN_GOAL doesn't count for the
+      // player). Recounted from events, not incremented, so an undo can put it back.
       if ((eventType === 'GOAL' || eventType === 'PENALTY') && playerId && fixture.leagueId) {
-        const pid = parseInt(playerId);
-        const player = await prisma.player.findUnique({ where: { id: pid } });
-        if (player) {
-          await prisma.topScorer.upsert({
-            where: { playerId: pid },
-            update: { goals: { increment: 1 } },
-            create: { leagueId: fixture.leagueId, playerId: pid, teamId: player.teamId, goals: 1, assists: 0 },
-          });
-        }
+        await recomputeTopScorer(parseInt(playerId), fixture.leagueId);
       }
     } else {
       // Non-scoring event: still advance the live clock.
@@ -485,9 +486,53 @@ const saveLineup = async (req, res, next) => {
       return res.status(423).json({ success: false, message: 'Lineup is locked — the match has started' });
     }
 
+    const submitted: number[] = [...new Set<number>((players || []).map((p) => parseInt(p.playerId)).filter(Number.isFinite))];
+
     // Only players belonging to this team may be listed.
-    const teamPlayers = await prisma.player.findMany({ where: { teamId: tid }, select: { id: true } });
-    const allowed = new Set(teamPlayers.map((p) => p.id));
+    //
+    // Players not on the team used to be dropped silently: a manager naming
+    // eleven could be told "Lineup saved" with eight of them stored, and nothing
+    // said which three had gone. Naming them costs one sentence and saves the
+    // discovery happening at kick-off.
+    const teamPlayers = await prisma.player.findMany({
+      where: { id: { in: submitted } },
+      select: { id: true, fullName: true, teamId: true },
+    });
+    const byId = new Map<number, any>(teamPlayers.map((p) => [p.id, p]));
+    const foreign = submitted.filter((id) => byId.get(id)?.teamId !== tid);
+    if (foreign.length) {
+      const names = foreign.map((id) => byId.get(id)?.fullName || `#${id}`);
+      return res.status(400).json({
+        success: false,
+        message: `Not in this squad: ${names.join(', ')}`,
+      });
+    }
+
+    // A suspended player may not be named.
+    //
+    // Suspensions were recorded, counted and displayed, and then had no effect
+    // on anything: a player serving a red-card ban could be put straight into
+    // the starting XI and the sheet saved without complaint. A ban that does not
+    // stop someone playing is not a ban. Lifting it is a deliberate act with its
+    // own endpoint, which is where an exception belongs — not here.
+    const bans = await prisma.suspension.findMany({
+      where: { playerId: { in: submitted }, active: true },
+      select: { playerId: true, matches: true, matchesServed: true, reason: true },
+    });
+    const serving = bans.filter((b) => b.matchesServed < b.matches);
+    if (serving.length) {
+      const detail = serving.map((b) => {
+        const left = b.matches - b.matchesServed;
+        return `${byId.get(b.playerId)?.fullName || `#${b.playerId}`} (${left} match${left === 1 ? '' : 'es'} of a ${b.reason.toLowerCase().replace(/_/g, ' ')} ban left)`;
+      });
+      return res.status(409).json({
+        success: false,
+        message: `Suspended, cannot be named: ${detail.join('; ')}`,
+        suspended: serving.map((b) => b.playerId),
+      });
+    }
+
+    const allowed = new Set(teamPlayers.filter((p) => p.teamId === tid).map((p) => p.id));
     const rows = (players || [])
       .filter((p) => allowed.has(parseInt(p.playerId)))
       .map((p) => ({
@@ -511,6 +556,19 @@ const saveLineup = async (req, res, next) => {
     ]);
 
     await logActivity({ userId: req.user.id, action: 'Publish Lineup', detail: `Lineup for team ${tid} in fixture ${fixtureId}`, module: 'fixtures', ip: req.ip });
+
+    // Only a published sheet is news. A draft saved with published:false is the
+    // manager still deciding, and telling followers about it would be wrong twice
+    // over — it is not final, and it may name players who are about to be dropped.
+    if (published) {
+      const full = await prisma.fixture.findUnique({
+        where: { id: fixtureId },
+        include: { homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } } },
+      });
+      const named = tid === full?.homeTeamId ? full?.homeTeam?.name : full?.awayTeam?.name;
+      if (full) await notifyLineup(full, named || 'The team');
+    }
+
     res.status(200).json({ success: true, message: 'Lineup saved', count: rows.length });
   } catch (error) {
     next(error);
@@ -638,7 +696,146 @@ const streamFixture = (req, res) => {
   });
 };
 
+/**
+ * Drive the match clock.
+ *
+ * `action` moves the period (start / halftime / resume / fulltime) and stamps the
+ * timestamp the clock is read from. `addedMinutes` sets the stoppage the referee
+ * signalled for the period currently being played.
+ *
+ * Period changes also write their match event, so the feed and the clock cannot
+ * disagree about when a half ended.
+ */
+const setMatchClock = async (req, res, next) => {
+  try {
+    const fixtureId = parseInt(req.params.id);
+    if (Number.isNaN(fixtureId)) return res.status(400).json({ success: false, message: 'Invalid ID' });
+
+    const fixture = await prisma.fixture.findUnique({ where: { id: fixtureId } });
+    if (!fixture) return res.status(404).json({ success: false, message: 'Fixture not found' });
+    if (!(await canManageFixture(req.user, fixture))) {
+      return res.status(403).json({ success: false, message: 'Not authorized for this fixture' });
+    }
+
+    const state = await prisma.liveMatchState.findUnique({ where: { fixtureId } });
+    const now = new Date();
+    const { action } = req.body || {};
+
+    // Setting added time only — no period change.
+    if (!action) {
+      const added = parseInt(req.body?.addedMinutes, 10);
+      if (Number.isNaN(added) || added < 0 || added > 30) {
+        return res.status(400).json({ success: false, message: 'addedMinutes must be a whole number between 0 and 30.' });
+      }
+      const updated = await prisma.liveMatchState.upsert({
+        where: { fixtureId },
+        update: { addedMinutes: added },
+        create: { fixtureId, addedMinutes: added, status: 'live' },
+      });
+      emitMatchUpdate(fixtureId, { clock: readClock(updated, now) });
+      return res.status(200).json({ success: true, data: { ...updated, clock: readClock(updated, now) } });
+    }
+
+    const next_ = transition(action, now);
+    if (!next_) return res.status(400).json({ success: false, message: `Unknown clock action "${action}".` });
+    if (!canTransition(state?.period, action)) {
+      return res.status(409).json({
+        success: false,
+        message: `Cannot ${action} from ${state?.period || 'PRE'}.`,
+      });
+    }
+
+    const { eventType, minute, ...clockFields } = next_;
+
+    const updated = await prisma.liveMatchState.upsert({
+      where: { fixtureId },
+      update: { ...clockFields, minute, status: action === 'fulltime' ? 'ended' : 'live' },
+      create: { fixtureId, ...clockFields, minute, status: action === 'fulltime' ? 'ended' : 'live' },
+    });
+
+    // The fixture's own status follows the clock, so the public site flips to LIVE
+    // on kick-off and COMPLETED at full time without a second call.
+    if (action === 'start') {
+      if (fixture.status !== 'LIVE') {
+        await prisma.fixture.update({ where: { id: fixtureId }, data: { status: 'LIVE' } });
+      }
+      // Announced on the clock action, not on the status change. Plenty of
+      // fixtures are already marked LIVE before anyone starts the clock, and
+      // hanging the announcement on the status meant those kick-offs — the ones
+      // actually being reported — told nobody.
+      const full = await prisma.fixture.findUnique({
+        where: { id: fixtureId },
+        include: { homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } } },
+      });
+      if (full) await notifyKickOff(full);
+    }
+    if (action === 'fulltime') {
+      await prisma.fixture.update({ where: { id: fixtureId }, data: { status: 'COMPLETED' } });
+      // Pressing full time ends the match in every sense — this used to set the
+      // status and stop, so a match reported live never reached the standings and
+      // its suspensions were never served.
+      await completeFixture(fixtureId, { recount: true });
+    }
+
+    if (eventType) {
+      const event = await prisma.matchEvent.create({
+        data: { fixtureId, eventType, minute, extraTime: 0 },
+        include: { player: true, player2: true },
+      });
+      emitMatchEvent(fixtureId, event);
+    }
+
+    const clock = readClock(updated, now);
+    emitMatchUpdate(fixtureId, { clock, status: updated.status });
+    res.status(200).json({ success: true, data: { ...updated, clock } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Undo a logged event.
+ *
+ * Removing it is the easy half; the point of this endpoint is that everything the
+ * event caused is put back — the score recounted, the scorer's tally recounted,
+ * and a suspension the card produced withdrawn if it is no longer earned.
+ */
+const deleteMatchEvent = async (req, res, next) => {
+  try {
+    const fixtureId = parseInt(req.params.id);
+    const eventId = parseInt(req.params.eventId);
+    if (Number.isNaN(fixtureId) || Number.isNaN(eventId)) {
+      return res.status(400).json({ success: false, message: 'Invalid ID' });
+    }
+
+    const fixture = await prisma.fixture.findUnique({ where: { id: fixtureId } });
+    if (!fixture) return res.status(404).json({ success: false, message: 'Fixture not found' });
+    if (!(await canManageFixture(req.user, fixture))) {
+      return res.status(403).json({ success: false, message: 'Not authorized for this fixture' });
+    }
+
+    const result = await deleteEventAndRecompute(fixtureId, eventId);
+    if (result.error) return res.status(400).json({ success: false, message: result.error });
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Undo Match Event',
+      detail: `Removed ${result.deleted.eventType} at ${result.deleted.minute}' from fixture ${fixtureId}`,
+      module: 'fixtures',
+      ip: req.ip,
+    });
+
+    const liveAfterUndo = await prisma.liveMatchState.findUnique({ where: { fixtureId } });
+    emitMatchUpdate(fixtureId, { homeScore: result.score.home, awayScore: result.score.away, clock: readClock(liveAfterUndo) });
+    res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
+  deleteMatchEvent,
+  setMatchClock,
   getFixtures,
   getFixture,
   createFixture,

@@ -1,4 +1,5 @@
 const prisma = require('../config/db');
+const { enforcePlayerScope } = require('../utils/scope');
 const logActivity = require('../utils/activityLogger');
 
 // @desc    List transfers (newest first), optional playerId / teamId filters
@@ -44,6 +45,10 @@ const createTransfer = async (req, res, next) => {
     if (!player) {
       return res.status(404).json({ success: false, message: 'Player not found' });
     }
+
+    // Moving a player between clubs is a competition decision, so it stays with
+    // whoever administers the competition the player is currently in.
+    if (!(await enforcePlayerScope(req, res, player.id))) return;
 
     const resolvedFromTeamId =
       fromTeamId !== undefined && fromTeamId !== null ? parseInt(fromTeamId) : player.teamId;

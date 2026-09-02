@@ -8,7 +8,7 @@
 
 const express = require('express');
 const prisma = require('../../config/db');
-const { protect, authorize } = require('../../middleware/auth');
+const { protect, requireCapability } = require('../../middleware/auth');
 const uploadCsv = require('../../middleware/uploadCsv');
 const {
   sendRosterForm, runRosterImport,
@@ -65,7 +65,7 @@ const withOwnSchool = async (req, res, next) => {
 
 // SUPERADMIN and AMASHURI_ADMIN are deliberately NOT included: this portal is the
 // coordinator's own scoped view, and admins have the full school pages instead.
-router.use(protect, authorize('SCHOOL_COORDINATOR'), withOwnSchool);
+router.use(protect, requireCapability('akc.school'), withOwnSchool);
 
 /** The coordinator's school, its teams, and how many athletes each holds. */
 router.get('/me', async (req, res, next) => {

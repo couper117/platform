@@ -47,7 +47,7 @@ const AdminLeaguesPage = () => {
   });
 
   const createLeagueMutation = useMutation({
-    mutationFn: async (data) => {
+    mutationFn: async (data: any) => {
       await apiClient.post('/leagues', data);
     },
     onSuccess: () => {
@@ -56,13 +56,13 @@ const AdminLeaguesPage = () => {
       reset();
       alert('League created successfully!');
     },
-    onError: (err) => {
+    onError: (err: any) => {
       alert(err.response?.data?.message || 'Failed to create league');
     }
   });
 
   const deleteLeagueMutation = useMutation({
-    mutationFn: async (id) => {
+    mutationFn: async (id: any) => {
       await apiClient.delete(`/leagues/${id}`);
     },
     onSuccess: () => {
@@ -72,15 +72,15 @@ const AdminLeaguesPage = () => {
   });
 
   const generateFixturesMutation = useMutation({
-    mutationFn: async ({ id, doubleRound, force }) => {
+    mutationFn: async ({ id, doubleRound, force }: any) => {
       const { data } = await apiClient.post(`/leagues/${id}/generate-fixtures`, { doubleRound, force });
       return data;
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ['admin-fixtures'] });
       alert(data?.message || 'Fixtures generated');
     },
-    onError: (err) => {
+    onError: (err: any) => {
       alert(err.response?.data?.message || 'Failed to generate fixtures');
     }
   });
@@ -91,7 +91,7 @@ const AdminLeaguesPage = () => {
   };
 
   const assignReporterMutation = useMutation({
-    mutationFn: async ({ leagueId, email }) => {
+    mutationFn: async ({ leagueId, email }: any) => {
       await apiClient.post(`/leagues/${leagueId}/assign-reporter`, { email });
     },
     onSuccess: () => {
@@ -102,7 +102,7 @@ const AdminLeaguesPage = () => {
   });
 
   const assignAdminMutation = useMutation({
-    mutationFn: async ({ leagueId, email }) => {
+    mutationFn: async ({ leagueId, email }: any) => {
       await apiClient.post(`/admin/assign-league-admin`, { leagueId, email });
     },
     onSuccess: () => {

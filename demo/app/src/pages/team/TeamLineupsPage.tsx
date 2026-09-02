@@ -78,7 +78,7 @@ const TeamLineupsPage = () => {
       queryClient.invalidateQueries({ queryKey: ['team-fixtures', teamId] });
       setEditing(null);
     },
-    onError: (err) => setError(err.response?.data?.message || t('teamlineups.err_save')),
+    onError: (err: any) => setError(err.response?.data?.message || t('teamlineups.err_save')),
   });
 
   const submit = () => {
@@ -119,7 +119,7 @@ const TeamLineupsPage = () => {
                   <div className="min-w-0">
                     <p className="font-bold text-sm uppercase tracking-tight truncate">{t('teamlineups.vs')} {opp?.name || t('common.tbd')}</p>
                     <p className="text-[10px] opacity-40 uppercase tracking-widest truncate">
-                      {f.matchDate ? new Date(f.matchDate).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Date TBD'} · {f.status}
+                      {f.matchDate ? new Date(f.matchDate).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Date TBD'} Â· {f.status}
                     </p>
                   </div>
                 </div>

@@ -1,6 +1,7 @@
 import axios from 'axios';
 import useAuthStore from '../store/authStore';
 import useUiStore from '../store/uiStore';
+import { getAnonId } from '../lib/anonId';
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1',
@@ -15,6 +16,15 @@ apiClient.interceptors.request.use(
     const { token } = useAuthStore.getState();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    // Identify the browser to endpoints that work without an account — following
+    // a team, chiefly. Sent alongside the token rather than instead of it: the
+    // server prefers the account when both are present, and POST /favorites/claim
+    // moves whatever this browser followed onto the account at sign-in.
+    const anonId = getAnonId();
+    if (anonId) {
+      config.headers['X-Anon-Id'] = anonId;
     }
 
     // File uploads must not inherit the instance-wide JSON content type. Axios only
