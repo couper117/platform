@@ -47,6 +47,22 @@ the declaration on trust. See `DATA_PROTECTION.md` §6.1.
 
 ---
 
+## Check before you deploy
+
+```
+vercel env pull .env.production --environment=production
+npm run preflight -- .env.production
+```
+
+It reports what would stop the deployment serving and exits non-zero if anything
+would. Most of what goes wrong here is one wrong variable, and each of those
+failures looks like something else once it is live: an offshore database returns
+503 on every route, a macOS Prisma client fails on its first query as though the
+database were down, and `STORAGE_DRIVER=local` loses every upload without erroring
+once.
+
+---
+
 ## Environment variables
 
 Every key is validated at boot by `src/config/env.ts`; a missing or malformed
