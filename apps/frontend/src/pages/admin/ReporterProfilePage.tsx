@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { UserSquare2, MapPin, Radio, CalendarClock, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import apiClient from '../../api/client';
-import { Skeleton } from '../../components/ui';
+import { PageHeader, Panel } from '../../components/admin/AdminUI';
+import { Button, ErrorState, Field, Input, Skeleton, cn } from '../../components/ui';
 
 /**
  * Reporter → My Profile.
@@ -20,12 +21,6 @@ const AVAILABILITY = [
   { value: 'BUSY', labelKey: 'reporter.busy', fallback: 'Busy' },
   { value: 'UNAVAILABLE', labelKey: 'reporter.unavailable', fallback: 'Unavailable' },
 ];
-
-const TONE = {
-  AVAILABLE: 'border-brand bg-brand text-white',
-  BUSY: 'border-gold bg-gold/15 text-primary',
-  UNAVAILABLE: 'border-hairline bg-surface-2 text-tertiary',
-};
 
 const ReporterProfilePage = () => {
   const { t } = useTranslation();
@@ -68,11 +63,34 @@ const ReporterProfilePage = () => {
     },
   });
 
-  if (isLoading || !form) return <Skeleton type="card" count={3} />;
+  const header = (
+    <PageHeader
+      title={`${t('reporter.profile_title', 'My')} ${t('reporter.profile_accent', 'Profile')}`}
+      subtitle={t('reporter.profile_subtitle', 'What you cover, and whether you are free')}
+    />
+  );
+
+  if (isLoading || !form) {
+    return (
+      <div>
+        {header}
+        <div role="status" aria-busy="true" aria-live="polite" className="grid gap-4 lg:grid-cols-3">
+          <span className="sr-only">{t('common.loading')}</span>
+          <div className="space-y-4 lg:col-span-2">
+            <Skeleton className="h-32 w-full rounded-card" />
+            <Skeleton className="h-40 w-full rounded-card" />
+            <Skeleton className="h-56 w-full rounded-card" />
+          </div>
+          <Skeleton className="h-48 w-full rounded-card" />
+        </div>
+      </div>
+    );
+  }
   if (isError) {
     return (
-      <div className="py-16 text-center opacity-50 font-display uppercase tracking-widest">
-        {t('admin.users.load_error', 'Could not load')}
+      <div>
+        {header}
+        <ErrorState title={t('admin.users.load_error', 'Could not load')} />
       </div>
     );
   }
@@ -86,18 +104,11 @@ const ReporterProfilePage = () => {
   const upcoming = (data.assignments || []).filter((a: any) => a.fixture);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="space-y-2">
-        <h1 className="text-4xl font-display uppercase tracking-tighter">
-          {t('reporter.profile_title', 'My')} <span className="text-red">{t('reporter.profile_accent', 'Profile')}</span>
-        </h1>
-        <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">
-          {t('reporter.profile_subtitle', 'What you cover, and whether you are free')}
-        </p>
-      </div>
+    <div>
+      {header}
 
       <form
-        className="grid gap-6 lg:grid-cols-3"
+        className="grid items-start gap-4 lg:grid-cols-3"
         onSubmit={(e) => {
           e.preventDefault();
           save.mutate({
@@ -107,121 +118,127 @@ const ReporterProfilePage = () => {
           });
         }}
       >
-        <div className="space-y-6 lg:col-span-2">
+        <div className="space-y-4 lg:col-span-2">
           {/* Availability first: it is the field that changes most often and the
               one a league admin is actually reading. */}
-          <section className="rounded-2xl border border-hairline bg-surface p-5">
-            <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-primary">
-              <Radio size={15} className="text-brand" /> {t('reporter.availability', 'Availability')}
-            </h2>
-            <div className="mt-3 flex flex-wrap gap-2">
+          <Panel
+            title={
+              <span className="flex items-center gap-2">
+                <Radio size={15} className="text-brand-text" aria-hidden="true" />
+                {t('reporter.availability', 'Availability')}
+              </span>
+            }
+          >
+            <div className="flex flex-wrap gap-2">
               {AVAILABILITY.map((a) => (
                 <button
                   key={a.value}
                   type="button"
                   onClick={() => setForm((f: any) => ({ ...f, availability: a.value }))}
-                  className={`rounded-lg border px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider transition-colors ${
-                    form.availability === a.value ? TONE[a.value] : 'border-hairline text-tertiary hover:text-primary'
-                  }`}
+                  aria-pressed={form.availability === a.value}
+                  className={cn(
+                    'min-h-9 rounded-pill border px-3 text-sm font-semibold transition-colors duration-150 ease-standard',
+                    form.availability === a.value
+                      ? 'border-brand bg-brand-tint text-brand-text'
+                      : 'border-hairline text-secondary hover:bg-surface-2 hover:text-primary'
+                  )}
                 >
                   {t(a.labelKey, a.fallback)}
                 </button>
               ))}
             </div>
             {form.availability === 'BUSY' && (
-              <label className="mt-4 block">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-tertiary">
-                  {t('reporter.free_again', 'Free again')}
-                </span>
-                <input
-                  type="datetime-local"
-                  value={form.busyUntil}
-                  onChange={(e) => setForm((f: any) => ({ ...f, busyUntil: e.target.value }))}
-                  className="mt-1 w-full max-w-xs rounded-lg border border-hairline bg-surface-2 px-3 py-2 text-sm text-primary outline-none focus-visible:border-brand"
-                />
-              </label>
+              <Field label={t('reporter.free_again', 'Free again')} className="mt-4 max-w-xs">
+                {(p) => (
+                  <Input
+                    {...p}
+                    type="datetime-local"
+                    value={form.busyUntil}
+                    onChange={(e) => setForm((f: any) => ({ ...f, busyUntil: e.target.value }))}
+                  />
+                )}
+              </Field>
             )}
-          </section>
+          </Panel>
 
-          <section className="rounded-2xl border border-hairline bg-surface p-5">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-primary">
-              {t('reporter.sports_covered', 'Sports you cover')}
-            </h2>
-            <p className="mt-1 text-xs text-tertiary">
-              {t('reporter.sports_hint', 'Leave empty if you will cover anything.')}
-            </p>
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {(sports || []).map((s: any) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => toggleSport(s.id)}
-                  className={`rounded-md border px-2.5 py-1 text-[11px] font-medium transition-colors ${
-                    form.sportIds.includes(s.id)
-                      ? 'border-brand bg-brand/15 text-brand-text'
-                      : 'border-dashed border-hairline text-tertiary/70'
-                  }`}
-                >
-                  {form.sportIds.includes(s.id) && <Check size={10} className="mr-1 inline" />}
-                  {s.name}
-                </button>
-              ))}
+          <Panel
+            title={t('reporter.sports_covered', 'Sports you cover')}
+            hint={t('reporter.sports_hint', 'Leave empty if you will cover anything.')}
+          >
+            <div className="flex flex-wrap gap-1.5">
+              {(sports || []).map((s: any) => {
+                const on = form.sportIds.includes(s.id);
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => toggleSport(s.id)}
+                    aria-pressed={on}
+                    className={cn(
+                      'inline-flex min-h-9 items-center gap-1 rounded-pill border px-3 text-sm font-medium transition-colors duration-150 ease-standard',
+                      on
+                        ? 'border-brand bg-brand-tint text-brand-text'
+                        : 'border-hairline text-secondary hover:bg-surface-2 hover:text-primary'
+                    )}
+                  >
+                    {on && <Check size={12} aria-hidden="true" />}
+                    {s.name}
+                  </button>
+                );
+              })}
             </div>
-          </section>
+          </Panel>
 
-          <section className="grid gap-4 rounded-2xl border border-hairline bg-surface p-5 sm:grid-cols-2">
-            <label className="block">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-tertiary">
-                {t('reporter.location', 'Based in')}
-              </span>
-              <input
-                value={form.location}
-                onChange={(e) => setForm((f: any) => ({ ...f, location: e.target.value }))}
-                placeholder="Kigali"
-                className="mt-1 w-full rounded-lg border border-hairline bg-surface-2 px-3 py-2 text-sm text-primary outline-none focus-visible:border-brand"
-              />
-            </label>
-            <label className="block">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-tertiary">
-                {t('reporter.years_active', 'Years reporting')}
-              </span>
-              <input
-                type="number"
-                min={0}
-                max={80}
-                value={form.yearsActive}
-                onChange={(e) => setForm((f: any) => ({ ...f, yearsActive: e.target.value }))}
-                className="mt-1 w-full rounded-lg border border-hairline bg-surface-2 px-3 py-2 text-sm text-primary outline-none focus-visible:border-brand"
-              />
-            </label>
-            <label className="block sm:col-span-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-tertiary">
-                {t('reporter.bio', 'About you')}
-              </span>
-              <textarea
-                rows={3}
-                value={form.bio}
-                onChange={(e) => setForm((f: any) => ({ ...f, bio: e.target.value }))}
-                className="mt-1 w-full rounded-lg border border-hairline bg-surface-2 px-3 py-2 text-sm text-primary outline-none focus-visible:border-brand"
-              />
-            </label>
-          </section>
+          <Panel>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label={t('reporter.location', 'Based in')}>
+                {(p) => (
+                  <Input
+                    {...p}
+                    value={form.location}
+                    onChange={(e) => setForm((f: any) => ({ ...f, location: e.target.value }))}
+                    placeholder="Kigali"
+                  />
+                )}
+              </Field>
+              <Field label={t('reporter.years_active', 'Years reporting')}>
+                {(p) => (
+                  <Input
+                    {...p}
+                    type="number"
+                    min={0}
+                    max={80}
+                    value={form.yearsActive}
+                    onChange={(e) => setForm((f: any) => ({ ...f, yearsActive: e.target.value }))}
+                    className="tabular-nums"
+                  />
+                )}
+              </Field>
+              <Field label={t('reporter.bio', 'About you')} className="sm:col-span-2">
+                {(p) => (
+                  <textarea
+                    {...p}
+                    rows={3}
+                    value={form.bio}
+                    onChange={(e) => setForm((f: any) => ({ ...f, bio: e.target.value }))}
+                    className="w-full rounded-input border border-hairline bg-surface px-4 py-3 text-primary transition-colors duration-150 ease-standard placeholder:text-tertiary hover:border-brand/40 focus:border-brand focus:outline-none"
+                  />
+                )}
+              </Field>
+            </div>
+          </Panel>
 
-          <div className="flex items-center gap-3">
-            <button
-              type="submit"
-              disabled={save.isPending}
-              className="rounded-lg bg-brand px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-white disabled:opacity-40"
-            >
+          <div className="flex flex-wrap items-center gap-3">
+            <Button type="submit" size="sm" loading={save.isPending}>
               {save.isPending ? t('common.saving', 'Saving') : t('common.save', 'Save')}
-            </button>
+            </Button>
             {saved && (
-              <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand-text">
-                <Check size={13} /> {t('common.saved', 'Saved')}
+              <span className="inline-flex items-center gap-1 text-sm font-semibold text-brand-text">
+                <Check size={13} aria-hidden="true" /> {t('common.saved', 'Saved')}
               </span>
             )}
             {save.isError && (
-              <span className="text-xs text-danger-text">
+              <span role="alert" className="text-sm font-semibold text-danger-text">
                 {(save.error as any)?.response?.data?.message || t('common.error', 'Something went wrong')}
               </span>
             )}
@@ -229,36 +246,46 @@ const ReporterProfilePage = () => {
         </div>
 
         {/* What they are down for — the question a reporter opens this page with. */}
-        <aside className="space-y-3">
-          <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-primary">
-            <CalendarClock size={15} className="text-brand" /> {t('reporter.my_matches', 'My matches')}
-          </h2>
-          {upcoming.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-hairline p-4 text-xs text-tertiary">
-              {t('reporter.no_matches', 'Nothing assigned to you yet.')}
-            </p>
-          ) : (
-            upcoming.map((a: any) => (
-              <div key={a.id} className="rounded-xl border border-hairline bg-surface p-3">
-                <p className="text-sm font-semibold text-primary">
-                  {a.fixture.homeTeam?.name} v {a.fixture.awayTeam?.name}
-                </p>
-                <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-tertiary">
-                  {a.fixture.matchDate && <span className="tabular-nums">{format(new Date(a.fixture.matchDate), 'EEE d MMM, HH:mm')}</span>}
-                  <span>·</span>
-                  <span>{a.fixture.status}</span>
-                </p>
-                {a.league?.name && (
-                  <p className="mt-0.5 flex items-center gap-1 text-[11px] text-tertiary">
-                    <MapPin size={10} /> {a.league.name}
-                  </p>
-                )}
-              </div>
-            ))
-          )}
+        <aside className="space-y-4">
+          <Panel
+            title={
+              <span className="flex items-center gap-2">
+                <CalendarClock size={15} className="text-brand-text" aria-hidden="true" />
+                {t('reporter.my_matches', 'My matches')}
+              </span>
+            }
+          >
+            {upcoming.length === 0 ? (
+              <p className="py-2 text-sm text-tertiary">
+                {t('reporter.no_matches', 'Nothing assigned to you yet.')}
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {upcoming.map((a: any) => (
+                  <li key={a.id} className="rounded-control border border-hairline bg-surface-2 p-3">
+                    <p className="text-sm font-medium text-primary">
+                      {a.fixture.homeTeam?.name} v {a.fixture.awayTeam?.name}
+                    </p>
+                    <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-tertiary">
+                      {a.fixture.matchDate && (
+                        <span className="tabular-nums">{format(new Date(a.fixture.matchDate), 'EEE d MMM, HH:mm')}</span>
+                      )}
+                      <span>·</span>
+                      <span>{a.fixture.status}</span>
+                    </p>
+                    {a.league?.name && (
+                      <p className="mt-0.5 flex items-center gap-1 text-xs text-tertiary">
+                        <MapPin size={10} aria-hidden="true" /> {a.league.name}
+                      </p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Panel>
           {data.hasProfile === false && (
-            <p className="flex items-start gap-2 rounded-xl bg-surface-2 p-3 text-xs text-tertiary">
-              <UserSquare2 size={14} className="mt-0.5 shrink-0 text-brand" />
+            <p className="flex items-start gap-2 rounded-card border border-hairline bg-surface-2 p-3 text-sm text-secondary">
+              <UserSquare2 size={15} className="mt-0.5 shrink-0 text-brand-text" aria-hidden="true" />
               {t('reporter.no_profile_hint', 'You have not filled this in yet. Until you do, league admins cannot tell what you cover or whether you are free.')}
             </p>
           )}

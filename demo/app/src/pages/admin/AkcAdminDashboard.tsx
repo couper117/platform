@@ -322,7 +322,7 @@ const AkcAdminDashboard = () => {
             <div className="space-y-3">
               <h2 className="text-3xl font-display uppercase tracking-tight">Manage Championships</h2>
               <p className="text-sm opacity-60 max-w-lg mx-auto">
-                Create and manage every inter-school championship â€” including the Kagame Cup â€” set their level, status and dates, and track fixtures.
+                Create and manage every inter-school championship — including the Kagame Cup — set their level, status and dates, and track fixtures.
               </p>
             </div>
             <Link

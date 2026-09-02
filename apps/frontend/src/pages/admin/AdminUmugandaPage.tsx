@@ -3,16 +3,16 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import {
-  Plus, RefreshCw, Megaphone, AlertTriangle, CalendarOff, ShieldCheck, Pencil, Users,
+  Plus, RefreshCw, Megaphone, AlertTriangle, CalendarOff, CalendarDays, ShieldCheck, Pencil,
 } from 'lucide-react';
 import {
   getUmugandaDays, getUmugandaConflicts, createUmugandaDay, updateUmugandaDay,
   generateUmugandaDates, createUmugandaAnnouncement,
 } from '../../api/endpoints/umuganda';
-import AdminTable from '../../components/admin/AdminTable';
-import { Modal, Button } from '../../components/ui';
-import Skeleton from '../../components/shared/Skeleton';
-import EmptyState from '../../components/ui/EmptyState';
+import { PageHeader, StatCard, Panel, TableWrap, Th, Td } from '../../components/admin/AdminUI';
+import {
+  Modal, Button, IconButton, Field, Input, Select, EmptyState, Skeleton,
+} from '../../components/ui';
 import useUiStore from '../../store/uiStore';
 import { useDateFormat } from '../../i18n/dateLocale';
 import useEnumLabel from '../../i18n/enums';
@@ -27,6 +27,10 @@ import cn from '../../components/ui/cn';
  * generator produced arrives as EXPECTED and stays that way until an
  * administrator confirms, moves or disables it — and once they touch a row, the
  * generator never reclaims it.
+ *
+ * Presentation is the shared admin kit (PageHeader / StatCard / Panel / TableWrap).
+ * The one hand-built tile is the next Umuganda date: its headline is a date, not a
+ * number, so it borrows StatCard's shell rather than its 3xl numeral.
  */
 
 const STATUSES = ['EXPECTED', 'CONFIRMED', 'MOVED', 'DISABLED'];
@@ -114,188 +118,197 @@ const AdminUmugandaPage = () => {
   );
 
   return (
-    <div className="space-y-6">
-      {/* ── Header ── */}
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="flex items-center gap-2 font-display text-xl font-semibold text-primary">
-            <Users size={18} className="text-brand-text" aria-hidden="true" />
-            {t('umuganda.management')}
-          </h1>
-          <p className="mt-1 max-w-2xl text-sm text-secondary">{t('umuganda.managementIntro')}</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => generateMutation.mutate()}
-            disabled={generateMutation.isPending}
-            className="inline-flex min-h-9 items-center gap-1.5 rounded-pill border border-hairline px-4 text-sm text-secondary transition-colors duration-150 ease-standard hover:border-brand/40 hover:text-brand-text disabled:opacity-50"
-          >
-            <RefreshCw size={14} className={cn(generateMutation.isPending && 'animate-spin')} aria-hidden="true" />
-            {t('umuganda.generateDates')}
-          </button>
-          <button
-            type="button"
-            onClick={() => setDateModal({ body: { date: '', title: '', description: '', status: 'CONFIRMED', startTime: '08:00', endTime: '11:00' } })}
-            className="inline-flex min-h-9 items-center gap-1.5 rounded-pill bg-brand-strong px-4 text-sm font-semibold text-brand-on transition-colors duration-150 ease-standard hover:bg-brand-hover"
-          >
-            <Plus size={14} aria-hidden="true" />
-            {t('umuganda.addDate')}
-          </button>
-        </div>
-      </div>
+    <div>
+      <PageHeader
+        title={t('umuganda.management')}
+        subtitle={t('umuganda.managementIntro')}
+        actions={
+          <>
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={RefreshCw}
+              loading={generateMutation.isPending}
+              onClick={() => generateMutation.mutate()}
+            >
+              {t('umuganda.generateDates')}
+            </Button>
+            <Button
+              size="sm"
+              icon={Plus}
+              onClick={() => setDateModal({ body: { date: '', title: '', description: '', status: 'CONFIRMED', startTime: '08:00', endTime: '11:00' } })}
+            >
+              {t('umuganda.addDate')}
+            </Button>
+          </>
+        }
+      />
 
       {/* ── Summary ── */}
       <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-card border border-brand/25 bg-brand/[0.06] p-4">
-          <p className="text-xs uppercase tracking-wide text-tertiary">{t('umuganda.thisMonthDate')}</p>
-          <p className="mt-1 font-display text-lg font-semibold text-primary">
-            {next ? fmt(next.date, 'EEEE d MMMM') : '—'}
-          </p>
+        {/* Same shell as StatCard; the headline is a date, so it takes a size a
+            long weekday name can survive. */}
+        <div className="rounded-card border border-hairline bg-surface p-4">
+          <div className="flex items-start justify-between gap-3">
+            <p className="font-display text-lg font-bold leading-tight text-primary">
+              {next ? fmt(next.date, 'EEEE d MMMM') : '—'}
+            </p>
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-control bg-brand-tint text-brand-text">
+              <CalendarDays size={16} aria-hidden="true" />
+            </span>
+          </div>
+          <p className="mt-3 text-sm font-medium text-primary">{t('umuganda.thisMonthDate')}</p>
           {next && <div className="mt-2"><StatusChip status={next.status} /></div>}
         </div>
-        <div className="rounded-card border border-hairline bg-surface p-4">
-          <p className="text-xs uppercase tracking-wide text-tertiary">{t('umuganda.conflictingEvents')}</p>
-          <p className="mt-1 font-display text-2xl font-semibold text-primary">{totalConflicts}</p>
-        </div>
-        <div className="rounded-card border border-hairline bg-surface p-4">
-          <p className="text-xs uppercase tracking-wide text-tertiary">{t('umuganda.upcomingDates')}</p>
-          <p className="mt-1 font-display text-2xl font-semibold text-primary">{days.length}</p>
-        </div>
+
+        <StatCard
+          icon={AlertTriangle}
+          value={totalConflicts}
+          label={t('umuganda.conflictingEvents')}
+          tone={totalConflicts > 0 ? 'warn' : 'default'}
+        />
+        <StatCard
+          icon={CalendarDays}
+          value={days.length}
+          label={t('umuganda.upcomingDates')}
+        />
       </div>
 
       {/* ── Conflicts (§7 "View conflicting events") ── */}
-      <section className="space-y-3">
-        <h2 className="flex items-center gap-2 font-display text-base font-semibold text-primary">
-          <AlertTriangle size={15} className="text-secondary" aria-hidden="true" />
-          {t('umuganda.conflictingEvents')}
-        </h2>
-
-        {loadingConflicts ? (
-          <Skeleton className="h-24 w-full rounded-card" />
-        ) : conflicts.length === 0 ? (
-          <EmptyState
-            icon={ShieldCheck}
-            title={t('umuganda.noConflicts')}
-            hint={t('umuganda.noConflictsHint')}
-          />
-        ) : (
-          conflicts.map((group: any) => (
-            <div key={group.umugandaDay.id} className="rounded-card border border-hairline bg-surface p-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-sm font-semibold text-primary">
-                  {fmt(group.umugandaDay.date, 'EEEE d MMMM yyyy')}
-                </p>
-                <UmugandaMark size="sm" />
-              </div>
-
-              <div className="mt-3 space-y-2">
-                {group.events.map((ev: any) => (
-                  <div
-                    key={`${ev.kind}-${ev.id}`}
-                    className="flex flex-wrap items-center gap-3 rounded-card border border-hairline bg-surface-2 px-3 py-2"
-                  >
-                    <span className="w-12 shrink-0 font-display text-sm text-secondary">
-                      {ev.matchDate ? fmt(ev.matchDate, 'HH:mm') : t('common.tbd')}
-                    </span>
-                    <span className="min-w-0 flex-1 truncate text-sm text-primary">
-                      {ev.homeTeam?.name} <span className="text-tertiary">v</span> {ev.awayTeam?.name}
-                    </span>
-                    <span className="text-xs text-tertiary">{enumLabel('match_status', ev.status)}</span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setConflictFor({
-                          kind: ev.kind === 'AMASHURI' ? 'amashuri' : 'league',
-                          fixture: ev,
-                          umugandaDay: group.umugandaDay,
-                        })
-                      }
-                      className="min-h-9 shrink-0 rounded-pill border border-hairline px-3 text-xs font-semibold text-secondary transition-colors duration-150 ease-standard hover:border-brand/40 hover:text-brand-text"
-                    >
-                      {t('umuganda.decide')}
-                    </button>
+      <div className="mt-4 grid gap-4">
+        <Panel title={t('umuganda.conflictingEvents')}>
+          {loadingConflicts ? (
+            <Skeleton className="h-24 w-full" />
+          ) : conflicts.length === 0 ? (
+            <EmptyState
+              icon={ShieldCheck}
+              title={t('umuganda.noConflicts')}
+              hint={t('umuganda.noConflictsHint')}
+            />
+          ) : (
+            <div className="space-y-3">
+              {conflicts.map((group: any) => (
+                <div key={group.umugandaDay.id} className="rounded-control border border-hairline bg-surface-2 p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm font-semibold text-primary">
+                      {fmt(group.umugandaDay.date, 'EEEE d MMMM yyyy')}
+                    </p>
+                    <UmugandaMark size="sm" />
                   </div>
-                ))}
-              </div>
+
+                  <div className="mt-3 space-y-2">
+                    {group.events.map((ev: any) => (
+                      <div
+                        key={`${ev.kind}-${ev.id}`}
+                        className="flex flex-wrap items-center gap-3 rounded-control border border-hairline bg-surface px-3 py-2"
+                      >
+                        <span className="w-12 shrink-0 text-sm tabular-nums text-secondary">
+                          {ev.matchDate ? fmt(ev.matchDate, 'HH:mm') : t('common.tbd')}
+                        </span>
+                        <span className="min-w-0 flex-1 truncate text-sm text-primary">
+                          {ev.homeTeam?.name} <span className="text-tertiary">v</span> {ev.awayTeam?.name}
+                        </span>
+                        <span className="text-xs text-tertiary">{enumLabel('match_status', ev.status)}</span>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() =>
+                            setConflictFor({
+                              kind: ev.kind === 'AMASHURI' ? 'amashuri' : 'league',
+                              fixture: ev,
+                              umugandaDay: group.umugandaDay,
+                            })
+                          }
+                        >
+                          {t('umuganda.decide')}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
-          ))
-        )}
-      </section>
+          )}
+        </Panel>
 
-      {/* ── Dates table ── */}
-      <section className="space-y-3">
-        <h2 className="font-display text-base font-semibold text-primary">
-          {t('umuganda.upcomingDates')}
-        </h2>
-
-        {isLoading ? (
-          <Skeleton className="h-40 w-full rounded-card" />
-        ) : days.length === 0 ? (
-          <EmptyState
-            icon={CalendarOff}
-            title={t('umuganda.noDates')}
-            hint={t('umuganda.noDatesHint')}
-          />
-        ) : (
-          <AdminTable
-            headers={[
-              t('umuganda.date'),
-              t('umuganda.statusLabel'),
-              t('umuganda.source'),
-              t('umuganda.window'),
-              '',
-            ]}
-          >
-            {days.map((d: any) => (
-              <tr key={d.id} className="border-b border-hairline last:border-0">
-                <td className="px-4 py-3">
-                  <Link to="/calendar" className="text-sm font-medium text-primary hover:text-brand-text">
-                    {fmt(d.date, 'EEE d MMM yyyy')}
-                  </Link>
-                </td>
-                <td className="px-4 py-3"><StatusChip status={d.status} /></td>
-                <td className="px-4 py-3 text-xs text-tertiary">
-                  {d.overridden ? t('umuganda.sourceOverridden') : enumLabel('umuganda_source', d.source)}
-                </td>
-                <td className="px-4 py-3 text-xs text-tertiary">{d.startTime}–{d.endTime}</td>
-                <td className="px-4 py-3">
-                  <div className="flex justify-end gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setDateModal({
-                          id: d.id,
-                          body: {
-                            date: String(d.date).slice(0, 10),
-                            title: d.title || '',
-                            description: d.description || '',
-                            status: d.status,
-                            startTime: d.startTime,
-                            endTime: d.endTime,
-                          },
-                        })
-                      }
-                      aria-label={t('umuganda.editDate')}
-                      className="flex h-9 w-9 items-center justify-center rounded-pill border border-hairline text-secondary transition-colors duration-150 ease-standard hover:border-brand/40 hover:text-brand-text"
-                    >
-                      <Pencil size={13} aria-hidden="true" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setAnnounceFor({ id: d.id, body: { title: '', body: '' } })}
-                      aria-label={t('umuganda.createAnnouncement')}
-                      className="flex h-9 w-9 items-center justify-center rounded-pill border border-hairline text-secondary transition-colors duration-150 ease-standard hover:border-brand/40 hover:text-brand-text"
-                    >
-                      <Megaphone size={13} aria-hidden="true" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </AdminTable>
-        )}
-      </section>
+        {/* ── Dates table ── */}
+        <Panel title={t('umuganda.upcomingDates')} flush>
+          {isLoading ? (
+            <div className="space-y-2 p-4">
+              {Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-10 w-full" />)}
+            </div>
+          ) : days.length === 0 ? (
+            <div className="p-4">
+              <EmptyState
+                icon={CalendarOff}
+                title={t('umuganda.noDates')}
+                hint={t('umuganda.noDatesHint')}
+              />
+            </div>
+          ) : (
+            <TableWrap>
+              <table className="w-full min-w-[620px] text-left">
+                <thead>
+                  <tr>
+                    <Th>{t('umuganda.date')}</Th>
+                    <Th>{t('umuganda.statusLabel')}</Th>
+                    <Th>{t('umuganda.source')}</Th>
+                    <Th>{t('umuganda.window')}</Th>
+                    <Th align="right" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {days.map((d: any) => (
+                    <tr key={d.id} className="transition-colors duration-150 ease-standard hover:bg-surface-2">
+                      <Td>
+                        <Link
+                          to="/calendar"
+                          className="text-sm font-medium text-primary transition-colors duration-150 ease-standard hover:text-brand-text"
+                        >
+                          {fmt(d.date, 'EEE d MMM yyyy')}
+                        </Link>
+                      </Td>
+                      <Td><StatusChip status={d.status} /></Td>
+                      <Td className="text-tertiary">
+                        {d.overridden ? t('umuganda.sourceOverridden') : enumLabel('umuganda_source', d.source)}
+                      </Td>
+                      <Td className="whitespace-nowrap tabular-nums text-tertiary">{d.startTime}–{d.endTime}</Td>
+                      <Td align="right">
+                        <div className="flex justify-end gap-1">
+                          <IconButton
+                            icon={Pencil}
+                            label={t('umuganda.editDate')}
+                            size="sm"
+                            onClick={() =>
+                              setDateModal({
+                                id: d.id,
+                                body: {
+                                  date: String(d.date).slice(0, 10),
+                                  title: d.title || '',
+                                  description: d.description || '',
+                                  status: d.status,
+                                  startTime: d.startTime,
+                                  endTime: d.endTime,
+                                },
+                              })
+                            }
+                          />
+                          <IconButton
+                            icon={Megaphone}
+                            label={t('umuganda.createAnnouncement')}
+                            size="sm"
+                            onClick={() => setAnnounceFor({ id: d.id, body: { title: '', body: '' } })}
+                          />
+                        </div>
+                      </Td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </TableWrap>
+          )}
+        </Panel>
+      </div>
 
       {/* ── Add / edit date ── */}
       {dateModal && (
@@ -318,71 +331,74 @@ const AdminUmugandaPage = () => {
             </div>
           }
         >
-          <div className="space-y-3">
-            <label className="block">
-              <span className="mb-1 block text-sm text-secondary">{t('umuganda.date')}</span>
-              <input
-                type="date"
-                required
-                value={dateModal.body.date}
-                onChange={(e) => setDateModal({ ...dateModal, body: { ...dateModal.body, date: e.target.value } })}
-                className="w-full rounded-card border border-hairline bg-surface px-3 py-2 text-sm text-primary"
-              />
-            </label>
+          <div className="space-y-4">
+            <Field label={t('umuganda.date')} required>
+              {(p) => (
+                <Input
+                  {...p}
+                  type="date"
+                  value={dateModal.body.date}
+                  onChange={(e) => setDateModal({ ...dateModal, body: { ...dateModal.body, date: e.target.value } })}
+                />
+              )}
+            </Field>
 
-            <label className="block">
-              <span className="mb-1 block text-sm text-secondary">{t('umuganda.statusLabel')}</span>
-              <select
-                value={dateModal.body.status}
-                onChange={(e) => setDateModal({ ...dateModal, body: { ...dateModal.body, status: e.target.value } })}
-                className="w-full rounded-card border border-hairline bg-surface px-3 py-2 text-sm text-primary"
-              >
-                {STATUSES.map((s) => (
-                  <option key={s} value={s}>{enumLabel('umuganda_status', s)}</option>
-                ))}
-              </select>
-              <span className="mt-1 block text-xs text-tertiary">{t('umuganda.statusHint')}</span>
-            </label>
+            <Field label={t('umuganda.statusLabel')} hint={t('umuganda.statusHint')}>
+              {(p) => (
+                <Select
+                  {...p}
+                  size="md"
+                  value={dateModal.body.status}
+                  onChange={(e) => setDateModal({ ...dateModal, body: { ...dateModal.body, status: e.target.value } })}
+                  options={STATUSES.map((s) => ({ value: s, label: enumLabel('umuganda_status', s) }))}
+                />
+              )}
+            </Field>
 
             <div className="grid grid-cols-2 gap-3">
-              <label className="block">
-                <span className="mb-1 block text-sm text-secondary">{t('umuganda.startTime')}</span>
-                <input
-                  type="time"
-                  value={dateModal.body.startTime}
-                  onChange={(e) => setDateModal({ ...dateModal, body: { ...dateModal.body, startTime: e.target.value } })}
-                  className="w-full rounded-card border border-hairline bg-surface px-3 py-2 text-sm text-primary"
-                />
-              </label>
-              <label className="block">
-                <span className="mb-1 block text-sm text-secondary">{t('umuganda.endTime')}</span>
-                <input
-                  type="time"
-                  value={dateModal.body.endTime}
-                  onChange={(e) => setDateModal({ ...dateModal, body: { ...dateModal.body, endTime: e.target.value } })}
-                  className="w-full rounded-card border border-hairline bg-surface px-3 py-2 text-sm text-primary"
-                />
-              </label>
+              <Field label={t('umuganda.startTime')}>
+                {(p) => (
+                  <Input
+                    {...p}
+                    type="time"
+                    value={dateModal.body.startTime}
+                    onChange={(e) => setDateModal({ ...dateModal, body: { ...dateModal.body, startTime: e.target.value } })}
+                  />
+                )}
+              </Field>
+              <Field label={t('umuganda.endTime')}>
+                {(p) => (
+                  <Input
+                    {...p}
+                    type="time"
+                    value={dateModal.body.endTime}
+                    onChange={(e) => setDateModal({ ...dateModal, body: { ...dateModal.body, endTime: e.target.value } })}
+                  />
+                )}
+              </Field>
             </div>
 
-            <label className="block">
-              <span className="mb-1 block text-sm text-secondary">{t('umuganda.titleField')}</span>
-              <input
-                value={dateModal.body.title}
-                onChange={(e) => setDateModal({ ...dateModal, body: { ...dateModal.body, title: e.target.value } })}
-                className="w-full rounded-card border border-hairline bg-surface px-3 py-2 text-sm text-primary"
-              />
-            </label>
+            <Field label={t('umuganda.titleField')}>
+              {(p) => (
+                <Input
+                  {...p}
+                  value={dateModal.body.title}
+                  onChange={(e) => setDateModal({ ...dateModal, body: { ...dateModal.body, title: e.target.value } })}
+                />
+              )}
+            </Field>
 
-            <label className="block">
-              <span className="mb-1 block text-sm text-secondary">{t('umuganda.descriptionField')}</span>
-              <textarea
-                rows={3}
-                value={dateModal.body.description}
-                onChange={(e) => setDateModal({ ...dateModal, body: { ...dateModal.body, description: e.target.value } })}
-                className="w-full rounded-card border border-hairline bg-surface px-3 py-2 text-sm text-primary"
-              />
-            </label>
+            <Field label={t('umuganda.descriptionField')}>
+              {({ invalid, ...p }) => (
+                <textarea
+                  {...p}
+                  rows={3}
+                  value={dateModal.body.description}
+                  onChange={(e) => setDateModal({ ...dateModal, body: { ...dateModal.body, description: e.target.value } })}
+                  className="w-full rounded-input border border-hairline bg-surface px-4 py-3 text-primary placeholder:text-tertiary transition-colors duration-150 ease-standard hover:border-brand/40 focus:border-brand focus:outline-none"
+                />
+              )}
+            </Field>
           </div>
         </Modal>
       )}
@@ -408,26 +424,27 @@ const AdminUmugandaPage = () => {
             </div>
           }
         >
-          <div className="space-y-3">
-            <label className="block">
-              <span className="mb-1 block text-sm text-secondary">{t('umuganda.titleField')}</span>
-              <input
-                required
-                value={announceFor.body.title}
-                onChange={(e) => setAnnounceFor({ ...announceFor, body: { ...announceFor.body, title: e.target.value } })}
-                className="w-full rounded-card border border-hairline bg-surface px-3 py-2 text-sm text-primary"
-              />
-            </label>
-            <label className="block">
-              <span className="mb-1 block text-sm text-secondary">{t('umuganda.message')}</span>
-              <textarea
-                required
-                rows={4}
-                value={announceFor.body.body}
-                onChange={(e) => setAnnounceFor({ ...announceFor, body: { ...announceFor.body, body: e.target.value } })}
-                className="w-full rounded-card border border-hairline bg-surface px-3 py-2 text-sm text-primary"
-              />
-            </label>
+          <div className="space-y-4">
+            <Field label={t('umuganda.titleField')} required>
+              {(p) => (
+                <Input
+                  {...p}
+                  value={announceFor.body.title}
+                  onChange={(e) => setAnnounceFor({ ...announceFor, body: { ...announceFor.body, title: e.target.value } })}
+                />
+              )}
+            </Field>
+            <Field label={t('umuganda.message')} required>
+              {({ invalid, ...p }) => (
+                <textarea
+                  {...p}
+                  rows={4}
+                  value={announceFor.body.body}
+                  onChange={(e) => setAnnounceFor({ ...announceFor, body: { ...announceFor.body, body: e.target.value } })}
+                  className="w-full rounded-input border border-hairline bg-surface px-4 py-3 text-primary placeholder:text-tertiary transition-colors duration-150 ease-standard hover:border-brand/40 focus:border-brand focus:outline-none"
+                />
+              )}
+            </Field>
           </div>
         </Modal>
       )}

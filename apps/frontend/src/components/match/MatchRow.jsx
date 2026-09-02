@@ -183,7 +183,7 @@ const Side = ({ team, score, showScore, dim, winner, live, safe }) => (
 
 /* ─── row ───────────────────────────────────────────────────────────── */
 
-const MatchRow = ({ fixture, showDate = false, className = '' }) => {
+const MatchRow = ({ fixture, showDate = false, showCompetition = false, className = '' }) => {
   const safe = useMotionSafe();
   const state = matchState(fixture);
   const live = IS_LIVE.has(state);
@@ -239,12 +239,27 @@ const MatchRow = ({ fixture, showDate = false, className = '' }) => {
       </div>
 
       {/* Desktop fills the gap that opens up with the venue — information the
-          phone layout has no room for, rather than dead space. */}
+          phone layout has no room for, rather than dead space.
+
+          `showCompetition` puts the competition in front of it, for the lists
+          where the reader cannot infer it: an all-sports schedule is a football
+          league beside a netball league beside a kickboxing championship, and a
+          row that does not say which is which is just two names and a time. On a
+          list already grouped under a competition heading it stays off, because
+          repeating it on every row is noise. */}
       <div className="hidden min-w-0 flex-1 items-center gap-1.5 px-2 lg:flex">
+        {showCompetition && fixture.league?.name && (
+          <span className="min-w-0 shrink truncate text-sm font-medium text-secondary">
+            {fixture.league.name}
+          </span>
+        )}
+        {showCompetition && fixture.league?.name && fixture.venue && (
+          <span className="shrink-0 text-tertiary" aria-hidden="true">·</span>
+        )}
         {fixture.venue && (
           <>
             <MapPin size={12} className="shrink-0 text-tertiary" aria-hidden="true" />
-            <span className="truncate text-sm text-tertiary">{fixture.venue}</span>
+            <span className="min-w-0 shrink truncate text-sm text-tertiary">{fixture.venue}</span>
           </>
         )}
       </div>

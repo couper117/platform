@@ -7,7 +7,7 @@ import cn from '../ui/cn';
  * Top scorers for the rail.
  *
  * The round avatar marks the player as a person; the club is plain text. A squared
- * crest was tried here and cut â€” shrunk to fit a 16px sub-line its initials were
+ * crest was tried here and cut — shrunk to fit a 16px sub-line its initials were
  * illegible, and the avatar already carries the distinction on this row.
  *
  * Goals are the sort key and the only number shown large. Assists sit beside the
@@ -37,7 +37,7 @@ const TopScorers = ({ scorers = [], limit = 5, className = '' }) => {
                   person/organisation distinction on this row. */}
               <p className="flex items-center gap-1.5 text-xs text-tertiary">
                 <span className="truncate">{s.team?.shortName || s.team?.name}</span>
-                {s.assists > 0 && <span className="shrink-0 tabular-nums">Â· {s.assists} a</span>}
+                {s.assists > 0 && <span className="shrink-0 tabular-nums">· {s.assists} a</span>}
               </p>
             </div>
             <span className="shrink-0 font-display text-lg font-semibold tabular-nums text-primary">

@@ -56,7 +56,15 @@ const LiveSchoolCard = ({ fx, t }: { fx: any; t: any }) => {
     >
       <div className="flex items-center justify-between gap-2">
         <span className="min-w-0 flex-1 truncate text-xs text-tertiary">{fx.competition?.name}</span>
-        <StatusPill status="ONGOING" label={fx.statusLabel || t('match.live')} className="shrink-0" />
+        {/* THE REAL STATUS. This card was written for the live strip and hard-coded
+            ONGOING, so when the section started showing UPCOMING fixtures as well
+            every one of them wore a red "Live" pill on a match that has not
+            kicked off. */}
+        <StatusPill
+          status={fx.status}
+          label={fx.status === 'ONGOING' ? (fx.statusLabel || t('match.live')) : undefined}
+          className="shrink-0"
+        />
       </div>
       <div className="flex flex-col gap-1.5">
         {rows.map((r, i) => (
@@ -207,7 +215,7 @@ const AmashuriOverview = () => {
   const { t } = useTranslation();
   const enumLabel = useEnumLabel();
 
-  const { schools, competitions, sports, live, isPending, isError, refetchAll } = useAmashuri();
+  const { schools, competitions, sports, live, fixtures, isPending, isError, refetchAll } = useAmashuri();
 
   /**
    * A PHONE GETS A PREVIEW OF EACH SECTION, NOT ALL OF IT.
@@ -224,6 +232,34 @@ const AmashuriOverview = () => {
    */
   const isWide = useMediaQuery('(min-width: 640px)');
   const cap = (list: any[], n: number) => (isWide ? list : list.slice(0, n));
+
+  /**
+   * TILES KEEP THEIR SIZE WHEN THERE ARE FEW OF THEM.
+   *
+   * These sections were laid out for the demo dataset — seven sports, four
+   * competitions — so they were fixed at eight and four columns. Against the real
+   * API there is one sport and one competition, and a lone tile at the left of an
+   * eight-column row reads as a page that failed to load.
+   *
+   * Capping the column COUNT was the first fix and it was worse: telling a grid
+   * to lay one item across two columns stretches that item, so a single sport
+   * tile became a 550px square. The grids below use `auto-fill` with a minimum
+   * width instead — a tile keeps its own size and the row simply ends early,
+   * which is what a short list should look like.
+   */
+
+  /**
+   * WHAT IS ON. The live section vanished entirely when nothing was in play,
+   * which on a schools programme is most of the time — so the page opened on
+   * "Pick a sport" and never showed a single fixture. It shows the next matches
+   * instead, which is what somebody checking a school sports page wants either
+   * way.
+   */
+  const upcoming = fixtures
+    .filter((f: any) => f.status !== 'COMPLETED')
+    .sort((a: any, b: any) => new Date(a.matchDate).getTime() - new Date(b.matchDate).getTime());
+  const showLive = live.length > 0;
+  const feature = showLive ? live : upcoming.slice(0, 6);
   const newsQ = useQuery({ queryKey: ['ama-news'], queryFn: () => getAkcAnnouncements(), retry: false });
 
   const isLoading = isPending || newsQ.isLoading;
@@ -258,17 +294,17 @@ const AmashuriOverview = () => {
           more. They stack and grid now — the whole section is on the page. */}
       <div className="mx-auto max-w-3xl space-y-8 px-4 pb-10 pt-2 lg:max-w-6xl lg:px-6 lg:pb-14">
         {/* ─── LIVE SCHOOL SPORTS ─── */}
-        {live.length > 0 && (
+        {feature.length > 0 && (
           <section>
             <SectionHeading
-              title={t('amashuri.live_school_sports')}
-              accent={t('amashuri.live_count', { count: live.length })}
-              action={t('amashuri.view_all_live')}
+              title={showLive ? t('amashuri.live_school_sports') : t('amashuri.next_up')}
+              accent={showLive ? t('amashuri.live_count', { count: live.length }) : undefined}
+              action={showLive ? t('amashuri.view_all_live') : t('amashuri.view_all_fixtures')}
               actionTo="/amashuri/fixtures"
               className="mb-4"
             />
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {cap(live, 3).map((fx: any) => <LiveSchoolCard key={fx.id} fx={fx} t={t} />)}
+              {cap(feature, 3).map((fx: any) => <LiveSchoolCard key={fx.id} fx={fx} t={t} />)}
             </div>
           </section>
         )}
@@ -277,7 +313,7 @@ const AmashuriOverview = () => {
         {sports.length > 0 && (
           <section>
             <SectionHeading title={t('amashuri.pick_sport')} action={t('amashuri.view_all_sports')} actionTo="/amashuri/fixtures" className="mb-4" />
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(136px,1fr))]">
               {sports.map((s: any) => <SportCard key={s.slug} s={s} t={t} />)}
               <Link
                 to="/amashuri/fixtures"
@@ -298,7 +334,7 @@ const AmashuriOverview = () => {
             {/* FOUR, NOT ALL OF THEM. The championships tab is the list; this is
                 the trailer for it. Showing every competition here is what made the
                 overview the whole section. */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(260px,1fr))]">
               {cap(competitions.slice(0, 4), 2).map((c: any) => <CompetitionCard key={c.id} c={c} t={t} />)}
             </div>
           </section>

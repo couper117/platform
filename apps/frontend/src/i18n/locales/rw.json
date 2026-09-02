@@ -7,7 +7,7 @@
   },
   "nav": {
     "home": "Ahabanza",
-    "leagues": "Amarushanwa",
+    "leagues": "Amaligi",
     "fixtures": "Imikino",
     "calendar": "Kalendari",
     "results": "Ibyarangiye",
@@ -279,7 +279,13 @@
     "time_days_ago": "{{count}} iminsi ishize",
     "captain": "Kapiteni",
     "show_all_events_one": "Erekana ikindi {{count}} cyabaye mbere",
-    "show_all_events_other": "Erekana ibindi {{count}} byabaye mbere"
+    "show_all_events_other": "Erekana ibindi {{count}} byabaye mbere",
+    "head_to_head": "Uko bahuye",
+    "h2h_wins_one": "Intsinzi {{count}}",
+    "h2h_wins_other": "Intsinzi {{count}}",
+    "h2h_draws_one": "Kunganya {{count}}",
+    "h2h_draws_other": "Kunganya {{count}}",
+    "h2h_none": "Aya makipe ntiyigeze ahura mu marushanwa yanditswe."
   },
   "standings": {
     "col_pos": "Umw.",
@@ -512,7 +518,6 @@
     "pick_sport": "Hitamo siporo",
     "view_all_sports": "Reba siporo zose",
     "more_sports": "Izindi siporo",
-    "comp_count": "amarushanwa {{count}}",
     "col_regions": "Uturere",
     "col_events": "Ibikorwa",
     "col_athletes": "Abakinnyi",
@@ -548,7 +553,19 @@
       "eligibility": "Uburenganzira bwo gukina",
       "verified": "Byemejwe",
       "pending": "Birategerejwe"
-    }
+    },
+    "next_up": "Ibikurikira",
+    "n_sports_one": "Siporo",
+    "n_sports_other": "Siporo",
+    "n_schools_one": "Ishuri",
+    "n_schools_other": "Amashuri",
+    "n_competitions_one": "Irushanwa",
+    "n_competitions_other": "Amarushanwa",
+    "n_live_one": "Umukino ubaho",
+    "n_live_other": "Imikino ibaho",
+    "comp_count_one": "Irushanwa {{count}}",
+    "comp_count_other": "Amarushanwa {{count}}",
+    "view_all_fixtures": "Reba gahunda yose"
   },
   "admin": {
     "portal": "Urubuga rw'Ubuyobozi",
@@ -1594,7 +1611,10 @@
     "col_gd": "GD",
     "col_pts": "Amanota",
     "col_form": "Imikorere",
-    "active": "Birakora"
+    "active": "Birakora",
+    "days_range": "Iminsi {{count}} ishize",
+    "days_short": "{{count}}d",
+    "events": "Ibikorwa"
   },
   "portal": {
     "sec_main": "Ibanze",
@@ -1959,6 +1979,18 @@
     "no_match": "Nta siporo ihuye na \"{{q}}\"",
     "no_match_hint": "Gerageza uyandike ukundi, cyangwa usibe ubushakashatsi.",
     "error_title": "Ntibyashobotse gukuramo siporo",
-    "error_hint": "Reba umurongo wawe hanyuma wongere ugerageze."
+    "error_hint": "Reba umurongo wawe hanyuma wongere ugerageze.",
+    "match_count_one": "Umukino {{count}}",
+    "match_count_other": "Imikino {{count}}",
+    "event_count_one": "Irushanwa {{count}}",
+    "event_count_other": "Amarushanwa {{count}}"
+  },
+  "adminui": {
+    "admin": "Ubuyobozi",
+    "search_placeholder": "Shakisha urupapuro…",
+    "search_none": "Nta rupapuro ruhuye na \"{{q}}\"",
+    "view_site": "Reba urubuga rusanzwe",
+    "not_authorized": "Nta buruhushya bwo kubona uru rupapuro",
+    "not_authorized_hint": "Uruhare rwawe ntirukubiyemo uru rupapuro. Saba umuyobozi mukuru niba urukeneye."
   }
 }

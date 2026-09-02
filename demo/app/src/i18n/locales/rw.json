@@ -7,7 +7,7 @@
   },
   "nav": {
     "home": "Ahabanza",
-    "leagues": "Amarushanwa",
+    "leagues": "Amaligi",
     "fixtures": "Imikino",
     "calendar": "Kalendari",
     "results": "Ibyarangiye",
@@ -138,9 +138,9 @@
     "filter_sport": "Shungura ukurikije umukino",
     "filter_gender": "Shungura ukurikije igitsina",
     "filter_level": "Shungura ukurikije urwego",
-    "other_sport": "Ibindi",
     "none": "Nta rushanwa rwabonetse",
     "none_hint": "Gerageza guhindura ibyo washunguye kugira ngo ubone icyo ushaka.",
+    "other_sport": "Ibindi",
     "error_title": "Ntibyashobotse gukuramo amarushanwa",
     "error_hint": "Reba umurongo wawe hanyuma wongere ugerageze."
   },
@@ -148,7 +148,6 @@
     "back_to_leagues": "Subira ku marushanwa yose",
     "participant_count": "Abitabiriye {{count}}",
     "level_label": "Urwego rwa {{level}}",
-    "tabs_label": "Ibice by'irushanwa",
     "tab_standings": "Urutonde",
     "tab_stats": "Imibare",
     "current_standings": "Urutonde rw'ubu",
@@ -158,6 +157,7 @@
     "fixtures_and_results": "Imikino n'ibyarangiye",
     "no_fixtures": "Nta mukino wateganyijwe",
     "participating_teams": "Amakipe yitabiriye",
+    "tabs_label": "Ibice by'irushanwa",
     "no_teams": "Nta kipe yiyandikishije",
     "no_teams_hint": "Amakipe azagaragara hano igihe azaba yiyandikishije muri iri rushanwa.",
     "error_title": "Ntibyashobotse gukuramo iri rushanwa",
@@ -279,7 +279,13 @@
     "time_days_ago": "{{count}} iminsi ishize",
     "captain": "Kapiteni",
     "show_all_events_one": "Erekana ikindi {{count}} cyabaye mbere",
-    "show_all_events_other": "Erekana ibindi {{count}} byabaye mbere"
+    "show_all_events_other": "Erekana ibindi {{count}} byabaye mbere",
+    "head_to_head": "Uko bahuye",
+    "h2h_wins_one": "Intsinzi {{count}}",
+    "h2h_wins_other": "Intsinzi {{count}}",
+    "h2h_draws_one": "Kunganya {{count}}",
+    "h2h_draws_other": "Kunganya {{count}}",
+    "h2h_none": "Aya makipe ntiyigeze ahura mu marushanwa yanditswe."
   },
   "standings": {
     "col_pos": "Umw.",
@@ -413,8 +419,6 @@
     "category_subtitle": "Abanza · Ayisumbuye · TVET",
     "by_status": "Ukurikije uko bimeze",
     "stats_none_hint": "Imibare igaragara uko amashuri n'amarushanwa byiyongera.",
-    "error_title": "Ntibyashobotse gukuramo Imikino y'Amashuri",
-    "error_hint": "Reba umurongo wawe hanyuma wongere ugerageze.",
     "level": {
       "cell": "Akagari",
       "sector": "Umurenge",
@@ -514,7 +518,6 @@
     "pick_sport": "Hitamo siporo",
     "view_all_sports": "Reba siporo zose",
     "more_sports": "Izindi siporo",
-    "comp_count": "amarushanwa {{count}}",
     "col_regions": "Uturere",
     "col_events": "Ibikorwa",
     "col_athletes": "Abakinnyi",
@@ -527,6 +530,8 @@
     "latest_news": "Amakuru aheruka",
     "no_news": "Nta makuru ya siporo z amashuri arahari.",
     "news_default": "Amakuru",
+    "error_title": "Ntibyashobotse gukuramo Imikino y'Amashuri",
+    "error_hint": "Reba umurongo wawe hanyuma wongere ugerageze.",
     "tab_overview": "Incamake",
     "tab_championships": "Amarushanwa",
     "tab_fixtures": "Gahunda",
@@ -548,7 +553,19 @@
       "eligibility": "Uburenganzira bwo gukina",
       "verified": "Byemejwe",
       "pending": "Birategerejwe"
-    }
+    },
+    "next_up": "Ibikurikira",
+    "n_sports_one": "Siporo",
+    "n_sports_other": "Siporo",
+    "n_schools_one": "Ishuri",
+    "n_schools_other": "Amashuri",
+    "n_competitions_one": "Irushanwa",
+    "n_competitions_other": "Amarushanwa",
+    "n_live_one": "Umukino ubaho",
+    "n_live_other": "Imikino ibaho",
+    "comp_count_one": "Irushanwa {{count}}",
+    "comp_count_other": "Amarushanwa {{count}}",
+    "view_all_fixtures": "Reba gahunda yose"
   },
   "admin": {
     "portal": "Urubuga rw'Ubuyobozi",
@@ -1238,6 +1255,8 @@
     "choose_a_sport": "Hitamo umukino",
     "no_match": "Nta mukino uhuye na \"{{q}}\".",
     "enter": "Injira",
+    "hero_title_pre": "Siporo yose y’u Rwanda,",
+    "hero_title_accent": "ahantu hamwe",
     "hero_subtitle": "Amanota ariho, imikino, ibyavuyemo n’imiterere — kuva ku marushanwa y’igihugu kugeza ku mikino y’amashuri.",
     "find_your_sport": "Shakisha siporo yawe",
     "live_scores": "Amanota ariho",
@@ -1339,7 +1358,6 @@
     "clubs": "Amakipe",
     "standings": "Imyanya",
     "standings_empty": "Imbonerahamwe izagaragara nyuma yibisubizo.",
-    "standings_no_table": "Nta mbonerahamwe irahari",
     "col_team": "Ikipe",
     "col_p": "I",
     "col_gd": "GD",
@@ -1347,12 +1365,13 @@
     "view_full_standings": "Reba imyanya yose",
     "latest_news": "Amakuru aheruka",
     "no_news": "Nta makuru arahari kuri {{sport}}.",
-    "news_empty_hint": "Ongera ugaruke vuba urebe amakuru mashya.",
-    "error_title": "Ntibyashobotse gukuramo iyi siporo",
-    "error_hint": "Reba umurongo wawe hanyuma wongere ugerageze.",
     "not_found": "Siporo ntibonetse",
     "back_home": "Subira ahabanza",
     "seo_desc": "{{sport}} mu Rwanda — amanota kuri ubu, gahunda, imyanya n amakuru.",
+    "standings_no_table": "Nta mbonerahamwe irahari",
+    "news_empty_hint": "Ongera ugaruke vuba urebe amakuru mashya.",
+    "error_title": "Ntibyashobotse gukuramo iyi siporo",
+    "error_hint": "Reba umurongo wawe hanyuma wongere ugerageze.",
     "tab_live": "Ibiri kuba",
     "tab_upcoming": "Iri imbere",
     "tab_results": "Ibyavuyemo",
@@ -1466,10 +1485,10 @@
     "seo_description": "Amakipe yose yanditse kuri RwaSport.",
     "search_placeholder": "Shakisha amakipe…",
     "all_sports": "Siporo zose",
-    "filter_sport": "Shungura ukurikije umukino",
-    "view_club": "Reba ikipe",
     "none_title": "Nta kipe yabonetse",
     "none_hint": "Gerageza indi siporo cyangwa ijambo rindi.",
+    "filter_sport": "Shungura ukurikije umukino",
+    "view_club": "Reba ikipe",
     "error_title": "Ntibyashobotse gukuramo amakipe",
     "error_hint": "Reba umurongo wawe hanyuma wongere ugerageze."
   },
@@ -1605,6 +1624,7 @@
     "nav_dashboard": "Imbonerahamwe",
     "nav_sport_admins": "Abayobozi ba siporo",
     "nav_leagues": "Amaligi",
+    "nav_sports": "Siporo",
     "nav_fixtures": "Imikino",
     "nav_teams": "Amakipe",
     "nav_players": "Abakinnyi",
@@ -1618,6 +1638,7 @@
     "nav_profile": "Umwirondoro w ikipe",
     "nav_lineups": "Abakina",
     "nav_live_reporting": "Gutanga raporo kuri ubu",
+    "nav_my_profile": "Umwirondoro wanjye",
     "nav_my_players": "Abakinnyi banjye",
     "role_ministry": "Minisiteri y Imikino",
     "role_ministry_sub": "Rwanda",
@@ -1640,6 +1661,8 @@
     "nav_media": "Ububiko bw amashusho",
     "nav_users": "Abakoresha",
     "nav_roles": "Inshingano & uburenganzira",
+    "nav_requests": "Gusaba kwinjira",
+    "nav_compliance": "Kurinda amakuru bwite",
     "nav_system_health": "Ubuzima bwa sisitemu",
     "nav_match_reports": "Raporo z imikino",
     "nav_standings": "Imyanya",
@@ -1653,7 +1676,6 @@
     "nav_athletes": "Abakinnyi",
     "nav_seasons": "Ibihembwe",
     "nav_stages": "Ibyiciro",
-    "nav_sports": "Siporo",
     "nav_approvals": "Kwemeza",
     "nav_my_athletes": "Abakinnyi bacu",
     "role_school": "Urubuga rw’ishuri",
@@ -1935,6 +1957,16 @@
       "affected": "Uyu mukino wagizweho ingaruka n'Umuganda. Icyemezo cya nyuma kiracyategerejwe."
     }
   },
+  "follow": {
+    "follow": "Kurikirana",
+    "following": "Urakurikirana",
+    "unfollow": "Reka gukurikirana"
+  },
+  "notifications": {
+    "title": "Amakuru",
+    "mark_all": "Menya byose",
+    "none": "Nta kintu kiraboneka."
+  },
   "sports": {
     "title": "Siporo zose",
     "subtitle": "Siporo zose ziri kuri uru rubuga, buri imwe ifite amarushanwa, imikino n’imiterere yayo.",
@@ -1944,6 +1976,10 @@
     "no_match": "Nta siporo ihuye na \"{{q}}\"",
     "no_match_hint": "Gerageza uyandike ukundi, cyangwa usibe ubushakashatsi.",
     "error_title": "Ntibyashobotse gukuramo siporo",
-    "error_hint": "Reba umurongo wawe hanyuma wongere ugerageze."
+    "error_hint": "Reba umurongo wawe hanyuma wongere ugerageze.",
+    "match_count_one": "Umukino {{count}}",
+    "match_count_other": "Imikino {{count}}",
+    "event_count_one": "Irushanwa {{count}}",
+    "event_count_other": "Amarushanwa {{count}}"
   }
 }

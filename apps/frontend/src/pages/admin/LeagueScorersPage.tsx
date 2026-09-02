@@ -4,11 +4,15 @@ import { useTranslation } from 'react-i18next';
 import { Target } from 'lucide-react';
 import apiClient from '../../api/client';
 import useAdminLeague from '../../hooks/useAdminLeague';
-import Avatar from '../../components/ui/Avatar';
-import AdminTable from '../../components/admin/AdminTable';
-import { Skeleton, EmptyState } from '../../components/ui';
+import { PageHeader, Panel, TableWrap, Th, Td } from '../../components/admin/AdminUI';
+import { Avatar, EmptyState, Skeleton, SkeletonList } from '../../components/ui';
 
-/** League Admin → Top Scorers: leading goalscorers in the admin's league. */
+/**
+ * League Admin → Top Scorers: leading goalscorers in the admin's league.
+ *
+ * Like the standings, the table IS the page: full panel width, goals right-aligned
+ * and tabular so the column reads as a ranking rather than a list of facts.
+ */
 const LeagueScorersPage = () => {
   const { t } = useTranslation();
   const { leagueId } = useAdminLeague();
@@ -20,27 +24,54 @@ const LeagueScorersPage = () => {
   const scorers = data || [];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="space-y-2">
-        <h1 className="text-4xl font-display uppercase tracking-tighter">{t('ladmin.scorers_title')} <span className="text-red">{t('ladmin.scorers_accent')}</span></h1>
-        <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">{t('ladmin.scorers_sub')}</p>
-      </div>
-      {isLoading ? (
-        <Skeleton type="card" count={3} />
-      ) : scorers.length === 0 ? (
-        <EmptyState icon={Target} title={t('ladmin.none_scorers')} hint={t('ladmin.none_scorers_hint')} />
-      ) : (
-        <AdminTable headers={['#', t('ladmin.col_player'), t('ladmin.col_team'), t('ladmin.col_goals')]}>
-          {scorers.map((s, i) => (
-            <tr key={s.id ?? i} className="transition-colors hover:bg-surface-2 dark:hover:bg-white/5">
-              <td className="px-6 py-4 text-sm tabular-nums text-tertiary">{i + 1}</td>
-              <td className="px-6 py-4"><div className="flex items-center gap-3"><Avatar src={s.player?.photo} name={s.player?.fullName} size="sm" /><span className="text-sm font-semibold text-primary">{s.player?.fullName}</span></div></td>
-              <td className="px-6 py-4 text-sm text-secondary">{s.team?.name}</td>
-              <td className="px-6 py-4 text-lg font-display font-bold tabular-nums text-primary">{s.goals}</td>
-            </tr>
-          ))}
-        </AdminTable>
-      )}
+    <div>
+      <PageHeader
+        title={`${t('ladmin.scorers_title')} ${t('ladmin.scorers_accent')}`}
+        subtitle={t('ladmin.scorers_sub')}
+      />
+
+      <Panel flush>
+        {isLoading ? (
+          <SkeletonList count={8} className="divide-y divide-hairline">
+            <div className="flex items-center gap-3 px-4 py-3">
+              <Skeleton className="h-4 w-4" />
+              <Skeleton circle className="h-7 w-7" />
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="ml-auto h-4 w-10" />
+            </div>
+          </SkeletonList>
+        ) : scorers.length === 0 ? (
+          <EmptyState icon={Target} title={t('ladmin.none_scorers')} hint={t('ladmin.none_scorers_hint')} />
+        ) : (
+          <TableWrap>
+            <table className="w-full min-w-[520px] text-left">
+              <thead>
+                <tr>
+                  <Th>#</Th>
+                  <Th>{t('ladmin.col_player')}</Th>
+                  <Th>{t('ladmin.col_team')}</Th>
+                  <Th align="right">{t('ladmin.col_goals')}</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {scorers.map((s, i) => (
+                  <tr key={s.id ?? i} className="transition-colors duration-150 ease-standard hover:bg-surface-2">
+                    <Td className="tabular-nums text-tertiary">{i + 1}</Td>
+                    <Td>
+                      <div className="flex min-w-0 items-center gap-3">
+                        <Avatar src={s.player?.photo} name={s.player?.fullName} size="sm" />
+                        <span className="truncate font-medium text-primary">{s.player?.fullName}</span>
+                      </div>
+                    </Td>
+                    <Td>{s.team?.name}</Td>
+                    <Td align="right" className="font-semibold text-primary">{s.goals}</Td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </TableWrap>
+        )}
+      </Panel>
     </div>
   );
 };

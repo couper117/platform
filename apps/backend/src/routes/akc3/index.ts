@@ -59,6 +59,128 @@ router.get('/fixtures/:id', async (req, res, next) => {
     next(error);
   }
 });
+/**
+ * PUBLIC SCHOOL TEAM AND ATHLETE — the two the public app links to.
+ *
+ * /amashuri/teams/:id and /amashuri/athletes/:id are pages a visitor reaches by
+ * tapping a school's squad; neither had a route, so both 404'd against the real
+ * API while working against the demo adapter. `/akc3/athletes` exists but is
+ * `protect` + `amashuriRead`, which is right for the coordinator's roster screen
+ * and wrong for a public profile.
+ *
+ * THESE ARE CHILDREN'S RECORDS, so the projection is a deliberate allowlist, not
+ * a `findUnique` handed straight to `res.json`. AkcPlayer carries a guardian's
+ * name and phone, a national ID or birth-certificate number, a student code, a
+ * disability flag and a consent audit trail — collected under Law N° 058/2021 for
+ * the federation's duty of care, and none of anyone else's business. What a
+ * spectator needs is a name, a shirt number, a position and whether the entry is
+ * verified. `publicAthlete` is the only shape either route returns.
+ */
+const publicAthlete = (p: any) => ({
+  id: p.id,
+  fullName: p.fullName,
+  position: p.position,
+  jersey: p.jersey,
+  gender: p.gender,
+  ageCategory: p.ageCategory,
+  docVerified: p.docVerified,
+  // Age, not the date of birth: an age-group competition has to show that an
+  // athlete is eligible, which is not a reason to publish a child's birthday.
+  age: p.dob ? Math.floor((Date.now() - new Date(p.dob).getTime()) / 31557600000) : null,
+  teamId: p.teamId,
+});
+
+router.get('/teams/:id', async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) return res.status(400).json({ success: false, message: 'Invalid team id' });
+
+    const team = await prisma.akcTeam.findUnique({
+      where: { id },
+      include: {
+        school: true,
+        players: { where: { active: true }, orderBy: { jersey: 'asc' } },
+      },
+    });
+    if (!team) return res.status(404).json({ success: false, message: 'Team not found' });
+
+    const sport = await prisma.sport.findUnique({ where: { id: team.sportId } });
+    return res.status(200).json({
+      success: true,
+      data: { ...team, sport, players: team.players.map(publicAthlete) },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/athletes/:id', async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) return res.status(400).json({ success: false, message: 'Invalid athlete id' });
+
+    const athlete = await prisma.akcPlayer.findUnique({
+      where: { id },
+      include: { team: { include: { school: true } } },
+    });
+    if (!athlete) return res.status(404).json({ success: false, message: 'Athlete not found' });
+
+    const sport = await prisma.sport.findUnique({ where: { id: athlete.team.sportId } });
+
+    /**
+     * Recent form, from the athlete's TEAM. An individual match record per child
+     * is not collected and should not be invented: what the platform knows is how
+     * the side did, so that is what the page shows.
+     */
+    const played = await prisma.akcFixture.findMany({
+      where: {
+        status: 'COMPLETED',
+        OR: [{ homeTeamId: athlete.teamId }, { awayTeamId: athlete.teamId }],
+      },
+      include: {
+        homeTeam: { include: { school: true } },
+        awayTeam: { include: { school: true } },
+      },
+      orderBy: { matchDate: 'desc' },
+      take: 5,
+    });
+
+    const form = played.map((f) => {
+      const home = f.homeTeamId === athlete.teamId;
+      const own = home ? f.homeScore : f.awayScore;
+      const other = home ? f.awayScore : f.homeScore;
+      const opponent = home ? f.awayTeam : f.homeTeam;
+      return {
+        fixtureId: f.id,
+        date: f.matchDate,
+        home,
+        opponent: { id: opponent?.id, name: opponent?.school?.name },
+        score: own == null || other == null ? null : `${own}-${other}`,
+        result: own == null || other == null ? null : own > other ? 'W' : own < other ? 'L' : 'D',
+      };
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        ...publicAthlete(athlete),
+        school: athlete.team.school,
+        team: {
+          id: athlete.team.id,
+          gender: athlete.team.gender,
+          ageCategory: athlete.team.ageCategory,
+          coachName: athlete.team.coachName,
+          sport,
+        },
+        sportId: athlete.team.sportId,
+        form,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.get('/standings', async (req, res, next) => {
   try {
     const { competitionId } = req.query;

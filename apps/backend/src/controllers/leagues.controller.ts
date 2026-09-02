@@ -23,7 +23,12 @@ const getLeagues = async (req, res, next) => {
         sport: true,
         federation: true,
         _count: {
-          select: { teams: true, fixtures: true },
+          // `standings` is here so a caller can tell, from the LIST, whether a
+          // league has a table without fetching each one. /fixtures picks the
+          // league for its side rail this way: without it, the rail attached
+          // itself to whichever league the soonest fixture belonged to, and if
+          // that league had no table the page rendered a dead 320px column.
+          select: { teams: true, fixtures: true, standings: true },
         },
       },
       orderBy: { createdAt: 'desc' },

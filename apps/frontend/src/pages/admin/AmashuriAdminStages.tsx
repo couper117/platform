@@ -3,10 +3,16 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Layers } from 'lucide-react';
 import { getAkcFixtures } from '../../api/endpoints/amashuri';
-import AdminTable from '../../components/admin/AdminTable';
-import { Skeleton, EmptyState } from '../../components/ui';
+import { PageHeader, Panel, TableWrap, Th, Td } from '../../components/admin/AdminUI';
+import { Skeleton, SkeletonList, EmptyState } from '../../components/ui';
 
 const STAGE_ORDER = ['GROUP', 'ROUND16', 'QUARTERFINAL', 'SEMIFINAL', 'THIRD_PLACE', 'FINAL'];
+
+/** A backend enum read as a sentence: THIRD_PLACE → "Third place". */
+const stageLabel = (stage: string) => {
+  const words = String(stage || '').replace(/_/g, ' ').toLowerCase();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+};
 
 /** Amashuri Admin → Stages: fixtures grouped by tournament stage. */
 const AmashuriAdminStages = () => {
@@ -18,23 +24,47 @@ const AmashuriAdminStages = () => {
   const stages = Object.entries(counts).sort((a, b) => STAGE_ORDER.indexOf(a[0]) - STAGE_ORDER.indexOf(b[0]));
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="space-y-2">
-        <h1 className="text-4xl font-display uppercase tracking-tighter">{t('aadmin.stages_title')} <span className="text-red">{t('aadmin.stages_accent')}</span></h1>
-        <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">{t('aadmin.stages_sub')}</p>
-      </div>
-      {isLoading ? <Skeleton type="card" count={2} />
-        : stages.length === 0 ? <EmptyState icon={Layers} title={t('aadmin.none_stages')} hint={t('aadmin.none_stages_hint')} />
-        : (
-          <AdminTable headers={[t('aadmin.col_stage'), t('aadmin.col_matches')]}>
-            {stages.map(([stage, n]: any) => (
-              <tr key={stage} className="transition-colors hover:bg-surface-2 dark:hover:bg-white/5">
-                <td className="px-6 py-4"><div className="flex items-center gap-3"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand/10 text-brand"><Layers size={15} /></span><span className="text-sm font-semibold uppercase tracking-wider text-primary">{stage.replace(/_/g, ' ')}</span></div></td>
-                <td className="px-6 py-4 text-lg font-display font-bold tabular-nums text-primary">{n}</td>
-              </tr>
-            ))}
-          </AdminTable>
+    <div>
+      <PageHeader
+        title={`${t('aadmin.stages_title')} ${t('aadmin.stages_accent')}`}
+        subtitle={t('aadmin.stages_sub')}
+      />
+
+      <Panel flush>
+        {isLoading ? (
+          <SkeletonList count={4} className="space-y-3 p-4">
+            <Skeleton className="h-10 w-full" />
+          </SkeletonList>
+        ) : stages.length === 0 ? (
+          <EmptyState icon={Layers} title={t('aadmin.none_stages')} hint={t('aadmin.none_stages_hint')} />
+        ) : (
+          <TableWrap>
+            <table className="w-full min-w-[360px] text-left">
+              <thead>
+                <tr>
+                  <Th>{t('aadmin.col_stage')}</Th>
+                  <Th align="right">{t('aadmin.col_matches')}</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {stages.map(([stage, n]: any) => (
+                  <tr key={stage} className="transition-colors duration-150 ease-standard hover:bg-surface-2">
+                    <Td>
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-control bg-surface-2 text-tertiary">
+                          <Layers size={15} aria-hidden="true" />
+                        </span>
+                        <span className="font-medium text-primary">{stageLabel(stage)}</span>
+                      </div>
+                    </Td>
+                    <Td align="right" className="font-semibold text-primary">{n}</Td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </TableWrap>
         )}
+      </Panel>
     </div>
   );
 };

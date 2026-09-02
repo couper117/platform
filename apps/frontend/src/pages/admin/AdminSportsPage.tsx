@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Trophy, Plus, Check, X, Trash2 } from 'lucide-react';
+import { Trophy, Plus, Trash2 } from 'lucide-react';
 import apiClient from '../../api/client';
-import AdminTable from '../../components/admin/AdminTable';
-import { Skeleton } from '../../components/ui';
+import { PageHeader, Panel, TableWrap, Th, Td } from '../../components/admin/AdminUI';
+import {
+  Button, IconButton, Input, Select, Field, StatusPill, EmptyState, Skeleton, SkeletonList, cn,
+} from '../../components/ui';
 import { SPORT_PROFILES } from '../../config/sportProfiles';
 import { useCan } from '../../hooks/useCan';
 
@@ -18,6 +20,10 @@ import { useCan } from '../../hooks/useCan';
  * the terminology and the competition formats every other admin page offers, so
  * a cycling tour is not asked for a "starting XI". Choosing it here shows what
  * each type actually changes rather than leaving four enum values to guess at.
+ *
+ * Presentation comes from the admin kit (PageHeader / Panel / TableWrap) and the
+ * design-system primitives — nothing on this page invents a card, a heading or a
+ * table shell of its own.
  */
 const CATEGORIES = ['FIELD', 'COURT', 'COMBAT', 'WATER', 'ATHLETICS', 'MIND', 'OTHER'];
 const TYPES = Object.keys(SPORT_PROFILES);
@@ -57,212 +63,228 @@ const AdminSportsPage = () => {
   const profile = form ? SPORT_PROFILES[form.type] : null;
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-display uppercase tracking-tighter">
-            {t('admin.sports.title', 'Sports')} <span className="text-red">{t('admin.sports.title_accent', 'Management')}</span>
-          </h1>
-          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">
-            {t('admin.sports.subtitle', 'Every sport the platform runs, and how each one is competed')}
-          </p>
-        </div>
-        {central && (
-          <button
-            type="button"
-            onClick={() => { setForm({ ...blank }); setError(''); }}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-white"
-          >
-            <Plus size={14} /> {t('admin.sports.add', 'Add a sport')}
-          </button>
+    <div>
+      <PageHeader
+        title={`${t('admin.sports.title', 'Sports')} ${t('admin.sports.title_accent', 'Management')}`}
+        subtitle={t('admin.sports.subtitle', 'Every sport the platform runs, and how each one is competed')}
+        actions={central && (
+          <Button size="sm" icon={Plus} onClick={() => { setForm({ ...blank }); setError(''); }}>
+            {t('admin.sports.add', 'Add a sport')}
+          </Button>
         )}
-      </div>
+      />
 
       {form && (
-        <div className="space-y-4 rounded-2xl border border-hairline bg-surface p-5">
-          {!central && (
-            <p className="rounded-lg bg-surface-2 p-3 text-xs text-tertiary">
-              {t('admin.sports.federation_scope',
-                 'You maintain how your federation\u2019s sport is described. Its name, category and how it is competed are set centrally.')}
-            </p>
-          )}
-
-          <div className={`grid gap-4 sm:grid-cols-2 ${central ? '' : 'hidden'}`}>
-            <label className="block">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-tertiary">{t('admin.sports.name', 'Name')}</span>
-              <input
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="Basketball"
-                className="mt-1 w-full rounded-lg border border-hairline bg-surface-2 px-3 py-2 text-sm text-primary outline-none focus-visible:border-brand"
-              />
-            </label>
-            <label className="block">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-tertiary">{t('admin.sports.category', 'Category')}</span>
-              <select
-                value={form.category}
-                onChange={(e) => setForm({ ...form, category: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-hairline bg-surface-2 px-3 py-2 text-sm text-primary outline-none"
-              >
-                {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </label>
-          </div>
-
-          <div className={central ? '' : 'hidden'}>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-tertiary">
-              {t('admin.sports.type', 'How it is competed')}
-            </span>
-            <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-              {TYPES.map((key) => {
-                const p = SPORT_PROFILES[key];
-                const on = form.type === key;
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setForm({ ...form, type: key })}
-                    className={`rounded-xl border p-3 text-left transition-colors ${on ? 'border-brand bg-brand/10' : 'border-hairline hover:border-brand/40'}`}
-                  >
-                    <p className={`text-sm font-semibold ${on ? 'text-brand-text' : 'text-primary'}`}>{p.label}</p>
-                    <p className="mt-0.5 text-[11px] text-tertiary">{p.competitorPlural} · {p.rosterPlural}</p>
-                  </button>
-                );
-              })}
-            </div>
-            {/* What the choice actually changes, so it is not four enum values to guess at. */}
-            {profile && (
-              <p className="mt-2 rounded-lg bg-surface-2 p-3 text-xs text-tertiary">
-                {t('admin.sports.type_note', 'Admin pages will say')}{' '}
-                <strong className="text-secondary">{profile.competitor}</strong>,{' '}
-                <strong className="text-secondary">{profile.roster}</strong> and{' '}
-                <strong className="text-secondary">{profile.event}</strong>, record a{' '}
-                <strong className="text-secondary">{profile.result}</strong>, and offer{' '}
-                {profile.formats.map((f: any) => f.label).join(', ')}.
+        <Panel className="mb-4">
+          <div className="space-y-4">
+            {!central && (
+              <p className="rounded-control bg-surface-2 p-3 text-xs text-tertiary">
+                {t('admin.sports.federation_scope',
+                   'You maintain how your federation’s sport is described. Its name, category and how it is competed are set centrally.')}
               </p>
             )}
-          </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-tertiary">{t('admin.sports.order', 'Sort order')}</span>
-              <input
-                type="number"
-                value={form.sortOrder}
-                onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) })}
-                className="mt-1 w-full rounded-lg border border-hairline bg-surface-2 px-3 py-2 text-sm text-primary outline-none focus-visible:border-brand"
-              />
-            </label>
-            <label className="block">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-tertiary">{t('admin.sports.description', 'Description')}</span>
-              <input
-                value={form.description || ''}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-hairline bg-surface-2 px-3 py-2 text-sm text-primary outline-none focus-visible:border-brand"
-              />
-            </label>
-          </div>
+            <div className={cn('grid gap-4 sm:grid-cols-2', !central && 'hidden')}>
+              <Field label={t('admin.sports.name', 'Name')}>
+                {(p) => (
+                  <Input
+                    {...p}
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    placeholder="Basketball"
+                  />
+                )}
+              </Field>
+              <Field label={t('admin.sports.category', 'Category')}>
+                {(p) => (
+                  <Select
+                    {...p}
+                    size="md"
+                    value={form.category}
+                    onChange={(e) => setForm({ ...form, category: e.target.value })}
+                    options={CATEGORIES.map((c) => ({ value: c, label: c }))}
+                  />
+                )}
+              </Field>
+            </div>
 
-          {error && <p className="text-xs text-danger-text">{error}</p>}
+            <div className={central ? '' : 'hidden'}>
+              <p className="text-sm font-bold text-primary">
+                {t('admin.sports.type', 'How it is competed')}
+              </p>
+              <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                {TYPES.map((key) => {
+                  const p = SPORT_PROFILES[key];
+                  const on = form.type === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() => setForm({ ...form, type: key })}
+                      className={cn(
+                        'rounded-control border p-3 text-left transition-colors duration-150 ease-standard',
+                        on ? 'border-brand bg-brand-tint' : 'border-hairline hover:border-brand/40'
+                      )}
+                    >
+                      <p className={cn('text-sm font-semibold', on ? 'text-brand-text' : 'text-primary')}>{p.label}</p>
+                      <p className="mt-0.5 text-xs text-tertiary">{p.competitorPlural} · {p.rosterPlural}</p>
+                    </button>
+                  );
+                })}
+              </div>
+              {/* What the choice actually changes, so it is not four enum values to guess at. */}
+              {profile && (
+                <p className="mt-2 rounded-control bg-surface-2 p-3 text-xs text-tertiary">
+                  {t('admin.sports.type_note', 'Admin pages will say')}{' '}
+                  <strong className="text-secondary">{profile.competitor}</strong>,{' '}
+                  <strong className="text-secondary">{profile.roster}</strong> and{' '}
+                  <strong className="text-secondary">{profile.event}</strong>, record a{' '}
+                  <strong className="text-secondary">{profile.result}</strong>, and offer{' '}
+                  {profile.formats.map((f: any) => f.label).join(', ')}.
+                </p>
+              )}
+            </div>
 
-          <div className="flex gap-2">
-            <button
-              type="button"
-              disabled={save.isPending || (central && form.name.trim().length < 2)}
-              onClick={() => save.mutate(central ? form : { id: form.id, description: form.description, icon: form.icon })}
-              className="rounded-lg bg-brand px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-white disabled:opacity-40"
-            >
-              {save.isPending ? t('common.saving', 'Saving') : t('common.save', 'Save')}
-            </button>
-            <button
-              type="button"
-              onClick={() => { setForm(null); setError(''); }}
-              className="rounded-lg border border-hairline px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-secondary"
-            >
-              {t('common.cancel', 'Cancel')}
-            </button>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label={t('admin.sports.order', 'Sort order')}>
+                {(p) => (
+                  <Input
+                    {...p}
+                    type="number"
+                    value={form.sortOrder}
+                    onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) })}
+                  />
+                )}
+              </Field>
+              <Field label={t('admin.sports.description', 'Description')}>
+                {(p) => (
+                  <Input
+                    {...p}
+                    value={form.description || ''}
+                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  />
+                )}
+              </Field>
+            </div>
+
+            {error && <p role="alert" className="text-xs font-semibold text-danger-text">{error}</p>}
+
+            <div className="flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                disabled={save.isPending || (central && form.name.trim().length < 2)}
+                onClick={() => save.mutate(central ? form : { id: form.id, description: form.description, icon: form.icon })}
+              >
+                {save.isPending ? t('common.saving', 'Saving') : t('common.save', 'Save')}
+              </Button>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => { setForm(null); setError(''); }}
+              >
+                {t('common.cancel', 'Cancel')}
+              </Button>
+            </div>
           </div>
-        </div>
+        </Panel>
       )}
 
-      {isLoading ? (
-        <Skeleton type="card" count={3} />
-      ) : (
-        <AdminTable headers={[
-          t('admin.sports.col_sport', 'Sport / governing federation'),
-          t('admin.sports.col_type', 'Competed as'),
-          t('admin.sports.col_usage', 'In use'),
-          t('admin.col_status', 'Status'),
-          '',
-        ]}>
-          {sports.map((s: any) => {
-            const p = SPORT_PROFILES[s.type] || SPORT_PROFILES.TEAM;
-            // A sport with competitions or clubs behind it cannot simply be
-            // deleted — say so on the button rather than after the click.
-            const inUse = (s._count?.leagues || 0) + (s._count?.teams || 0) + (s._count?.federations || 0);
-            return (
-              <tr key={s.id} className="transition-colors hover:bg-surface-2 dark:hover:bg-white/5">
-                <td className="px-6 py-4">
-                  <p className="text-sm font-semibold text-primary">{s.icon} {s.name}</p>
-                  {/* A sport is governed by its federation — naming it here is
-                      the difference between a registry and a list of who is
-                      responsible for what. */}
-                  <p className="text-[11px] text-tertiary">
-                    {s.federations?.length
-                      ? s.federations.map((f: any) => f.abbreviation || f.name).join(', ')
-                      : t('admin.sports.no_federation', 'No federation yet')}
-                    {' · '}{s.category}
-                  </p>
-                </td>
-                <td className="px-6 py-4 text-sm text-secondary">{p.label}</td>
-                <td className="px-6 py-4 text-[12px] text-tertiary">
-                  {s._count?.federations || 0} fed · {s._count?.leagues || 0} comp · {s._count?.teams || 0} club · {s._count?.matches || 0} match
-                </td>
-                <td className="px-6 py-4">
-                  <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${s.active ? 'bg-brand/10 text-brand-text' : 'bg-surface-2 text-tertiary'}`}>
-                    {s.active ? <><Check size={11} /> {t('admin.users.active', 'Active')}</> : <><X size={11} /> {t('admin.users.inactive', 'Inactive')}</>}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex justify-end gap-2">
-                    <button
-                      type="button"
-                      onClick={() => { setForm({ ...s }); setError(''); }}
-                      className="rounded-lg border border-hairline px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-secondary hover:border-brand hover:text-brand-text"
-                    >
-                      {t('common.edit', 'Edit')}
-                    </button>
-                    {central && (
-                    <button
-                      type="button"
-                      onClick={() => save.mutate({ ...s, active: !s.active })}
-                      className="rounded-lg border border-hairline px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-secondary hover:border-brand hover:text-brand-text"
-                    >
-                      {s.active ? t('admin.sports.deactivate', 'Deactivate') : t('admin.sports.activate', 'Activate')}
-                    </button>
-                    )}
-                    {central && (
-                    <button
-                      type="button"
-                      disabled={inUse > 0 || remove.isPending}
-                      title={inUse > 0 ? t('admin.sports.in_use', 'Has federations, competitions or clubs — deactivate it instead') : undefined}
-                      onClick={() => remove.mutate(s.id)}
-                      aria-label={t('admin.sports.delete_sport', 'Delete {{name}}', { name: s.name })}
-                      className="rounded-lg border border-danger/40 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-danger-text disabled:opacity-30"
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            );
-          })}
-        </AdminTable>
-      )}
+      <Panel flush>
+        {isLoading ? (
+          <div className="p-4">
+            <SkeletonList count={5} className="space-y-3">
+              <Skeleton className="h-10 w-full" />
+            </SkeletonList>
+          </div>
+        ) : sports.length === 0 ? (
+          <EmptyState icon={Trophy} />
+        ) : (
+          <TableWrap>
+            <table className="w-full min-w-[760px] text-left">
+              <thead>
+                <tr>
+                  <Th>{t('admin.sports.col_sport', 'Sport / governing federation')}</Th>
+                  <Th>{t('admin.sports.col_type', 'Competed as')}</Th>
+                  <Th>{t('admin.sports.col_usage', 'In use')}</Th>
+                  <Th>{t('admin.col_status', 'Status')}</Th>
+                  <Th align="right" />
+                </tr>
+              </thead>
+              <tbody>
+                {sports.map((s: any) => {
+                  const p = SPORT_PROFILES[s.type] || SPORT_PROFILES.TEAM;
+                  // A sport with competitions or clubs behind it cannot simply be
+                  // deleted — say so on the button rather than after the click.
+                  const inUse = (s._count?.leagues || 0) + (s._count?.teams || 0) + (s._count?.federations || 0);
+                  return (
+                    <tr key={s.id} className="transition-colors duration-150 ease-standard hover:bg-surface-2">
+                      <Td>
+                        <p className="text-sm font-medium text-primary">{s.icon} {s.name}</p>
+                        {/* A sport is governed by its federation — naming it here is
+                            the difference between a registry and a list of who is
+                            responsible for what. */}
+                        <p className="text-xs text-tertiary">
+                          {s.federations?.length
+                            ? s.federations.map((f: any) => f.abbreviation || f.name).join(', ')
+                            : t('admin.sports.no_federation', 'No federation yet')}
+                          {' · '}{s.category}
+                        </p>
+                      </Td>
+                      <Td>{p.label}</Td>
+                      <Td className="text-xs tabular-nums text-tertiary">
+                        {s._count?.federations || 0} fed · {s._count?.leagues || 0} comp · {s._count?.teams || 0} club · {s._count?.matches || 0} match
+                      </Td>
+                      <Td>
+                        <StatusPill
+                          status={s.active ? 'ACTIVE' : 'INACTIVE'}
+                          label={s.active ? t('admin.users.active', 'Active') : t('admin.users.inactive', 'Inactive')}
+                        />
+                      </Td>
+                      <Td align="right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => { setForm({ ...s }); setError(''); }}
+                          >
+                            {t('common.edit', 'Edit')}
+                          </Button>
+                          {central && (
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => save.mutate({ ...s, active: !s.active })}
+                            >
+                              {s.active ? t('admin.sports.deactivate', 'Deactivate') : t('admin.sports.activate', 'Activate')}
+                            </Button>
+                          )}
+                          {central && (
+                            <IconButton
+                              icon={Trash2}
+                              size="sm"
+                              variant="danger"
+                              disabled={inUse > 0 || remove.isPending}
+                              {...(inUse > 0
+                                ? { title: t('admin.sports.in_use', 'Has federations, competitions or clubs — deactivate it instead') }
+                                : {})}
+                              onClick={() => remove.mutate(s.id)}
+                              label={t('admin.sports.delete_sport', 'Delete {{name}}', { name: s.name })}
+                            />
+                          )}
+                        </div>
+                      </Td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </TableWrap>
+        )}
+      </Panel>
 
-      <p className="flex items-start gap-2 rounded-xl bg-surface-2 p-3 text-xs text-tertiary">
-        <Trophy size={14} className="mt-0.5 shrink-0 text-brand" />
+      <p className="mt-4 flex items-start gap-2 rounded-card bg-surface-2 p-3 text-xs text-tertiary">
+        <Trophy size={14} className="mt-0.5 shrink-0 text-brand" aria-hidden="true" />
         {t('admin.sports.note', 'Each sport is governed by its federation, which maintains how the sport is described. Creating a sport, deleting one and changing how it is competed stay central, because the type reshapes terminology and competition formats across every admin page. A sport with federations, competitions or clubs behind it can be deactivated but not deleted — removing it would orphan everything recorded under it.')}
       </p>
     </div>

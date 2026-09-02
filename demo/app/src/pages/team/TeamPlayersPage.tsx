@@ -135,7 +135,7 @@ const TeamPlayersPage = () => {
                   </div>
                   <div>
                     <p className="font-bold text-sm uppercase tracking-tight">{player.fullName}</p>
-                    <p className="text-[8px] opacity-40 uppercase tracking-widest">No. {player.jerseyNumber ?? 'â€”'}</p>
+                    <p className="text-[8px] opacity-40 uppercase tracking-widest">No. {player.jerseyNumber ?? '—'}</p>
                   </div>
                 </div>
               </td>

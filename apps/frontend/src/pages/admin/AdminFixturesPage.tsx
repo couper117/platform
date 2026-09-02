@@ -1,16 +1,26 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { Activity, Plus, Calendar, MapPin, Trophy, Clock, Search, Trash2, Edit2, Loader2, Tv, BarChart3, AlertTriangle } from 'lucide-react';
+import { Plus, CalendarOff, Trash2, Tv, BarChart3, AlertTriangle } from 'lucide-react';
 import apiClient from '../../api/client';
-import AdminTable from '../../components/admin/AdminTable';
-import AdminModal from '../../components/admin/AdminModal';
-import Skeleton from '../../components/shared/Skeleton';
+import { PageHeader, Panel, TableWrap, Th, Td } from '../../components/admin/AdminUI';
+import {
+  Button, IconButton, Modal, Field, Input, Select, StatusPill, EmptyState, Skeleton, SkeletonList,
+} from '../../components/ui';
 import useSportScope from '../../hooks/useSportScope';
 import useUmugandaLookup from '../../components/umuganda/useUmuganda';
 import UmugandaConflictDialog from '../../components/umuganda/UmugandaConflictDialog';
 import UmugandaMark from '../../components/umuganda/UmugandaMark';
 import { isUmugandaTouched } from '../../utils/umuganda';
+
+/**
+ * Fixture scheduling.
+ *
+ * Presentation only comes from the admin kit — PageHeader, Panel, TableWrap — and
+ * status colour from StatusPill, so a LIVE fixture reads the same here as it does
+ * on the public side. Nothing about the scope, the mutations or the Umuganda
+ * conflict flow changed.
+ */
 
 const AdminFixturesPage = () => {
   const queryClient = useQueryClient();
@@ -125,119 +135,177 @@ const AdminFixturesPage = () => {
     onError: (err: any) => alert(err.response?.data?.message || 'Failed to save statistics'),
   });
 
+  const rows = fixtures || [];
+
   return (
-    <div className="space-y-10 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-display uppercase tracking-tighter">{evMany} <span className="text-red">Management</span></h1>
-          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Schedule {evMany.toLowerCase()} and assign reporters</p>
-        </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-red text-white px-8 py-3 rounded-xl font-display text-lg uppercase tracking-widest hover:bg-red-dark transition-all shadow-xl shadow-red/20 flex items-center space-x-2"
-        >
-          <Plus size={20} />
-          <span>New {evOne}</span>
-        </button>
-      </div>
+    <div>
+      <PageHeader
+        title={`${evMany} management`}
+        subtitle={`Schedule ${evMany.toLowerCase()} and assign reporters`}
+        actions={
+          <Button size="sm" icon={Plus} onClick={() => setIsModalOpen(true)}>
+            New {evOne.toLowerCase()}
+          </Button>
+        }
+      />
 
       {fixturesLoading ? (
-        <Skeleton type="card" count={3} />
+        <Panel flush>
+          <SkeletonList count={5} className="space-y-2 p-4">
+            <Skeleton className="h-12 w-full" />
+          </SkeletonList>
+        </Panel>
+      ) : rows.length === 0 ? (
+        <Panel>
+          <EmptyState
+            icon={CalendarOff}
+            title={`No ${evMany.toLowerCase()} yet`}
+            hint={`Scheduled ${evMany.toLowerCase()} appear here.`}
+            action={
+              <Button size="sm" icon={Plus} onClick={() => setIsModalOpen(true)}>
+                New {evOne.toLowerCase()}
+              </Button>
+            }
+          />
+        </Panel>
       ) : (
-        <AdminTable headers={['Match', 'League', 'Date & Time', 'Venue', 'Status', 'Actions']}>
-          {fixtures?.map(f => (
-            <tr key={f.id} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors group">
-              <td className="px-6 py-5">
-                <div className="flex items-center space-x-4">
-                  <span className="font-bold text-sm uppercase tracking-tight">{f.homeTeam.name}</span>
-                  <span className="text-[10px] opacity-20">VS</span>
-                  <span className="font-bold text-sm uppercase tracking-tight">{f.awayTeam.name}</span>
-                </div>
-              </td>
-              <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{f.league.name}</td>
-              <td className="px-6 py-5">
-                <div className="flex flex-col">
-                  <span className="text-sm font-bold uppercase tracking-tight italic text-red">
-                    {f.matchDate ? new Date(f.matchDate).toLocaleDateString() : 'TBD'}
-                  </span>
-                  <span className="text-[8px] opacity-40 uppercase font-bold tracking-widest">
-                    {f.matchDate ? new Date(f.matchDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'TBD'}
-                  </span>
-                </div>
-              </td>
-              <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{f.venue || 'TBD'}</td>
-              <td className="px-6 py-5">
-                <div className="flex flex-col items-start gap-1.5">
-                  <span className={`text-[8px] font-bold px-2 py-1 rounded border uppercase ${f.status === 'LIVE' ? 'bg-red text-white border-red' : 'bg-surface-3 dark:bg-white/5 opacity-40'}`}>
-                    {f.status}
-                  </span>
-                  {(isUmugandaTouched(f.status) || lookup(f.matchDate)) && (
-                    <button
-                      type="button"
-                      onClick={() => setDecisionFor({ kind: 'league', fixture: f, umugandaDay: lookup(f.matchDate) })}
-                      className="inline-flex items-center gap-1 rounded-pill border border-brand/30 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-brand-text transition-colors hover:bg-brand/10"
-                    >
-                      <AlertTriangle size={10} aria-hidden="true" />
-                      Umuganda
-                    </button>
-                  )}
-                </div>
-              </td>
-              <td className="px-6 py-5">
-                <div className="flex items-center space-x-2">
-                  <button onClick={() => { setStreamFixture(f); setStreamUrl(f.streamUrl || ''); }} className={`p-2 rounded-lg transition-colors ${f.streamUrl ? 'text-red hover:bg-red/10' : 'opacity-40 hover:opacity-80 hover:bg-surface-3 dark:hover:bg-white/10'}`} title="Streaming URL">
-                    <Tv size={16} />
-                  </button>
-                  <button onClick={() => openStats(f)} className="p-2 hover:bg-blue-500/10 text-blue-500 rounded-lg transition-colors" title="Match statistics">
-                    <BarChart3 size={16} />
-                  </button>
-                  <button onClick={() => { if(window.confirm('Delete this fixture?')) deleteFixtureMutation.mutate(f.id) }} className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors">
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </AdminTable>
+        <Panel flush>
+          <TableWrap>
+            <table className="w-full min-w-[820px] text-left">
+              <thead>
+                <tr>
+                  <Th>Match</Th>
+                  <Th>{compOne}</Th>
+                  <Th>Date &amp; time</Th>
+                  <Th>Venue</Th>
+                  <Th>Status</Th>
+                  <Th align="right">Actions</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((f) => (
+                  <tr key={f.id} className="transition-colors duration-150 ease-standard hover:bg-surface-2">
+                    <Td>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-primary">{f.homeTeam.name}</span>
+                        <span className="text-xs text-tertiary">v</span>
+                        <span className="text-sm font-medium text-primary">{f.awayTeam.name}</span>
+                      </div>
+                    </Td>
+                    <Td>{f.league.name}</Td>
+                    <Td className="whitespace-nowrap">
+                      <span className="block tabular-nums text-primary">
+                        {f.matchDate ? new Date(f.matchDate).toLocaleDateString() : 'TBD'}
+                      </span>
+                      <span className="block text-xs tabular-nums text-tertiary">
+                        {f.matchDate ? new Date(f.matchDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'TBD'}
+                      </span>
+                    </Td>
+                    <Td>{f.venue || 'TBD'}</Td>
+                    <Td>
+                      <div className="flex flex-col items-start gap-1.5">
+                        <StatusPill status={f.status} />
+                        {(isUmugandaTouched(f.status) || lookup(f.matchDate)) && (
+                          <button
+                            type="button"
+                            onClick={() => setDecisionFor({ kind: 'league', fixture: f, umugandaDay: lookup(f.matchDate) })}
+                            className="inline-flex items-center gap-1 rounded-pill border border-brand/30 px-2 py-1 text-xs font-semibold text-brand-text transition-colors duration-150 ease-standard hover:bg-brand-tint"
+                          >
+                            <AlertTriangle size={12} aria-hidden="true" />
+                            Umuganda
+                          </button>
+                        )}
+                      </div>
+                    </Td>
+                    <Td align="right">
+                      <div className="flex items-center justify-end gap-1">
+                        <IconButton
+                          icon={Tv}
+                          label="Streaming URL"
+                          size="sm"
+                          className={f.streamUrl ? 'text-brand-text' : undefined}
+                          onClick={() => { setStreamFixture(f); setStreamUrl(f.streamUrl || ''); }}
+                        />
+                        <IconButton
+                          icon={BarChart3}
+                          label="Match statistics"
+                          size="sm"
+                          onClick={() => openStats(f)}
+                        />
+                        <IconButton
+                          icon={Trash2}
+                          label="Delete fixture"
+                          size="sm"
+                          variant="danger"
+                          onClick={() => { if (window.confirm('Delete this fixture?')) deleteFixtureMutation.mutate(f.id); }}
+                        />
+                      </div>
+                    </Td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </TableWrap>
+        </Panel>
       )}
 
       {/* New Fixture Modal */}
-      <AdminModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={`Schedule New ${evOne}`}>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2 col-span-2">
-              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Select {compOne}</label>
-              <select 
-                {...register('leagueId', { required: true })} 
-                className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none"
-                onChange={(e) => setSelectedLeagueId(e.target.value)}
-              >
-                <option value="">Choose a competition...</option>
-                {leagues?.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-              </select>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Home Team</label>
-              <select {...register('homeTeamId', { required: true })} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none">
-                <option value="">Select Home...</option>
-                {teams?.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-              </select>
-            </div>
+      {isModalOpen && (
+        <Modal open onClose={() => setIsModalOpen(false)} title={`Schedule new ${evOne.toLowerCase()}`}>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Field label={`Select ${compOne.toLowerCase()}`} className="sm:col-span-2">
+                {(fp) => {
+                  // The league drives the team lists, so its change has to reach
+                  // both react-hook-form and local state — hence the wrapper.
+                  const reg = register('leagueId', { required: true });
+                  return (
+                    <Select
+                      {...fp}
+                      {...reg}
+                      size="md"
+                      placeholder="Choose a competition…"
+                      options={(leagues || []).map((l) => ({ value: l.id, label: l.name }))}
+                      onChange={(e) => { reg.onChange(e); setSelectedLeagueId(e.target.value); }}
+                    />
+                  );
+                }}
+              </Field>
 
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Away Team</label>
-              <select {...register('awayTeamId', { required: true })} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none">
-                <option value="">Select Away...</option>
-                {teams?.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-              </select>
-            </div>
+              <Field label="Home team">
+                {(fp) => (
+                  <Select
+                    {...fp}
+                    {...register('homeTeamId', { required: true })}
+                    size="md"
+                    placeholder="Select home…"
+                    options={(teams || []).map((tm) => ({ value: tm.id, label: tm.name }))}
+                  />
+                )}
+              </Field>
 
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Match Date & Time</label>
-              <input {...register('matchDate', { required: true })} type="datetime-local" className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none" />
+              <Field label="Away team">
+                {(fp) => (
+                  <Select
+                    {...fp}
+                    {...register('awayTeamId', { required: true })}
+                    size="md"
+                    placeholder="Select away…"
+                    options={(teams || []).map((tm) => ({ value: tm.id, label: tm.name }))}
+                  />
+                )}
+              </Field>
+
+              <Field label="Match date & time">
+                {(fp) => <Input {...fp} type="datetime-local" {...register('matchDate', { required: true })} />}
+              </Field>
+
+              <Field label="Venue">
+                {(fp) => <Input {...fp} type="text" {...register('venue')} placeholder="Stadium name" />}
+              </Field>
+
               {pendingUmuganda && (
-                <div className="mt-2 flex items-start gap-2 rounded-xl border border-brand/30 bg-brand/[0.07] p-3">
+                <div className="flex items-start gap-2 rounded-card border border-brand/30 bg-brand-tint p-3 sm:col-span-2">
                   <AlertTriangle size={15} className="mt-0.5 shrink-0 text-brand-text" aria-hidden="true" />
                   <div className="min-w-0">
                     <UmugandaMark size="sm" />
@@ -250,67 +318,88 @@ const AdminFixturesPage = () => {
               )}
             </div>
 
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Venue</label>
-              <input {...register('venue')} type="text" className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none" placeholder="Stadium name" />
-            </div>
-          </div>
-
-          <button type="submit" disabled={createFixtureMutation.isPending} className="w-full bg-red text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all disabled:opacity-50">
-            {createFixtureMutation.isPending ? <Loader2 className="animate-spin mx-auto" /> : <span>Create Fixture</span>}
-          </button>
-        </form>
-      </AdminModal>
+            <Button type="submit" size="sm" block loading={createFixtureMutation.isPending}>
+              Create fixture
+            </Button>
+          </form>
+        </Modal>
+      )}
 
       {/* Streaming URL Modal */}
-      <AdminModal isOpen={!!streamFixture} onClose={() => setStreamFixture(null)} title="Live Streaming URL">
-        <div className="space-y-5">
-          <p className="text-xs opacity-60 leading-relaxed">
-            Paste a broadcast link (YouTube Live, CAF TV, FIFA+, ESPN, any http(s) URL). Viewers get an active <b>Watch Live</b> button on the match page.
-          </p>
-          <input
-            value={streamUrl}
-            onChange={(e) => setStreamUrl(e.target.value)}
-            className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none focus:border-red"
-            placeholder="https://youtube.com/live/..."
-          />
-          <div className="flex gap-3">
-            {streamFixture?.streamUrl && (
-              <button onClick={() => streamMutation.mutate({ id: streamFixture.id, url: '' })} className="px-5 py-3 rounded-xl border border-surface-3 dark:border-white/15 text-xs font-bold uppercase tracking-widest hover:bg-surface-2 dark:hover:bg-white/5">
-                Remove
-              </button>
-            )}
-            <button onClick={() => streamMutation.mutate({ id: streamFixture.id, url: streamUrl.trim() })} disabled={streamMutation.isPending} className="flex-1 bg-red text-white font-display text-lg uppercase tracking-widest py-3 rounded-xl hover:bg-red-dark transition-all flex items-center justify-center disabled:opacity-50">
-              {streamMutation.isPending ? <Loader2 className="animate-spin" /> : 'Save Stream Link'}
-            </button>
+      {streamFixture && (
+        <Modal open onClose={() => setStreamFixture(null)} title="Live streaming URL">
+          <div className="space-y-4">
+            <p className="text-sm text-secondary">
+              Paste a broadcast link (YouTube Live, CAF TV, FIFA+, ESPN, any http(s) URL). Viewers get an active{' '}
+              <b className="font-semibold text-primary">Watch live</b> button on the match page.
+            </p>
+            <Input
+              value={streamUrl}
+              onChange={(e) => setStreamUrl(e.target.value)}
+              placeholder="https://youtube.com/live/..."
+              aria-label="Streaming URL"
+            />
+            <div className="flex gap-2">
+              {streamFixture?.streamUrl && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => streamMutation.mutate({ id: streamFixture.id, url: '' })}
+                >
+                  Remove
+                </Button>
+              )}
+              <Button
+                size="sm"
+                className="flex-1"
+                loading={streamMutation.isPending}
+                onClick={() => streamMutation.mutate({ id: streamFixture.id, url: streamUrl.trim() })}
+              >
+                Save stream link
+              </Button>
+            </div>
           </div>
-        </div>
-      </AdminModal>
+        </Modal>
+      )}
 
       {/* Match Statistics Modal */}
-      <AdminModal isOpen={!!statsFixture} onClose={() => setStatsFixture(null)} title="Match Statistics">
-        {statsFixture && (
-          <div className="space-y-5">
+      {statsFixture && (
+        <Modal open onClose={() => setStatsFixture(null)} title="Match statistics">
+          <div className="space-y-4">
             <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-center">
-              <p className="font-bold text-xs uppercase tracking-tight truncate">{statsFixture.homeTeam?.name}</p>
-              <span className="text-[9px] opacity-40 uppercase">Stat</span>
-              <p className="font-bold text-xs uppercase tracking-tight truncate">{statsFixture.awayTeam?.name}</p>
+              <p className="truncate text-sm font-medium text-primary">{statsFixture.homeTeam?.name}</p>
+              <span className="text-xs text-tertiary">Stat</span>
+              <p className="truncate text-sm font-medium text-primary">{statsFixture.awayTeam?.name}</p>
             </div>
-            <div className="max-h-80 overflow-y-auto space-y-2 pr-1">
+            <div className="scroll-contain max-h-80 space-y-2 overflow-y-auto pr-1">
               {STAT_FIELDS.map(([key, label]) => (
                 <div key={key} className="grid grid-cols-[1fr_auto_1fr] items-center gap-1.5 sm:gap-2">
-                  <input type="number" step={key === 'xg' ? '0.01' : '1'} value={homeStats[key] ?? ''} onChange={(e) => setHomeStats((s) => ({ ...s, [key]: e.target.value }))} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-2 rounded-lg text-center text-sm outline-none focus:border-red" />
-                  <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-tight sm:tracking-widest opacity-50 w-16 sm:w-24 text-center leading-tight">{label}</span>
-                  <input type="number" step={key === 'xg' ? '0.01' : '1'} value={awayStats[key] ?? ''} onChange={(e) => setAwayStats((s) => ({ ...s, [key]: e.target.value }))} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-2 rounded-lg text-center text-sm outline-none focus:border-red" />
+                  <Input
+                    type="number"
+                    step={key === 'xg' ? '0.01' : '1'}
+                    value={homeStats[key] ?? ''}
+                    onChange={(e) => setHomeStats((s) => ({ ...s, [key]: e.target.value }))}
+                    aria-label={`${label} — ${statsFixture.homeTeam?.name}`}
+                    className="px-2 text-center tabular-nums"
+                  />
+                  <span className="w-16 text-center text-xs leading-tight text-tertiary sm:w-24">{label}</span>
+                  <Input
+                    type="number"
+                    step={key === 'xg' ? '0.01' : '1'}
+                    value={awayStats[key] ?? ''}
+                    onChange={(e) => setAwayStats((s) => ({ ...s, [key]: e.target.value }))}
+                    aria-label={`${label} — ${statsFixture.awayTeam?.name}`}
+                    className="px-2 text-center tabular-nums"
+                  />
                 </div>
               ))}
             </div>
-            <button onClick={() => statsMutation.mutate()} disabled={statsMutation.isPending} className="w-full bg-red text-white font-display text-lg uppercase tracking-widest py-3 rounded-xl hover:bg-red-dark transition-all flex items-center justify-center disabled:opacity-50">
-              {statsMutation.isPending ? <Loader2 className="animate-spin" /> : 'Save Statistics'}
-            </button>
+            <Button size="sm" block loading={statsMutation.isPending} onClick={() => statsMutation.mutate()}>
+              Save statistics
+            </Button>
           </div>
-        )}
-      </AdminModal>
+        </Modal>
+      )}
 
       {/* Umuganda decision — the four options, never an auto-cancel. */}
       {decisionFor && (

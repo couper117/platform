@@ -1,16 +1,58 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Newspaper, Plus, Edit2, Trash2, Eye, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Newspaper, Plus, Edit2, Trash2, Image as ImageIcon } from 'lucide-react';
 import apiClient from '../../api/client';
-import AdminTable from '../../components/admin/AdminTable';
-import AdminModal from '../../components/admin/AdminModal';
-import Skeleton from '../../components/shared/Skeleton';
-import EmptyState from '../../components/ui/EmptyState';
+import {
+  Button, IconButton, Modal, Field, Input, Select,
+  EmptyState, ErrorState, Skeleton, SkeletonList, cn,
+} from '../../components/ui';
+import { PageHeader, Panel, TableWrap, Th, Td } from '../../components/admin/AdminUI';
 import useUiStore from '../../store/uiStore';
+
+/**
+ * Super Admin → News publisher. Platform-wide articles: write, edit, unpublish,
+ * delete. Presentation only — the queries, the multipart upload and the mutation
+ * keys are untouched; the screen just speaks the admin kit's vocabulary now.
+ */
 
 const CATEGORIES = ['NEWS', 'ANNOUNCEMENT', 'RESULT', 'TRANSFER', 'INJURY', 'OTHER'];
 
+/** Backend enums are SHOUTED; an operator reads these all day, so they are not. */
+const sentence = (v: string) => v.charAt(0) + v.slice(1).toLowerCase();
+
 const emptyForm = { title: '', category: 'NEWS', excerpt: '', body: '', published: true, coverImage: null };
+
+/** Textarea and file inputs have no primitive yet, so they borrow Input's shell. */
+const CONTROL =
+  'w-full rounded-input border border-hairline bg-surface px-4 py-3 text-primary placeholder:text-tertiary ' +
+  'transition-colors duration-150 ease-standard hover:border-brand/40 focus:border-brand focus:outline-none';
+
+/**
+ * A cover thumbnail that always occupies the same box. A news list where some
+ * rows have an image and some do not used to jump around; a fixed aspect ratio
+ * plus a fallback glyph means a missing OR broken source costs no layout.
+ */
+const Thumb = ({ src, alt }: { src?: string | null; alt?: string }) => {
+  const [broken, setBroken] = useState(false);
+  const show = src && !broken;
+  return (
+    <div className="relative aspect-[16/10] w-16 shrink-0 overflow-hidden rounded-control bg-surface-2">
+      {show ? (
+        <img
+          src={src as string}
+          alt={alt || ''}
+          loading="lazy"
+          onError={() => setBroken(true)}
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <span className="flex h-full w-full items-center justify-center text-tertiary">
+          <ImageIcon size={14} aria-hidden="true" />
+        </span>
+      )}
+    </div>
+  );
+};
 
 const AdminNewsPage = () => {
   const queryClient = useQueryClient();
@@ -108,137 +150,211 @@ const AdminNewsPage = () => {
 
   const isSaving = createMutation.isPending || updateMutation.isPending;
 
+  const HEADERS = ['Article', 'Category', 'Views', 'Date', 'Status'];
+
   return (
-    <div className="space-y-10 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-display uppercase tracking-tighter">News <span className="text-red">Publisher</span></h1>
-          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Manage platform-wide announcements and news</p>
-        </div>
-        <button
-          onClick={openCreate}
-          className="bg-red text-white px-8 py-3 rounded-xl font-display text-lg uppercase tracking-widest hover:bg-red-dark transition-all shadow-xl shadow-red/20 flex items-center space-x-2"
-        >
-          <Plus size={20} />
-          <span>Write Article</span>
-        </button>
-      </div>
+    <div>
+      <PageHeader
+        title="News publisher"
+        subtitle="Manage platform-wide announcements and news."
+        actions={
+          <Button size="sm" icon={Plus} onClick={openCreate}>
+            Write article
+          </Button>
+        }
+      />
 
-      {isLoading ? (
-        <Skeleton type="card" count={3} />
-      ) : isError ? (
-        <EmptyState icon={Newspaper} title="Couldn't load articles" hint="Something went wrong fetching news. Try refreshing the page." />
-      ) : news?.length ? (
-        <AdminTable headers={['Article Title', 'Category', 'Views', 'Date', 'Status', 'Actions']}>
-          {news.map(article => (
-            <tr key={article.id} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors">
-              <td className="px-6 py-5">
-                <div className="flex items-center space-x-4 max-w-md">
-                  <div className="w-12 h-8 rounded bg-surface-3 dark:bg-white/10 flex items-center justify-center overflow-hidden flex-shrink-0">
-                    {article.coverImage ? <img src={article.coverImage} className="w-full h-full object-cover" /> : <ImageIcon size={14} className="opacity-20" />}
-                  </div>
-                  <span className="font-bold text-sm uppercase tracking-tight line-clamp-1">{article.title}</span>
-                </div>
-              </td>
-              <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{article.category}</td>
-              <td className="px-6 py-5 text-sm font-mono opacity-40">{article.views}</td>
-              <td className="px-6 py-5 text-[10px] font-bold opacity-40">{new Date(article.createdAt).toLocaleDateString()}</td>
-              <td className="px-6 py-5">
-                <span className={`text-[8px] font-bold px-2 py-1 rounded border uppercase ${article.published ? 'bg-green/5 text-green border-green/10' : 'bg-surface-3 opacity-40'}`}>
-                  {article.published ? 'Published' : 'Draft'}
-                </span>
-              </td>
-              <td className="px-6 py-5">
-                <div className="flex items-center space-x-2">
-                  <button onClick={() => openEdit(article)} className="p-2 hover:bg-surface-3 dark:hover:bg-white/10 rounded-lg transition-colors">
-                    <Edit2 size={16} />
-                  </button>
-                  <button
-                    onClick={() => { if (window.confirm(`Delete "${article.title}"?`)) deleteMutation.mutate(article.id); }}
-                    disabled={deleteMutation.isPending}
-                    className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors disabled:opacity-50"
+      <Panel title="Articles" flush>
+        {isLoading ? (
+          <SkeletonList count={5}>
+            <div className="flex items-center gap-4 border-b border-hairline px-4 py-3">
+              <Skeleton className="aspect-[16/10] w-16 shrink-0" />
+              <Skeleton className="h-4 flex-1" />
+              <Skeleton className="h-4 w-20 shrink-0" />
+              <Skeleton className="h-5 w-16 shrink-0 rounded-pill" />
+            </div>
+          </SkeletonList>
+        ) : isError ? (
+          <ErrorState
+            title="Couldn't load articles"
+            hint="Something went wrong fetching news. Try refreshing the page."
+          />
+        ) : news?.length ? (
+          <TableWrap>
+            <table className="w-full min-w-[760px] text-left">
+              <thead>
+                <tr>
+                  {HEADERS.map((h) => (
+                    <Th key={h} align={h === 'Views' ? 'right' : 'left'}>
+                      {h}
+                    </Th>
+                  ))}
+                  <Th align="right">Actions</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {news.map((article) => (
+                  <tr
+                    key={article.id}
+                    className="transition-colors duration-150 ease-standard hover:bg-surface-2"
                   >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </AdminTable>
-      ) : (
-        <EmptyState icon={Newspaper} title="No articles yet" hint="Write your first story to keep fans updated." />
-      )}
+                    <Td className="text-primary">
+                      <div className="flex items-center gap-3">
+                        <Thumb src={article.coverImage} alt={article.title} />
+                        <span className="line-clamp-2 max-w-[22rem] font-medium">{article.title}</span>
+                      </div>
+                    </Td>
+                    <Td>{sentence(String(article.category || ''))}</Td>
+                    <Td align="right">{article.views ?? 0}</Td>
+                    <Td className="whitespace-nowrap tabular-nums">
+                      {article.createdAt ? new Date(article.createdAt).toLocaleDateString() : '—'}
+                    </Td>
+                    <Td>
+                      <span
+                        className={cn(
+                          'inline-flex rounded-pill px-2 py-0.5 text-xs font-semibold',
+                          article.published
+                            ? 'bg-brand-tint text-brand-text'
+                            : 'bg-surface-2 text-tertiary'
+                        )}
+                      >
+                        {article.published ? 'Published' : 'Draft'}
+                      </span>
+                    </Td>
+                    <Td align="right">
+                      <div className="flex items-center justify-end gap-1">
+                        <IconButton
+                          icon={Edit2}
+                          label={`Edit ${article.title}`}
+                          size="sm"
+                          onClick={() => openEdit(article)}
+                        />
+                        <IconButton
+                          icon={Trash2}
+                          label={`Delete ${article.title}`}
+                          size="sm"
+                          variant="danger"
+                          disabled={deleteMutation.isPending}
+                          onClick={() => {
+                            if (window.confirm(`Delete "${article.title}"?`)) deleteMutation.mutate(article.id);
+                          }}
+                        />
+                      </div>
+                    </Td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </TableWrap>
+        ) : (
+          <EmptyState
+            icon={Newspaper}
+            title="No articles yet"
+            hint="Write your first story to keep fans updated."
+            action={
+              <Button size="sm" icon={Plus} onClick={openCreate}>
+                Write article
+              </Button>
+            }
+          />
+        )}
+      </Panel>
 
-      {/* Write/Edit Article Modal */}
-      <AdminModal isOpen={isModalOpen} onClose={closeModal} title={editingArticle ? 'Edit Article' : 'Publish New Article'}>
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Article Title</label>
-            <input
-              className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none focus:border-red"
-              placeholder="Headline here..."
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Category</label>
-              <select
-                className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none focus:border-red"
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              >
-                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Cover Image</label>
-              <input
-                type="file"
-                accept="image/*"
-                className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-3.5 rounded-xl outline-none text-xs file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:bg-red file:text-white file:text-[10px] file:uppercase file:font-bold"
-                onChange={(e) => setFormData({ ...formData, coverImage: e.target.files?.[0] || null })}
+      {/* Write/edit article */}
+      <Modal
+        open={isModalOpen}
+        onClose={closeModal}
+        title={editingArticle ? 'Edit article' : 'Publish new article'}
+        size="lg"
+        footer={
+          <Button
+            block
+            loading={isSaving}
+            disabled={!formData.title.trim() || isSaving}
+            onClick={handleSubmit}
+          >
+            {editingArticle ? 'Save changes' : 'Publish story'}
+          </Button>
+        }
+      >
+        <div className="space-y-4">
+          <Field label="Article title">
+            {({ invalid, ...p }) => (
+              <Input
+                {...p}
+                placeholder="Headline here…"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               />
-            </div>
+            )}
+          </Field>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Category">
+              {(p) => (
+                <Select
+                  {...p}
+                  size="md"
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  options={CATEGORIES.map((c) => ({ value: c, label: sentence(c) }))}
+                />
+              )}
+            </Field>
+
+            <Field label="Cover image" hint="JPG or PNG, landscape works best.">
+              {({ invalid, ...p }) => (
+                <input
+                  {...p}
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setFormData({ ...formData, coverImage: e.target.files?.[0] || null })}
+                  className={cn(
+                    CONTROL,
+                    'min-h-tap py-2.5 text-sm',
+                    'file:mr-3 file:rounded-pill file:border-0 file:bg-brand-tint file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-brand-text'
+                  )}
+                />
+              )}
+            </Field>
           </div>
-          <div className="space-y-2">
-            <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Short Excerpt</label>
-            <textarea
-              className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none focus:border-red"
-              placeholder="Brief summary..."
-              rows={2}
-              value={formData.excerpt}
-              onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Main Content (HTML/Text)</label>
-            <textarea
-              className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none focus:border-red min-h-[200px]"
-              placeholder="Full story..."
-              value={formData.body}
-              onChange={(e) => setFormData({ ...formData, body: e.target.value })}
-            />
-          </div>
-          <label className="flex items-center gap-3 text-[10px] uppercase font-bold tracking-widest opacity-60 cursor-pointer">
+
+          <Field label="Short excerpt">
+            {({ invalid, ...p }) => (
+              <textarea
+                {...p}
+                rows={2}
+                placeholder="Brief summary…"
+                value={formData.excerpt}
+                onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
+                className={CONTROL}
+              />
+            )}
+          </Field>
+
+          <Field label="Main content" hint="HTML or plain text.">
+            {({ invalid, ...p }) => (
+              <textarea
+                {...p}
+                placeholder="Full story…"
+                value={formData.body}
+                onChange={(e) => setFormData({ ...formData, body: e.target.value })}
+                className={cn(CONTROL, 'min-h-[200px]')}
+              />
+            )}
+          </Field>
+
+          <label className="flex min-h-tap cursor-pointer items-center gap-3 text-sm text-secondary">
             <input
               type="checkbox"
               checked={formData.published}
               onChange={(e) => setFormData({ ...formData, published: e.target.checked })}
-              className="w-4 h-4"
+              className="h-4 w-4 accent-brand"
             />
             Publish immediately
           </label>
-          <button
-            onClick={handleSubmit}
-            disabled={!formData.title.trim() || isSaving}
-            className="w-full bg-red text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all disabled:opacity-50 flex items-center justify-center"
-          >
-            {isSaving ? <Loader2 className="animate-spin" /> : <span>{editingArticle ? 'Save Changes' : 'Publish Story'}</span>}
-          </button>
         </div>
-      </AdminModal>
+      </Modal>
     </div>
   );
 };

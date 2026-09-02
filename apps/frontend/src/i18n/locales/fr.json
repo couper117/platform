@@ -7,7 +7,7 @@
   },
   "nav": {
     "home": "Accueil",
-    "leagues": "Championnats",
+    "leagues": "Ligues",
     "fixtures": "Calendrier",
     "calendar": "Calendrier mensuel",
     "results": "Résultats",
@@ -279,7 +279,13 @@
     "time_days_ago": "il y a {{count}} j",
     "captain": "Capitaine",
     "show_all_events_one": "Afficher {{count}} événement précédent",
-    "show_all_events_other": "Afficher {{count}} événements précédents"
+    "show_all_events_other": "Afficher {{count}} événements précédents",
+    "head_to_head": "Confrontations",
+    "h2h_wins_one": "{{count}} victoire",
+    "h2h_wins_other": "{{count}} victoires",
+    "h2h_draws_one": "{{count}} nul",
+    "h2h_draws_other": "{{count}} nuls",
+    "h2h_none": "Ces deux équipes ne se sont encore jamais rencontrées en compétition."
   },
   "standings": {
     "col_pos": "Pos",
@@ -512,7 +518,6 @@
     "pick_sport": "Choisir un sport",
     "view_all_sports": "Voir tous les sports",
     "more_sports": "Plus de sports",
-    "comp_count": "{{count}} compétitions",
     "col_regions": "Régions",
     "col_events": "Épreuves",
     "col_athletes": "Athlètes",
@@ -548,7 +553,19 @@
       "eligibility": "Éligibilité",
       "verified": "Vérifiée",
       "pending": "En cours de vérification"
-    }
+    },
+    "next_up": "À venir",
+    "n_sports_one": "Sport",
+    "n_sports_other": "Sports",
+    "n_schools_one": "École",
+    "n_schools_other": "Écoles",
+    "n_competitions_one": "Compétition",
+    "n_competitions_other": "Compétitions",
+    "n_live_one": "Match en direct",
+    "n_live_other": "Matchs en direct",
+    "comp_count_one": "{{count}} compétition",
+    "comp_count_other": "{{count}} compétitions",
+    "view_all_fixtures": "Voir tout le calendrier"
   },
   "admin": {
     "portal": "Portail Admin",
@@ -1594,7 +1611,10 @@
     "col_gd": "Diff",
     "col_pts": "Pts",
     "col_form": "Forme",
-    "active": "Actif"
+    "active": "Actif",
+    "days_range": "{{count}} derniers jours",
+    "days_short": "{{count}} j",
+    "events": "Événements"
   },
   "portal": {
     "sec_main": "Principal",
@@ -1959,6 +1979,18 @@
     "no_match": "Aucun sport ne correspond à \"{{q}}\"",
     "no_match_hint": "Essayez une autre orthographe, ou effacez la recherche.",
     "error_title": "Impossible de charger les sports",
-    "error_hint": "Vérifiez votre connexion et réessayez."
+    "error_hint": "Vérifiez votre connexion et réessayez.",
+    "match_count_one": "{{count}} match",
+    "match_count_other": "{{count}} matchs",
+    "event_count_one": "{{count}} épreuve",
+    "event_count_other": "{{count}} épreuves"
+  },
+  "adminui": {
+    "admin": "Admin",
+    "search_placeholder": "Rechercher une page…",
+    "search_none": "Aucune page ne correspond à « {{q}} »",
+    "view_site": "Voir le site public",
+    "not_authorized": "Vous n’avez pas accès à cette page",
+    "not_authorized_hint": "Votre rôle n’inclut pas cet écran. Demandez à un super administrateur si vous en avez besoin."
   }
 }

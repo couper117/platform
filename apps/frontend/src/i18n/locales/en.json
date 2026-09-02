@@ -279,7 +279,13 @@
     "time_days_ago": "{{count}}d ago",
     "captain": "Captain",
     "show_all_events_one": "Show {{count}} earlier event",
-    "show_all_events_other": "Show {{count}} earlier events"
+    "show_all_events_other": "Show {{count}} earlier events",
+    "head_to_head": "Head to head",
+    "h2h_wins_one": "{{count}} win",
+    "h2h_wins_other": "{{count}} wins",
+    "h2h_draws_one": "{{count}} draw",
+    "h2h_draws_other": "{{count}} draws",
+    "h2h_none": "These two have not met before in a competition on record."
   },
   "standings": {
     "col_pos": "Pos",
@@ -512,7 +518,6 @@
     "pick_sport": "Pick a sport",
     "view_all_sports": "View all sports",
     "more_sports": "More sports",
-    "comp_count": "{{count}} competitions",
     "col_regions": "Regions",
     "col_events": "Events",
     "col_athletes": "Athletes",
@@ -548,7 +553,19 @@
       "eligibility": "Eligibility",
       "verified": "Verified",
       "pending": "Pending review"
-    }
+    },
+    "next_up": "Next up",
+    "n_sports_one": "Sport",
+    "n_sports_other": "Sports",
+    "n_schools_one": "School",
+    "n_schools_other": "Schools",
+    "n_competitions_one": "Competition",
+    "n_competitions_other": "Competitions",
+    "n_live_one": "Live match",
+    "n_live_other": "Live matches",
+    "comp_count_one": "{{count}} competition",
+    "comp_count_other": "{{count}} competitions",
+    "view_all_fixtures": "View all fixtures"
   },
   "admin": {
     "portal": "Admin Portal",
@@ -1594,7 +1611,10 @@
     "col_gd": "GD",
     "col_pts": "Pts",
     "col_form": "Form",
-    "active": "Active"
+    "active": "Active",
+    "days_range": "Last {{count}} days",
+    "days_short": "{{count}}d",
+    "events": "Events"
   },
   "portal": {
     "sec_main": "Main",
@@ -1959,6 +1979,18 @@
     "no_match": "No sports match \"{{q}}\"",
     "no_match_hint": "Try a different spelling, or clear the search.",
     "error_title": "Could not load sports",
-    "error_hint": "Check your connection and try again."
+    "error_hint": "Check your connection and try again.",
+    "match_count_one": "{{count}} match",
+    "match_count_other": "{{count}} matches",
+    "event_count_one": "{{count}} event",
+    "event_count_other": "{{count}} events"
+  },
+  "adminui": {
+    "admin": "Admin",
+    "search_placeholder": "Search admin pages…",
+    "search_none": "No admin page matches \"{{q}}\"",
+    "view_site": "View public site",
+    "not_authorized": "You do not have access to this page",
+    "not_authorized_hint": "Your role does not include this screen. Ask a super administrator if you need it."
   }
 }

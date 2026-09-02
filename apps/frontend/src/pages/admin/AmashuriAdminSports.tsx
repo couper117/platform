@@ -3,8 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Medal } from 'lucide-react';
 import { getAkcSports } from '../../api/endpoints/amashuri';
-import AdminTable from '../../components/admin/AdminTable';
-import { Skeleton, EmptyState } from '../../components/ui';
+import { PageHeader, Panel, TableWrap, Th, Td } from '../../components/admin/AdminUI';
+import { Skeleton, SkeletonList, EmptyState } from '../../components/ui';
 
 /** Amashuri Admin → Sports: sports contested across the schools. */
 const AmashuriAdminSports = () => {
@@ -13,23 +13,40 @@ const AmashuriAdminSports = () => {
   const sports = data?.data || [];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="space-y-2">
-        <h1 className="text-4xl font-display uppercase tracking-tighter">{t('aadmin.sports_title')} <span className="text-red">{t('aadmin.sports_accent')}</span></h1>
-        <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">{t('aadmin.sports_sub')}</p>
-      </div>
-      {isLoading ? <Skeleton type="card" count={2} />
-        : sports.length === 0 ? <EmptyState icon={Medal} title={t('aadmin.none_sports')} hint={t('aadmin.none_sports_hint')} />
-        : (
-          <AdminTable headers={[t('aadmin.col_sport'), t('aadmin.col_competitions')]}>
-            {sports.map((s) => (
-              <tr key={s.slug} className="transition-colors hover:bg-surface-2 dark:hover:bg-white/5">
-                <td className="px-6 py-4"><span className="text-sm font-semibold text-primary">{s.name}</span></td>
-                <td className="px-6 py-4 text-lg font-display font-bold tabular-nums text-primary">{s.competitions}</td>
-              </tr>
-            ))}
-          </AdminTable>
+    <div>
+      <PageHeader
+        title={`${t('aadmin.sports_title')} ${t('aadmin.sports_accent')}`}
+        subtitle={t('aadmin.sports_sub')}
+      />
+
+      <Panel flush>
+        {isLoading ? (
+          <SkeletonList count={4} className="space-y-3 p-4">
+            <Skeleton className="h-10 w-full" />
+          </SkeletonList>
+        ) : sports.length === 0 ? (
+          <EmptyState icon={Medal} title={t('aadmin.none_sports')} hint={t('aadmin.none_sports_hint')} />
+        ) : (
+          <TableWrap>
+            <table className="w-full min-w-[360px] text-left">
+              <thead>
+                <tr>
+                  <Th>{t('aadmin.col_sport')}</Th>
+                  <Th align="right">{t('aadmin.col_competitions')}</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {sports.map((s) => (
+                  <tr key={s.slug} className="transition-colors duration-150 ease-standard hover:bg-surface-2">
+                    <Td className="font-medium text-primary">{s.name}</Td>
+                    <Td align="right" className="font-semibold text-primary">{s.competitions}</Td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </TableWrap>
         )}
+      </Panel>
     </div>
   );
 };

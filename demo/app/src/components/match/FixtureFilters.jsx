@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { CalendarDays, Star } from 'lucide-react';
 import Select from '../ui/Select';
+import SportIcon from '../shared/SportIcon';
 import cn from '../ui/cn';
 
 /**
@@ -54,7 +55,7 @@ const Chip = ({ active, children, ...props }) => (
   <button
     type="button"
     className={cn(
-      'flex h-8 shrink-0 items-center rounded-pill border px-3 text-xs font-semibold',
+      'flex h-8 shrink-0 items-center gap-1.5 rounded-pill border px-3 text-xs font-semibold',
       'transition-colors duration-150 ease-standard',
       active
         ? 'border-brand/40 bg-brand-tint text-brand-text'
@@ -82,6 +83,7 @@ const STATES = [
  *   onLeague?: any,
  *   sports?: any[],
  *   sportSlug?: string,
+ *   favouriteSlug?: string,
  *   onSport?: any,
  *   isFavourite?: boolean,
  *   onPin?: any,
@@ -96,11 +98,19 @@ const FixtureFilters = ({
   onLeague,
   sports = [],
   sportSlug = '',
+  favouriteSlug = '',
   onSport,
   isFavourite = false,
   onPin,
 }) => {
   const { t } = useTranslation();
+
+  // The sport you follow first, then the rest in the order the API sent them.
+  const ordered = React.useMemo(() => {
+    if (!favouriteSlug) return sports;
+    const i = sports.findIndex((s) => s.slug === favouriteSlug);
+    return i > 0 ? [sports[i], ...sports.slice(0, i), ...sports.slice(i + 1)] : sports;
+  }, [sports, favouriteSlug]);
 
   return (
     <div className="mx-auto max-w-3xl px-4 pt-4 lg:max-w-6xl lg:px-6 lg:pt-6">
@@ -116,15 +126,39 @@ const FixtureFilters = ({
           follows sport. "All sports" is still here for people who do want the
           whole day at once, but it is a choice now rather than the only option. */}
       {sports.length > 0 && (
-        <div className="scroll-contain -mx-4 mb-3 flex items-center gap-2 overflow-x-auto px-4 lg:mx-0 lg:px-0">
-          <Chip active={!sportSlug} onClick={() => onSport?.('')}>
-            {t('fixtures.all_sports')}
-          </Chip>
-          {sports.map((s) => (
-            <Chip key={s.id ?? s.slug} active={sportSlug === s.slug} onClick={() => onSport?.(s.slug)}>
-              {s.name}
+        /**
+         * THREE THINGS MAKE A TWENTY-ITEM RAIL USABLE.
+         *
+         * An ICON per chip. The real platform carries twenty sports, not the
+         * twelve the demo had, and twenty identical grey pills is a wall of text
+         * you read one word at a time. Every slug has its own glyph, so the rail
+         * is scanned rather than read.
+         *
+         * THE SPORT YOU FOLLOW COMES FIRST, straight after "All sports". Pinning
+         * a sport and then having to scroll past nineteen others to reach it is
+         * the pin not doing its job.
+         *
+         * A FADE ON THE RIGHT. The scrollbar used to say "there is more"; it is
+         * hidden now because on Windows it drew a grey trough under the row, so
+         * the fade carries that message instead. It sits over the page ground and
+         * is `pointer-events-none`, so it never eats a tap meant for a chip.
+         */
+        <div className="relative -mx-4 mb-3 lg:mx-0">
+          <div className="scroll-contain flex items-center gap-2 overflow-x-auto px-4 lg:px-0">
+            <Chip active={!sportSlug} onClick={() => onSport?.('')}>
+              {t('fixtures.all_sports')}
             </Chip>
-          ))}
+            {ordered.map((s) => (
+              <Chip key={s.id ?? s.slug} active={sportSlug === s.slug} onClick={() => onSport?.(s.slug)}>
+                <SportIcon slug={s.slug} size={13} className="shrink-0" />
+                {s.name}
+              </Chip>
+            ))}
+          </div>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-page to-transparent"
+          />
         </div>
       )}
 

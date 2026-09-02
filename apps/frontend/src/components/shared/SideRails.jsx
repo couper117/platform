@@ -77,12 +77,15 @@ const DEFAULT_TOP = 'top-24';
  * `/amashuri/athletes/`, `/news/<slug>`, `/amashuri/schools/<id>`, `/contact`,
  * `/privacy`, `/terms` — every one of those is a single record or a piece of
  * reading, where a column of advertising is the loudest thing on the screen.
+ *
+ * `/calendar` is off the list too. A month grid is already a dense field of
+ * boxes; flanking it with two more vertical panels turns the whole screen into
+ * columns and the reader loses which one is the calendar.
  */
 const RAIL_ROUTES = [
   '/fixtures',
   '/live',
   '/results',
-  '/calendar',
   '/leagues',
   '/teams',
   '/sports',

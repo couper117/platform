@@ -11,6 +11,7 @@ import MatchLineups from '../../components/match/MatchLineups';
 import MatchStats from '../../components/match/MatchStats';
 import MatchComments from '../../components/match/MatchComments';
 import MatchUmugandaBanner from '../../components/umuganda/MatchUmugandaBanner';
+import MatchHeadToHead from '../../components/match/MatchHeadToHead';
 import MatchEventTimeline from '../../components/shared/MatchEventTimeline';
 import Seo from '../../components/shared/Seo';
 import Skeleton from '../../components/ui/Skeleton';
@@ -201,6 +202,11 @@ const MatchDetailsPage = () => {
                   ))}
                 </dl>
               </div>
+
+              {/* Before the timeline, because a timeline is what happened and this
+                  is why you would watch — and on a fixture that has not kicked
+                  off the timeline is empty and this is the only content there. */}
+              <MatchHeadToHead fixture={m} />
 
               <div>
                 <h2 className="mb-3 font-display text-lg font-bold text-primary">{t('match.timeline')}</h2>

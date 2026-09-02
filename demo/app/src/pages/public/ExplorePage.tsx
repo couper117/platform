@@ -108,7 +108,10 @@ const SportCard = ({ s, t }) => {
         <h3 className="font-display text-lg font-bold leading-tight tracking-tight text-white">{s.name}</h3>
         <p className="mt-1 text-xs text-white/65">
           {count > 0
-            ? `${count} ${isRacing ? t('explore.events') : t('explore.matches')}`
+            // Pluralised, same as the /sports index: the tile read "1 matches"
+            // for every sport with a single fixture, which on a platform still
+            // filling up is most of them.
+            ? t(isRacing ? 'sports.event_count' : 'sports.match_count', { count })
             : t('explore.enter')}
         </p>
       </div>

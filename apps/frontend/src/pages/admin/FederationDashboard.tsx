@@ -2,17 +2,22 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell,
+} from 'recharts';
 import { format } from 'date-fns';
 import {
   Trophy, ShieldCheck, Users, UserSquare2, Medal, CalendarDays, Clock, Eye, Lock,
-  PlusCircle, UserPlus, Newspaper, LayoutTemplate, ChevronDown,
+  PlusCircle, UserPlus, Newspaper, LayoutTemplate, ChevronDown, ArrowRight,
 } from 'lucide-react';
 import { getLeagues } from '../../api/endpoints/leagues';
 import { getFixtures } from '../../api/endpoints/fixtures';
 import apiClient from '../../api/client';
 import useAuthStore from '../../store/authStore';
 import useSportScope from '../../hooks/useSportScope';
+import { PageHeader, StatCard, Panel, TableWrap, Th, Td } from '../../components/admin/AdminUI';
+import { Badge, Button, EmptyState, IconButton, StatusPill } from '../../components/ui';
 
 /**
  * FEDERATION DASHBOARD — a national federation managing ONE sport.
@@ -22,20 +27,15 @@ import useSportScope from '../../hooks/useSportScope';
  * leagues/admins/teams/players/news for its sport, but FIXTURES ARE READ-ONLY —
  * managed by League Admins. The quick actions omit fixture creation, and the
  * boundary is also enforced by the backend authorize().
+ *
+ * This is the Super Admin dashboard's screen wearing a federation's scope — a
+ * FEDERATION_ADMIN lands here INSTEAD of AdminDashboard — so it is built from the
+ * same kit (PageHeader, StatCard, Panel, TableWrap) in the same rhythm. Nothing
+ * here invents a card, a heading style or a table shell of its own.
  */
 
 const PIE = ['#16a34a', '#7c3aed', '#f5b301', '#2563eb', '#0d9488', '#dc2626'];
 
-const StatCard = ({ icon: Icon, value, label, sub }) => (
-  <div className="rounded-2xl border border-hairline bg-surface p-4 transition-shadow hover:shadow-md">
-    <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-brand/10 text-brand"><Icon size={17} /></div>
-    <p className="font-display text-2xl font-bold tabular-nums text-primary">{value}</p>
-    <p className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-tertiary">{label}</p>
-    {sub && <p className="mt-0.5 text-[11px] text-tertiary">{sub}</p>}
-  </div>
-);
-
-const GROWTH = ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'].map((m, i) => ({ m, v: [14, 34, 40, 45, 48, 55][i] }));
 
 const FederationDashboard = () => {
   const { t } = useTranslation();
@@ -65,13 +65,38 @@ const FederationDashboard = () => {
   const upcoming = fixtures.filter((f) => f.status === 'SCHEDULED');
   const dist = leagues.map((l) => ({ name: l.name, value: l._count?.teams ?? 0 }));
 
+  /**
+   * REAL REGISTRATIONS. This panel drew `[14, 34, 40, 45, 48, 55]` against six
+   * hard-coded month names that had stopped matching the calendar — a federation
+   * admin was being shown a growth curve for their sport that no team in the
+   * database had contributed to. It counts what /teams actually returns, bucketed
+   * by the month each team was registered, which is exactly what the panel's own
+   * subtitle has always claimed it was.
+   */
+  const growth = React.useMemo(() => {
+    const now = new Date();
+    return Array.from({ length: 6 }, (_, i) => {
+      const from = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+      const to = new Date(from.getFullYear(), from.getMonth() + 1, 1);
+      return {
+        m: format(from, 'MMM'),
+        v: teams.filter((tm) => {
+          if (!tm.createdAt) return false;
+          const at = new Date(tm.createdAt);
+          return at >= from && at < to;
+        }).length,
+      };
+    });
+  }, [teams]);
+  const hasGrowth = growth.some((g) => g.v > 0);
+
   const cards = [
-    { icon: Trophy, value: leagues.length, label: t('dash.total_leagues'), sub: t('dash.active_leagues') },
-    { icon: ShieldCheck, value: leagues.length, label: t('dash.league_admins'), sub: t('dash.active_admins') },
-    { icon: Users, value: teams.length, label: t('dash.total_teams'), sub: t('dash.registered_teams') },
-    { icon: UserSquare2, value: players, label: t('dash.registered_players'), sub: t('dash.across_leagues') },
-    { icon: Medal, value: champs.length, label: t('dash.championships'), sub: t('dash.active_competitions') },
-    { icon: CalendarDays, value: upcoming.length, label: t('dash.upcoming_fixtures'), sub: t('dash.read_only') },
+    { icon: Trophy, value: leagues.length, label: t('dash.total_leagues'), hint: t('dash.active_leagues'), tone: 'brand' as const },
+    { icon: ShieldCheck, value: leagues.length, label: t('dash.league_admins'), hint: t('dash.active_admins') },
+    { icon: Users, value: teams.length, label: t('dash.total_teams'), hint: t('dash.registered_teams') },
+    { icon: UserSquare2, value: players, label: t('dash.registered_players'), hint: t('dash.across_leagues') },
+    { icon: Medal, value: champs.length, label: t('dash.championships'), hint: t('dash.active_competitions') },
+    { icon: CalendarDays, value: upcoming.length, label: t('dash.upcoming_fixtures'), hint: t('dash.read_only') },
   ];
 
   const QUICK = [
@@ -84,41 +109,65 @@ const FederationDashboard = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="font-display text-2xl uppercase tracking-tight text-primary sm:text-3xl">{t('dash.welcome_admin', { name: abbr })}</h1>
-          <p className="mt-1 text-sm text-tertiary">{sportName}</p>
-        </div>
-        <button className="inline-flex w-fit items-center gap-2 rounded-xl border border-hairline bg-surface px-3 py-2 text-sm font-semibold text-secondary">
-          <CalendarDays size={15} /> {t('dash.season', { season })} <ChevronDown size={14} className="opacity-50" />
-        </button>
-      </div>
+    <div>
+      <PageHeader
+        title={t('dash.welcome_admin', { name: abbr })}
+        subtitle={sportName}
+        actions={
+          <Button variant="secondary" size="sm" icon={CalendarDays}>
+            {t('dash.season', { season })}
+            <ChevronDown size={14} className="text-tertiary" aria-hidden="true" />
+          </Button>
+        }
+      />
 
-      {/* Stat cards */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
-        {cards.map((c) => <StatCard key={c.label} {...c} />)}
+        {cards.map((c) => <StatCard key={String(c.label)} {...c} />)}
       </div>
 
       {/* Growth + distribution + activity */}
-      <div className="grid gap-4 lg:grid-cols-[1fr_320px_320px]">
-        <div className="rounded-2xl border border-hairline bg-surface p-5">
-          <div className="mb-3"><h2 className="font-display text-lg uppercase tracking-tight text-primary">{t('dash.league_growth')}</h2><p className="text-xs text-tertiary">{t('dash.league_growth_sub')}</p></div>
-          <div className="h-52">
+      <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)]">
+        <Panel title={t('dash.league_growth')} hint={t('dash.league_growth_sub')}>
+          {/* A flat line along zero is not a chart, it is a page that looks broken.
+              Six quiet months say so in words instead. */}
+          {!hasGrowth ? (
+            <EmptyState icon={Users} title={t('dash.registered_teams')} hint={t('dash.league_growth_sub')} />
+          ) : (
+          <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={GROWTH} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                <defs><linearGradient id="fg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#16a34a" stopOpacity={0.35} /><stop offset="100%" stopColor="#16a34a" stopOpacity={0} /></linearGradient></defs>
-                <XAxis dataKey="m" tick={{ fontSize: 11, fill: 'currentColor' }} className="text-tertiary" axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12 }} />
+              <AreaChart data={growth} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="fg" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#16a34a" stopOpacity={0.28} />
+                    <stop offset="100%" stopColor="#16a34a" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid vertical={false} stroke="rgb(var(--hairline))" />
+                <XAxis
+                  dataKey="m" tick={{ fontSize: 11, fill: 'currentColor' }} className="text-tertiary"
+                  interval="preserveStartEnd" minTickGap={24} axisLine={false} tickLine={false}
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: 'currentColor' }} className="text-tertiary"
+                  width={40} allowDecimals={false} axisLine={false} tickLine={false}
+                />
+                <Tooltip
+                  cursor={{ stroke: 'rgb(var(--hairline))' }}
+                  contentStyle={{
+                    borderRadius: 10, fontSize: 12, padding: '6px 10px',
+                    background: 'rgb(var(--surface))', border: '1px solid rgb(var(--hairline))',
+                    color: 'rgb(var(--text))',
+                  }}
+                  labelStyle={{ color: 'rgb(var(--text-3))' }}
+                />
                 <Area type="monotone" dataKey="v" stroke="#16a34a" strokeWidth={2} fill="url(#fg)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </div>
+          )}
+        </Panel>
 
-        <div className="rounded-2xl border border-hairline bg-surface p-5">
-          <h2 className="mb-2 font-display text-lg uppercase tracking-tight text-primary">{t('dash.team_distribution')}</h2>
+        <Panel title={t('dash.team_distribution')}>
           <div className="flex items-center gap-3">
             <div className="relative h-32 w-32 shrink-0">
               <ResponsiveContainer width="100%" height="100%">
@@ -129,96 +178,146 @@ const FederationDashboard = () => {
                 </PieChart>
               </ResponsiveContainer>
               <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                <span className="font-display text-xl font-bold text-primary">{teams.length}</span>
-                <span className="text-[9px] uppercase tracking-wider text-tertiary">{t('dash.teams')}</span>
+                <span className="font-display text-xl font-bold tabular-nums text-primary">{teams.length}</span>
+                <span className="text-xs text-tertiary">{t('dash.teams')}</span>
               </div>
             </div>
             <ul className="min-w-0 flex-1 space-y-1.5">
               {dist.slice(0, 5).map((d, i) => (
                 <li key={d.name} className="flex items-center gap-2 text-xs">
-                  <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: PIE[i % PIE.length] }} />
+                  <span className="h-2 w-2 shrink-0 rounded-pill" style={{ background: PIE[i % PIE.length] }} />
                   <span className="min-w-0 flex-1 truncate text-secondary">{d.name}</span>
-                  <span className="shrink-0 font-bold tabular-nums text-primary">{d.value}</span>
+                  <span className="shrink-0 font-semibold tabular-nums text-primary">{d.value}</span>
                 </li>
               ))}
             </ul>
           </div>
-        </div>
+        </Panel>
 
-        <div className="rounded-2xl border border-hairline bg-surface p-5">
-          <div className="mb-3 flex items-center justify-between"><h2 className="font-display text-lg uppercase tracking-tight text-primary">{t('dash.recent_activity')}</h2><Link to="/admin/visitors" className="text-[11px] font-bold uppercase tracking-wider text-brand-text">{t('dash.view_all')}</Link></div>
-          <div className="space-y-3">
+        <Panel title={t('dash.recent_activity')} action={t('dash.view_all')} actionTo="/admin/visitors">
+          <ul className="space-y-3">
             {activity.slice(0, 5).map((log) => (
-              <div key={log.id} className="flex items-start gap-3">
-                <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-surface-2 text-tertiary"><Clock size={13} /></span>
-                <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-primary">{String(log.action || '').replace(/_/g, ' ')}</p><p className="truncate text-[11px] text-tertiary">{log.detail || log.pagePath}</p></div>
-                <span className="shrink-0 text-[10px] text-tertiary">{log.createdAt ? format(new Date(log.createdAt), 'HH:mm') : ''}</span>
-              </div>
+              <li key={log.id} className="flex items-start gap-3">
+                <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-control bg-surface-2 text-tertiary">
+                  <Clock size={13} aria-hidden="true" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium capitalize text-primary">
+                    {String(log.action || '').replace(/_/g, ' ').toLowerCase()}
+                  </p>
+                  <p className="truncate text-xs text-tertiary">{log.detail || log.pagePath}</p>
+                </div>
+                <span className="shrink-0 text-xs tabular-nums text-tertiary">
+                  {log.createdAt ? format(new Date(log.createdAt), 'HH:mm') : ''}
+                </span>
+              </li>
             ))}
-          </div>
-        </div>
+          </ul>
+        </Panel>
       </div>
 
       {/* Recent leagues + upcoming fixtures */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-2xl border border-hairline bg-surface p-5">
-          <div className="mb-4 flex items-center justify-between"><h2 className="font-display text-lg uppercase tracking-tight text-primary">{t('dash.recent_leagues')}</h2><Link to="/admin/leagues" className="text-[11px] font-bold uppercase tracking-wider text-brand-text">{t('dash.view_all')}</Link></div>
-          <div className="overflow-x-auto scrollbar-hide">
-            <table className="w-full min-w-[440px] text-left">
-              <thead><tr className="text-[9px] font-bold uppercase tracking-widest text-tertiary"><th className="pb-2 pr-2">{t('dash.col_league')}</th><th className="pb-2 px-2">{t('dash.col_season')}</th><th className="pb-2 px-2">{t('dash.teams')}</th><th className="pb-2 px-2">{t('dash.col_status')}</th><th className="pb-2 pl-2 text-right">{t('dash.col_view')}</th></tr></thead>
+      <div className="mt-4 grid items-start gap-4 lg:grid-cols-2">
+        <Panel title={t('dash.recent_leagues')} action={t('dash.view_all')} actionTo="/admin/leagues" flush>
+          <TableWrap>
+            <table className="w-full min-w-[520px] text-left">
+              <thead>
+                <tr>
+                  <Th>{t('dash.col_league')}</Th>
+                  <Th>{t('dash.col_season')}</Th>
+                  <Th align="right">{t('dash.teams')}</Th>
+                  <Th>{t('dash.col_status')}</Th>
+                  <Th align="right">{t('dash.col_view')}</Th>
+                </tr>
+              </thead>
               <tbody>
                 {leagues.map((l) => (
-                  <tr key={l.id} className="border-t border-hairline/60">
-                    <td className="py-2.5 pr-2 text-sm font-medium text-primary">{l.name}</td>
-                    <td className="py-2.5 px-2 text-sm tabular-nums text-secondary">{l.season}</td>
-                    <td className="py-2.5 px-2 text-sm tabular-nums text-secondary">{l._count?.teams ?? 0}</td>
-                    <td className="py-2.5 px-2"><span className="rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand-text">{l.status}</span></td>
-                    <td className="py-2.5 pl-2 text-right"><Link to={`/leagues/${l.id}`} aria-label={t('dash.col_view')}><Eye size={15} className="ml-auto text-tertiary hover:text-primary" /></Link></td>
+                  <tr key={l.id} className="transition-colors duration-150 ease-standard hover:bg-surface-2">
+                    <Td className="font-medium text-primary">{l.name}</Td>
+                    <Td className="tabular-nums">{l.season}</Td>
+                    <Td align="right">{l._count?.teams ?? 0}</Td>
+                    <Td><StatusPill status={l.status} /></Td>
+                    <Td align="right">
+                      <IconButton
+                        icon={Eye}
+                        size="sm"
+                        label={t('dash.col_view')}
+                        to={`/leagues/${l.id}`}
+                        className="ml-auto"
+                      />
+                    </Td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
-        </div>
+          </TableWrap>
+        </Panel>
 
-        <div className="rounded-2xl border border-hairline bg-surface p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="flex items-center gap-2 font-display text-lg uppercase tracking-tight text-primary">{t('dash.upcoming_fixtures')} <span className="inline-flex items-center gap-1 rounded-md bg-surface-2 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-tertiary"><Lock size={10} /> {t('dash.read_only')}</span></h2>
-            <Link to="/admin/fixtures" className="text-[11px] font-bold uppercase tracking-wider text-brand-text">{t('dash.view_all')}</Link>
-          </div>
+        <Panel
+          title={
+            <span className="flex flex-wrap items-center gap-2">
+              {t('dash.upcoming_fixtures')}
+              <Badge className="gap-1 font-medium text-tertiary">
+                <Lock size={10} aria-hidden="true" /> {t('dash.read_only')}
+              </Badge>
+            </span>
+          }
+          action={t('dash.view_all')}
+          actionTo="/admin/fixtures"
+        >
           {upcoming.length === 0 ? (
             <p className="py-4 text-sm text-tertiary">{t('dash.no_upcoming')}</p>
           ) : (
             <div className="space-y-2">
               {upcoming.slice(0, 4).map((f) => (
-                <Link key={f.id} to={`/matches/${f.id}`} className="flex items-center gap-3 rounded-xl border border-hairline bg-surface-2 p-3 hover:border-brand/40">
-                  <div className="w-16 shrink-0 text-[11px] tabular-nums text-tertiary">{f.matchDate ? format(new Date(f.matchDate), 'd MMM') : 'TBD'}<br /><span className="opacity-70">{f.matchDate ? format(new Date(f.matchDate), 'HH:mm') : ''}</span></div>
+                <Link
+                  key={f.id}
+                  to={`/matches/${f.id}`}
+                  className="flex min-h-tap items-center gap-3 rounded-control border border-hairline bg-surface-2 p-3 transition-colors duration-150 ease-standard hover:border-brand/40 hover:bg-surface"
+                >
+                  <div className="w-16 shrink-0 text-xs tabular-nums text-tertiary">
+                    {f.matchDate ? format(new Date(f.matchDate), 'd MMM') : t('common.tbd')}
+                    <br />
+                    <span className="text-tertiary">{f.matchDate ? format(new Date(f.matchDate), 'HH:mm') : ''}</span>
+                  </div>
                   <div className="min-w-0 flex-1 text-center text-sm">
-                    <span className="truncate font-semibold text-primary">{f.homeTeam?.name}</span>
+                    <span className="truncate font-medium text-primary">{f.homeTeam?.name}</span>
                     <span className="mx-2 text-tertiary">{t('dash.vs')}</span>
-                    <span className="truncate font-semibold text-primary">{f.awayTeam?.name}</span>
-                    <p className="truncate text-[10px] uppercase tracking-wider text-tertiary">{f.league?.name}</p>
+                    <span className="truncate font-medium text-primary">{f.awayTeam?.name}</span>
+                    <p className="truncate text-xs text-tertiary">{f.league?.name}</p>
                   </div>
                 </Link>
               ))}
             </div>
           )}
-          <p className="mt-3 flex items-center justify-center gap-1.5 rounded-xl bg-surface-2 py-2 text-[11px] text-tertiary"><Lock size={11} /> {t('dash.read_only_view')}</p>
-        </div>
+          <p className="mt-3 flex items-center justify-center gap-1.5 rounded-control bg-surface-2 py-2 text-xs text-tertiary">
+            <Lock size={11} aria-hidden="true" /> {t('dash.read_only_view')}
+          </p>
+        </Panel>
       </div>
 
       {/* Quick actions (no fixture creation) */}
-      <div>
-        <h2 className="mb-3 font-display text-lg uppercase tracking-tight text-primary">{t('dash.quick_actions')}</h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          {QUICK.map((a) => (
-            <Link key={a.label} to={a.to} className="group rounded-2xl border border-hairline bg-surface p-4 transition-colors hover:border-brand/40">
-              <span className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-brand/10 text-brand"><a.icon size={16} /></span>
-              <p className="text-sm font-semibold text-primary">{a.label}</p>
-              <p className="text-[11px] text-tertiary">{a.sub}</p>
-            </Link>
-          ))}
-        </div>
+      <div className="mt-4">
+        <Panel title={t('dash.quick_actions')}>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+            {QUICK.map((a) => (
+              <Link
+                key={a.label}
+                to={a.to}
+                className="group flex min-h-tap flex-col justify-center rounded-control border border-hairline bg-surface-2 p-3 transition-colors duration-150 ease-standard hover:border-brand/40 hover:bg-surface"
+              >
+                <span className="mb-2 flex h-8 w-8 items-center justify-center rounded-control bg-brand-tint text-brand-text">
+                  <a.icon size={15} aria-hidden="true" />
+                </span>
+                <p className="text-sm font-medium text-primary">{a.label}</p>
+                <p className="flex items-center gap-1 text-xs text-tertiary">
+                  {a.sub}
+                  <ArrowRight size={12} className="shrink-0 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                </p>
+              </Link>
+            ))}
+          </div>
+        </Panel>
       </div>
     </div>
   );

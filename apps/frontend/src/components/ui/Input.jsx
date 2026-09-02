@@ -18,7 +18,14 @@ import cn from './cn';
  * `type`, `value`, `placeholder` and friends at .tsx call sites.
  * @type {any}
  */
-const Input = React.forwardRef(({ invalid = false, className, ...props }, ref) => (
+const Input = React.forwardRef(
+  /**
+   * On the INNER function — `forwardRef` takes its prop type from the render
+   * function, so a type on the const is ignored and `.tsx` callers see nothing.
+   *
+   * @param {{ invalid?: boolean, className?: string } & Record<string, any>} props
+   */
+  ({ invalid = false, className, ...props }, ref) => (
   <input
     ref={ref}
     aria-invalid={invalid || undefined}

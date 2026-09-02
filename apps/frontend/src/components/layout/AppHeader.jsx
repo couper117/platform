@@ -119,7 +119,14 @@ const NavItem = ({ to, label, end }) => (
     end={end}
     className={({ isActive }) =>
       cn(
-        'relative flex items-center whitespace-nowrap px-0.5 py-2 text-sm font-semibold',
+        // 13px below `xl`, 14px above. THE HEADER MUST NOT DEPEND ON HOW LONG A
+        // WORD IS IN ONE LANGUAGE. The bar is capped at max-w-6xl (1152px) at
+        // every viewport, so the seven links, the wordmark and the controls are
+        // competing for a fixed budget — and the same seven links measure 477px
+        // in English and 621px in French. A point of type and eight pixels of gap
+        // buy back more than the difference, in every language, without moving a
+        // breakpoint or shortening a translation to fit a layout.
+        'relative flex items-center whitespace-nowrap px-0.5 py-2 text-[13px] font-semibold xl:text-sm',
         'transition-colors duration-150 ease-standard',
         'after:absolute after:inset-x-0 after:-bottom-1 after:h-0.5 after:rounded-pill after:content-[""]',
         isActive
@@ -133,6 +140,78 @@ const NavItem = ({ to, label, end }) => (
 );
 
 /* ─── sports dropdown ───────────────────────────────────────────────── */
+
+/**
+ * Language switcher for the header.
+ *
+ * It was only ever in the mobile drawer, so a desktop visitor had no way to read
+ * the platform in Kinyarwanda or French — on a NATIONAL sports platform with
+ * three official working languages, which is not a small omission.
+ *
+ * The two-letter code is the control. A globe alone says "something to do with
+ * language" but not which one you are in; the full word costs a header slot the
+ * bar does not have at this width. `EN` / `RW` / `FR` says both at a glance, and
+ * the full name is in the menu where there is room for it.
+ *
+ * Same open-on-hover, close-on-leave panel as SportsMenu, so the two controls
+ * beside each other behave identically.
+ */
+const LanguageMenu = () => {
+  const { t, i18n } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const current = LANGUAGES.find((l) => i18n.language?.startsWith(l.code)) ?? LANGUAGES[0];
+
+  return (
+    <div
+      className="relative"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-label={t('nav.language', 'Language')}
+        onClick={() => setOpen((v) => !v)}
+        className={cn(
+          'flex h-9 items-center gap-1 rounded-control px-2 text-xs font-bold uppercase tracking-wide',
+          'transition-colors duration-150 ease-standard',
+          open ? 'bg-surface-2 text-primary' : 'text-secondary hover:bg-surface-2 hover:text-primary'
+        )}
+      >
+        <Languages size={15} aria-hidden="true" />
+        {current.code}
+      </button>
+
+      {open && (
+        <div
+          className={cn(
+            'absolute right-0 top-full z-50 w-44 animate-fade-up p-1.5',
+            'rounded-input border-t-[3px] border-brand bg-surface shadow-lg'
+          )}
+        >
+          {LANGUAGES.map((l) => (
+            <button
+              key={l.code}
+              type="button"
+              onClick={() => { i18n.changeLanguage(l.code); setOpen(false); }}
+              aria-current={l.code === current.code ? 'true' : undefined}
+              className={cn(
+                'flex w-full items-center justify-between gap-2 rounded-control px-2.5 py-2 text-left text-sm',
+                'transition-colors duration-150 ease-standard',
+                l.code === current.code
+                  ? 'bg-brand-tint font-semibold text-brand-text'
+                  : 'text-secondary hover:bg-surface-2 hover:text-primary'
+              )}
+            >
+              {l.label}
+              <span className="text-[10px] font-bold uppercase opacity-60">{l.code}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const SportsMenu = () => {
   const { t } = useTranslation();
@@ -156,7 +235,7 @@ const SportsMenu = () => {
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          'flex items-center gap-1 whitespace-nowrap px-0.5 py-2 text-sm font-semibold',
+          'flex items-center gap-1 whitespace-nowrap px-0.5 py-2 text-[13px] font-semibold xl:text-sm',
           'transition-colors duration-150 ease-standard',
           open ? 'text-primary' : 'text-secondary hover:text-primary'
         )}
@@ -280,7 +359,7 @@ const AppHeader = ({ className }) => {
         <Wordmark />
 
         {/* Desktop nav: Explore · Live · Matches · Sports ▾ · Leagues · Teams · News · Amashuri */}
-        <nav aria-label="Main" className="ml-4 hidden min-w-0 flex-1 items-center gap-5 lg:flex xl:ml-8 xl:gap-6">
+        <nav aria-label="Main" className="ml-3 hidden min-w-0 flex-1 items-center gap-3 lg:flex xl:ml-5">
           {PRIMARY_LEFT.map((item) => (
             <NavItem key={item.to} {...item} label={t(item.labelKey)} />
           ))}
@@ -303,6 +382,12 @@ const AppHeader = ({ className }) => {
               taps deep behind the hamburger made the least sense on the device
               most likely to be used outdoors. */}
           <ThemeToggle />
+
+          {/* Desktop only: the drawer already carries the same three languages on
+              a phone, as a row of buttons with room for their full names. */}
+          <span className="hidden md:inline-flex">
+            <LanguageMenu />
+          </span>
 
           {isAuthenticated ? (
             <>

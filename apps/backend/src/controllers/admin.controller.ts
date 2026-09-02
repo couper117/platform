@@ -304,6 +304,63 @@ const getCapabilityCatalogue = async (req, res, next) => {
 // @desc    Live status of core platform services + runtime metrics
 // @route   GET /api/v1/admin/system-health
 // @access  Private (SUPERADMIN)
+const KIGALI = 'Africa/Kigali';
+const dayKeyFmt = new Intl.DateTimeFormat('en-CA', {
+  timeZone: KIGALI, year: 'numeric', month: '2-digit', day: '2-digit',
+});
+
+/**
+ * Daily platform activity for the last N days.
+ *
+ * The dashboard's "platform activity" chart was drawing a hard-coded array —
+ * `[30, 38, 45, 52, …]` — relabelled with today's dates on every render. On a
+ * ministry's oversight screen that is not a placeholder, it is a fabricated
+ * statistic: it moves, it looks measured, and it means nothing. The real numbers
+ * are already being written by the visitor tracker on every request.
+ *
+ * Grouped in SQL rather than by pulling rows and counting in JS, because a busy
+ * month of activity is a lot of rows to move to say fourteen numbers. Days with
+ * no activity are filled in as zero — a gap in a time series should read as a
+ * quiet day, not as a missing point the line skips over.
+ *
+ * DAYS ARE KIGALI DAYS. Prisma stores `createdAt` as a UTC timestamp, so grouping
+ * it raw buckets by a day that starts at 02:00 local — and, worse, the series keys
+ * built from a local midnight in Node came out one date behind the SQL buckets, so
+ * today's activity matched no bucket at all and the chart drew a flat zero line on
+ * a platform that was plainly being used. Both sides now speak the same calendar:
+ * Postgres converts to Africa/Kigali before truncating, and the day list is built
+ * with an en-CA formatter in the same zone (which yields YYYY-MM-DD).
+ */
+const getActivityTrend = async (req, res, next) => {
+  try {
+    const days = Math.min(Math.max(parseInt(req.query.days, 10) || 14, 1), 90);
+
+    // One day of slack on the lower bound: rows that fall outside the key list are
+    // simply ignored, whereas a bound an hour too tight would silently drop a day.
+    const since = new Date(Date.now() - days * 86400000);
+
+    const rows: Array<{ day: string; count: number }> = await prisma.$queryRaw`
+      SELECT to_char(("createdAt" AT TIME ZONE 'UTC' AT TIME ZONE ${KIGALI})::date, 'YYYY-MM-DD') AS day,
+             COUNT(*)::int AS count
+      FROM "ActivityLog"
+      WHERE "createdAt" >= ${since}
+      GROUP BY 1
+      ORDER BY 1
+    `;
+
+    const byDay = new Map(rows.map((r) => [r.day, Number(r.count)]));
+
+    const series = Array.from({ length: days }, (_, i) => {
+      const key = dayKeyFmt.format(new Date(Date.now() - (days - 1 - i) * 86400000));
+      return { date: key, count: byDay.get(key) ?? 0 };
+    });
+
+    res.status(200).json({ success: true, data: series });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const getSystemHealth = async (req, res, next) => {
   try {
     let dbOk = true;
@@ -408,5 +465,5 @@ const getMediaLibrary = async (req, res, next) => {
 module.exports = {
   getAdminStats, getRoster, assignAmashuriAdmin, revokeAdmin,
   getUsers, updateUser, getCapabilityCatalogue,
-  getSystemHealth, getMediaLibrary,
+  getSystemHealth, getMediaLibrary, getActivityTrend,
 };

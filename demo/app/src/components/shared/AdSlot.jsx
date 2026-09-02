@@ -9,7 +9,7 @@ import cn from '../ui/cn';
  *
  * HOW THE SPACE IS RESERVED
  * The slot holds its full height for the entire life of the request, so an ad
- * arriving late drops into space that was already there â€” it can never push
+ * arriving late drops into space that was already there — it can never push
  * fixtures down mid-scroll. It collapses to nothing only once the request has
  * resolved and there is genuinely no ad to show; collapsing upward after a
  * settled response is far less disruptive than content jumping down, and an empty
@@ -18,7 +18,7 @@ import cn from '../ui/cn';
  * A FIXED HEIGHT RATHER THAN aspect-ratio
  * The brief specified aspect-ratio. A full-bleed slot with an aspect ratio has a
  * different height on every device, so the space reserved never matches the
- * creative â€” and ads are sold at fixed pixel sizes (320x50, 320x100). A fixed
+ * creative — and ads are sold at fixed pixel sizes (320x50, 320x100). A fixed
  * height reserves exactly what the creative needs and is stable across viewports,
  * which is the actual goal.
  */
@@ -43,7 +43,7 @@ const VARIANTS = {
 const AdSlot = ({ position, variant = 'inline', className = '' }) => {
   const [imgError, setImgError] = useState(false);
 
-  // Query copied verbatim from the old AdBanner â€” same key, same shape.
+  // Query copied verbatim from the old AdBanner — same key, same shape.
   const { data: ads, isPending } = useQuery({
     queryKey: ['active-ads', position],
     queryFn: async () => {

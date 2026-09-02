@@ -2,12 +2,14 @@ import { Link } from 'react-router-dom';
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { School, MapPin, Plus, Pencil, EyeOff, Eye } from 'lucide-react';
+import { School, MapPin, Plus, Pencil, EyeOff, Eye, ArrowRight } from 'lucide-react';
 import { getSchools, createAkcSchool, updateAkcSchool, setAkcSchoolActive } from '../../api/endpoints/amashuri';
 import ClubCrest from '../../components/ui/ClubCrest';
-import AdminTable from '../../components/admin/AdminTable';
-import AdminModal from '../../components/admin/AdminModal';
-import { Skeleton, EmptyState } from '../../components/ui';
+import { PageHeader, Panel, TableWrap, Th, Td } from '../../components/admin/AdminUI';
+import {
+  Badge, Button, Field, IconButton, Input, Modal, Select,
+  Skeleton, SkeletonList, EmptyState,
+} from '../../components/ui';
 
 const CATEGORIES = ['PRIMARY', 'SECONDARY', 'TVET'];
 const empty = { name: '', code: '', category: 'SECONDARY', sector: '' };
@@ -36,64 +38,119 @@ const AmashuriAdminSchools = () => {
   const openEdit = (s) => { setEditing(s); setForm({ name: s.name || '', code: s.code || '', category: s.category || 'SECONDARY', sector: s.sector || '' }); setErr(''); setModal(true); };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-display uppercase tracking-tighter">{t('aadmin.schools_title')} <span className="text-red">{t('aadmin.schools_accent')}</span></h1>
-          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">{t('aadmin.schools_sub')}</p>
-        </div>
-        <button onClick={openAdd} className="inline-flex w-fit items-center gap-2 rounded-lg bg-red px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white"><Plus size={16} /> {t('aadmin.add_school')}</button>
-      </div>
+    <div>
+      <PageHeader
+        title={`${t('aadmin.schools_title')} ${t('aadmin.schools_accent')}`}
+        subtitle={t('aadmin.schools_sub')}
+        actions={<Button size="sm" icon={Plus} onClick={openAdd}>{t('aadmin.add_school')}</Button>}
+      />
 
-      {isLoading ? <Skeleton type="card" count={3} />
-        : schools.length === 0 ? <EmptyState icon={School} title={t('aadmin.none_schools')} hint={t('aadmin.none_schools_hint')} />
-        : (
-          <AdminTable headers={[t('aadmin.col_school'), t('aadmin.col_category'), t('aadmin.col_location'), t('aadmin.col_team'), t('admin.col_actions')]}>
-            {schools.map((s) => (
-              <tr key={s.id} className="transition-colors hover:bg-surface-2 dark:hover:bg-white/5">
-                <td className="px-6 py-4"><div className="flex items-center gap-3"><ClubCrest team={s} size="md" /><span className="text-sm font-semibold text-primary">{s.name}</span></div></td>
-                <td className="px-6 py-4 text-xs uppercase tracking-wider text-secondary">{s.category}</td>
-                <td className="px-6 py-4 text-sm text-tertiary"><span className="inline-flex items-center gap-1"><MapPin size={12} /> {s.sector || '—'}</span></td>
-                <td className="px-6 py-4 text-sm tabular-nums text-secondary">{s._count?.teams ?? 0}</td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <Link to={`/admin/amashuri/school/${s.id}`} className="text-[10px] font-bold uppercase tracking-widest text-brand hover:underline">{t('aadmin.manage')}</Link>
-                    <button onClick={() => openEdit(s)} className="text-tertiary hover:text-primary" aria-label={t('aadmin.edit_school')}><Pencil size={15} /></button>
-                    <button onClick={() => toggle.mutate({ id: s.id, active: !s.active })} className="text-tertiary hover:text-red" aria-label={s.active ? t('aadmin.hide') : t('aadmin.show')}>{s.active ? <EyeOff size={15} /> : <Eye size={15} />}</button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </AdminTable>
+      <Panel flush>
+        {isLoading ? (
+          <SkeletonList count={6} className="space-y-3 p-4">
+            <Skeleton className="h-10 w-full" />
+          </SkeletonList>
+        ) : schools.length === 0 ? (
+          <EmptyState
+            icon={School}
+            title={t('aadmin.none_schools')}
+            hint={t('aadmin.none_schools_hint')}
+            action={<Button size="sm" icon={Plus} onClick={openAdd}>{t('aadmin.add_school')}</Button>}
+          />
+        ) : (
+          <TableWrap>
+            <table className="w-full min-w-[720px] text-left">
+              <thead>
+                <tr>
+                  <Th>{t('aadmin.col_school')}</Th>
+                  <Th>{t('aadmin.col_category')}</Th>
+                  <Th>{t('aadmin.col_location')}</Th>
+                  <Th align="right">{t('aadmin.col_team')}</Th>
+                  <Th align="right">{t('admin.col_actions')}</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {schools.map((s) => (
+                  <tr key={s.id} className="transition-colors duration-150 ease-standard hover:bg-surface-2">
+                    <Td>
+                      <div className="flex items-center gap-3">
+                        <ClubCrest team={s} size="md" />
+                        <span className="font-medium text-primary">{s.name}</span>
+                        {!s.active && <Badge>{t('aadmin.hidden')}</Badge>}
+                      </div>
+                    </Td>
+                    <Td>{s.category}</Td>
+                    <Td className="text-tertiary">
+                      <span className="inline-flex items-center gap-1.5">
+                        <MapPin size={13} aria-hidden="true" /> {s.sector || '—'}
+                      </span>
+                    </Td>
+                    <Td align="right">{s._count?.teams ?? 0}</Td>
+                    <Td align="right">
+                      <div className="flex items-center justify-end gap-1">
+                        <Link
+                          to={`/admin/amashuri/school/${s.id}`}
+                          className="mr-1 inline-flex items-center gap-1 text-xs font-semibold text-secondary transition-colors duration-150 ease-standard hover:text-brand-text"
+                        >
+                          {t('aadmin.manage')}
+                          <ArrowRight size={13} aria-hidden="true" />
+                        </Link>
+                        <IconButton icon={Pencil} label={t('aadmin.edit_school')} size="sm" onClick={() => openEdit(s)} />
+                        <IconButton
+                          icon={s.active ? EyeOff : Eye}
+                          label={s.active ? t('aadmin.hide') : t('aadmin.show')}
+                          size="sm"
+                          onClick={() => toggle.mutate({ id: s.id, active: !s.active })}
+                        />
+                      </div>
+                    </Td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </TableWrap>
         )}
+      </Panel>
 
-      <AdminModal isOpen={modal} onClose={() => setModal(false)} title={editing ? t('aadmin.edit_school') : t('aadmin.add_school')}>
-        <form onSubmit={(e) => { e.preventDefault(); if (!form.name.trim()) { setErr(t('aadmin.required')); return; } save.mutate(); }} className="space-y-4">
-          <Field label={t('aadmin.f_name')}><input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputCls} /></Field>
-          <Field label={t('aadmin.f_code')}><input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} className={inputCls} /></Field>
-          <Field label={t('aadmin.f_category')}>
-            <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className={inputCls}>
-              {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
+      <Modal
+        open={modal}
+        onClose={() => setModal(false)}
+        title={editing ? t('aadmin.edit_school') : t('aadmin.add_school')}
+        size="sm"
+      >
+        <form
+          onSubmit={(e) => { e.preventDefault(); if (!form.name.trim()) { setErr(t('aadmin.required')); return; } save.mutate(); }}
+          className="space-y-4"
+        >
+          <Field label={t('aadmin.f_name')}>
+            {(p) => <Input {...p} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />}
           </Field>
-          <Field label={t('aadmin.f_sector')}><input value={form.sector} onChange={(e) => setForm({ ...form, sector: e.target.value })} className={inputCls} /></Field>
-          {err && <p className="text-xs text-red">{err}</p>}
+          <Field label={t('aadmin.f_code')}>
+            {(p) => <Input {...p} value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} />}
+          </Field>
+          <Field label={t('aadmin.f_category')}>
+            {(p) => (
+              <Select
+                {...p}
+                size="md"
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                options={CATEGORIES.map((c) => ({ value: c, label: c }))}
+              />
+            )}
+          </Field>
+          <Field label={t('aadmin.f_sector')}>
+            {(p) => <Input {...p} value={form.sector} onChange={(e) => setForm({ ...form, sector: e.target.value })} />}
+          </Field>
+          {err && <p role="alert" className="text-sm font-semibold text-danger-text">{err}</p>}
           <div className="flex justify-end gap-2 pt-2">
-            <button type="button" onClick={() => setModal(false)} className="rounded-lg border border-hairline px-4 py-2 text-sm font-semibold text-secondary">{t('aadmin.cancel')}</button>
-            <button type="submit" disabled={save.isPending} className="rounded-lg bg-red px-4 py-2 text-sm font-bold uppercase tracking-wider text-white disabled:opacity-50">{t('aadmin.save')}</button>
+            <Button type="button" variant="secondary" size="sm" onClick={() => setModal(false)}>{t('aadmin.cancel')}</Button>
+            <Button type="submit" size="sm" loading={save.isPending}>{t('aadmin.save')}</Button>
           </div>
         </form>
-      </AdminModal>
+      </Modal>
     </div>
   );
 };
-
-const inputCls = 'w-full rounded-lg border border-hairline bg-surface px-3 py-2.5 text-sm text-primary outline-none focus-visible:border-brand';
-const Field = ({ label, children }) => (
-  <label className="block space-y-1">
-    <span className="text-[10px] font-bold uppercase tracking-widest text-tertiary">{label}</span>
-    {children}
-  </label>
-);
 
 export default AmashuriAdminSchools;

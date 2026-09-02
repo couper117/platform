@@ -86,6 +86,23 @@ const SHOWCASE = [
 
 const pick = (arr, i) => arr[i % arr.length];
 
+
+/**
+ * `n` days from today at a plausible kick-off hour.
+ *
+ * Weekday evenings and weekend afternoons, which is when Rwandan league sport is
+ * played. Deterministic from the index so a re-seed does not reshuffle the
+ * schedule.
+ */
+const KICKOFFS = [15, 16, 17, 18, 18, 19, 20];
+const kickoffIn = (days: number, index: number) => {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  const weekend = d.getDay() === 0 || d.getDay() === 6;
+  d.setHours(weekend ? 14 + (index % 3) : KICKOFFS[index % KICKOFFS.length], (index % 2) * 30, 0, 0);
+  return d;
+};
+
 async function seedSport(spec, index) {
   const sport = await prisma.sport.findFirst({ where: { slug: spec.slug } });
   if (!sport) return `${spec.slug}: no such sport`;
@@ -123,7 +140,13 @@ async function seedSport(spec, index) {
   const fixture = await prisma.fixture.create({
     data: {
       leagueId: league.id, homeTeamId: teams[0].id, awayTeamId: teams[1].id,
-      matchDate: new Date(Date.now() + (index + 2) * 86400000),
+      // A REAL KICK-OFF TIME, not the moment the seed happened to run.
+      // `Date.now() + n days` stamped every showcase fixture with the same
+      // wall-clock time, so the schedule read 21:34 forty-two times over — a
+      // column of identical numbers that makes a fixture list look generated,
+      // because it was. These are the hours Rwandan sport is actually played,
+      // varied by index so a matchday has a shape.
+      matchDate: kickoffIn(index + 2, index),
       status: 'SCHEDULED', venue: spec.venue,
     },
   });

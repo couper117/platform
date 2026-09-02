@@ -4,11 +4,16 @@ import { useTranslation } from 'react-i18next';
 import { BarChart3 } from 'lucide-react';
 import apiClient from '../../api/client';
 import useAdminLeague from '../../hooks/useAdminLeague';
-import ClubCrest from '../../components/ui/ClubCrest';
-import AdminTable from '../../components/admin/AdminTable';
-import { Skeleton, EmptyState } from '../../components/ui';
+import { PageHeader, Panel, TableWrap, Th, Td } from '../../components/admin/AdminUI';
+import { ClubCrest, EmptyState, Skeleton, SkeletonList } from '../../components/ui';
 
-/** League Admin → Standings: the live table for the admin's league. */
+/**
+ * League Admin → Standings: the live table for the admin's league.
+ *
+ * The table IS the page, so it gets the full width of a flush Panel and no
+ * sidebar to compete with. Every figure is tabular-nums and right-aligned, which
+ * is the only way a column of numbers can be read down rather than across.
+ */
 const LeagueStandingsPage = () => {
   const { t } = useTranslation();
   const { leagueId, league } = useAdminLeague();
@@ -20,34 +25,65 @@ const LeagueStandingsPage = () => {
   const rows = data || [];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="space-y-2">
-        <h1 className="text-4xl font-display uppercase tracking-tighter">{t('ladmin.standings_title')} <span className="text-red">{t('ladmin.standings_accent')}</span></h1>
-        <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">{league?.name || t('ladmin.standings_sub')}</p>
-      </div>
-      {isLoading ? (
-        <Skeleton type="card" count={3} />
-      ) : rows.length === 0 ? (
-        <EmptyState icon={BarChart3} title={t('ladmin.none_standings')} hint={t('ladmin.standings_sub')} />
-      ) : (
-        <AdminTable headers={['#', t('dash.col_team'), t('dash.col_p'), t('dash.col_w'), t('dash.col_d'), t('dash.col_l'), t('dash.col_gd'), t('dash.col_pts')]}>
-          {rows.map((s, i) => {
-            const gd = (s.goalsFor ?? 0) - (s.goalsAgainst ?? 0);
-            return (
-              <tr key={s.id ?? i} className="transition-colors hover:bg-surface-2 dark:hover:bg-white/5">
-                <td className="px-6 py-4 text-sm tabular-nums text-tertiary">{i + 1}</td>
-                <td className="px-6 py-4"><div className="flex items-center gap-2"><ClubCrest team={s.team} size="sm" /><span className="text-sm font-medium text-primary">{s.team?.name}</span></div></td>
-                <td className="px-6 py-4 text-sm tabular-nums text-secondary">{s.played}</td>
-                <td className="px-6 py-4 text-sm tabular-nums text-secondary">{s.won}</td>
-                <td className="px-6 py-4 text-sm tabular-nums text-secondary">{s.drawn}</td>
-                <td className="px-6 py-4 text-sm tabular-nums text-secondary">{s.lost}</td>
-                <td className="px-6 py-4 text-sm tabular-nums text-secondary">{gd > 0 ? `+${gd}` : gd}</td>
-                <td className="px-6 py-4 text-sm font-bold tabular-nums text-primary">{s.points}</td>
-              </tr>
-            );
-          })}
-        </AdminTable>
-      )}
+    <div>
+      <PageHeader
+        title={`${t('ladmin.standings_title')} ${t('ladmin.standings_accent')}`}
+        subtitle={league?.name || t('ladmin.standings_sub')}
+      />
+
+      <Panel flush>
+        {isLoading ? (
+          <SkeletonList count={8} className="divide-y divide-hairline">
+            <div className="flex items-center gap-3 px-4 py-3">
+              <Skeleton className="h-4 w-4" />
+              <Skeleton circle className="h-6 w-6" />
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="ml-auto h-4 w-24" />
+            </div>
+          </SkeletonList>
+        ) : rows.length === 0 ? (
+          <EmptyState icon={BarChart3} title={t('ladmin.none_standings')} hint={t('ladmin.standings_sub')} />
+        ) : (
+          <TableWrap>
+            <table className="w-full min-w-[560px] text-left">
+              <thead>
+                <tr>
+                  <Th>#</Th>
+                  <Th>{t('dash.col_team')}</Th>
+                  <Th align="right">{t('dash.col_p')}</Th>
+                  <Th align="right">{t('dash.col_w')}</Th>
+                  <Th align="right">{t('dash.col_d')}</Th>
+                  <Th align="right">{t('dash.col_l')}</Th>
+                  <Th align="right">{t('dash.col_gd')}</Th>
+                  <Th align="right">{t('dash.col_pts')}</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((s, i) => {
+                  const gd = (s.goalsFor ?? 0) - (s.goalsAgainst ?? 0);
+                  return (
+                    <tr key={s.id ?? i} className="transition-colors duration-150 ease-standard hover:bg-surface-2">
+                      <Td className="tabular-nums text-tertiary">{i + 1}</Td>
+                      <Td>
+                        <div className="flex min-w-0 items-center gap-2">
+                          <ClubCrest team={s.team} size="sm" />
+                          <span className="truncate font-medium text-primary">{s.team?.name}</span>
+                        </div>
+                      </Td>
+                      <Td align="right">{s.played}</Td>
+                      <Td align="right">{s.won}</Td>
+                      <Td align="right">{s.drawn}</Td>
+                      <Td align="right">{s.lost}</Td>
+                      <Td align="right">{gd > 0 ? `+${gd}` : gd}</Td>
+                      <Td align="right" className="font-semibold text-primary">{s.points}</Td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </TableWrap>
+        )}
+      </Panel>
     </div>
   );
 };

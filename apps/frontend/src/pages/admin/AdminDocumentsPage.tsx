@@ -1,12 +1,24 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { FileText, CheckCircle, XCircle, Eye, AlertCircle, Loader2 } from 'lucide-react';
+import { FileText, CheckCircle, XCircle, Eye } from 'lucide-react';
 import apiClient from '../../api/client';
-import AdminTable from '../../components/admin/AdminTable';
-import AdminModal from '../../components/admin/AdminModal';
-import Skeleton from '../../components/shared/Skeleton';
-import EmptyState from '../../components/ui/EmptyState';
+import { PageHeader, Panel, TableWrap, Th, Td } from '../../components/admin/AdminUI';
+import { Button, Modal, EmptyState, ErrorState, Skeleton, SkeletonList, cn } from '../../components/ui';
 import useUiStore from '../../store/uiStore';
+
+/**
+ * Super Admin → Document verification.
+ *
+ * Identity documents belong to a person, so this screen shows the least it can:
+ * whose document it is, what kind, the filename, when it arrived, and the file
+ * itself only once a reviewer opens it. Nothing here reads a field the review
+ * decision does not need — Law N° 058/2021 arts. 46/47.
+ */
+const FILTERS: Array<[string, string]> = [
+  ['PENDING', 'Pending'],
+  ['APPROVED', 'Approved'],
+  ['REJECTED', 'Rejected'],
+];
 
 const AdminDocumentsPage = () => {
   const queryClient = useQueryClient();
@@ -36,112 +48,166 @@ const AdminDocumentsPage = () => {
     onError: (err: any) => pushToast(err.response?.data?.message || 'Failed to review document'),
   });
 
+  const noteTooShort = reviewNote.trim().length < 3;
+
   return (
-    <div className="space-y-10 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-display uppercase tracking-tighter">Document <span className="text-red">Verification</span></h1>
-          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Review athlete IDs and certificates</p>
-        </div>
-        
-        <div className="flex bg-surface-dark p-1 rounded-2xl border border-white/10">
-          {['PENDING', 'APPROVED', 'REJECTED'].map(s => (
-            <button
-              key={s}
-              onClick={() => setFilter(s)}
-              className={`px-6 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${filter === s ? 'bg-red text-white shadow-lg' : 'text-white/40 hover:text-white'}`}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-      </div>
+    <div>
+      <PageHeader
+        title="Document verification"
+        subtitle="Review athlete IDs and certificates"
+        actions={
+          <div className="flex gap-1 rounded-pill border border-hairline bg-surface p-1">
+            {FILTERS.map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setFilter(value)}
+                aria-pressed={filter === value}
+                className={cn(
+                  'rounded-pill px-3 py-1.5 text-xs font-semibold transition-colors duration-150 ease-standard',
+                  filter === value ? 'bg-brand-tint text-brand-text' : 'text-tertiary hover:bg-surface-2 hover:text-primary'
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        }
+      />
 
       {isLoading ? (
-        <Skeleton type="table-row" count={5} />
+        <Panel flush>
+          <SkeletonList count={5}>
+            <div className="flex items-center gap-4 border-b border-hairline px-4 py-3 last:border-0">
+              <Skeleton className="h-4 w-44" />
+              <Skeleton className="h-4 flex-1" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+          </SkeletonList>
+        </Panel>
       ) : isError ? (
-        <EmptyState icon={FileText} title="Couldn't load documents" hint="Something went wrong fetching documents. Try refreshing the page." />
+        <Panel>
+          <ErrorState
+            title="Couldn't load documents"
+            hint="Something went wrong fetching documents. Try refreshing the page."
+          />
+        </Panel>
       ) : !docs?.length ? (
-        <EmptyState icon={FileText} title={`No ${filter.toLowerCase()} documents`} hint="Documents will show up here as teams upload verification files." />
+        <Panel>
+          <EmptyState
+            icon={FileText}
+            title={`No ${filter.toLowerCase()} documents`}
+            hint="Documents will show up here as teams upload verification files."
+          />
+        </Panel>
       ) : (
-        <AdminTable headers={['Player', 'Doc Type', 'Filename', 'Uploaded At', 'Actions']}>
-          {docs.map(doc => (
-            <tr key={doc.id} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors">
-              <td className="px-6 py-5">
-                <div className="flex flex-col">
-                  <span className="text-sm font-bold uppercase tracking-tight">{doc.player?.fullName}</span>
-                  <span className="text-[8px] opacity-40 uppercase font-bold tracking-widest">{doc.player?.team?.name}</span>
-                </div>
-              </td>
-              <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{doc.docType.replace('_', ' ')}</td>
-              <td className="px-6 py-5 text-xs opacity-40 italic">{doc.originalName || 'document.pdf'}</td>
-              <td className="px-6 py-5 text-[10px] font-bold opacity-40">{new Date(doc.uploadedAt).toLocaleDateString()}</td>
-              <td className="px-6 py-5">
-                <div className="flex items-center space-x-2">
-                  <button 
-                    onClick={() => setSelectedDoc(doc)}
-                    className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors flex items-center space-x-2"
-                  >
-                    <Eye size={16} />
-                    <span className="text-[10px] font-bold uppercase">Review</span>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </AdminTable>
+        <Panel flush>
+          <TableWrap>
+            <table className="w-full min-w-[760px] text-left">
+              <thead>
+                <tr>
+                  <Th>Player</Th>
+                  <Th>Doc type</Th>
+                  <Th>Filename</Th>
+                  <Th>Uploaded at</Th>
+                  <Th align="right">Actions</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {docs.map((doc) => (
+                  <tr key={doc.id} className="transition-colors duration-150 ease-standard hover:bg-surface-2">
+                    <Td>
+                      <p className="font-medium text-primary">{doc.player?.fullName}</p>
+                      <p className="text-xs text-tertiary">{doc.player?.team?.name}</p>
+                    </Td>
+                    <Td className="capitalize">{doc.docType.replace('_', ' ').toLowerCase()}</Td>
+                    <Td className="text-tertiary">{doc.originalName || 'document.pdf'}</Td>
+                    <Td className="tabular-nums">{new Date(doc.uploadedAt).toLocaleDateString()}</Td>
+                    <Td align="right">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        icon={Eye}
+                        onClick={() => setSelectedDoc(doc)}
+                      >
+                        Review
+                      </Button>
+                    </Td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </TableWrap>
+        </Panel>
       )}
 
-      {/* Review Modal */}
-      <AdminModal isOpen={!!selectedDoc} onClose={() => setSelectedDoc(null)} title="Verify Document">
-        <div className="space-y-8">
-          <div className="aspect-[4/3] bg-surface-2 dark:bg-white/5 rounded-3xl border border-surface-3 dark:border-white/10 flex items-center justify-center overflow-hidden">
+      {/* Review modal */}
+      <Modal open={!!selectedDoc} onClose={() => setSelectedDoc(null)} title="Verify document">
+        <div className="space-y-5">
+          <div className="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-card border border-hairline bg-surface-2">
             {selectedDoc?.filename?.endsWith('.pdf') ? (
-              <div className="flex flex-col items-center space-y-4 opacity-40">
-                <FileText size={64} />
-                <span className="text-[10px] uppercase font-bold tracking-widest">PDF Document Preview Not Available</span>
-                <a href={selectedDoc.filename} target="_blank" rel="noreferrer" className="text-red hover:underline text-xs uppercase font-bold tracking-widest">Download to View</a>
+              <div className="flex flex-col items-center gap-3 px-4 text-center">
+                <FileText size={48} className="text-tertiary" aria-hidden="true" />
+                <span className="text-sm text-secondary">PDF document preview not available</span>
+                <a
+                  href={selectedDoc.filename}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-sm font-semibold text-brand-text hover:underline"
+                >
+                  Download to view
+                </a>
               </div>
             ) : (
-              <img src={selectedDoc?.filename} className="w-full h-full object-contain" />
+              <img src={selectedDoc?.filename} alt="" className="h-full w-full object-contain" />
             )}
           </div>
 
           <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40 ml-1">
-                Review Note {reviewNote.trim().length >= 3 ? '' : '(required to reject)'}
+            <div className="space-y-1.5">
+              <label htmlFor="doc-review-note" className="block text-sm font-bold text-primary">
+                Review note
               </label>
-              <textarea 
-                className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl focus:border-red outline-none transition-all placeholder:opacity-20 min-h-[100px]"
-                placeholder="Reason for rejection or verification notes..."
+              <textarea
+                id="doc-review-note"
+                className="min-h-[100px] w-full rounded-input border border-hairline bg-surface p-3 text-sm text-primary placeholder:text-tertiary focus:border-brand focus:outline-none"
+                placeholder="Reason for rejection or verification notes…"
                 value={reviewNote}
                 onChange={(e) => setReviewNote(e.target.value)}
+                aria-describedby={noteTooShort ? 'doc-review-note-hint' : undefined}
               />
+              {noteTooShort && (
+                <p id="doc-review-note-hint" className="text-xs text-tertiary">
+                  Required to reject
+                </p>
+              )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <button 
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                type="button"
+                variant="secondary"
                 onClick={() => reviewMutation.mutate({ id: selectedDoc.id, status: 'REJECTED', note: reviewNote })}
-                disabled={reviewMutation.isPending || reviewNote.trim().length < 3}
-                title={reviewNote.trim().length < 3 ? 'Say why, so the club knows what to correct' : undefined}
-                className="bg-white dark:bg-white/5 border border-danger/30 text-danger-text font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-danger/5 transition-all flex items-center justify-center space-x-2 disabled:opacity-40"
+                disabled={reviewMutation.isPending || noteTooShort}
+                title={noteTooShort ? 'Say why, so the club knows what to correct' : undefined}
+                icon={XCircle}
+                className="border-danger/40 text-danger-text hover:border-danger/60 hover:bg-danger/10 hover:text-danger-text"
               >
-                <XCircle size={20} />
-                <span>Reject</span>
-              </button>
-              <button 
+                Reject
+              </Button>
+              <Button
+                type="button"
                 onClick={() => reviewMutation.mutate({ id: selectedDoc.id, status: 'APPROVED', note: reviewNote })}
                 disabled={reviewMutation.isPending}
-                className="bg-green text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-green-600 transition-all flex items-center justify-center space-x-2 shadow-xl shadow-green/20"
+                icon={CheckCircle}
               >
-                <CheckCircle size={20} />
-                <span>Approve</span>
-              </button>
+                Approve
+              </Button>
             </div>
 
             {reviewMutation.isError && (
-              <p className="text-xs text-danger-text">
+              <p role="alert" className="text-xs font-semibold text-danger-text">
                 {(reviewMutation.error as any)?.response?.data?.errors?.[0]?.message
                   || (reviewMutation.error as any)?.response?.data?.message
                   || 'Could not save that review.'}
@@ -149,7 +215,7 @@ const AdminDocumentsPage = () => {
             )}
           </div>
         </div>
-      </AdminModal>
+      </Modal>
     </div>
   );
 };

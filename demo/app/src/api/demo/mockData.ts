@@ -385,26 +385,6 @@ export const leagues = [
   { id: 8, name: 'National Handball League', slug: 'handball-league', season: '2025/2026', gender: 'MALE', ageCategory: 'SENIOR', status: 'ACTIVE', level: 'NATIONAL', format: 'LEAGUE', maxTeams: 8, sport: sportRef(6), federation: { id: 6, name: 'FRH' }, startDate: days(-40), description: 'The national handball championship.', _count: { teams: 8, fixtures: 56 } },
 ];
 
-/* ── standings ─────────────────────────────────────────────────────────── */
-const buildStandings = (leagueId, teamIds) => teamIds.map((tid, i) => {
-  const played = 18;
-  const won = Math.max(0, 15 - i * 2 - (i % 2));
-  const drawn = (i + 2) % 4;
-  const lost = played - won - drawn;
-  const gf = 40 - i * 3 - (i % 3);
-  const ga = 10 + i * 3;
-  const forms = ['WWWDW', 'WWLWW', 'DWWDL', 'DDWLW', 'LWDLW', 'WLDWD', 'LLDWL', 'DLWLL', 'LLDLL', 'LWLLD', 'DLLWL', 'LLLDL'];
-  return { id: leagueId * 100 + i, leagueId, team: teamRef(tid), teamId: tid, played, won, drawn, lost, goalsFor: gf, goalsAgainst: ga, points: won * 3 + drawn, form: forms[i % forms.length] };
-}).sort((a, b) => b.points - a.points);
-
-export const standings = buildStandings(1, [1, 3, 2, 4, 5, 6, 9, 10, 8, 11, 7, 12]);
-export const standingsByLeague = {
-  1: standings,
-  2: buildStandings(2, [22, 20, 21, 23, 24, 25]),
-  3: buildStandings(3, [30, 31, 33, 32, 34, 35]),
-  8: buildStandings(8, [60, 61, 62, 63]),
-};
-
 /* ── top scorers ───────────────────────────────────────────────────────── */
 const scorersFor = (leagueId, teamIds) => teamIds.slice(0, 8).map((tid, i) => {
   const p = playersOf(tid).find((x) => /Striker|Wing|Forward|Hitter|Opposite/.test(x.position)) || playersOf(tid)[10];
@@ -438,6 +418,89 @@ const fx = (id, leagueId, leagueName, homeId, awayId, status, whenIso, venue, hs
   statusLabel: opts.statusLabel || (status === 'LIVE' ? 'LIVE' : null),
 });
 
+/**
+ * THE SEASON BEHIND THE FIXTURE LIST.
+ *
+ * The hand-written list above is one matchweek in each sport — enough to fill a
+ * schedule screen, and nothing else. It left two features with nothing to say:
+ * head-to-head found no previous meeting for any pairing (18 fixtures, six of
+ * them completed, exactly one repeated pairing and neither leg played), and
+ * recent form could not be derived at all, which is why the league table carried
+ * a hard-coded `forms[]` array of made-up strings.
+ *
+ * This generates the matchweeks before the current one: a rotating pairing per
+ * week per league, played, scored and dated backwards from today. It is the same
+ * kind of illustrative data as everything else in this file, but it is
+ * INTERNALLY CONSISTENT — the results here are the results the table, the form
+ * strips and the head-to-head panels are all computed from, so the three agree
+ * with each other and with the /results screen.
+ *
+ * DETERMINISTIC, like every other generator here: a hash of the fixture id, not
+ * `Math.random()`, so a scoreline does not change between two renders of the
+ * same page.
+ */
+/**
+ * Relative club strength, 0 (weakest) to 3 (strongest), used only to tilt the
+ * generated back-catalogue. Ordered as the real leagues are: APR and Rayon are
+ * the record champions, Police and AS Kigali the next tier, the rest below.
+ * Anything not listed is treated as average.
+ */
+const STRENGTH = {
+  // Rwanda Premier League
+  1: 3, 2: 2.6, 3: 2, 4: 1.8, 5: 1.4, 6: 1.2, 9: 1, 10: 0.9, 7: 0.7, 8: 0.6, 11: 0.5, 12: 0.3,
+  // Rwanda Basketball League
+  20: 3, 21: 2.6, 22: 2.2, 23: 1.4, 24: 1, 25: 0.6,
+  // Women's Volleyball League
+  30: 3, 31: 2.4, 32: 1.8, 33: 1.4, 34: 1, 35: 0.6,
+};
+
+const HISTORY_LEAGUES = [
+  { leagueId: 1, name: 'Rwanda Premier League', teams: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], venue: 'Kigali Pelé Stadium', weeks: 10, high: false },
+  { leagueId: 2, name: 'Rwanda Basketball League', teams: [20, 21, 22, 23, 24, 25], venue: 'BK Arena', weeks: 8, high: true },
+  { leagueId: 3, name: "Women's Volleyball League", teams: [30, 31, 32, 33, 34, 35], venue: 'Petit Stade Remera', weeks: 8, high: false },
+];
+
+/**
+ * Round-robin pairing for one week, by rotation: team 0 stays put and the rest
+ * revolve, so every side meets every other exactly once across the season and no
+ * side is ever drawn against itself.
+ */
+const roundFor = (teams, week) => {
+  const n = teams.length;
+  const half = n / 2;
+  const rot = [teams[0], ...teams.slice(1).slice(week % (n - 1)), ...teams.slice(1).slice(0, week % (n - 1))];
+  return Array.from({ length: half }, (_, i) => [rot[i], rot[n - 1 - i]]);
+};
+
+const HISTORY_START = 5000;
+let HID = HISTORY_START;
+
+export const historyFixtures = HISTORY_LEAGUES.flatMap((lg) =>
+  Array.from({ length: lg.weeks }, (_, w) => {
+    // Week 0 is the most recent completed matchweek, so it sits closest to today.
+    const daysAgo = -(w * 7 + 4);
+    return roundFor(lg.teams, w).map(([home, away]) => {
+      HID += 1;
+      const seed = HID * 2654435761;
+      // A FLAT RANDOM SEASON PUT MARINES FC TOP OF THE PREMIER LEAGUE.
+      // Nobody who follows Rwandan football would read past that. STRENGTH tilts
+      // the generator towards the clubs that actually dominate — APR and Rayon,
+      // then Police and AS Kigali — so the table that falls out is one a Rwandan
+      // viewer recognises. It is a tilt, not a script: the weaker sides still
+      // take points off the stronger ones, which is what makes a table worth
+      // reading.
+      const bias = (STRENGTH[home] ?? 1) - (STRENGTH[away] ?? 1);
+      const a = Math.max(0, Math.round(((seed >>> 3) % 4) + bias * 0.9 + 0.4));
+      const b = Math.max(0, Math.round(((seed >>> 11) % 4) - bias * 0.9));
+      const [hs, as] = lg.high
+        // Basketball reads in the sixties and seventies, not in ones.
+        ? [58 + ((seed >>> 5) % 28) + Math.round(bias * 4), 58 + ((seed >>> 13) % 28) - Math.round(bias * 4)]
+        : [a, b];
+      return fx(HID, lg.leagueId, lg.name, home, away, 'COMPLETED', days(daysAgo, 16), lg.venue, hs, as, lg.weeks - w);
+    });
+  }).flat()
+);
+
 export const fixtures = [
   // Live now
   fx(101, 1, 'Rwanda Premier League', 2, 1, 'LIVE', mins(-52), 'Nyanza Stadium', 1, 1, 19, { stream: true, statusLabel: "67'" }),
@@ -469,7 +532,160 @@ export const fixtures = [
   // NOTE: cycling & athletics are RACING sports — they are NOT modelled as
   // head-to-head fixtures. Their logic lives in the `races` block below.
   fx(123, 3, "Women's Volleyball League", 30, 31, 'LIVE', mins(-28), 'Petit Stade Remera', 2, 1, 8, { stream: true, statusLabel: 'Set 2' }),
+  // The matchweeks before this one — see historyFixtures above. Appended
+  // rather than merged in date order; every consumer sorts for itself.
+  ...historyFixtures,
 ];
+
+/**
+ * HEAD-TO-HEAD, AND EACH SIDE'S RECENT FORM.
+ *
+ * A table of points and a scoreline are what a fixture list gives you; what a
+ * reader actually asks before a match is "who usually wins this one, and who is
+ * playing well right now". Both answers are already derivable from the fixture
+ * list — no new records, no new endpoint, just the two questions asked of data
+ * the app has been carrying all along.
+ *
+ * COMPLETED FIXTURES ONLY, and never the fixture being viewed: a match cannot be
+ * part of its own history, and including a scheduled one would count a result
+ * that has not happened.
+ */
+const resultFor = (fixture, teamId) => {
+  const home = fixture.homeTeamId === teamId;
+  const own = home ? fixture.homeScore : fixture.awayScore;
+  const other = home ? fixture.awayScore : fixture.homeScore;
+  if (own == null || other == null) return null;
+  return own > other ? 'W' : own < other ? 'L' : 'D';
+};
+
+/** The last five completed results for one team, oldest first — a `WWDLW` string. */
+export const formFor_team = (teamId) => fixtures
+  .filter((f) => f.status === 'COMPLETED' && (f.homeTeamId === teamId || f.awayTeamId === teamId))
+  .sort((a, b) => new Date(a.matchDate).getTime() - new Date(b.matchDate).getTime())
+  .slice(-5)
+  .map((f) => resultFor(f, teamId))
+  .filter(Boolean)
+  .join('');
+
+/** Previous meetings between two clubs, newest first, with the aggregate record. */
+export const headToHead = (fixture) => {
+  const { homeTeamId, awayTeamId } = fixture;
+  const meetings = fixtures
+    .filter((f) => f.id !== fixture.id
+      && f.status === 'COMPLETED'
+      && ((f.homeTeamId === homeTeamId && f.awayTeamId === awayTeamId)
+        || (f.homeTeamId === awayTeamId && f.awayTeamId === homeTeamId)))
+    .sort((a, b) => new Date(b.matchDate).getTime() - new Date(a.matchDate).getTime())
+    .slice(0, 5)
+    .map((f) => ({
+      id: f.id,
+      date: f.matchDate,
+      league: f.league,
+      homeTeam: f.homeTeam,
+      awayTeam: f.awayTeam,
+      homeScore: f.homeScore,
+      awayScore: f.awayScore,
+      // Which of the two SIDES OF THIS FIXTURE won, not which side of that one —
+      // the two clubs swap home and away between meetings, so a raw home/away
+      // tally would be meaningless.
+      winner: resultFor(f, homeTeamId) === 'W' ? 'home' : resultFor(f, homeTeamId) === 'L' ? 'away' : 'draw',
+    }));
+
+  return {
+    meetings,
+    record: {
+      home: meetings.filter((m) => m.winner === 'home').length,
+      draws: meetings.filter((m) => m.winner === 'draw').length,
+      away: meetings.filter((m) => m.winner === 'away').length,
+    },
+  };
+};
+
+/* ── standings ─────────────────────────────────────────────────────────── */
+/**
+ * THE TABLE IS COMPUTED FROM THE RESULTS, not written by hand.
+ *
+ * It used to be invented: `played: 18` for everyone, a won/drawn curve derived
+ * from the row's index, and a `forms[]` array of twelve hard-coded strings dealt
+ * out round-robin. Three things were wrong with that. The table disagreed with
+ * the fixture list it sat beside — eighteen games played, six results on record.
+ * The form strip disagreed with both. And a demo where the numbers do not add up
+ * is one arithmetic question away from being caught.
+ *
+ * Every column here is a fold over the completed fixtures for that league, so the
+ * table, the form strips, the head-to-head panels and the /results screen are all
+ * reading the same games. Change a scoreline and the table moves.
+ *
+ * DEFINED AFTER `fixtures` because it now depends on it. It used to sit above,
+ * which is exactly why it could not have been derived in the first place.
+ */
+/**
+ * HOW EACH LEAGUE AWARDS POINTS. Not every sport uses football's 3-1-0.
+ *
+ * Ranking basketball on 3 points a win put a club with -26 point difference above
+ * one on +36, and awarded draws in a sport that cannot draw. FIBA — which FERWABA
+ * follows — gives 2 for a win and 1 for a loss, and separates level teams on wins.
+ * Volleyball has no draw either.
+ */
+const SCORING = {
+  default: { win: 3, draw: 1, loss: 0, winsFirst: false },
+  1: { win: 3, draw: 1, loss: 0, winsFirst: false }, // Rwanda Premier League
+  2: { win: 2, draw: 0, loss: 1, winsFirst: true }, // Rwanda Basketball League (FIBA)
+  3: { win: 2, draw: 0, loss: 0, winsFirst: true }, // Women's Volleyball League
+  8: { win: 2, draw: 1, loss: 0, winsFirst: false }, // National Handball League
+};
+
+const buildStandings = (leagueId, teamIds) => {
+  const played = fixtures.filter((f) => f.leagueId === leagueId && f.status === 'COMPLETED');
+
+  const rows = teamIds.map((tid, i) => {
+    const games = played.filter((f) => f.homeTeamId === tid || f.awayTeamId === tid);
+    const row = games.reduce((acc, f) => {
+      const home = f.homeTeamId === tid;
+      const gf = home ? f.homeScore : f.awayScore;
+      const ga = home ? f.awayScore : f.homeScore;
+      acc.goalsFor += gf ?? 0;
+      acc.goalsAgainst += ga ?? 0;
+      if (gf > ga) acc.won += 1;
+      else if (gf < ga) acc.lost += 1;
+      else acc.drawn += 1;
+      return acc;
+    }, { won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0 });
+
+    const s = SCORING[leagueId] ?? SCORING.default;
+    return {
+      id: leagueId * 100 + i,
+      leagueId,
+      team: teamRef(tid),
+      teamId: tid,
+      played: games.length,
+      ...row,
+      points: row.won * s.win + row.drawn * s.draw + row.lost * s.loss,
+      form: formFor_team(tid),
+    };
+  });
+
+  // Points, then difference, then scored. Football separates level teams on goal
+  // difference and a reader expects that; basketball is ranked on wins first,
+  // because under 2-1-0 two clubs on the same points can have played a different
+  // number of games and the one with more WINS is the one above.
+  const winsFirst = (SCORING[leagueId] ?? SCORING.default).winsFirst;
+  return rows
+    .sort((a, b) => (winsFirst ? (b.won - a.won) : 0)
+      || (b.points - a.points)
+      || ((b.goalsFor - b.goalsAgainst) - (a.goalsFor - a.goalsAgainst))
+      || (b.goalsFor - a.goalsFor))
+    .map((r, i) => ({ ...r, rank: i + 1 }));
+};
+
+export const standings = buildStandings(1, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+export const standingsByLeague = {
+  1: standings,
+  2: buildStandings(2, [20, 21, 22, 23, 24, 25]),
+  3: buildStandings(3, [30, 31, 32, 33, 34, 35]),
+  8: buildStandings(8, [60, 61, 62, 63]),
+};
+
 
 /* ══ RACING (cycling & athletics) ══════════════════════════════════════════
  * A racing sport is not a ball game. There is no home/away and no score — a race
@@ -980,6 +1196,8 @@ const lineupFor = (teamId, sportSlug?: string) => {
 };
 
 export const buildFixtureDetail = (fixture) => {
+  const h2h = headToHead(fixture);
+  const form = { home: formFor_team(fixture.homeTeamId), away: formFor_team(fixture.awayTeamId) };
   const homePlayers = playersOf(fixture.homeTeamId);
   const awayPlayers = playersOf(fixture.awayTeamId);
   const events = [];
@@ -1070,6 +1288,7 @@ export const buildFixtureDetail = (fixture) => {
     ],
     homeCoach: coachOf(fixture.homeTeamId), awayCoach: coachOf(fixture.awayTeamId),
     homeTeamDetail: home, awayTeamDetail: away,
+    h2h, form,
   };
 };
 

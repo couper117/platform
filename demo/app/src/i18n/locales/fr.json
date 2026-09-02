@@ -7,7 +7,7 @@
   },
   "nav": {
     "home": "Accueil",
-    "leagues": "Championnats",
+    "leagues": "Ligues",
     "fixtures": "Calendrier",
     "calendar": "Calendrier mensuel",
     "results": "Résultats",
@@ -138,9 +138,9 @@
     "filter_sport": "Filtrer par sport",
     "filter_gender": "Filtrer par genre",
     "filter_level": "Filtrer par niveau",
-    "other_sport": "Autres",
     "none": "Aucun championnat trouvé",
     "none_hint": "Essayez d'ajuster vos filtres pour trouver ce que vous cherchez.",
+    "other_sport": "Autres",
     "error_title": "Impossible de charger les championnats",
     "error_hint": "Vérifiez votre connexion et réessayez."
   },
@@ -148,7 +148,6 @@
     "back_to_leagues": "Retour à tous les championnats",
     "participant_count": "{{count}} participants",
     "level_label": "Niveau {{level}}",
-    "tabs_label": "Sections du championnat",
     "tab_standings": "Classement",
     "tab_stats": "Statistiques",
     "current_standings": "Classement actuel",
@@ -158,6 +157,7 @@
     "fixtures_and_results": "Matchs et résultats",
     "no_fixtures": "Aucun match programmé",
     "participating_teams": "Équipes participantes",
+    "tabs_label": "Sections du championnat",
     "no_teams": "Aucune équipe n'a encore rejoint",
     "no_teams_hint": "Les équipes apparaîtront ici une fois inscrites à ce championnat.",
     "error_title": "Impossible de charger ce championnat",
@@ -279,7 +279,13 @@
     "time_days_ago": "il y a {{count}} j",
     "captain": "Capitaine",
     "show_all_events_one": "Afficher {{count}} événement précédent",
-    "show_all_events_other": "Afficher {{count}} événements précédents"
+    "show_all_events_other": "Afficher {{count}} événements précédents",
+    "head_to_head": "Confrontations",
+    "h2h_wins_one": "{{count}} victoire",
+    "h2h_wins_other": "{{count}} victoires",
+    "h2h_draws_one": "{{count}} nul",
+    "h2h_draws_other": "{{count}} nuls",
+    "h2h_none": "Ces deux équipes ne se sont encore jamais rencontrées en compétition."
   },
   "standings": {
     "col_pos": "Pos",
@@ -413,8 +419,6 @@
     "category_subtitle": "Primaire · Secondaire · TVET",
     "by_status": "Par statut",
     "stats_none_hint": "Les aperçus apparaissent au fur et à mesure des inscriptions.",
-    "error_title": "Impossible de charger les Jeux Scolaires",
-    "error_hint": "Vérifiez votre connexion et réessayez.",
     "level": {
       "cell": "Cellule",
       "sector": "Secteur",
@@ -514,7 +518,6 @@
     "pick_sport": "Choisir un sport",
     "view_all_sports": "Voir tous les sports",
     "more_sports": "Plus de sports",
-    "comp_count": "{{count}} compétitions",
     "col_regions": "Régions",
     "col_events": "Épreuves",
     "col_athletes": "Athlètes",
@@ -527,6 +530,8 @@
     "latest_news": "Dernières actualités",
     "no_news": "Pas encore d actualités sur le sport scolaire.",
     "news_default": "Actualités",
+    "error_title": "Impossible de charger les Jeux Scolaires",
+    "error_hint": "Vérifiez votre connexion et réessayez.",
     "tab_overview": "Aperçu",
     "tab_championships": "Championnats",
     "tab_fixtures": "Calendrier",
@@ -548,7 +553,19 @@
       "eligibility": "Éligibilité",
       "verified": "Vérifiée",
       "pending": "En cours de vérification"
-    }
+    },
+    "next_up": "À venir",
+    "n_sports_one": "Sport",
+    "n_sports_other": "Sports",
+    "n_schools_one": "École",
+    "n_schools_other": "Écoles",
+    "n_competitions_one": "Compétition",
+    "n_competitions_other": "Compétitions",
+    "n_live_one": "Match en direct",
+    "n_live_other": "Matchs en direct",
+    "comp_count_one": "{{count}} compétition",
+    "comp_count_other": "{{count}} compétitions",
+    "view_all_fixtures": "Voir tout le calendrier"
   },
   "admin": {
     "portal": "Portail Admin",
@@ -1238,6 +1255,8 @@
     "choose_a_sport": "Choisissez un sport",
     "no_match": "Aucun sport ne correspond à \"{{q}}\".",
     "enter": "Entrer",
+    "hero_title_pre": "Tout le sport rwandais,",
+    "hero_title_accent": "en un seul endroit",
     "hero_subtitle": "Scores en direct, matchs, résultats et classements — des championnats nationaux aux jeux scolaires Amashuri.",
     "find_your_sport": "Trouvez votre sport",
     "live_scores": "Scores en direct",
@@ -1339,7 +1358,6 @@
     "clubs": "Clubs",
     "standings": "Classement",
     "standings_empty": "Le classement apparaîtra dès les premiers résultats.",
-    "standings_no_table": "Pas encore de classement",
     "col_team": "Équipe",
     "col_p": "J",
     "col_gd": "Diff",
@@ -1347,12 +1365,13 @@
     "view_full_standings": "Voir le classement complet",
     "latest_news": "Dernières actualités",
     "no_news": "Pas encore d actualités pour {{sport}}.",
-    "news_empty_hint": "Revenez bientôt pour les dernières actualités.",
-    "error_title": "Impossible de charger ce sport",
-    "error_hint": "Vérifiez votre connexion et réessayez.",
     "not_found": "Sport introuvable",
     "back_home": "Retour à l accueil",
     "seo_desc": "{{sport}} au Rwanda — scores en direct, calendrier, classement et actualités.",
+    "standings_no_table": "Pas encore de classement",
+    "news_empty_hint": "Revenez bientôt pour les dernières actualités.",
+    "error_title": "Impossible de charger ce sport",
+    "error_hint": "Vérifiez votre connexion et réessayez.",
     "tab_live": "En direct",
     "tab_upcoming": "À venir",
     "tab_results": "Résultats",
@@ -1466,10 +1485,10 @@
     "seo_description": "Tous les clubs et equipes enregistres sur RwaSport.",
     "search_placeholder": "Rechercher des equipes…",
     "all_sports": "Tous les sports",
-    "filter_sport": "Filtrer par sport",
-    "view_club": "Voir le club",
     "none_title": "Aucune equipe trouvee",
     "none_hint": "Essayez un autre sport ou un autre terme.",
+    "filter_sport": "Filtrer par sport",
+    "view_club": "Voir le club",
     "error_title": "Impossible de charger les equipes",
     "error_hint": "Verifiez votre connexion et reessayez."
   },
@@ -1605,6 +1624,7 @@
     "nav_dashboard": "Tableau de bord",
     "nav_sport_admins": "Admins de sport",
     "nav_leagues": "Ligues",
+    "nav_sports": "Sports",
     "nav_fixtures": "Matchs",
     "nav_teams": "Équipes",
     "nav_players": "Joueurs",
@@ -1618,6 +1638,7 @@
     "nav_profile": "Profil de l équipe",
     "nav_lineups": "Compositions",
     "nav_live_reporting": "Reportage en direct",
+    "nav_my_profile": "Mon profil",
     "nav_my_players": "Mes joueurs",
     "role_ministry": "Ministère des Sports",
     "role_ministry_sub": "Rwanda",
@@ -1640,6 +1661,8 @@
     "nav_media": "Bibliothèque média",
     "nav_users": "Utilisateurs",
     "nav_roles": "Rôles & permissions",
+    "nav_requests": "Demandes d'adhésion",
+    "nav_compliance": "Protection des données",
     "nav_system_health": "État du système",
     "nav_match_reports": "Rapports de match",
     "nav_standings": "Classement",
@@ -1653,7 +1676,6 @@
     "nav_athletes": "Athlètes",
     "nav_seasons": "Saisons",
     "nav_stages": "Phases",
-    "nav_sports": "Sports",
     "nav_approvals": "Approbations",
     "nav_my_athletes": "Mes athlètes",
     "role_school": "Portail école",
@@ -1935,6 +1957,16 @@
       "affected": "Ce match est affecté par l'Umuganda. Une décision finale est attendue."
     }
   },
+  "follow": {
+    "follow": "Suivre",
+    "following": "Suivi",
+    "unfollow": "Ne plus suivre"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "mark_all": "Tout marquer comme lu",
+    "none": "Rien pour le moment."
+  },
   "sports": {
     "title": "Tous les sports",
     "subtitle": "Tous les sports de la plateforme, chacun avec ses compétitions, matchs, classements et centre de match.",
@@ -1944,6 +1976,10 @@
     "no_match": "Aucun sport ne correspond à \"{{q}}\"",
     "no_match_hint": "Essayez une autre orthographe, ou effacez la recherche.",
     "error_title": "Impossible de charger les sports",
-    "error_hint": "Vérifiez votre connexion et réessayez."
+    "error_hint": "Vérifiez votre connexion et réessayez.",
+    "match_count_one": "{{count}} match",
+    "match_count_other": "{{count}} matchs",
+    "event_count_one": "{{count}} épreuve",
+    "event_count_other": "{{count}} épreuves"
   }
 }

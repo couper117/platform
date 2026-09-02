@@ -15,6 +15,25 @@ import cn from './cn';
  * zooms the viewport on focus for anything smaller.
  */
 const Select = React.forwardRef(
+  /**
+   * The JSDoc sits on the INNER function, not the outer const: `forwardRef` infers
+   * its prop type from the render function it is handed, so a type on the const is
+   * ignored and a `.tsx` caller still sees bare `RefAttributes<any>` — which is why
+   * passing `id`/`options` explicitly failed to compile while a spread object went
+   * through. Same fix as IconButton.
+   *
+   * @param {{
+   *   label?: string,
+   *   value?: any,
+   *   onChange?: (e: any) => void,
+   *   options?: Array<{ value: any, label: React.ReactNode }>,
+   *   placeholder?: string,
+   *   size?: 'sm' | 'md',
+   *   invalid?: boolean,
+   *   className?: string,
+   *   id?: string,
+   * } & Record<string, any>} props
+   */
   (
     {
       label,

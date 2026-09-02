@@ -118,7 +118,25 @@ const SportLayout = () => {
   const live = fixtures.filter((f) => f.status === 'LIVE');
   const upcoming = fixtures.filter((f) => f.status === 'SCHEDULED');
   const results = fixtures.filter((f) => f.status === 'COMPLETED');
-  const primaryLeague = leagues[0] || null;
+  /**
+   * THE SPORT'S MAIN COMPETITION, which is not simply the first one the API
+   * returned. Football's list came back with "Kagame Cup Schools" ahead of the
+   * Rwanda Premier League, so the standings tab opened on a schools cup that has
+   * no table and told the reader "No table yet" while the actual league table sat
+   * one chip away.
+   *
+   * A competition that HAS a table is the better default — that is what someone
+   * opening a sport hub is looking for — and among those, the senior national one
+   * outranks an age-group or schools competition.
+   */
+  const primaryLeague = React.useMemo(() => {
+    const withTable = leagues.filter((l) => (l._count?.standings ?? 0) > 0);
+    const pool = withTable.length > 0 ? withTable : leagues;
+    return pool.find((l) => l.level === 'NATIONAL' && l.ageCategory === 'SENIOR')
+      ?? pool.find((l) => l.level === 'NATIONAL')
+      ?? pool[0]
+      ?? null;
+  }, [leagues]);
   const hasPhoto = SPORT_PHOTOS.has(slug);
 
   if (isLoading) {

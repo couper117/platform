@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import Navbar from './Navbar';
+import AdminTopBar from '../admin/AdminTopBar';
 import useAuthStore from '../../store/authStore';
-import { Menu, ShieldAlert } from 'lucide-react';
+import { ShieldAlert } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { isAdminPathAllowed } from '../../lib/adminAccess';
 import { useCapabilities } from '../../hooks/useCan';
@@ -23,30 +23,29 @@ const AdminLayout = () => {
   const pageAllowed = isAdminPathAllowed(capabilities, location.pathname);
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar />
-      
-      {/* Mobile Sidebar Trigger */}
-      <div className="lg:hidden bg-surface-dark border-b border-white/5 px-4 py-2 flex items-center justify-between">
-        <button 
-          onClick={() => setIsSidebarOpen(true)}
-          className="flex items-center space-x-2 text-white/60 hover:text-red transition-colors"
-        >
-          <Menu size={20} />
-          <span className="text-[10px] uppercase font-bold tracking-widest">{t('admin.menu')}</span>
-        </button>
-      </div>
+    /**
+     * THE SIDEBAR IS THE FULL-HEIGHT COLUMN, the bar sits inside the content.
+     * The old shell stacked the public Navbar across the top, then a second
+     * mobile-only strip carrying a "Menu" button, then the sidebar and page below
+     * — three bands of chrome before any content. The sidebar now runs the whole
+     * height, the admin bar spans only the working area, and the menu button
+     * lives in that bar rather than in a strip of its own.
+     */
+    <div className="flex min-h-screen bg-surface-2">
+      <Sidebar type="admin" isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      <div className="flex flex-grow relative">
-        <Sidebar type="admin" isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-        <main className="flex-grow bg-surface-2 dark:bg-surface-dark p-4 sm:p-6 md:p-8 overflow-x-hidden">
+      <div className="flex min-w-0 flex-1 flex-col">
+        <AdminTopBar onOpenSidebar={() => setIsSidebarOpen(true)} />
+        <main className="min-w-0 flex-1 p-4 sm:p-6">
           {pageAllowed ? (
             <Outlet />
           ) : (
-            <div className="py-24 flex flex-col items-center text-center gap-4 opacity-60">
-              <ShieldAlert size={48} className="text-red" />
-              <p className="font-display text-2xl uppercase tracking-widest">Not authorized</p>
-              <p className="text-xs max-w-xs">Your role doesn't have access to this page. Ask a superadmin if you need it.</p>
+            <div className="flex flex-col items-center gap-3 py-24 text-center">
+              <span className="flex h-12 w-12 items-center justify-center rounded-card bg-surface-3">
+                <ShieldAlert size={22} className="text-danger-text" aria-hidden="true" />
+              </span>
+              <p className="font-display text-lg font-bold text-primary">{t('adminui.not_authorized')}</p>
+              <p className="max-w-sm text-sm text-secondary">{t('adminui.not_authorized_hint')}</p>
             </div>
           )}
         </main>

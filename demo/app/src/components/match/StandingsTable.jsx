@@ -9,13 +9,30 @@ import cn from '../ui/cn';
  * League table.
  *
  * SIX COLUMNS AND NO HORIZONTAL SCROLL, EVER. pos / crest / name / P / GD / Pts.
- * The rest Ã¢â‚¬â€ W, D, L, goals for and against, recent form Ã¢â‚¬â€ lives behind an inline
- * expansion, because a sideways-scrolling table hides the column you are looking
- * for and, in a 320px rail, would hide most of them.
+ * The rest — W, D, L, goals for and against — lives behind an inline expansion,
+ * because a sideways-scrolling table hides the column you are looking for and, in
+ * a 320px rail, would hide most of them.
  *
  * The four columns that got cut are the ones you can derive or rarely need; the
  * ones kept are what people actually read a table for: who is top, on how many
  * points, having played how many.
+ *
+ * `wide` IS THE SAME IDEA AS `showForm`, one step further. The six-column rule
+ * exists because this component also renders inside a 320px rail. On a standings
+ * PAGE it has the whole content column — 900px and more — and spending that on
+ * six columns leaves a table that looks like a placeholder for a table. `wide`
+ * brings back W, D, L, GF and GA, which is what a league table is, and it is a
+ * prop for the same reason `showForm` is: the page knows its width, the
+ * component cannot. The extra columns hide again below `md`, where they would
+ * reintroduce the horizontal scroll the rule was written to prevent.
+ *
+ * `showForm` IS A PROP, NOT A BREAKPOINT, and that distinction matters. Recent
+ * form is the one cut column a reader genuinely scans a table for — it answers
+ * "who is actually playing well", which points-to-date cannot. But this component
+ * renders BOTH full width on a standings page and inside a 320px rail on
+ * /fixtures, and both of those are desktop. A `lg:` variant would put the strip in
+ * the rail too and break the no-scroll rule it was written to protect. The page
+ * knows how much room it has; the component cannot.
  */
 
 /** W/D/L from the `form` string, most recent last. Colour is the only signal. */
@@ -38,6 +55,18 @@ export const FormStrip = ({ form = '', className = '' }) => {
   );
 };
 
+/** One numeric cell of the wide table. Hidden below `md`, where it would scroll. */
+const Num = ({ children }) => (
+  <span className="hidden w-6 shrink-0 text-right text-sm tabular-nums text-secondary md:block">
+    {children}
+  </span>
+);
+
+/** The matching header cell, so the columns line up with their key. */
+const NumHead = ({ children }) => (
+  <span className="hidden w-6 shrink-0 text-right text-xs text-tertiary md:block">{children}</span>
+);
+
 const Stat = ({ label, value }) => (
   <div className="flex flex-col">
     <span className="text-xs text-tertiary">{label}</span>
@@ -45,23 +74,33 @@ const Stat = ({ label, value }) => (
   </div>
 );
 
-const StandingsRow = ({ row, expanded, onToggle, safe }) => {
+const StandingsRow = ({ row, expanded, onToggle, safe, showForm, wide }) => {
   const gd = (row.goalsFor ?? 0) - (row.goalsAgainst ?? 0);
 
   return (
     <li className="border-b border-hairline last:border-0">
       <button
         type="button"
-        onClick={onToggle}
-        aria-expanded={expanded}
+        onClick={wide ? undefined : onToggle}
+        aria-expanded={wide ? undefined : expanded}
         className="flex w-full items-center gap-2 px-3 py-2 text-left transition-colors duration-150 ease-standard hover:bg-surface-2"
       >
         <span className="w-4 shrink-0 text-xs tabular-nums text-tertiary">{row.rank}</span>
         <ClubCrest team={row.team} size="sm" />
         <span className="min-w-0 flex-1 truncate text-sm text-primary">{row.team?.name}</span>
+        {showForm && row.form ? <FormStrip form={row.form} className="mr-2 hidden shrink-0 sm:flex" /> : null}
         <span className="w-5 shrink-0 text-right text-sm tabular-nums text-secondary">
           {row.played ?? 0}
         </span>
+        {wide && (
+          <>
+            <Num>{row.won ?? 0}</Num>
+            <Num>{row.drawn ?? 0}</Num>
+            <Num>{row.lost ?? 0}</Num>
+            <Num>{row.goalsFor ?? 0}</Num>
+            <Num>{row.goalsAgainst ?? 0}</Num>
+          </>
+        )}
         <span className="w-7 shrink-0 text-right text-sm tabular-nums text-secondary">
           {gd > 0 ? `+${gd}` : gd}
         </span>
@@ -71,7 +110,7 @@ const StandingsRow = ({ row, expanded, onToggle, safe }) => {
       </button>
 
       <AnimatePresence initial={false}>
-        {expanded && (
+        {expanded && !wide && (
           <motion.div
             initial={safe ? { height: 0, opacity: 0 } : false}
             animate={{ height: 'auto', opacity: 1 }}
@@ -85,7 +124,7 @@ const StandingsRow = ({ row, expanded, onToggle, safe }) => {
               <Stat label="L" value={row.lost ?? 0} />
               <Stat label="GF" value={row.goalsFor ?? 0} />
               <Stat label="GA" value={row.goalsAgainst ?? 0} />
-              {row.form ? <FormStrip form={row.form} className="pb-1" /> : null}
+              {!showForm && row.form ? <FormStrip form={row.form} className="pb-1" /> : null}
             </div>
           </motion.div>
         )}
@@ -94,7 +133,7 @@ const StandingsRow = ({ row, expanded, onToggle, safe }) => {
   );
 };
 
-const StandingsTable = ({ rows = [], className = '' }) => {
+const StandingsTable = ({ rows = [], className = '', showForm = false, wide = false }) => {
   const safe = useMotionSafe();
   const [openId, setOpenId] = useState(null);
 
@@ -105,7 +144,17 @@ const StandingsTable = ({ rows = [], className = '' }) => {
       <div className="flex items-center gap-2 border-b border-hairline px-3 py-2">
         <h2 className="flex-1 font-display text-base font-semibold text-primary">Table</h2>
         {/* Column key, so the three abbreviations are never a guess. */}
+        {showForm && <span className="mr-2 hidden w-[76px] text-xs text-tertiary sm:block">Form</span>}
         <span className="w-5 text-right text-xs text-tertiary">P</span>
+        {wide && (
+          <>
+            <NumHead>W</NumHead>
+            <NumHead>D</NumHead>
+            <NumHead>L</NumHead>
+            <NumHead>GF</NumHead>
+            <NumHead>GA</NumHead>
+          </>
+        )}
         <span className="w-7 text-right text-xs text-tertiary">GD</span>
         <span className="w-6 text-right text-xs text-tertiary">Pts</span>
       </div>
@@ -115,6 +164,8 @@ const StandingsTable = ({ rows = [], className = '' }) => {
             key={row.id ?? row.teamId}
             row={row}
             safe={safe}
+            showForm={showForm}
+            wide={wide}
             expanded={openId === (row.id ?? row.teamId)}
             onToggle={() =>
               setOpenId((cur) => (cur === (row.id ?? row.teamId) ? null : row.id ?? row.teamId))

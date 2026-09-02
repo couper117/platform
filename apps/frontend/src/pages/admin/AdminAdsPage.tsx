@@ -1,14 +1,52 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Megaphone, Plus, Trash2, Globe, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Megaphone, Plus, Trash2, Image as ImageIcon } from 'lucide-react';
 import apiClient from '../../api/client';
-import AdminTable from '../../components/admin/AdminTable';
-import AdminModal from '../../components/admin/AdminModal';
-import Skeleton from '../../components/shared/Skeleton';
-import EmptyState from '../../components/ui/EmptyState';
+import {
+  Button, IconButton, Modal, Field, Input, Select,
+  EmptyState, ErrorState, Skeleton, SkeletonList, cn,
+} from '../../components/ui';
+import { PageHeader, Panel, TableWrap, Th, Td } from '../../components/admin/AdminUI';
 import useUiStore from '../../store/uiStore';
 
+/**
+ * Super Admin → Sponsorship centre. Ad banners and where they run. Presentation
+ * only: the /ads queries, the create payload and the delete mutation are exactly
+ * as they were — the screen just uses the admin kit now.
+ */
+
 const POSITIONS = ['HOME_BANNER', 'SIDEBAR', 'MATCH_DAY', 'NEWS_FEED'];
+
+/** Backend enums are SHOUTED; an operator reads these all day, so they are not. */
+const placement = (v: string) =>
+  String(v || '').replace(/_/g, ' ').toLowerCase().replace(/^./, (c) => c.toUpperCase());
+
+/**
+ * The creative itself, in a fixed box. A banner list without the artwork makes an
+ * operator open every row to find the one they meant; a fixed aspect ratio plus a
+ * fallback glyph means a dead image URL costs no layout.
+ */
+const Creative = ({ src, alt }: { src?: string | null; alt?: string }) => {
+  const [broken, setBroken] = useState(false);
+  const show = src && !broken;
+  return (
+    <div className="relative aspect-[16/9] w-20 shrink-0 overflow-hidden rounded-control bg-surface-2">
+      {show ? (
+        <img
+          src={src as string}
+          alt={alt || ''}
+          loading="lazy"
+          onError={() => setBroken(true)}
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <span className="flex h-full w-full items-center justify-center text-tertiary">
+          <ImageIcon size={14} aria-hidden="true" />
+        </span>
+      )}
+    </div>
+  );
+};
 
 const AdminAdsPage = () => {
   const queryClient = useQueryClient();
@@ -51,80 +89,175 @@ const AdminAdsPage = () => {
   const canSubmit = formData.title.trim() && formData.imageUrl.trim() && formData.position;
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-display uppercase tracking-tighter">Sponsorship <span className="text-red">Center</span></h1>
-          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Manage advertising banners for the platform</p>
-        </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-red text-white px-8 py-3 rounded-xl font-display text-lg uppercase tracking-widest hover:bg-red-dark transition-all shadow-xl shadow-red/20 flex items-center space-x-2"
-        >
-          <Plus size={20} />
-          <span>New Banner</span>
-        </button>
-      </div>
+    <div>
+      <PageHeader
+        title="Sponsorship centre"
+        subtitle="Manage advertising banners for the platform."
+        actions={
+          <Button size="sm" icon={Plus} onClick={() => setIsModalOpen(true)}>
+            New banner
+          </Button>
+        }
+      />
 
-      {isLoading ? (
-        <Skeleton type="card" count={3} />
-      ) : isError ? (
-        <EmptyState icon={Megaphone} title="Couldn't load banners" hint="Something went wrong fetching ad banners. Try refreshing the page." />
-      ) : ads?.length ? (
-        <AdminTable headers={['Banner Title', 'Position', 'Status', 'Actions']}>
-          {ads.map(ad => (
-            <tr key={ad.id} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors">
-              <td className="px-6 py-5 font-bold text-sm uppercase">{ad.title}</td>
-              <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{ad.position}</td>
-              <td className="px-6 py-5">
-                <span className="bg-green/5 text-green text-[8px] font-bold px-2 py-1 rounded border border-green/10 uppercase">Active</span>
-              </td>
-              <td className="px-6 py-5">
-                <button
-                  onClick={() => { if (window.confirm(`Delete banner "${ad.title}"?`)) deleteAdMutation.mutate(ad.id); }}
-                  disabled={deleteAdMutation.isPending}
-                  className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors disabled:opacity-50"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </td>
-            </tr>
-          ))}
-        </AdminTable>
-      ) : (
-        <EmptyState icon={Megaphone} title="No ad banners yet" hint="Create your first sponsorship banner to start monetizing platform placements." />
-      )}
+      <Panel title="Banners" flush>
+        {isLoading ? (
+          <SkeletonList count={4}>
+            <div className="flex items-center gap-4 border-b border-hairline px-4 py-3">
+              <Skeleton className="aspect-[16/9] w-20 shrink-0" />
+              <Skeleton className="h-4 flex-1" />
+              <Skeleton className="h-4 w-24 shrink-0" />
+              <Skeleton className="h-5 w-16 shrink-0 rounded-pill" />
+            </div>
+          </SkeletonList>
+        ) : isError ? (
+          <ErrorState
+            title="Couldn't load banners"
+            hint="Something went wrong fetching ad banners. Try refreshing the page."
+          />
+        ) : ads?.length ? (
+          <TableWrap>
+            <table className="w-full min-w-[640px] text-left">
+              <thead>
+                <tr>
+                  <Th>Banner</Th>
+                  <Th>Placement</Th>
+                  <Th>Status</Th>
+                  <Th align="right">Actions</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {ads.map((ad) => (
+                  <tr key={ad.id} className="transition-colors duration-150 ease-standard hover:bg-surface-2">
+                    <Td className="text-primary">
+                      <div className="flex items-center gap-3">
+                        <Creative src={ad.imageUrl} alt={ad.title} />
+                        <div className="min-w-0">
+                          <p className="truncate font-medium">{ad.title}</p>
+                          {ad.targetUrl && (
+                            <p className="truncate text-xs text-tertiary">{ad.targetUrl}</p>
+                          )}
+                        </div>
+                      </div>
+                    </Td>
+                    <Td>{placement(ad.position)}</Td>
+                    <Td>
+                      {/* Read the record. This said "Active" on every row regardless
+                          of `ad.active` — while the dashboard's Active Ads count
+                          filters on that same flag, so the two screens disagreed
+                          about which banners were running. */}
+                      <span className={cn(
+                        'inline-flex rounded-pill px-2 py-0.5 text-xs font-semibold',
+                        ad.active ? 'bg-brand-tint text-brand-text' : 'bg-surface-2 text-tertiary'
+                      )}>
+                        {ad.active ? 'Active' : 'Paused'}
+                      </span>
+                    </Td>
+                    <Td align="right">
+                      <IconButton
+                        icon={Trash2}
+                        label={`Delete ${ad.title}`}
+                        size="sm"
+                        variant="danger"
+                        disabled={deleteAdMutation.isPending}
+                        onClick={() => {
+                          if (window.confirm(`Delete banner "${ad.title}"?`)) deleteAdMutation.mutate(ad.id);
+                        }}
+                      />
+                    </Td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </TableWrap>
+        ) : (
+          <EmptyState
+            icon={Megaphone}
+            title="No ad banners yet"
+            hint="Create your first sponsorship banner to start monetizing platform placements."
+            action={
+              <Button size="sm" icon={Plus} onClick={() => setIsModalOpen(true)}>
+                New banner
+              </Button>
+            }
+          />
+        )}
+      </Panel>
 
-      {/* New Ad Modal */}
-      <AdminModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Upload Sponsorship Banner">
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Banner Title</label>
-            <input className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none" placeholder="e.g. Inyange Summer Campaign" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Image URL</label>
-            <input className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none" placeholder="Cloudinary/Image URL" value={formData.imageUrl} onChange={e => setFormData({...formData, imageUrl: e.target.value})} />
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Target URL</label>
-            <input className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none" placeholder="Where the banner links to (optional)" value={formData.targetUrl} onChange={e => setFormData({...formData, targetUrl: e.target.value})} />
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Placement</label>
-            <select className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none" value={formData.position} onChange={e => setFormData({...formData, position: e.target.value})}>
-              {POSITIONS.map(p => <option key={p} value={p}>{p.replace('_', ' ')}</option>)}
-            </select>
-          </div>
-          <button
-            onClick={() => createAdMutation.mutate(formData)}
+      {/* New banner */}
+      <Modal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Upload sponsorship banner"
+        footer={
+          <Button
+            block
+            loading={createAdMutation.isPending}
             disabled={!canSubmit || createAdMutation.isPending}
-            className="w-full bg-red text-white font-display text-xl uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all disabled:opacity-50"
+            onClick={() => createAdMutation.mutate(formData)}
           >
-            {createAdMutation.isPending ? <Loader2 className="animate-spin mx-auto" /> : <span>Publish Banner</span>}
-          </button>
+            Publish banner
+          </Button>
+        }
+      >
+        <div className="space-y-4">
+          <Field label="Banner title">
+            {({ invalid, ...p }) => (
+              <Input
+                {...p}
+                placeholder="e.g. Inyange summer campaign"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              />
+            )}
+          </Field>
+
+          <Field label="Image URL">
+            {({ invalid, ...p }) => (
+              <Input
+                {...p}
+                placeholder="Cloudinary/image URL"
+                value={formData.imageUrl}
+                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+              />
+            )}
+          </Field>
+
+          {/* The creative as it will actually be cropped, so a wrong URL is caught
+              here rather than on the live homepage. */}
+          {formData.imageUrl.trim() !== '' && (
+            <div className="flex items-center gap-3 rounded-card border border-hairline bg-surface-2 p-3">
+              {/* Keyed on the URL so retyping a fixed address clears the broken
+                  fallback instead of leaving the tile stuck on the glyph. */}
+              <Creative key={formData.imageUrl} src={formData.imageUrl} alt="" />
+              <p className="text-xs text-tertiary">Preview</p>
+            </div>
+          )}
+
+          <Field label="Target URL" hint="Where the banner links to. Optional.">
+            {({ invalid, ...p }) => (
+              <Input
+                {...p}
+                placeholder="https://…"
+                value={formData.targetUrl}
+                onChange={(e) => setFormData({ ...formData, targetUrl: e.target.value })}
+              />
+            )}
+          </Field>
+
+          <Field label="Placement">
+            {(p) => (
+              <Select
+                {...p}
+                size="md"
+                value={formData.position}
+                onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                options={POSITIONS.map((x) => ({ value: x, label: placement(x) }))}
+              />
+            )}
+          </Field>
         </div>
-      </AdminModal>
+      </Modal>
     </div>
   );
 };

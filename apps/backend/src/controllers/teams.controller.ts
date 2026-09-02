@@ -2,6 +2,7 @@ const prisma = require('../config/db');
 const slugify = require('slugify');
 const { uploadImage, deleteImage } = require('../services/storage.service');
 const { enforceSportScope } = require('../utils/scope');
+const { canSeePersonalData, redactPlayer } = require('../services/privacy.service');
 const logActivity = require('../utils/activityLogger');
 
 // @desc    Get all active teams
@@ -36,6 +37,25 @@ const getTeams = async (req, res, next) => {
 // @desc    Get single team
 // @route   GET /api/v1/teams/:id
 // @access  Public
+/**
+ * A club's own page.
+ *
+ * PUBLIC, BUT PROJECTED. This route was `protect`ed, which meant the public club
+ * section — /teams/:id and its overview, matches, record, stats and squad tabs —
+ * answered 401 to every visitor who clicked a club out of the public directory
+ * that links to it. It has to be public.
+ *
+ * It could not simply be opened, though: the payload carries the manager's email
+ * and phone, the officials' contact details, and every player WITH THEIR
+ * VERIFICATION DOCUMENTS. Documents evidence a person's identity, and a player's
+ * date of birth and national ID identify them off the pitch — withheld from
+ * anyone without a verification or eligibility duty, per Law N° 058/2021 art. 46
+ * and 47, exactly as the public player profile already does.
+ *
+ * So the shape depends on who is asking. A reviewer, an admin or the club's own
+ * manager gets the full record; everybody else gets the club, its squad as names
+ * and shirt numbers, and nothing that identifies a person off the pitch.
+ */
 const getTeam = async (req, res, next) => {
   try {
     let team;
@@ -85,7 +105,25 @@ const getTeam = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Team not found' });
     }
 
-    res.status(200).json({ success: true, data: team });
+    // The manager sees their own club in full even without a platform-wide
+    // capability — it is their record to administer.
+    const isOwnManager = !!req.user && team.managerUserId === req.user.id;
+    if (canSeePersonalData(req.user) || isOwnManager) {
+      return res.status(200).json({ success: true, data: team });
+    }
+
+    const { managerUser, officials, ...club } = team;
+    return res.status(200).json({
+      success: true,
+      data: {
+        ...club,
+        // Who coaches a side is public; how to telephone them is not.
+        officials: (officials || []).map((o: any) => ({
+          id: o.id, role: o.role, fullName: o.fullName, photo: o.photo,
+        })),
+        players: (team.players || []).map(redactPlayer),
+      },
+    });
   } catch (error) {
     next(error);
   }

@@ -20,10 +20,27 @@ import { useCapabilities } from '../../hooks/useCan';
  *
  * A sport-scoped federation admin gets its nav relabelled to the sport's language
  * (a cycling admin sees "Races", a judo admin "Bouts") via useSportScope().profile.
+ *
+ * ON TOKENS, NOT A BLACK SLAB. The structure here — role-branded header, grouped
+ * sections, capability-driven items — was already right and is untouched. What
+ * changed is the surface: it was `bg-surface-dark` with `text-white`,
+ * `border-white/10` and `text-white/30` section labels set in 9px capitals with
+ * 0.25em of tracking, which is the language the public app was rebuilt out of and
+ * the only dark panel left in a light product. It is `bg-surface` with hairline
+ * borders now, and it follows the theme like everything else — an operator who
+ * chooses dark mode gets a dark sidebar because the page is dark, not because
+ * this one component always was.
+ *
+ * SENTENCE CASE. An operator reads these twenty labels every day; letterspaced
+ * capitals cost them a beat each time and buy nothing back.
  */
 
 // path → { i18n key, section, icon }. Only real routes appear here.
-const PATH_META = {
+//
+// Exported because the admin search needs the same labels the sidebar shows. The
+// alternative was a second list of admin page names living in adminAccess.ts,
+// which would drift from this one the first time a page was renamed.
+export const PATH_META = {
   '/admin/dashboard': { key: 'portal.nav_dashboard', section: 'main', icon: <LayoutDashboard size={18} /> },
   '/admin/akc3': { key: 'portal.nav_akc3', section: 'main', icon: <School size={18} /> },
   '/admin/sport-admins': { key: 'portal.nav_sport_admins', section: 'management', icon: <ShieldCheck size={18} /> },
@@ -94,9 +111,18 @@ const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
 
   const closeOnMobile = () => { if (window.innerWidth < 1024) onClose(); };
 
+  /**
+   * ACTIVE IS A TINT, NOT A SLAB. The active item was `bg-brand-strong` with a
+   * shadow — a saturated green block in a column of twenty, loud enough that the
+   * eye goes to it before the page content. The tint plus brand ink says the same
+   * thing quietly, and it is the treatment the public app already uses for a
+   * selected chip, so the two halves of the product agree.
+   */
   const navItemClass = ({ isActive }) =>
-    `group flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-display uppercase tracking-widest transition-all ${
-      isActive ? 'bg-brand-strong text-white shadow-lg' : 'text-white/50 hover:bg-white/5 hover:text-white'
+    `group flex min-h-tap items-center gap-3 rounded-control px-3 py-2 text-sm font-medium transition-colors duration-150 ease-standard ${
+      isActive
+        ? 'bg-brand-tint font-semibold text-brand-text'
+        : 'text-secondary hover:bg-surface-2 hover:text-primary'
     }`;
 
   // Sport-scoped relabelling (federation admin only): leagues→competitions, etc.
@@ -171,44 +197,44 @@ const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
   const footer = (() => {
     if (type === 'team') {
       return (
-        <div className="space-y-3 border-t border-white/10 p-4">
+        <div className="space-y-3 border-t border-hairline p-4">
           <div>
-            <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-white/30">{t('portal.current_season')}</p>
-            <p className="font-display text-lg text-brand">2025/2026</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-tertiary">{t('portal.current_season')}</p>
+            <p className="font-display text-lg font-bold text-primary">2025/2026</p>
           </div>
-          <Link to="/teams" onClick={closeOnMobile} className="flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/10">
+          <Link to="/teams" onClick={closeOnMobile} className="flex min-h-tap items-center justify-center gap-2 rounded-control border border-hairline bg-surface-2 px-3 py-2 text-sm font-semibold text-primary transition-colors duration-150 ease-standard hover:bg-surface-3">
             {t('portal.view_team_page')} <ExternalLink size={13} />
           </Link>
-          <div className="flex items-center gap-2 rounded-xl bg-white/5 p-3 text-white/50">
+          <div className="flex items-center gap-2 rounded-card border border-hairline bg-surface-2 p-3 text-tertiary">
             <HelpCircle size={16} className="shrink-0" />
-            <div className="leading-tight"><p className="text-[11px] font-bold text-white">{t('portal.need_help')}</p><p className="text-[10px]">{t('portal.contact_support')}</p></div>
+            <div className="leading-tight"><p className="text-sm font-semibold text-primary">{t('portal.need_help')}</p><p className="text-xs">{t('portal.contact_support')}</p></div>
           </div>
         </div>
       );
     }
     if (role === 'FEDERATION_ADMIN' && type === 'admin') {
       return (
-        <div className="space-y-3 border-t border-white/10 p-4">
+        <div className="space-y-3 border-t border-hairline p-4">
           <div>
-            <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-white/30">{t('portal.current_season')}</p>
-            <p className="font-display text-lg text-brand">2025/2026</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-tertiary">{t('portal.current_season')}</p>
+            <p className="font-display text-lg font-bold text-primary">2025/2026</p>
           </div>
-          <div className="rounded-xl bg-white/5 p-3">
-            <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-white/30">{t('portal.your_sport')}</p>
-            <p className="mt-0.5 flex items-center gap-1.5 text-sm font-bold text-white"><Trophy size={13} className="text-brand" /> {sport?.name || '—'}</p>
+          <div className="rounded-card border border-hairline bg-surface-2 p-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-tertiary">{t('portal.your_sport')}</p>
+            <p className="mt-0.5 flex items-center gap-1.5 text-sm font-semibold text-primary"><Trophy size={13} className="text-brand" /> {sport?.name || '—'}</p>
           </div>
         </div>
       );
     }
     if (role === 'SUPERADMIN' && type === 'admin') {
       return (
-        <div className="border-t border-white/10 p-4">
-          <div className="rounded-xl bg-white/5 p-3">
-            <p className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-white/50">
+        <div className="border-t border-hairline p-4">
+          <div className="rounded-card border border-hairline bg-surface-2 p-3">
+            <p className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-tertiary">
               <span className="h-1.5 w-1.5 rounded-full bg-brand" /> {t('portal.system_status')}
             </p>
-            <p className="text-[11px] text-brand">{t('portal.all_operational')}</p>
-            <p className="mt-2 text-[10px] text-white/30">v1.0.0 · {t('portal.role_ministry')}</p>
+            <p className="text-sm text-brand-text">{t('portal.all_operational')}</p>
+            <p className="mt-2 text-xs text-tertiary">v1.0.0 · {t('portal.role_ministry')}</p>
           </div>
         </div>
       );
@@ -218,21 +244,21 @@ const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
 
   const content = (
     <>
-      <div className="flex items-center justify-between gap-2 border-b border-white/10 p-5">
+      <div className="flex items-center justify-between gap-2 border-b border-hairline px-4 py-4">
         <div className="flex items-center gap-2.5">
           <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${header.accent}`}>{header.icon}</span>
           <div className="leading-tight">
-            <p className="text-[13px] font-display font-bold uppercase tracking-tight text-white">{header.title}</p>
-            {header.sub && <p className="text-[10px] font-semibold uppercase tracking-wider text-brand">{header.sub}</p>}
+            <p className="font-display text-sm font-bold text-primary">{header.title}</p>
+            {header.sub && <p className="truncate text-xs text-tertiary">{header.sub}</p>}
           </div>
         </div>
-        <button onClick={onClose} className="p-1 text-white/40 hover:text-white lg:hidden" aria-label="Close"><X size={20} /></button>
+        <button onClick={onClose} className="p-1 text-tertiary hover:text-primary lg:hidden" aria-label="Close"><X size={20} /></button>
       </div>
 
-      <nav className="flex-1 space-y-5 overflow-y-auto p-4">
+      <nav className="scroll-contain flex-1 space-y-4 overflow-y-auto p-3">
         {groups.map((group) => (
           <div key={group.section} className="space-y-1">
-            {SECTION_KEY[group.section] && <p className="px-3 pb-1 text-[9px] font-bold uppercase tracking-[0.25em] text-white/30">{t(SECTION_KEY[group.section])}</p>}
+            {SECTION_KEY[group.section] && <p className="px-3 pb-1 pt-1 text-[11px] font-semibold uppercase tracking-wide text-tertiary">{t(SECTION_KEY[group.section])}</p>}
             {group.items.map((link) => (
               <NavLink key={link.to} to={link.to} end onClick={closeOnMobile} className={navItemClass}>
                 {link.icon}
@@ -250,14 +276,19 @@ const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
 
   return (
     <>
-      <aside className="hidden min-h-screen w-64 flex-shrink-0 flex-col border-r border-surface-dark2 bg-surface-dark text-white lg:flex">
+      {/* STICKY, AND ITS OWN SCROLLER. Inside `flex min-h-screen` the rail grew to
+          the height of the CONTENT, so on a long list (the players table runs to
+          20,000px) the navigation scrolled off the top and an operator had to
+          scroll back up to reach another section. Pinned to the viewport with
+          `h-screen`, the nav below scrolls inside itself instead. */}
+      <aside className="sticky top-0 hidden h-screen w-64 flex-shrink-0 flex-col border-r border-hairline bg-surface lg:flex">
         {content}
       </aside>
 
       {isOpen && (
         <div className="fixed inset-0 z-[110] lg:hidden">
-          <div className="absolute inset-0 bg-surface-dark/80 backdrop-blur-sm" onClick={onClose} />
-          <aside className="absolute bottom-0 left-0 top-0 flex w-72 flex-col bg-surface-dark text-white shadow-2xl animate-in slide-in-from-left duration-300">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+          <aside className="absolute bottom-0 left-0 top-0 flex w-72 flex-col bg-surface shadow-nav animate-in slide-in-from-left duration-300">
             {content}
           </aside>
         </div>
