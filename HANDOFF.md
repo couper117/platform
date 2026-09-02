@@ -1,48 +1,32 @@
 # HANDOFF
 
 ## Current Task
-Making the app work against the REAL API rather than the demo adapter.
+Standings pages, the all-sports fixture list, and the sport picker.
 
 ## Status
-Solved. All 19 public routes render clean at 1440px and 390px with no JS errors.
+Solved. 16 routes clean at 1440px and 390px, no console errors.
 
-RUNNING IT
-  npm run dev        backend + frontend (needs Postgres)
-  npm run dev:demo    frontend only, mock data, no backend — port 5174
-Local Postgres is `postgresql-x64-18` on port **5432**, not the 5433 the shared
-.env assumed. apps/backend/.env is machine-specific and gitignored; both URLs
-point at 5432 here. Database `rnsp` created, all migrations applied, seeded.
-
-WHAT WAS ACTUALLY BROKEN — none of it was the UI, which is the same code in both
-modes. Every difference was the data or the API:
-
-- Prisma client had never been generated, so the backend crashed on import.
-- The side rail attached itself to whichever league the SOONEST fixture belonged
-  to. In demo that was always football, which has a table; against real data it
-  was a volleyball tie whose league has no standings, so the rail fetched an
-  empty league and left a dead 320px column. It now prefers a league that has a
-  table (`_count.standings`, added to the leagues list) and the grid drops to one
-  column when there is nothing to put in the second.
-- `scroll-contain` never hid the scrollbar — it only set overscroll behaviour. On
-  a phone the bar is a fading overlay so nobody noticed; on Windows it is a
-  permanent grey trough, and it only appeared once the real API returned twenty
-  sports instead of twelve and the chip row began to overflow.
-- MatchCard truncated club names. Fine for "APR FC", useless for "Rwanda Revenue
-  Authority VC" — half-width cards read "Rwanda Re… VS Kigali Volle…". Two lines
-  now, then clip.
-- No ad inventory: the seed had four rows under the old HOME_BANNER names while
-  the app asks for 37 placements. `npm run seed:ads` books the lot.
-- `/akc3/teams/:id` and `/akc3/athletes/:id` did not exist, so both Amashuri
-  pages 404'd. Added, public, with a deliberate allowlist projection — AkcPlayer
-  holds guardian names and phones, ID numbers, consent records and a disability
-  flag for MINORS, none of which a spectator needs.
-- `/teams/:id` was `protect`ed while the public directory links straight to it,
-  so every visitor clicking a club got 401. Now `attachUser` + projection: it was
-  returning the manager's email and phone and every player WITH their
-  verification documents.
-- The dev rate limit (300 / 15 min) is now 5000 outside production. A single page
-  makes a dozen calls, so a few minutes of clicking exhausted it and every screen
-  rendered its error state — which looks exactly like a broken backend.
+- **The standings table gets the whole column.** It sat in a two-column grid with
+  the scorers and an advert beside it, so a table ran ~600px of a 1100px page —
+  and a four-team basketball league read as a fragment. Full width now, with the
+  full column set (Form, P, W, D, L, GF, GA, GD, Pts) via a new `wide` prop; the
+  scorers follow underneath. `wide` is a prop, not a breakpoint, for the same
+  reason `showForm` is: the same component also renders in a 320px rail, and a
+  `lg:` variant would put nine columns in it. The extra columns hide below `md`.
+  The rail advert is gone with the rail; the page keeps its footer banner.
+- **No table on "All sports".** A league table describes one competition; on a
+  list that is deliberately every sport at once there is no league it belongs to,
+  so whichever it showed was arbitrary. It returns as soon as the list is narrowed
+  to a sport or a competition.
+- **The sport picker.** Twenty sports, not the demo's twelve. Each chip carries
+  its own icon so the rail is scanned rather than read; the sport you follow leads
+  the list; and a fade at the right edge carries the "there is more" message the
+  hidden scrollbar used to.
+- **Found on the way: the wrong default competition.** Football's standings opened
+  on "Kagame Cup Schools" — first in the API's order, no table — and told the
+  reader "No table yet" while the Premier League sat one chip away. `primaryLeague`
+  now prefers a competition that HAS a table, and among those the senior national
+  one.
 
 ## Progress
 - [x] `scripts/make-ad-creatives.mjs` rebuilt: 6 sponsors x 3 shapes (-lg/-mb/-mr)

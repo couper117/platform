@@ -139,6 +139,20 @@ const FixturesPage = () => {
    * this costs no extra request.
    */
   const railLeagueId = React.useMemo(() => {
+    /**
+     * NO TABLE ON "ALL SPORTS".
+     *
+     * A league table describes ONE competition. On a list that is deliberately
+     * every sport at once — football beside basketball beside volleyball — there
+     * is no league it could belong to, so whichever one it showed was arbitrary
+     * and read as though it belonged to the fixtures beside it. The reader asked
+     * for everything; the answer is the matches, not one league's table.
+     *
+     * It comes back as soon as the list is narrowed to a sport or a competition,
+     * which is the point at which a table means something again.
+     */
+    if (!sportSlug && !filters.leagueId) return undefined;
+
     if (filters.leagueId) return filters.leagueId;
 
     const all = leagues?.data ?? [];
@@ -155,7 +169,7 @@ const FixturesPage = () => {
     }
     const ranked = [...byLeague.entries()].sort((a, b) => b[1] - a[1]).map(([id]) => id);
     return ranked.find(hasTable) ?? all.find((l) => (l._count?.standings ?? 0) > 0)?.id;
-  }, [filters.leagueId, featured?.leagueId, leagues?.data, list]);
+  }, [sportSlug, filters.leagueId, featured?.leagueId, leagues?.data, list]);
   const { data: railLeague, isLoading: railLoading } = useQuery({
     queryKey: ['league-details', String(railLeagueId)],
     queryFn: () => getLeague(railLeagueId),
@@ -313,6 +327,7 @@ const FixturesPage = () => {
       <FixtureFilters
         sports={sports}
         sportSlug={sportSlug}
+        favouriteSlug={favouriteSlug}
         onSport={(slug) => {
           setSportSlug(slug);
           // Changing which sport you are LOOKING at is not the same as changing

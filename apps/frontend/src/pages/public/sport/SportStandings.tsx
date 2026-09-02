@@ -9,7 +9,6 @@ import TopScorers from '../../../components/match/TopScorers';
 import EmptyState from '../../../components/ui/EmptyState';
 import ErrorState from '../../../components/ui/ErrorState';
 import cn from '../../../components/ui/cn';
-import AdSlot from '../../../components/shared/AdSlot';
 
 /** Competition picker — the same outlined chip as FixtureFilters' Chip. */
 const CompetitionChip = ({ active, children, ...props }: { active: boolean; children: React.ReactNode } & Record<string, any>) => (
@@ -44,7 +43,11 @@ const SportStandings = () => {
     if (leagues.length === 0) return;
     const stillValid = leagues.some((l) => String(l.id) === String(leagueId));
     if (!stillValid) {
-      setLeagueId(primaryLeague?.id ?? leagues[0].id);
+      // Same rule as primaryLeague: never fall back to a competition with no
+      // table when one of the others has one.
+      setLeagueId(primaryLeague?.id
+        ?? leagues.find((l) => (l._count?.standings ?? 0) > 0)?.id
+        ?? leagues[0].id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [leagues, slug]);
@@ -91,8 +94,8 @@ const SportStandings = () => {
       )}
 
       {isLoading ? (
-        <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-6">
-          <StandingsTable.Skeleton />
+        <div className="space-y-6">
+          <StandingsTable.Skeleton rows={10} />
           <TopScorers.Skeleton />
         </div>
       ) : isError ? (
@@ -100,14 +103,27 @@ const SportStandings = () => {
       ) : rows.length === 0 ? (
         <EmptyState icon={Trophy} title={t('sporthub.standings_no_table')} hint={t('sporthub.standings_empty')} />
       ) : (
-        <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-6">
-          <StandingsTable rows={rows} showForm />
-          <div className="space-y-4">
-            <TopScorers scorers={scorers} />
-            {/* Desktop only: on a phone the rail stacks under the table and the
-                sport's own banner already sits at the foot of the layout. */}
-            <AdSlot position="sport-rail" variant="sidebar" className="hidden lg:block" />
-          </div>
+        /*
+         * THE TABLE GETS THE WHOLE COLUMN.
+         *
+         * It used to sit in a two-column grid with the scorers and an advert
+         * beside it, which left a league table about 900px wide squeezed into
+         * 600 — and for a four-team basketball league the result read as a
+         * fragment rather than a standings page. The table is the reason anyone
+         * opens this tab, so it runs full width with its full set of columns,
+         * and the scorers follow underneath where they have room to breathe.
+         *
+         * The rail advert is gone with the rail. The page still carries the
+         * banner at its foot, which is inventory enough for a screen whose whole
+         * job is one table.
+         */
+        <div className="space-y-6">
+          <StandingsTable rows={rows} showForm wide />
+          {scorers?.length > 0 && (
+            <div className="lg:max-w-md">
+              <TopScorers scorers={scorers} />
+            </div>
+          )}
         </div>
       )}
     </div>
