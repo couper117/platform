@@ -67,7 +67,7 @@ const ROUTE_POLICY = {
   // admin.routes.ts
   'admin.stats':          ['FEDERATION_ADMIN', 'LEAGUE_ADMIN'],
   'users.read':           [],
-  'users.write':          [],
+  'users.write':          [],   // create, edit, deactivate, change role
   'system.health':        [],
   'media.read':           [],
   'federations.admins':   [],
