@@ -1,31 +1,26 @@
 # HANDOFF
 
 ## Current Task
-Header language switcher, and the Amashuri overview against real data.
-ADMIN IS NEXT — still untouched, a colleague is on it.
+The header overflowing in French and Kinyarwanda. ADMIN IS NEXT — untouched.
 
 ## Status
-Solved. 14 routes clean at 1440px and 390px.
+Solved. Zero clipping in all three languages at 1024 / 1280 / 1440 / 1920.
 
-- **Language switcher in the header.** It only ever existed in the mobile drawer,
-  so a desktop visitor could not read a NATIONAL platform with three official
-  working languages in anything but English. Globe + the two-letter code, on the
-  same hover panel as the Sports menu. Verified end to end: switching to
-  Kinyarwanda re-renders the page and sets `<html lang="rw">`.
-- **The Amashuri overview was built for demo-shaped data.** Seven sports, four
-  competitions, five live matches. The real programme has ONE sport, ONE
-  competition and nothing live, so: a lone tile at the left of an eight-column
-  row, one competition card at quarter width, and — because the live section
-  simply vanished when nothing was in play — no fixtures on the page at all.
-  - The live section is now "Next up" when nothing is live, showing the next
-    fixtures. A school sports page with no matches on it is not a page.
-  - Grids use `auto-fill` with a minimum width. Capping the column COUNT was my
-    first attempt and it was worse — a grid told to lay one item across two
-    columns stretches it, so a single sport tile became a 550px square.
-  - `LiveSchoolCard` hard-coded status ONGOING, so the new upcoming fixtures each
-    wore a red "Live" pill. It reads the fixture now.
-- **Plurals.** "1 Sports", "1 Competitions", "1 matches", "1 competitions" —
-  across the Amashuri hero, the homepage sport tiles and the /sports index.
+The header bar is capped at `max-w-6xl` (1152px) at EVERY viewport, so the
+wordmark, seven nav links and the control cluster compete for a fixed budget that
+does not grow with the window. The same seven links measure 477px in English and
+621px in French — and the nav is `min-w-0 flex-1`, so the surplus was silently
+clipped rather than overflowing visibly. Measured: 116px cut off in French, 74px
+in Kinyarwanda, at 1280 and above. English fitted, which is why it went unseen.
+
+Fixed structurally, so it does not depend on how long a word is in one language:
+  · nav gap 20/24px -> a uniform 12px, and the left margin 16/32px -> 12/20px
+  · nav labels 13px below `xl`, 14px above (the Sports dropdown trigger too)
+
+Two labels were also wrong, not merely long: French `nav.leagues` was
+"Championnats" (championships) and Kinyarwanda "Amarushanwa" (competitions), for
+a destination that lists LEAGUES. Now "Ligues" and "Amaligi" — the borrowing
+already used elsewhere in these files.
 
 ## Progress
 - [x] `scripts/make-ad-creatives.mjs` rebuilt: 6 sponsors x 3 shapes (-lg/-mb/-mr)

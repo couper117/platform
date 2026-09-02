@@ -119,7 +119,14 @@ const NavItem = ({ to, label, end }) => (
     end={end}
     className={({ isActive }) =>
       cn(
-        'relative flex items-center whitespace-nowrap px-0.5 py-2 text-sm font-semibold',
+        // 13px below `xl`, 14px above. THE HEADER MUST NOT DEPEND ON HOW LONG A
+        // WORD IS IN ONE LANGUAGE. The bar is capped at max-w-6xl (1152px) at
+        // every viewport, so the seven links, the wordmark and the controls are
+        // competing for a fixed budget — and the same seven links measure 477px
+        // in English and 621px in French. A point of type and eight pixels of gap
+        // buy back more than the difference, in every language, without moving a
+        // breakpoint or shortening a translation to fit a layout.
+        'relative flex items-center whitespace-nowrap px-0.5 py-2 text-[13px] font-semibold xl:text-sm',
         'transition-colors duration-150 ease-standard',
         'after:absolute after:inset-x-0 after:-bottom-1 after:h-0.5 after:rounded-pill after:content-[""]',
         isActive
@@ -228,7 +235,7 @@ const SportsMenu = () => {
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          'flex items-center gap-1 whitespace-nowrap px-0.5 py-2 text-sm font-semibold',
+          'flex items-center gap-1 whitespace-nowrap px-0.5 py-2 text-[13px] font-semibold xl:text-sm',
           'transition-colors duration-150 ease-standard',
           open ? 'text-primary' : 'text-secondary hover:text-primary'
         )}
@@ -352,7 +359,7 @@ const AppHeader = ({ className }) => {
         <Wordmark />
 
         {/* Desktop nav: Explore · Live · Matches · Sports ▾ · Leagues · Teams · News · Amashuri */}
-        <nav aria-label="Main" className="ml-4 hidden min-w-0 flex-1 items-center gap-5 lg:flex xl:ml-8 xl:gap-6">
+        <nav aria-label="Main" className="ml-3 hidden min-w-0 flex-1 items-center gap-3 lg:flex xl:ml-5">
           {PRIMARY_LEFT.map((item) => (
             <NavItem key={item.to} {...item} label={t(item.labelKey)} />
           ))}
