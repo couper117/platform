@@ -10,8 +10,15 @@ codebases.
 | `rwasport-web` | `apps/frontend` | static site |
 | `rwasport-api` | `apps/backend` | serverless function at `/api/*` |
 
-Set **Root Directory** in each Vercel project's settings. Without it Vercel builds
-the repository root and finds nothing to deploy.
+Set **Root Directory** in each Vercel project's settings — `apps/backend` and
+`apps/frontend`, not `api`. The serverless entry lives at `apps/backend/api/index.ts`;
+there is no `api/` at the repository root, and pointing Root Directory there gives
+*"The specified Root Directory 'api' does not exist"*.
+
+Leave **Include source files outside of the Root Directory** enabled. This is an
+npm workspace: dependencies install to the repository root, and the Prisma client
+is generated into the root `node_modules`, so a build confined to `apps/backend`
+would not find them.
 
 ---
 
