@@ -30,7 +30,8 @@
     "matches:end-stalled": "tsx scripts/end-stalled-matches.mjs",
     "matches:end-stalled:apply": "tsx scripts/end-stalled-matches.mjs --apply",
     "install:all": "npm install",
-    "prepare": "husky || true"
+    "prepare": "husky || true",
+    "dev:demo": "npm run dev:demo --workspace=apps/frontend"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",

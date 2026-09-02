@@ -11,6 +11,30 @@ const apiClient = axios.create({
   },
 });
 
+/**
+ * DEMO MODE — run the real app with no backend.
+ *
+ * `.env.example` has advertised `VITE_DEMO=true` since before this was written,
+ * but `src/api/demo/` was an empty directory, so the flag did nothing: every
+ * request went to localhost:5000 and the app rendered blank whenever the API was
+ * down. The dataset is now here, ported from demo/app, and the flag works.
+ *
+ * GATED, NOT ALWAYS ON. demo/app installs this adapter unconditionally because it
+ * IS the sandbox. This is the real system, so it must still be able to talk to a
+ * real backend — the flag is the only thing that swaps it out, and a normal
+ * `vite build` tree-shakes the dataset away entirely because the import sits
+ * behind a compile-time-constant condition.
+ *
+ * INSTALLED SYNCHRONOUSLY, RESOLVED PER REQUEST. Awaiting the import at the top
+ * level would make the whole entry graph block on this module, so anything the
+ * dataset imports that also lives in the entry chunk would deadlock evaluation
+ * and leave the app mounted but empty.
+ */
+if (import.meta.env.VITE_DEMO === 'true') {
+  const mockAdapterReady = import('./demo/mockAdapter').then((m) => m.default);
+  apiClient.defaults.adapter = (config) => mockAdapterReady.then((adapter) => adapter(config));
+}
+
 apiClient.interceptors.request.use(
   (config) => {
     const { token } = useAuthStore.getState();

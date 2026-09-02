@@ -74,7 +74,19 @@ export const pickFeatured = (fixtures = []) =>
 /* â”€â”€â”€ rail â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 const Rail = ({ state, fixture, showDate }) => {
+  /**
+   * `statusLabel` FIRST, and it is not a nicety.
+   *
+   * A minute only means something in football. Basketball runs in quarters,
+   * volleyball in sets, and this rail was reading `liveState.minute` alone — so a
+   * live basketball game showed the word "LIVE" and a live volleyball set showed
+   * the word "LIVE", and a five-match list of mixed sports was the same word five
+   * times over. The API already sends a per-sport label ("67'", "Q4", "Set 2");
+   * this just stops throwing it away.
+   */
   const minute = fixture.liveState?.minute ?? fixture.minute;
+  const label =
+    fixture.statusLabel || (typeof minute === 'number' ? `${minute}'` : null);
 
   if (state === 'live') {
     return (
@@ -84,7 +96,7 @@ const Rail = ({ state, fixture, showDate }) => {
       <span className="flex animate-live-pulse flex-col items-center gap-0.5 text-live">
         <span className="h-1.5 w-1.5 rounded-pill bg-live" />
         <span className="text-xs font-semibold tabular-nums leading-none">
-          {typeof minute === 'number' ? `${minute}'` : 'LIVE'}
+          {label ?? 'LIVE'}
         </span>
       </span>
     );
@@ -152,7 +164,13 @@ const Side = ({ team, score, showScore, dim, winner, live, safe }) => (
         <motion.span
           key={score ?? 0}
           {...scorePop(safe && live)}
-          className={cn('inline-block', safe && live && 'text-live')}
+          // NOT `text-live`. This used to paint every live score orange for as
+          // long as the match was on — the comment claimed it "flashes" on a
+          // goal, but nothing ever turned it back, so a five-match live list was
+          // ten orange numbers and the colour stopped meaning anything. The pop
+          // below already marks the change, and the pulsing minute in the rail
+          // already says the match is live. A score is a score.
+          className="inline-block"
         >
           {score ?? 0}
         </motion.span>

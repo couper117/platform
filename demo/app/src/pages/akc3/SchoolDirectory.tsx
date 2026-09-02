@@ -1,21 +1,97 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { School, Search, Filter, ChevronRight, GraduationCap } from 'lucide-react';
-import ResponsiveWrapper from '../../components/shared/ResponsiveWrapper';
-import Skeleton from '../../components/shared/Skeleton';
-import Seo from '../../components/shared/Seo';
-import AmashuriHero from '../../components/amashuri/AmashuriHero';
-import Card from '../../components/ui/Card';
-import Badge from '../../components/ui/Badge';
-import EmptyState from '../../components/ui/EmptyState';
+import { School, Search, ChevronRight } from 'lucide-react';
 import { getSchools } from '../../api/endpoints/amashuri';
+import { useEnumLabel } from '../../i18n/enums';
+import Seo from '../../components/shared/Seo';
+import { Badge, EmptyState, ErrorState, Input as InputField, Skeleton, SkeletonList } from '../../components/ui';
+import cn from '../../components/ui/cn';
+
+// Input is a forwardRef .jsx primitive with an untyped signature, so a .tsx
+// caller fails the JSX attribute check even though every .jsx call site is
+// fine — checkJs is off, so only .tsx sees this (same gap LeaguesPage
+// documents for Select). Cast once here rather than touching the primitive.
+const Input = InputField as any;
+
+const CATEGORY_CHIPS: [string, string][] = [
+  ['', 'amashuri.directory.all_categories'],
+  ['PRIMARY', 'amashuri.directory.primary'],
+  ['SECONDARY', 'amashuri.directory.secondary'],
+  ['TVET', 'amashuri.directory.tvet'],
+];
+
+const CategoryChip = ({ active, children, ...props }: any) => (
+  <button
+    type="button"
+    className={cn(
+      'flex h-8 shrink-0 items-center rounded-pill border px-3 text-xs font-semibold',
+      'transition-colors duration-150 ease-standard',
+      active
+        ? 'border-brand/40 bg-brand-tint text-brand-text'
+        : 'border-hairline text-secondary hover:bg-surface-2 hover:text-primary'
+    )}
+    {...props}
+  >
+    {children}
+  </button>
+);
+
+const SchoolCard = ({ school, t, enumLabel }: { school: any; t: any; enumLabel: any }) => (
+  <Link
+    to={`/amashuri/schools/${school.id}`}
+    className="group flex h-full flex-col gap-4 rounded-card border border-hairline bg-surface p-4 transition-colors duration-150 ease-standard hover:border-brand/40 hover:bg-surface-2 sm:p-5"
+  >
+    <div className="flex items-start justify-between gap-2">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control bg-surface-2 text-tertiary transition-colors duration-150 ease-standard group-hover:bg-brand-tint group-hover:text-brand-text">
+        <School size={18} aria-hidden="true" />
+      </span>
+      <Badge>{enumLabel('school_category', school.category)}</Badge>
+    </div>
+
+    <div className="min-w-0 flex-1 space-y-1">
+      <h3 className="truncate font-display text-lg font-semibold text-primary">{school.name}</h3>
+      <p className="flex items-center gap-1.5 truncate text-xs text-tertiary">
+        {school.code && (
+          <>
+            <span>{t('amashuri.directory.code', { code: school.code })}</span>
+            <span aria-hidden="true">·</span>
+          </>
+        )}
+        <span className="truncate">{school.sector || t('amashuri.level.national')}</span>
+      </p>
+    </div>
+
+    <div className="mt-auto flex items-center justify-between border-t border-hairline pt-3 text-xs font-semibold text-secondary transition-colors duration-150 ease-standard group-hover:text-brand-text">
+      <span>{t('amashuri.directory.view_teams')}</span>
+      <ChevronRight size={15} aria-hidden="true" />
+    </div>
+  </Link>
+);
+
+const SchoolCardSkeleton = () => (
+  <div className="h-full rounded-card border border-hairline bg-surface p-4 sm:p-5">
+    <div className="mb-4 flex items-start justify-between gap-2">
+      <Skeleton className="h-10 w-10" />
+      <Skeleton className="h-5 w-16" />
+    </div>
+    <Skeleton className="h-5 w-3/4" />
+    <Skeleton className="mt-2 h-3 w-1/2" />
+    <div className="mt-4 border-t border-hairline pt-3">
+      <Skeleton className="h-3 w-1/3" />
+    </div>
+  </div>
+);
+
+const GRID = 'grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 lg:gap-5';
 
 const SchoolDirectory = () => {
   const { t } = useTranslation();
+  const enumLabel = useEnumLabel();
   const [filters, setFilters] = useState({ category: '', search: '' });
 
-  const { data: schools, isLoading } = useQuery({
+  const { data: schools, isLoading, isError, refetch } = useQuery({
     queryKey: ['amashuri-schools-directory', filters],
     queryFn: () => getSchools(filters),
     retry: false,
@@ -24,83 +100,54 @@ const SchoolDirectory = () => {
   const list = schools?.data || [];
 
   return (
-    <div className="bg-surface-2 dark:bg-surface-dark min-h-screen pb-24">
+    <div className="min-h-screen bg-page">
       <Seo title={t('seo.amashuri_directory_title')} description={t('seo.amashuri_directory_desc')} />
 
-      <AmashuriHero title={t('amashuri.directory.title')} accent={t('amashuri.directory.accent')} subtitle={t('amashuri.directory.subtitle')} compact>
-        <div className="flex items-center bg-white/10 backdrop-blur-md rounded-2xl p-2 border border-white/20 w-full max-w-md mt-2">
-          <Search className="text-white/50 ml-2" size={18} />
-          <label htmlFor="school-search" className="sr-only">{t('common.search')}</label>
-          <input
+      <div className="mx-auto max-w-3xl px-4 pt-4 lg:max-w-6xl lg:px-6 lg:pt-6">
+        <h1 className="mb-3 font-display text-xl font-extrabold tracking-[-0.02em] text-primary sm:mb-4 sm:text-3xl">
+          {t('amashuri.directory.title')} {t('amashuri.directory.accent')}
+        </h1>
+        <p className="mb-4 text-sm text-secondary sm:mb-6">{t('amashuri.directory.subtitle')}</p>
+
+        <label htmlFor="school-search" className="sr-only">{t('common.search')}</label>
+        <div className="relative mb-4">
+          <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-tertiary" aria-hidden="true" />
+          <Input
             id="school-search"
             type="text"
             placeholder={t('amashuri.directory.search_placeholder')}
-            className="bg-transparent border-none text-white placeholder:text-white/40 focus:ring-0 focus:outline-none w-full p-2 text-sm"
+            className="pl-11"
             value={filters.search}
-            onChange={(e) => setFilters((p) => ({ ...p, search: e.target.value }))}
+            onChange={(e: any) => setFilters((p) => ({ ...p, search: e.target.value }))}
           />
         </div>
-      </AmashuriHero>
 
-      {/* Filter bar */}
-      <div className="sticky top-[68px] z-40 bg-white/80 dark:bg-surface-dark2/80 backdrop-blur-xl border-b border-surface-3 dark:border-white/5 shadow-sm">
-        <ResponsiveWrapper>
-          <div className="flex overflow-x-auto scrollbar-hide py-4 gap-6 items-center">
-            <div className="flex items-center gap-3 flex-shrink-0">
-              <Filter size={14} className="text-rwanda-blue" />
-              <label htmlFor="cat-filter" className="sr-only">{t('amashuri.categories')}</label>
-              <select
-                id="cat-filter"
-                className="bg-transparent border-none text-[11px] font-bold uppercase tracking-widest focus:ring-0 cursor-pointer p-0"
-                value={filters.category}
-                onChange={(e) => setFilters((p) => ({ ...p, category: e.target.value }))}
-              >
-                <option value="">{t('amashuri.directory.all_categories')}</option>
-                <option value="PRIMARY">{t('amashuri.directory.primary')}</option>
-                <option value="SECONDARY">{t('amashuri.directory.secondary')}</option>
-                <option value="TVET">{t('amashuri.directory.tvet')}</option>
-              </select>
-            </div>
-          </div>
-        </ResponsiveWrapper>
+        <div role="group" aria-label={t('amashuri.categories')} className="scroll-contain -mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+          {CATEGORY_CHIPS.map(([value, labelKey]) => (
+            <CategoryChip key={value || 'all'} active={filters.category === value} onClick={() => setFilters((p) => ({ ...p, category: value }))}>
+              {t(labelKey)}
+            </CategoryChip>
+          ))}
+        </div>
       </div>
 
-      <ResponsiveWrapper className="mt-12">
+      <div className="mx-auto max-w-3xl px-4 pb-10 pt-4 lg:max-w-6xl lg:px-6 lg:pb-14">
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"><Skeleton type="card" count={6} /></div>
+          <div className={GRID}>
+            <SkeletonList count={6}>
+              <SchoolCardSkeleton />
+            </SkeletonList>
+          </div>
+        ) : isError ? (
+          <ErrorState title={t('amashuri.directory.error_title')} hint={t('amashuri.directory.error_hint')} onRetry={refetch} />
         ) : list.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            {list.map((school) => (
-              <Card key={school.id} hover to={`/amashuri/schools/${school.id}`} className="p-8 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-rwanda-blue/5 -mr-16 -mt-16 rounded-full" />
-                <div className="relative z-10 space-y-6">
-                  <div className="flex items-start justify-between">
-                    <span className="p-4 bg-surface-2 dark:bg-white/5 rounded-2xl text-rwanda-blue shadow-sm">
-                      <School size={32} />
-                    </span>
-                    <Badge tone="blue">{school.category}</Badge>
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="text-2xl font-display uppercase tracking-tight leading-tight">{school.name}</h3>
-                    <div className="flex items-center gap-2 text-[10px] uppercase font-bold tracking-widest opacity-40 italic">
-                      {school.code && <><span>Code: {school.code}</span><span>•</span></>}
-                      <span>{school.sector || 'National'}</span>
-                    </div>
-                  </div>
-                  <div className="pt-6 border-t border-surface-3 dark:border-white/5 flex items-center justify-between text-rwanda-blue">
-                    <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em]">
-                      <GraduationCap size={16} /> {t('amashuri.directory.view_teams')}
-                    </span>
-                    <ChevronRight size={18} />
-                  </div>
-                </div>
-              </Card>
-            ))}
+          <div className={GRID}>
+            {list.map((school: any) => <SchoolCard key={school.id} school={school} t={t} enumLabel={enumLabel} />)}
           </div>
         ) : (
           <EmptyState icon={School} title={t('amashuri.directory.not_found')} hint={t('amashuri.directory.not_found_hint')} />
         )}
-      </ResponsiveWrapper>
+      </div>
     </div>
   );
 };

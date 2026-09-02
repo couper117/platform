@@ -33,7 +33,8 @@
     "close_menu": "Fermer le menu",
     "open_menu": "Ouvrir le menu",
     "install_ios": "Installer : appuyez sur Partager, puis « Ajouter a l ecran d accueil ».",
-    "install_app": "Installer l application"
+    "install_app": "Installer l application",
+    "amashuri_short": "Amashuri"
   },
   "common": {
     "loading": "Chargement…",
@@ -106,7 +107,20 @@
     "center": "Centre d'actualités RwaSport",
     "article": "Page de l'article",
     "read_full_story": "Lire l'article complet",
-    "default_author": "Rédaction"
+    "default_author": "Rédaction",
+    "title": "Actualités",
+    "subtitle": "Les dernières actualités du sport rwandais.",
+    "filter_all": "Tout",
+    "more_headlines": "Autres titres",
+    "more_stories": "Autres actualités",
+    "seo_description": "Actualités, annonces, résultats et transferts du sport rwandais.",
+    "error_title": "Impossible de charger les actualités",
+    "error_hint": "Vérifiez votre connexion et réessayez.",
+    "empty_title": "Aucun article pour le moment",
+    "empty_hint": "Revenez bientôt pour les dernières actualités.",
+    "not_found_title": "Article introuvable",
+    "not_found_hint": "Cet article a peut-être été supprimé, ou le lien est incorrect.",
+    "back_to_news": "Retour aux actualités"
   },
   "support": {
     "center": "Centre d'assistance"
@@ -125,7 +139,10 @@
     "filter_gender": "Filtrer par genre",
     "filter_level": "Filtrer par niveau",
     "none": "Aucun championnat trouvé",
-    "none_hint": "Essayez d'ajuster vos filtres pour trouver ce que vous cherchez."
+    "none_hint": "Essayez d'ajuster vos filtres pour trouver ce que vous cherchez.",
+    "other_sport": "Autres",
+    "error_title": "Impossible de charger les championnats",
+    "error_hint": "Vérifiez votre connexion et réessayez."
   },
   "league": {
     "back_to_leagues": "Retour à tous les championnats",
@@ -139,7 +156,14 @@
     "visual_insights": "Aperçus visuels",
     "fixtures_and_results": "Matchs et résultats",
     "no_fixtures": "Aucun match programmé",
-    "participating_teams": "Équipes participantes"
+    "participating_teams": "Équipes participantes",
+    "tabs_label": "Sections du championnat",
+    "no_teams": "Aucune équipe n'a encore rejoint",
+    "no_teams_hint": "Les équipes apparaîtront ici une fois inscrites à ce championnat.",
+    "error_title": "Impossible de charger ce championnat",
+    "error_hint": "Vérifiez votre connexion et réessayez.",
+    "fixtures_error_title": "Impossible de charger les matchs",
+    "fixtures_error_hint": "Vérifiez votre connexion et réessayez."
   },
   "fixtures": {
     "live_match_center": "Centre des matchs en direct",
@@ -165,7 +189,16 @@
     "error_title": "Impossible de charger les matchs",
     "error_hint": "Vérifiez votre connexion et réessayez.",
     "show_all_leagues": "Afficher toutes les ligues",
-    "seo_description": "Matchs, scores en direct et résultats du sport rwandais."
+    "seo_description": "Matchs, scores en direct et résultats du sport rwandais.",
+    "tab_live": "En direct",
+    "tab_results": "Résultats",
+    "live_count_one": "{{count}} match en direct",
+    "live_count_other": "{{count}} matchs en direct",
+    "updated_at": "Mis à jour {{time}}",
+    "updating": "Mise à jour…",
+    "all_sports": "Tous les sports",
+    "make_my_sport": "Définir comme mon sport",
+    "your_sport_on": "Votre sport — s’ouvre par défaut"
   },
   "match": {
     "back_to_schedule": "Retour au calendrier",
@@ -225,7 +258,26 @@
     "no_events": "Aucun événement",
     "no_events_hint": "Les événements du match apparaîtront ici.",
     "stats_unpublished": "Statistiques détaillées non publiées — dérivées des événements du match",
-    "sport": "Sport"
+    "sport": "Sport",
+    "section_nav": "Sections du match",
+    "error_title": "Impossible de charger ce match",
+    "error_hint": "Vérifiez votre connexion et réessayez.",
+    "comments": "Commentaires",
+    "comments_local_note": "Les commentaires sont enregistrés uniquement sur cet appareil — invisibles pour les autres.",
+    "comments_name_label": "Votre nom",
+    "comments_name_placeholder": "ex. Eric N.",
+    "comments_message_label": "Ajouter un commentaire",
+    "comments_message_placeholder": "Partagez votre avis sur le match…",
+    "comments_post": "Publier le commentaire",
+    "comments_empty": "Aucun commentaire pour l'instant",
+    "comments_empty_hint": "Soyez le premier à partager votre avis sur ce match.",
+    "comments_count": "{{count}} commentaires",
+    "comments_guest": "Supporter invité",
+    "time_just_now": "À l'instant",
+    "time_minutes_ago": "il y a {{count}} min",
+    "time_hours_ago": "il y a {{count}} h",
+    "time_days_ago": "il y a {{count}} j",
+    "captain": "Capitaine"
   },
   "standings": {
     "col_pos": "Pos",
@@ -377,7 +429,10 @@
       "tvet": "Établissements TVET",
       "view_teams": "Voir les équipes de l'école",
       "not_found": "Aucune école trouvée",
-      "not_found_hint": "Essayez un autre terme de recherche ou une autre catégorie."
+      "not_found_hint": "Essayez un autre terme de recherche ou une autre catégorie.",
+      "error_title": "Impossible de charger les écoles",
+      "error_hint": "Vérifiez votre connexion et réessayez.",
+      "code": "Code : {{code}}"
     },
     "schedule": {
       "eyebrow": "Centre des matchs interscolaires",
@@ -385,7 +440,9 @@
       "accent": "des Matchs",
       "subtitle": "Matchs à venir, rencontres en direct et résultats finaux de chaque championnat scolaire.",
       "empty": "Aucun match ici",
-      "empty_hint": "Il n'y a pas encore de matchs dans cette catégorie."
+      "empty_hint": "Il n'y a pas encore de matchs dans cette catégorie.",
+      "error_title": "Impossible de charger les matchs",
+      "error_hint": "Vérifiez votre connexion et réessayez."
     },
     "standings": {
       "title": "Classement",
@@ -395,7 +452,9 @@
       "select_hint": "Sélectionnez un championnat pour voir son tableau",
       "no_championships": "Aucun championnat",
       "empty": "Aucun classement",
-      "empty_hint": "Les classements apparaissent une fois les matchs joués."
+      "empty_hint": "Les classements apparaissent une fois les matchs joués.",
+      "error_title": "Impossible de charger le classement",
+      "error_hint": "Vérifiez votre connexion et réessayez."
     },
     "school_profile": {
       "back": "Retour à l'annuaire",
@@ -411,7 +470,11 @@
       "match_center": "Centre",
       "match_center_accent": "des Matchs",
       "no_matches": "Aucun match",
-      "no_matches_hint": "Les matchs apparaîtront ici une fois programmés."
+      "no_matches_hint": "Les matchs apparaîtront ici une fois programmés.",
+      "error_title": "Impossible de charger cette école",
+      "error_hint": "Vérifiez votre connexion et réessayez.",
+      "not_found": "École introuvable",
+      "not_found_hint": "Cette école a peut-être été supprimée, ou le lien est incorrect."
     },
     "championships_page": {
       "title": "Championnats",
@@ -426,7 +489,9 @@
       "fixtures_teams": "{{fixtures}} matchs · {{teams}} équipes",
       "standings": "Classement",
       "none": "Aucun championnat",
-      "none_hint": "Les championnats scolaires seront listés ici une fois publiés."
+      "none_hint": "Les championnats scolaires seront listés ici une fois publiés.",
+      "error_title": "Impossible de charger les championnats",
+      "error_hint": "Vérifiez votre connexion et réessayez."
     },
     "home_title_line1": "Le sport scolaire rwandais,",
     "home_title_pre": "Tout au ",
@@ -457,7 +522,9 @@
     "discover_schools": "Découvrir les écoles",
     "latest_news": "Dernières actualités",
     "no_news": "Pas encore d actualités sur le sport scolaire.",
-    "news_default": "Actualités"
+    "news_default": "Actualités",
+    "error_title": "Impossible de charger les Jeux Scolaires",
+    "error_hint": "Vérifiez votre connexion et réessayez."
   },
   "admin": {
     "portal": "Portail Admin",
@@ -726,11 +793,11 @@
     "roles": {
       "title": "Rôles &",
       "title_accent": "Permissions",
-      "subtitle": "Ce que chaque rôle est autorisé à faire",
-      "col_section": "Capacité",
+      "subtitle": "Quel rôle accède à quelle section admin",
+      "col_section": "Section",
       "allowed": "Autorisé",
       "denied": "Pas d accès",
-      "note": "Fournie par l API à partir de la politique qu elle applique, donc jamais en désaccord avec ce que le serveur autorise. Les exceptions pour un compte se règlent sur ce compte, dans Utilisateurs."
+      "note": "Cette matrice est dérivée de la même liste d accès qui pilote le menu et l autorisation du backend — jamais éditée à la main."
     },
     "health": {
       "title": "État du",
@@ -806,7 +873,55 @@
     "jersey_no": "N° {{number}}",
     "upcoming_schedule": "Calendrier à venir",
     "view_calendar": "Voir le calendrier",
-    "no_matches": "Aucun match programmé"
+    "no_matches": "Aucun match programmé",
+    "back_to_teams": "Toutes les équipes",
+    "detail_error_title": "Impossible de charger cette équipe",
+    "detail_error_hint": "Vérifiez votre connexion et réessayez.",
+    "not_found_title": "Équipe introuvable",
+    "not_found_hint": "Ce club a peut-être été supprimé, ou le lien est incorrect.",
+    "seo_desc": "{{team}} — effectif, calendrier, résultats et classement.",
+    "founded_year": "Fondé en {{year}}",
+    "record_title": "Bilan de la saison",
+    "wins": "Gagnés",
+    "draws": "Nuls",
+    "losses": "Perdus",
+    "recent_results": "Derniers résultats",
+    "upcoming_fixtures": "Prochains matchs",
+    "squad": "Effectif",
+    "standings": "Classement",
+    "search_placeholder": "Rechercher des équipes…",
+    "sport_none_title": "Aucune équipe pour le moment",
+    "sport_none_hint": "Les équipes apparaîtront ici une fois inscrites dans ce sport.",
+    "search_none_title": "Aucune équipe trouvée",
+    "search_none_hint": "Essayez un autre terme de recherche.",
+    "nav_overview": "Équipe",
+    "nav_matches": "Matchs",
+    "nav_record": "Victoires et défaites",
+    "nav_stats": "Statistiques",
+    "nav_players": "Joueurs",
+    "nav_label": "Sections de l'équipe",
+    "view_record": "Voir les victoires et défaites",
+    "view_all_matches": "Voir tous les matchs",
+    "view_full_squad": "Voir tout l'effectif",
+    "last_result": "Dernier résultat",
+    "overview_empty_title": "Rien à afficher pour le moment",
+    "overview_empty_hint": "Revenez une fois les matchs et l'effectif ajoutés.",
+    "no_fixtures_title": "Aucun match pour le moment",
+    "no_fixtures_hint": "Les matchs de ce club apparaîtront ici une fois programmés.",
+    "record_empty_title": "Aucun bilan pour le moment",
+    "record_empty_hint": "Un bilan victoires/nuls/défaites apparaît une fois que ce club a joué des matchs.",
+    "recent_form": "Forme récente",
+    "stats_played": "Joués",
+    "stats_for": "Marqués",
+    "stats_against": "Encaissés",
+    "stats_difference": "Différence",
+    "stats_home_away": "Domicile et extérieur",
+    "stats_home": "Domicile",
+    "stats_away": "Extérieur",
+    "stats_empty_title": "Aucune statistique pour le moment",
+    "stats_empty_hint": "Les statistiques apparaissent une fois que ce club a joué des matchs.",
+    "players_empty_title": "Aucun joueur pour le moment",
+    "players_empty_hint": "L'effectif de ce club apparaîtra ici une fois les joueurs inscrits."
   },
   "reporter": {
     "title": "Reportage",
@@ -1033,7 +1148,7 @@
     "enter": "Entrer",
     "hero_title_pre": "Tout le sport rwandais,",
     "hero_title_accent": "en un seul endroit",
-    "hero_subtitle": "Des championnats nationaux aux jeux scolaires Amashuri — chaque match, chaque résultat, chaque athlète. Suivez votre sport toute la saison, sans jamais manquer un coup d’envoi.",
+    "hero_subtitle": "Scores en direct, matchs, résultats et classements — des championnats nationaux aux jeux scolaires Amashuri.",
     "find_your_sport": "Trouvez votre sport",
     "live_scores": "Scores en direct",
     "scroll_cue": "Faites défiler pour explorer",
@@ -1065,7 +1180,16 @@
     "matches": "matchs",
     "events": "épreuves",
     "more_sports": "Plus de sports",
-    "explore_all": "Tout explorer"
+    "explore_all": "Tout explorer",
+    "hero_title": "La maison du sport rwandais",
+    "photo_credit": "Photo : {{author}}",
+    "shot_football": "Football · Deuxième division",
+    "shot_cycling": "Cyclisme · Tour du Rwanda",
+    "shot_basketball": "Basketball · Kigali",
+    "shot_athletics": "Athlétisme · Stade Amahoro",
+    "shot_volleyball": "Volleyball · Nyabarongo",
+    "shot_amashuri": "Sport scolaire · Jeux Amashuri",
+    "hero_kicker": "Rwanda · MINISPORTS"
   },
   "matchstat": {
     "possession": "Possession %",
@@ -1132,7 +1256,24 @@
     "no_news": "Pas encore d actualités pour {{sport}}.",
     "not_found": "Sport introuvable",
     "back_home": "Retour à l accueil",
-    "seo_desc": "{{sport}} au Rwanda — scores en direct, calendrier, classement et actualités."
+    "seo_desc": "{{sport}} au Rwanda — scores en direct, calendrier, classement et actualités.",
+    "standings_no_table": "Pas encore de classement",
+    "news_empty_hint": "Revenez bientôt pour les dernières actualités.",
+    "error_title": "Impossible de charger ce sport",
+    "error_hint": "Vérifiez votre connexion et réessayez.",
+    "tab_live": "En direct",
+    "tab_upcoming": "À venir",
+    "tab_results": "Résultats",
+    "filter_state": "État du match",
+    "filter_competition": "Compétition",
+    "all_competitions": "Toutes les compétitions",
+    "no_live_matches": "Rien en direct pour le moment",
+    "no_live_matches_hint": "Les coups d'envoi apparaissent ici dès qu'un match commence.",
+    "no_upcoming_matches": "Aucun match à venir",
+    "no_upcoming_matches_hint": "Les matchs apparaissent ici dès qu'ils sont programmés.",
+    "no_results": "Aucun résultat pour le moment",
+    "no_results_hint": "Les scores finaux apparaissent ici à la fin des matchs.",
+    "show_all_competitions": "Afficher toutes les compétitions"
   },
   "authx": {
     "email_or_username": "E-mail ou nom d’utilisateur",
@@ -1234,7 +1375,11 @@
     "search_placeholder": "Rechercher des equipes…",
     "all_sports": "Tous les sports",
     "none_title": "Aucune equipe trouvee",
-    "none_hint": "Essayez un autre sport ou un autre terme."
+    "none_hint": "Essayez un autre sport ou un autre terme.",
+    "filter_sport": "Filtrer par sport",
+    "view_club": "Voir le club",
+    "error_title": "Impossible de charger les equipes",
+    "error_hint": "Verifiez votre connexion et reessayez."
   },
   "dash": {
     "welcome_admin": "Bon retour, {{name}}",
@@ -1710,5 +1855,16 @@
     "title": "Notifications",
     "mark_all": "Tout marquer comme lu",
     "none": "Rien pour le moment."
+  },
+  "sports": {
+    "title": "Tous les sports",
+    "subtitle": "Tous les sports de la plateforme, chacun avec ses compétitions, matchs, classements et centre de match.",
+    "search": "Rechercher un sport",
+    "empty": "Aucun sport publié pour l’instant",
+    "empty_hint": "Les sports apparaissent ici à mesure que les fédérations rejoignent la plateforme.",
+    "no_match": "Aucun sport ne correspond à \"{{q}}\"",
+    "no_match_hint": "Essayez une autre orthographe, ou effacez la recherche.",
+    "error_title": "Impossible de charger les sports",
+    "error_hint": "Vérifiez votre connexion et réessayez."
   }
 }

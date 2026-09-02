@@ -33,7 +33,8 @@
     "close_menu": "Close menu",
     "open_menu": "Open menu",
     "install_ios": "Install: tap Share, then 'Add to Home Screen'.",
-    "install_app": "Install App"
+    "install_app": "Install App",
+    "amashuri_short": "Amashuri"
   },
   "common": {
     "loading": "Loading…",
@@ -106,7 +107,20 @@
     "center": "RwaSport News Center",
     "article": "Article Page",
     "read_full_story": "Read Full Story",
-    "default_author": "Editorial Desk"
+    "default_author": "Editorial Desk",
+    "title": "News",
+    "subtitle": "The latest updates across Rwandan sport.",
+    "filter_all": "All",
+    "more_headlines": "More headlines",
+    "more_stories": "More stories",
+    "seo_description": "Latest news, announcements, results and transfers across Rwandan sport.",
+    "error_title": "Could not load news",
+    "error_hint": "Check your connection and try again.",
+    "empty_title": "No articles yet",
+    "empty_hint": "Check back soon for the latest updates.",
+    "not_found_title": "Article not found",
+    "not_found_hint": "This story may have been removed, or the link is incorrect.",
+    "back_to_news": "Back to News"
   },
   "support": {
     "center": "Support Center"
@@ -125,7 +139,10 @@
     "filter_gender": "Filter by gender",
     "filter_level": "Filter by level",
     "none": "No Leagues Found",
-    "none_hint": "Try adjusting your filters to find what you're looking for."
+    "none_hint": "Try adjusting your filters to find what you're looking for.",
+    "other_sport": "Other",
+    "error_title": "Could not load leagues",
+    "error_hint": "Check your connection and try again."
   },
   "league": {
     "back_to_leagues": "Back to all leagues",
@@ -139,7 +156,14 @@
     "visual_insights": "Visual insights",
     "fixtures_and_results": "Fixtures & Results",
     "no_fixtures": "No fixtures scheduled",
-    "participating_teams": "Participating Teams"
+    "participating_teams": "Participating Teams",
+    "tabs_label": "League sections",
+    "no_teams": "No teams have joined yet",
+    "no_teams_hint": "Teams will appear here once they register for this league.",
+    "error_title": "Could not load this league",
+    "error_hint": "Check your connection and try again.",
+    "fixtures_error_title": "Could not load fixtures",
+    "fixtures_error_hint": "Check your connection and try again."
   },
   "fixtures": {
     "live_match_center": "Live Match Center",
@@ -165,7 +189,16 @@
     "error_title": "Could not load matches",
     "error_hint": "Check your connection and try again.",
     "show_all_leagues": "Show all leagues",
-    "seo_description": "Fixtures, live scores and results across Rwandan sport."
+    "seo_description": "Fixtures, live scores and results across Rwandan sport.",
+    "tab_live": "Live",
+    "tab_results": "Results",
+    "live_count_one": "{{count}} match live now",
+    "live_count_other": "{{count}} matches live now",
+    "updated_at": "Updated {{time}}",
+    "updating": "Updating…",
+    "all_sports": "All sports",
+    "make_my_sport": "Make this my sport",
+    "your_sport_on": "Your sport — opens here by default"
   },
   "match": {
     "back_to_schedule": "Back to Schedule",
@@ -225,7 +258,26 @@
     "no_events": "No events yet",
     "no_events_hint": "Match events will appear here as they happen.",
     "stats_unpublished": "Detailed statistics not published yet — derived live from match events",
-    "sport": "Sport"
+    "sport": "Sport",
+    "section_nav": "Match sections",
+    "error_title": "Couldn't load this match",
+    "error_hint": "Check your connection and try again.",
+    "comments": "Comments",
+    "comments_local_note": "Comments are saved on this device only — not visible to anyone else.",
+    "comments_name_label": "Your name",
+    "comments_name_placeholder": "e.g. Eric N.",
+    "comments_message_label": "Add a comment",
+    "comments_message_placeholder": "Share your thoughts on the match…",
+    "comments_post": "Post comment",
+    "comments_empty": "No comments yet",
+    "comments_empty_hint": "Be the first to share your thoughts on this match.",
+    "comments_count": "{{count}} comments",
+    "comments_guest": "Guest fan",
+    "time_just_now": "Just now",
+    "time_minutes_ago": "{{count}}m ago",
+    "time_hours_ago": "{{count}}h ago",
+    "time_days_ago": "{{count}}d ago",
+    "captain": "Captain"
   },
   "standings": {
     "col_pos": "Pos",
@@ -377,7 +429,10 @@
       "tvet": "TVET Institutions",
       "view_teams": "View School Teams",
       "not_found": "No schools found",
-      "not_found_hint": "Try a different search term or category."
+      "not_found_hint": "Try a different search term or category.",
+      "error_title": "Could not load schools",
+      "error_hint": "Check your connection and try again.",
+      "code": "Code: {{code}}"
     },
     "schedule": {
       "eyebrow": "Inter-School Match Center",
@@ -385,7 +440,9 @@
       "accent": "Schedule",
       "subtitle": "Upcoming fixtures, live matches and final results across every school championship.",
       "empty": "No matches here",
-      "empty_hint": "There are no fixtures in this category yet."
+      "empty_hint": "There are no fixtures in this category yet.",
+      "error_title": "Could not load matches",
+      "error_hint": "Check your connection and try again."
     },
     "standings": {
       "title": "School",
@@ -395,7 +452,9 @@
       "select_hint": "Select a championship to view its table",
       "no_championships": "No championships",
       "empty": "No standings yet",
-      "empty_hint": "Rankings appear once championship matches are played."
+      "empty_hint": "Rankings appear once championship matches are played.",
+      "error_title": "Could not load standings",
+      "error_hint": "Check your connection and try again."
     },
     "school_profile": {
       "back": "Back to Directory",
@@ -411,7 +470,11 @@
       "match_center": "Match",
       "match_center_accent": "Center",
       "no_matches": "No matches",
-      "no_matches_hint": "Fixtures will appear here once scheduled."
+      "no_matches_hint": "Fixtures will appear here once scheduled.",
+      "error_title": "Could not load this school",
+      "error_hint": "Check your connection and try again.",
+      "not_found": "School not found",
+      "not_found_hint": "This school may have been removed, or the link is incorrect."
     },
     "championships_page": {
       "title": "School",
@@ -426,7 +489,9 @@
       "fixtures_teams": "{{fixtures}} fixtures · {{teams}} teams",
       "standings": "Standings",
       "none": "No championships yet",
-      "none_hint": "School championships will be listed here once published."
+      "none_hint": "School championships will be listed here once published.",
+      "error_title": "Could not load championships",
+      "error_hint": "Check your connection and try again."
     },
     "home_title_line1": "Rwandan School Sports,",
     "home_title_pre": "All in ",
@@ -457,7 +522,9 @@
     "discover_schools": "Discover schools",
     "latest_news": "Latest news",
     "no_news": "No school-sports news yet.",
-    "news_default": "News"
+    "news_default": "News",
+    "error_title": "Could not load Amashuri Games",
+    "error_hint": "Check your connection and try again."
   },
   "admin": {
     "portal": "Admin Portal",
@@ -726,11 +793,11 @@
     "roles": {
       "title": "Roles &",
       "title_accent": "Permissions",
-      "subtitle": "What each role is allowed to do",
-      "col_section": "Capability",
+      "subtitle": "Which role can reach which admin section",
+      "col_section": "Section",
       "allowed": "Allowed",
       "denied": "No access",
-      "note": "Served by the API from the same policy it enforces with, so this can never disagree with what the server actually allows. Exceptions for a single account are set on that account, under Users."
+      "note": "This matrix is derived from the same access list that drives the sidebar and the backend authorization — it is never edited by hand."
     },
     "health": {
       "title": "System",
@@ -806,7 +873,55 @@
     "jersey_no": "No. {{number}}",
     "upcoming_schedule": "Upcoming Schedule",
     "view_calendar": "View Calendar",
-    "no_matches": "No Matches Scheduled"
+    "no_matches": "No Matches Scheduled",
+    "back_to_teams": "All teams",
+    "detail_error_title": "Could not load this team",
+    "detail_error_hint": "Check your connection and try again.",
+    "not_found_title": "Team not found",
+    "not_found_hint": "This club may have been removed, or the link is incorrect.",
+    "seo_desc": "{{team}} — squad, fixtures, results and standings.",
+    "founded_year": "Founded {{year}}",
+    "record_title": "Season record",
+    "wins": "Won",
+    "draws": "Drawn",
+    "losses": "Lost",
+    "recent_results": "Recent Results",
+    "upcoming_fixtures": "Upcoming Fixtures",
+    "squad": "Squad",
+    "standings": "Standings",
+    "search_placeholder": "Search teams…",
+    "sport_none_title": "No teams yet",
+    "sport_none_hint": "Teams will appear here once they register for this sport.",
+    "search_none_title": "No teams found",
+    "search_none_hint": "Try a different search term.",
+    "nav_overview": "Team",
+    "nav_matches": "Matches",
+    "nav_record": "Wins & losses",
+    "nav_stats": "Stats",
+    "nav_players": "Players",
+    "nav_label": "Team sections",
+    "view_record": "See wins & losses",
+    "view_all_matches": "See all matches",
+    "view_full_squad": "See full squad",
+    "last_result": "Last result",
+    "overview_empty_title": "Nothing to show yet",
+    "overview_empty_hint": "Check back once fixtures and a squad are added.",
+    "no_fixtures_title": "No fixtures yet",
+    "no_fixtures_hint": "This club's matches will appear here once they are scheduled.",
+    "record_empty_title": "No record yet",
+    "record_empty_hint": "A win/draw/loss record appears once this club has completed fixtures.",
+    "recent_form": "Recent form",
+    "stats_played": "Played",
+    "stats_for": "For",
+    "stats_against": "Against",
+    "stats_difference": "Difference",
+    "stats_home_away": "Home & away",
+    "stats_home": "Home",
+    "stats_away": "Away",
+    "stats_empty_title": "No stats yet",
+    "stats_empty_hint": "Stats appear once this club has completed fixtures.",
+    "players_empty_title": "No players yet",
+    "players_empty_hint": "This club's squad will appear here once players are registered."
   },
   "reporter": {
     "title": "Pitch-Side",
@@ -1033,7 +1148,7 @@
     "enter": "Enter",
     "hero_title_pre": "All of Rwandan sport,",
     "hero_title_accent": "in one place",
-    "hero_subtitle": "From the national leagues to the Amashuri school games — every fixture, every result, every athlete. Follow your sport all season, and never miss a kick-off.",
+    "hero_subtitle": "Live scores, fixtures, results and standings — from the national leagues to the Amashuri school games.",
     "find_your_sport": "Find your sport",
     "live_scores": "Live scores",
     "scroll_cue": "Scroll to explore",
@@ -1065,7 +1180,16 @@
     "matches": "matches",
     "events": "events",
     "more_sports": "More sports",
-    "explore_all": "Explore all"
+    "explore_all": "Explore all",
+    "hero_title": "The home of Rwandan sport",
+    "photo_credit": "Photo: {{author}}",
+    "shot_football": "Football · Second Division",
+    "shot_cycling": "Cycling · Tour du Rwanda",
+    "shot_basketball": "Basketball · Kigali",
+    "shot_athletics": "Athletics · Amahoro Stadium",
+    "shot_volleyball": "Volleyball · Nyabarongo",
+    "shot_amashuri": "School sport · Amashuri Games",
+    "hero_kicker": "Rwanda · MINISPORTS"
   },
   "matchstat": {
     "possession": "Possession %",
@@ -1132,7 +1256,24 @@
     "no_news": "No news yet for {{sport}}.",
     "not_found": "Sport not found",
     "back_home": "Back home",
-    "seo_desc": "{{sport}} in Rwanda — live scores, fixtures, standings and news."
+    "seo_desc": "{{sport}} in Rwanda — live scores, fixtures, standings and news.",
+    "standings_no_table": "No table yet",
+    "news_empty_hint": "Check back soon for the latest updates.",
+    "error_title": "Could not load this sport",
+    "error_hint": "Check your connection and try again.",
+    "tab_live": "Live",
+    "tab_upcoming": "Upcoming",
+    "tab_results": "Results",
+    "filter_state": "Match state",
+    "filter_competition": "Competition",
+    "all_competitions": "All competitions",
+    "no_live_matches": "Nothing live right now",
+    "no_live_matches_hint": "Kick-offs show up here the moment a match starts.",
+    "no_upcoming_matches": "No upcoming matches",
+    "no_upcoming_matches_hint": "Fixtures appear here once they're scheduled.",
+    "no_results": "No results yet",
+    "no_results_hint": "Final scores appear here as matches finish.",
+    "show_all_competitions": "Show all competitions"
   },
   "authx": {
     "email_or_username": "Email or Username",
@@ -1234,7 +1375,11 @@
     "search_placeholder": "Search teams…",
     "all_sports": "All sports",
     "none_title": "No teams found",
-    "none_hint": "Try a different sport or search term."
+    "none_hint": "Try a different sport or search term.",
+    "filter_sport": "Filter by sport",
+    "view_club": "View club",
+    "error_title": "Could not load teams",
+    "error_hint": "Check your connection and try again."
   },
   "dash": {
     "welcome_admin": "Welcome back, {{name}}",
@@ -1710,5 +1855,16 @@
     "title": "Notifications",
     "mark_all": "Mark all read",
     "none": "Nothing yet."
+  },
+  "sports": {
+    "title": "All sports",
+    "subtitle": "Every sport on the platform, each with its own competitions, fixtures, standings and match centre.",
+    "search": "Search a sport",
+    "empty": "No sports published yet",
+    "empty_hint": "Sports appear here as federations come onto the platform.",
+    "no_match": "No sports match \"{{q}}\"",
+    "no_match_hint": "Try a different spelling, or clear the search.",
+    "error_title": "Could not load sports",
+    "error_hint": "Check your connection and try again."
   }
 }

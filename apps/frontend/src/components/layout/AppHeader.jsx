@@ -47,23 +47,36 @@ import cn from '../ui/cn';
 //   Explore · Live · Matches · [Sports ▾] · Leagues · Teams · News · Amashuri Games
 // The Sports dropdown is rendered between PRIMARY_LEFT and PRIMARY_RIGHT.
 const PRIMARY_LEFT = [
-  { to: '/', labelKey: 'nav.explore', icon: Compass, end: true },
-  { to: '/live', labelKey: 'nav.live', icon: Radio },
-  { to: '/fixtures', labelKey: 'nav.matches', icon: CalendarDays },
+  { to: '/', labelKey: 'nav.explore', end: true },
+  { to: '/fixtures', labelKey: 'nav.matches' },
 ];
 const PRIMARY_RIGHT = [
+  { to: '/leagues', labelKey: 'nav.leagues' },
+  { to: '/teams', labelKey: 'nav.teams' },
+  { to: '/news', labelKey: 'nav.news' },
+  { to: '/amashuri', labelKey: 'nav.amashuri_short' },
+];
+
+/**
+ * The drawer's destinations, in the header's order with Home at the top.
+ *
+ * This used to be whatever the bottom tab bar did not carry — Calendar, Teams,
+ * Amashuri, Home, Contact — which put Home fourth in a list with no discernible
+ * logic. On a phone the drawer is the whole map of the product, so it shows the
+ * whole map, in the same order as the desktop bar.
+ */
+const DRAWER_PRIMARY = [
+  { to: '/', labelKey: 'nav.home', icon: Home, end: true },
+  { to: '/fixtures', labelKey: 'nav.matches', icon: CalendarDays },
   { to: '/leagues', labelKey: 'nav.leagues', icon: Trophy },
   { to: '/teams', labelKey: 'nav.teams', icon: Users },
   { to: '/news', labelKey: 'nav.news', icon: Newspaper },
   { to: '/amashuri', labelKey: 'nav.amashuri', icon: GraduationCap },
 ];
 
-/** Extra destinations for the mobile drawer (the bottom bar owns the primaries). */
-const SECONDARY = [
+/** Utility destinations, below a rule. */
+const DRAWER_SECONDARY = [
   { to: '/calendar', labelKey: 'nav.calendar', icon: CalendarDays },
-  { to: '/teams', labelKey: 'nav.teams', icon: Users },
-  { to: '/amashuri', labelKey: 'nav.amashuri', icon: GraduationCap },
-  { to: '/home', labelKey: 'nav.home', icon: Home },
   { to: '/contact', labelKey: 'nav.contact', icon: Mail },
 ];
 
@@ -84,31 +97,22 @@ const Wordmark = () => (
 
 /* ─── desktop link ──────────────────────────────────────────────────── */
 
-const NavItem = ({ to, label, icon: Icon, end }) => (
+const NavItem = ({ to, label, end }) => (
   <NavLink
     to={to}
     end={end}
     className={({ isActive }) =>
       cn(
-        'group flex items-center gap-2 rounded-control px-2.5 py-2 text-sm font-semibold',
-        'transition-all duration-200 ease-standard hover:-translate-y-0.5',
-        isActive ? 'text-primary' : 'text-secondary hover:text-primary'
+        'relative flex items-center whitespace-nowrap px-0.5 py-2 text-sm font-semibold',
+        'transition-colors duration-150 ease-standard',
+        'after:absolute after:inset-x-0 after:-bottom-1 after:h-0.5 after:rounded-pill after:content-[""]',
+        isActive
+          ? 'text-primary after:bg-brand'
+          : 'text-secondary after:bg-transparent hover:text-primary'
       )
     }
   >
-    {({ isActive }) => (
-      <>
-        <Icon
-          size={14}
-          aria-hidden="true"
-          className={cn(
-            'transition-colors duration-200',
-            isActive ? 'text-brand-text' : 'text-tertiary group-hover:text-brand-text'
-          )}
-        />
-        {label}
-      </>
-    )}
+    {label}
   </NavLink>
 );
 
@@ -136,16 +140,11 @@ const SportsMenu = () => {
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          'group flex items-center gap-2 rounded-control px-2.5 py-2 text-sm font-semibold',
-          'transition-all duration-200 ease-standard hover:-translate-y-0.5',
+          'flex items-center gap-1 whitespace-nowrap px-0.5 py-2 text-sm font-semibold',
+          'transition-colors duration-150 ease-standard',
           open ? 'text-primary' : 'text-secondary hover:text-primary'
         )}
       >
-        <Compass
-          size={14}
-          aria-hidden="true"
-          className={cn('transition-colors', open ? 'text-brand-text' : 'text-tertiary group-hover:text-brand-text')}
-        />
         {t('nav.sports')}
         <ChevronDown size={12} className={cn('opacity-60 transition-transform', open && 'rotate-180')} />
       </button>
@@ -221,12 +220,38 @@ const AppHeader = ({ className }) => {
   // Any navigation closes the drawer — otherwise it stays open over the new page.
   useEffect(() => setMenuOpen(false), [pathname]);
 
+  /**
+   * A PANEL, NOT AN ACCORDION.
+   *
+   * The menu used to render inline underneath the bar, shoving the page down and
+   * pushing the fixture list off-screen — so opening the menu destroyed the thing
+   * you were looking at, and closing it threw you back to a different scroll
+   * position. It is a fixed overlay now: a scrim over the page, a panel sliding in
+   * from the right, the page untouched behind it.
+   *
+   * An overlay owes the user three things a dropdown does not: Escape closes it,
+   * the page behind must not scroll under your finger, and focus has to land
+   * inside it so a keyboard or screen-reader user is not left behind on the page.
+   */
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const onKey = (e) => e.key === 'Escape' && setMenuOpen(false);
+    const { overflow } = document.body.style;
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = overflow;
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [menuOpen]);
+
   const changeLanguage = (code) => {
     i18n.changeLanguage(code);
     localStorage.setItem('rnsp-lang', code);
   };
 
   return (
+    <>
     <header
       className={cn(
         'fixed inset-x-0 top-0 z-50',
@@ -239,7 +264,7 @@ const AppHeader = ({ className }) => {
         <Wordmark />
 
         {/* Desktop nav: Explore · Live · Matches · Sports ▾ · Leagues · Teams · News · Amashuri */}
-        <nav aria-label="Main" className="ml-3 hidden flex-1 items-center gap-0.5 lg:flex xl:ml-4">
+        <nav aria-label="Main" className="ml-4 hidden min-w-0 flex-1 items-center gap-5 lg:flex xl:ml-8 xl:gap-6">
           {PRIMARY_LEFT.map((item) => (
             <NavItem key={item.to} {...item} label={t(item.labelKey)} />
           ))}
@@ -289,7 +314,7 @@ const AppHeader = ({ className }) => {
                 {t('nav.login')}
               </Link>
               {/* The reference's "Plan Trip" pill, in our terms. */}
-              <Button to="/auth/team/register" size="sm" icon={UserPlus} className="hidden md:inline-flex">
+              <Button to="/auth/team/register" size="sm" icon={UserPlus} className="hidden whitespace-nowrap xl:inline-flex">
                 {t('nav.register_team')}
               </Button>
             </>
@@ -307,82 +332,163 @@ const AppHeader = ({ className }) => {
         </div>
       </div>
 
-      {/* Mobile drawer */}
-      {menuOpen && (
-        <div className="animate-fade-up border-t border-hairline bg-surface lg:hidden">
-          <div className="mx-auto max-w-6xl space-y-4 px-4 py-4">
-            {/* Install the app — RwaSport is a mobile-first installable PWA. */}
-            {!installed && (canInstall || isIos) && (
-              isIos ? (
-                <p className="flex items-center gap-2 rounded-control border border-brand/30 bg-brand-tint px-3 py-3 text-sm font-semibold text-brand-text">
-                  <Share size={16} className="shrink-0" /> {t('nav.install_ios')}
-                </p>
-              ) : (
-                <button
-                  type="button"
-                  onClick={install}
-                  className="flex w-full items-center justify-center gap-2 rounded-control bg-brand-strong px-3 py-3 text-sm font-bold text-white shadow-brand"
-                >
-                  <Download size={17} aria-hidden="true" /> {t('nav.install_app')}
-                </button>
-              )
-            )}
-
-            <nav aria-label="More" className="grid gap-1">
-              {SECONDARY.map(({ to, labelKey, icon: Icon }) => (
-                <Link
-                  key={to}
-                  to={to}
-                  className="flex items-center gap-3 rounded-control px-3 py-3 text-base font-semibold text-secondary transition-colors hover:bg-brand-tint hover:text-brand-text"
-                >
-                  <Icon size={16} className="text-brand" aria-hidden="true" />
-                  {t(labelKey)}
-                </Link>
-              ))}
-            </nav>
-
-            <div className="border-t border-hairline pt-4">
-              <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-tertiary">
-                <Languages size={12} aria-hidden="true" /> {t('nav.language', 'Language')}
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                {LANGUAGES.map((l) => (
-                  <button
-                    key={l.code}
-                    type="button"
-                    onClick={() => changeLanguage(l.code)}
-                    className={cn(
-                      'rounded-pill border px-3 py-2 text-sm font-semibold transition-colors',
-                      i18n.language === l.code
-                        ? 'border-brand bg-brand-tint text-brand-text'
-                        : 'border-hairline text-secondary'
-                    )}
-                  >
-                    {l.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* No Appearance row here any more — the toggle lives in the header at
-                every width, and offering it in both places invites the two to drift. */}
-
-            {isAuthenticated ? (
-              <Button variant="secondary" block onClick={logout} icon={LogOut}>
-                {t('nav.logout')}
-              </Button>
-            ) : (
-              <div className="grid grid-cols-2 gap-2">
-                <Button variant="secondary" to="/auth/login">
-                  {t('nav.login')}
-                </Button>
-                <Button to="/auth/team/register">{t('nav.register_team')}</Button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </header>
+
+      {/* Mobile drawer — a right-hand panel over a scrim. */}
+    {menuOpen && (
+      <div className="fixed inset-0 z-[60] lg:hidden">
+        <button
+          type="button"
+          aria-label={t('nav.close_menu', 'Close menu')}
+          onClick={() => setMenuOpen(false)}
+          className="absolute inset-0 h-full w-full cursor-default bg-black/50 backdrop-blur-[2px] motion-safe:animate-in motion-safe:fade-in motion-safe:duration-200"
+        />
+        <aside
+          role="dialog"
+          aria-modal="true"
+          aria-label={t('nav.menu', 'Menu')}
+          className={cn(
+            'absolute inset-y-0 right-0 flex w-[86%] max-w-sm flex-col',
+            'border-l border-hairline bg-surface shadow-lg',
+            'motion-safe:animate-in motion-safe:slide-in-from-right motion-safe:duration-200 motion-safe:ease-out'
+          )}
+        >
+          <div className="flex h-14 shrink-0 items-center justify-between border-b border-hairline px-4">
+            <span className="font-display text-base font-semibold text-primary">
+              {t('nav.menu', 'Menu')}
+            </span>
+            <IconButton
+              icon={X}
+              label={t('nav.close_menu', 'Close menu')}
+              size="sm"
+              onClick={() => setMenuOpen(false)}
+            />
+          </div>
+
+        <div className="flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+          {/* Install the app — RwaSport is a mobile-first installable PWA. */}
+          {!installed && (canInstall || isIos) && (
+            isIos ? (
+              <p className="flex items-center gap-2 rounded-control border border-brand/30 bg-brand-tint px-3 py-3 text-sm font-semibold text-brand-text">
+                <Share size={16} className="shrink-0" /> {t('nav.install_ios')}
+              </p>
+            ) : (
+              <button
+                type="button"
+                onClick={install}
+                className="flex w-full items-center justify-center gap-2 rounded-control bg-brand-strong px-3 py-3 text-sm font-bold text-white shadow-brand"
+              >
+                <Download size={17} aria-hidden="true" /> {t('nav.install_app')}
+              </button>
+            )
+          )}
+
+          {/* The active destination is marked, so the drawer tells you where you
+              already are instead of listing five places that look identical.
+              The icon is grey until then — six green icons in a column was the
+              loudest thing in the panel and none of it meant anything. */}
+          <nav aria-label={t('nav.menu', 'Menu')} className="grid gap-0.5">
+            {DRAWER_PRIMARY.map(({ to, labelKey, icon: Icon, end }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={end}
+                className={({ isActive }) =>
+                  cn(
+                    'flex min-h-tap items-center gap-3 rounded-control px-3 text-base font-semibold',
+                    'transition-colors duration-150 ease-standard',
+                    isActive
+                      ? 'bg-brand-tint text-brand-text'
+                      : 'text-secondary hover:bg-surface-2 hover:text-primary'
+                  )
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <Icon size={17} aria-hidden="true" className={isActive ? 'text-brand' : 'text-tertiary'} />
+                    {t(labelKey)}
+                  </>
+                )}
+              </NavLink>
+            ))}
+          </nav>
+
+          <div className="grid gap-0.5 border-t border-hairline pt-3">
+            {DRAWER_SECONDARY.map(({ to, labelKey, icon: Icon }) => (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) =>
+                  cn(
+                    'flex min-h-tap items-center gap-3 rounded-control px-3 text-sm font-semibold',
+                    'transition-colors duration-150 ease-standard',
+                    isActive ? 'bg-brand-tint text-brand-text' : 'text-secondary hover:bg-surface-2 hover:text-primary'
+                  )
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <Icon size={16} aria-hidden="true" className={isActive ? 'text-brand' : 'text-tertiary'} />
+                    {t(labelKey)}
+                  </>
+                )}
+              </NavLink>
+            ))}
+          </div>
+
+          <div className="border-t border-hairline pt-4">
+            <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-tertiary">
+              <Languages size={12} aria-hidden="true" /> {t('nav.language', 'Language')}
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {LANGUAGES.map((l) => (
+                <button
+                  key={l.code}
+                  type="button"
+                  onClick={() => changeLanguage(l.code)}
+                  className={cn(
+                    'rounded-pill border px-3 py-2 text-sm font-semibold transition-colors',
+                    i18n.language === l.code
+                      ? 'border-brand bg-brand-tint text-brand-text'
+                      : 'border-hairline text-secondary'
+                  )}
+                >
+                  {l.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* No Appearance row here any more — the toggle lives in the header at
+              every width, and offering it in both places invites the two to drift. */}
+
+          {isAuthenticated ? (
+            <Button variant="secondary" block onClick={logout} icon={LogOut}>
+              {t('nav.logout')}
+            </Button>
+          ) : (
+            /* Registering a club is the real action here and keeps the filled
+               button; signing in is a text link beneath it. Two equal-weight
+               buttons side by side made neither of them the primary one, and a
+               full-width green slab was the loudest thing in a panel of quiet
+               links. */
+            <div className="flex flex-col gap-2">
+              <Button to="/auth/team/register" block>
+                {t('nav.register_team')}
+              </Button>
+              <Link
+                to="/auth/login"
+                className="flex min-h-tap items-center justify-center rounded-control text-sm font-semibold text-secondary transition-colors duration-150 ease-standard hover:bg-surface-2 hover:text-primary"
+              >
+                {t('nav.login')}
+              </Link>
+            </div>
+          )}
+        </div>
+        </aside>
+      </div>
+    )}
+    </>
   );
 };
 
