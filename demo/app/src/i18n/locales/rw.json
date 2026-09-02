@@ -1965,6 +1965,10 @@
     "no_match": "Nta siporo ihuye na \"{{q}}\"",
     "no_match_hint": "Gerageza uyandike ukundi, cyangwa usibe ubushakashatsi.",
     "error_title": "Ntibyashobotse gukuramo siporo",
-    "error_hint": "Reba umurongo wawe hanyuma wongere ugerageze."
+    "error_hint": "Reba umurongo wawe hanyuma wongere ugerageze.",
+    "match_count_one": "Umukino {{count}}",
+    "match_count_other": "Imikino {{count}}",
+    "event_count_one": "Irushanwa {{count}}",
+    "event_count_other": "Amarushanwa {{count}}"
   }
 }

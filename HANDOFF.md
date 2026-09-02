@@ -1,32 +1,33 @@
 # HANDOFF
 
 ## Current Task
-Standings pages, the all-sports fixture list, and the sport picker.
+Polishing the public pages against the real API. Admin is NEXT and untouched.
 
 ## Status
-Solved. 16 routes clean at 1440px and 390px, no console errors.
+Solved. 18 routes clean at 1440px and 390px, zero broken images, no JS errors.
 
-- **The standings table gets the whole column.** It sat in a two-column grid with
-  the scorers and an advert beside it, so a table ran ~600px of a 1100px page —
-  and a four-team basketball league read as a fragment. Full width now, with the
-  full column set (Form, P, W, D, L, GF, GA, GD, Pts) via a new `wide` prop; the
-  scorers follow underneath. `wide` is a prop, not a breakpoint, for the same
-  reason `showForm` is: the same component also renders in a 320px rail, and a
-  `lg:` variant would put nine columns in it. The extra columns hide below `md`.
-  The rail advert is gone with the rail; the page keeps its footer banner.
-- **No table on "All sports".** A league table describes one competition; on a
-  list that is deliberately every sport at once there is no league it belongs to,
-  so whichever it showed was arbitrary. It returns as soon as the list is narrowed
-  to a sport or a competition.
-- **The sport picker.** Twenty sports, not the demo's twelve. Each chip carries
-  its own icon so the rail is scanned rather than read; the sport you follow leads
-  the list; and a fade at the right edge carries the "there is more" message the
-  hidden scrollbar used to.
-- **Found on the way: the wrong default competition.** Football's standings opened
-  on "Kagame Cup Schools" — first in the API's order, no table — and told the
-  reader "No table yet" while the Premier League sat one chip away. `primaryLeague`
-  now prefers a competition that HAS a table, and among those the senior national
-  one.
+- **/fixtures all sports.** Three attempts to get right, and the lesson was that
+  the GROUPING was the problem, not the card. By competition: twenty headings for
+  forty-two matches, 5,074px. By day: worse, 7,255px — the schedule is forty-two
+  fixtures across THIRTY-THREE days, so that axis is just as sparse. Plain rows:
+  3,799px but forty-two identical grey stripes, flat and off-language. Now an
+  ungrouped three-across grid of MatchTile, which already prints its own
+  competition so it needs no heading: **3,113px**, and it looks like the app.
+- **One card everywhere.** /fixtures scoped rendered MatchCard in two columns
+  while the sport hub rendered MatchTile in three — two different cards for the
+  same fixture, one click apart. Everything is MatchTile at three across now.
+- **Every kickoff read 21:34.** `Date.now() + n days` stamped each showcase
+  fixture with the moment the seed ran, so the schedule was a column of identical
+  numbers. Real hours now — weekday evenings, weekend afternoons — in the seed
+  and backfilled onto all 82 existing rows.
+- **News images.** All six articles shared ONE remote Unsplash URL, and it did not
+  load here at all: six broken-image icons. `seed:news-images` points them at the
+  local photography the app already ships, matched by keyword to the story.
+- **/calendar.** Gutter skyscrapers removed — a month grid is already a dense
+  field of boxes and flanking it with two more vertical panels turns the screen
+  into columns. Days with sport are tinted so the shape of the month reads, and
+  the bare corner digit is a count pill rather than a second date.
+- **"1 matches"** on the sport cards is pluralised.
 
 ## Progress
 - [x] `scripts/make-ad-creatives.mjs` rebuilt: 6 sponsors x 3 shapes (-lg/-mb/-mr)

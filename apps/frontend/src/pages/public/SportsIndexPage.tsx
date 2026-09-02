@@ -54,7 +54,10 @@ const SportCard = ({ sport, t }) => {
         <h2 className="font-display text-lg font-bold leading-tight tracking-tight text-white">{sport.name}</h2>
         <p className="mt-1 text-xs text-white/65">
           {count > 0
-            ? `${count} ${isRacing ? t('explore.events') : t('explore.matches')}`
+            // Pluralised: the count reached one and the card still read
+            // "1 matches", which is the sort of thing a reader trusts a
+            // platform slightly less for.
+            ? t(isRacing ? 'sports.event_count' : 'sports.match_count', { count })
             : t('explore.enter')}
         </p>
       </div>

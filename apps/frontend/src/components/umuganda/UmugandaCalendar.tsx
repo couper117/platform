@@ -213,6 +213,10 @@ const UmugandaCalendar = ({ className }: { className?: string }) => {
                     'relative min-h-[72px] border-b border-r border-hairline p-1.5 text-left align-top',
                     'transition-colors duration-150 ease-standard',
                     !cell.inMonth && 'opacity-40',
+                    // A day with sport on it is tinted, so the shape of the month
+                    // — a busy weekend, a quiet week — is readable before you
+                    // count anything. Umuganda's own tint wins where they meet.
+                    dayEvents.length > 0 && !umuganda && 'bg-surface-2',
                     umuganda && 'bg-brand/[0.07]',
                     isSelected && 'ring-2 ring-inset ring-brand',
                     !isSelected && 'hover:bg-surface-2'
@@ -234,8 +238,11 @@ const UmugandaCalendar = ({ className }: { className?: string }) => {
                   )}
 
                   <span className="absolute bottom-1.5 left-1.5 flex items-center gap-1">
+                    {/* A COUNT, NOT A LOOSE DIGIT. A bare "14" in the corner of a
+                        cell that already has a date in the other corner reads as
+                        a second date. In a pill it reads as a tally. */}
                     {dayEvents.length > 0 && (
-                      <span className="text-[10px] font-semibold text-secondary">
+                      <span className="inline-flex min-w-[18px] items-center justify-center rounded-pill bg-brand-tint px-1 text-[10px] font-bold text-brand-text">
                         {dayEvents.length}
                       </span>
                     )}

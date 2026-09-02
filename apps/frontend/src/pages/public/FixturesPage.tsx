@@ -12,7 +12,6 @@ import MatchRow, { pickFeatured } from '../../components/match/MatchRow';
 import FixtureFilters from '../../components/match/FixtureFilters';
 import StandingsTable from '../../components/match/StandingsTable';
 import TopScorers from '../../components/match/TopScorers';
-import MatchCard from '../../components/match/MatchCard';
 import MatchTile from '../../components/match/MatchTile';
 import {
   MatchdayDivider,
@@ -238,9 +237,9 @@ const FixturesPage = () => {
           // Placeholders in the shape the real content will take — rows on mobile,
           // cards on desktop — so nothing moves when the data lands.
           isDesktop ? (
-            <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
-              <SkeletonList count={8}>
-                <MatchCard.Skeleton />
+            <div className="grid grid-cols-2 gap-3 xl:grid-cols-3">
+              <SkeletonList count={9}>
+                <MatchTile.Skeleton />
               </SkeletonList>
             </div>
           ) : (
@@ -273,36 +272,48 @@ const FixturesPage = () => {
             }
           />
         ) : isDesktop && !isScoped ? (
-          /* DESKTOP, ALL SPORTS: one continuous list of rows, no grouping at all.
+          /* DESKTOP, ALL SPORTS: a three-column grid of cards, ungrouped.
              ─────────────────────────────────────────────────────────────────
-             Grouping was the whole problem. By competition it produced twenty
-             headings for forty-two matches — a heading, one lonely card at half
-             width, another heading — and a 5,000px page. Grouping by day instead
-             was worse: this schedule is forty-two fixtures spread across
-             THIRTY-THREE days and two months, roughly one a day, so the day axis
-             is just as sparse and the page grew to 7,000px.
+             This took three goes. Grouping by COMPETITION gave twenty headings
+             for forty-two matches — a heading, one lonely card at half width,
+             another heading, 5,000px. Grouping by DAY was worse, because the
+             schedule is forty-two fixtures across THIRTY-THREE days: the day axis
+             is just as sparse and the page grew to 7,255px. Dropping to plain
+             rows shortened it to 3,799px but read as forty-two identical grey
+             stripes — flat, and the wrong language for a product built on cards.
 
-             Sparse data does not want cards. Every heading was announcing a group
-             of one, and every card was reserving space for a density that is not
-             there. A row carries its own date and its own competition, so it
-             needs no heading at all — which is how a fixture list has always been
-             printed, and it reads as a schedule rather than a stack of posters. */
-          <div className="overflow-hidden rounded-card border border-hairline bg-surface">
+             The answer was that the GROUPING was the problem, not the card. A
+             MatchTile already prints its own competition on its top row, so with
+             no heading above it a card needs no group to belong to. Three across
+             at ~355px each — the width the cards had in the two-column layout
+             this page shipped with — so it looks like the rest of the app, and
+             fourteen rows of three instead of forty-two of one. */
+          <div className="grid grid-cols-2 gap-3 xl:grid-cols-3">
             {list.map((fixture) => (
-              <MatchRow key={fixture.id} fixture={fixture} showDate showCompetition />
+              <MatchTile key={fixture.id} fixture={fixture} />
             ))}
           </div>
         ) : isDesktop ? (
-          /* DESKTOP, ONE SPORT OR ONE COMPETITION: competition heading, then a
-             two-column grid of cards. Once the list is narrowed the competition
-             is meaningful again — there are two or three of them, not twenty —
-             and a card can afford the fuller layout. */
+          /* DESKTOP, ONE SPORT OR ONE COMPETITION: competition heading, then the
+             same three-across grid of tiles.
+             ─────────────────────────────────────────────────────────────────
+             THE SAME CARD AS EVERYWHERE ELSE. This used to render MatchCard in
+             two columns while the sport hub's Matches tab rendered MatchTile in
+             three — two different cards for the same fixture, a click apart, so
+             moving between /fixtures and a sport hub changed what a match looked
+             like. MatchTile is the one the rest of the app settled on, and at
+             three across each tile is ~355px rather than a 545px card with a lot
+             of air in it.
+
+             The competition HEADING stays here, unlike the all-sports view: once
+             the list is narrowed there are two or three competitions rather than
+             twenty, so the heading groups rather than fragments. */
           compGroups.map((comp) => (
-            <section key={comp.name} className="mb-5 last:mb-0">
-              <SectionHeading title={comp.name} className="mb-2" />
-              <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
+            <section key={comp.name} className="mb-6 last:mb-0">
+              <SectionHeading title={comp.name} className="mb-3" />
+              <div className="grid grid-cols-2 gap-3 xl:grid-cols-3">
                 {comp.fixtures.map((fixture) => (
-                  <MatchCard key={fixture.id} fixture={fixture} />
+                  <MatchTile key={fixture.id} fixture={fixture} />
                 ))}
               </div>
             </section>

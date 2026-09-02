@@ -1965,6 +1965,10 @@
     "no_match": "Aucun sport ne correspond à \"{{q}}\"",
     "no_match_hint": "Essayez une autre orthographe, ou effacez la recherche.",
     "error_title": "Impossible de charger les sports",
-    "error_hint": "Vérifiez votre connexion et réessayez."
+    "error_hint": "Vérifiez votre connexion et réessayez.",
+    "match_count_one": "{{count}} match",
+    "match_count_other": "{{count}} matchs",
+    "event_count_one": "{{count}} épreuve",
+    "event_count_other": "{{count}} épreuves"
   }
 }
