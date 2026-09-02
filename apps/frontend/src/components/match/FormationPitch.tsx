@@ -131,8 +131,16 @@ const TeamShape = ({ starters, formation, color, orientation, surface }: any) =>
   // than the sport puts on the surface. Without this, a basketball fixture whose
   // sheet says "4-3-3" laid out eleven players on a court that holds five, which
   // is a football line-up wearing a basketball court.
+  // A formation string describes the outfield — "4-3-3" is ten players, not
+  // eleven. Where the sport keeps a goal, that row is added back, or the
+  // goalkeeper is quietly dropped from every team sheet that names a shape.
+  const keeps = surface.rows[0] === 1;
   const rows = surface.formations?.length && formation
-    ? clampRows(parseFormation(formation, surface.rows), surface.starters)
+    ? clampRows(
+        keeps ? [1, ...parseFormation(formation, surface.rows.slice(1))]
+              : parseFormation(formation, surface.rows),
+        surface.starters,
+      )
     : surface.rows;
   const slots = buildSlots(rows, orientation, surface.opposed, surface.band);
   const ordered = [...starters]
