@@ -2,187 +2,201 @@ import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
-import { School, Clock, MapPin, ChevronLeft, Calendar, Trophy, Flag } from 'lucide-react';
-import { format } from 'date-fns';
+import { ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { getAkcFixture } from '../../api/endpoints/amashuri';
-import ResponsiveWrapper from '../../components/shared/ResponsiveWrapper';
-import Skeleton from '../../components/shared/Skeleton';
+import { useEnumLabel } from '../../i18n/enums';
+import { useDateFormat } from '../../i18n/dateLocale';
+import MatchScoreboard from '../../components/match/MatchScoreboard';
+import MatchComments from '../../components/match/MatchComments';
+import MatchEventTimeline from '../../components/shared/MatchEventTimeline';
+import PageAd from '../../components/shared/PageAd';
 import Seo from '../../components/shared/Seo';
-import Card from '../../components/ui/Card';
-import Badge, { LiveBadge } from '../../components/ui/Badge';
-import EmptyState from '../../components/ui/EmptyState';
+import ClubCrest from '../../components/ui/ClubCrest';
+import ErrorState from '../../components/ui/ErrorState';
+import Skeleton from '../../components/ui/Skeleton';
 
-const initials = (name = '') => name.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase();
+/**
+ * A school match: /amashuri/matches/:id.
+ *
+ * WHAT THIS REPLACED. The last pre-redesign screen in the public app. It opened
+ * on a full-bleed saturated green-to-teal gradient — a palette the token system
+ * removed everywhere else — set both school names in ALL CAPS display type that
+ * wrapped to three lines each, and then had almost nothing to say: an empty
+ * "MATCH SUMMARY" card and a four-row table, floating in half a screen of green.
+ * It also carried its own `SchoolBadge`, `ScoreDigit` and `initials()` — a third
+ * private implementation of the scoreboard every other match screen shares.
+ *
+ * IT IS THE NATIONAL MATCH PAGE NOW. Same MatchScoreboard, same timeline, same
+ * comments, same tokens. A schools fixture is a fixture; the only real differences
+ * are that a team is identified by its SCHOOL and that age group and gender
+ * matter, and both of those are facts to print rather than reasons for a
+ * separate design.
+ *
+ * THE ADAPTER IS THE WHOLE TRICK. `/akc3/fixtures/:id` returns `competition` where
+ * a league fixture returns `league`, and its `homeTeam` is `{ id, school,
+ * ageCategory, gender }` with the name one level down on the school. `asFixture`
+ * maps the two into the shape MatchScoreboard already reads, so nothing had to be
+ * generalised or forked to make it work.
+ */
 
-const SchoolBadge = ({ team }) => {
-  const school = team?.school;
+/** Reshapes a schools fixture into what the shared match components expect. */
+const asFixture = (m: any) => {
+  const side = (team: any) => (team ? {
+    ...team,
+    name: team.school?.name,
+    shortName: team.school?.shortName,
+    logo: team.school?.logo,
+  } : null);
+  return {
+    ...m,
+    league: m.competition,
+    homeTeam: side(m.homeTeam),
+    awayTeam: side(m.awayTeam),
+    // THE SCHOOLS FEED SAYS `ONGOING` WHERE THE LEAGUE FEED SAYS `LIVE`, and
+    // `matchState` only knows the league's word — so a schools match in progress
+    // fell through to "upcoming" and the scoreboard printed VS instead of 1-1 on
+    // a game that was being played. Translated here rather than taught to
+    // matchState, because this is one endpoint's spelling, not a new state.
+    status: String(m.status).toUpperCase() === 'ONGOING' ? 'LIVE' : m.status,
+  };
+};
+
+/** A link through to one of the two school teams. */
+const TeamLink = ({ team }: { team: any }) => {
+  const { t } = useTranslation();
+  const enumLabel = useEnumLabel();
+  if (!team?.id) return null;
   return (
-    <div className="flex-1 flex flex-col items-center text-center gap-4">
-      <div className="w-20 h-20 sm:w-32 sm:h-32 rounded-full bg-white/5 border-2 border-white/10 flex items-center justify-center p-4 overflow-hidden">
-        {school?.logo ? (
-          <img src={school.logo} alt={school.name} className="w-full h-full object-contain" />
-        ) : (
-          <span className="font-display text-3xl sm:text-5xl opacity-20">{initials(school?.name || 'SC')}</span>
-        )}
+    <Link
+      to={`/amashuri/teams/${team.id}`}
+      className="group flex min-h-tap items-center gap-3 rounded-card border border-hairline bg-surface px-3 py-2.5 transition-colors duration-150 ease-standard hover:border-brand/40 hover:bg-surface-2"
+    >
+      <ClubCrest team={team.school} size="md" />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold text-primary transition-colors duration-150 ease-standard group-hover:text-brand-text">
+          {team.school?.name}
+        </p>
+        <p className="truncate text-xs text-tertiary">
+          {enumLabel('gender', team.gender)} · {enumLabel('age_category', team.ageCategory)}
+        </p>
       </div>
-      <div>
-        <h2 className="text-lg sm:text-3xl font-display uppercase tracking-tight">{school?.name || 'School'}</h2>
-        <span className="text-[10px] uppercase tracking-widest opacity-50">{team?.ageCategory} · {team?.gender}</span>
-      </div>
-    </div>
+      <Users size={14} className="shrink-0 text-disabled" aria-hidden="true" />
+      <ChevronRight size={16} className="shrink-0 text-disabled" aria-hidden="true" />
+    </Link>
   );
 };
 
-const ScoreDigit = ({ value }) => (
-  <motion.span
-    key={value}
-    initial={{ scale: 1.4, color: '#FAD201' }}
-    animate={{ scale: 1, color: '#FFFFFF' }}
-    transition={{ type: 'spring', stiffness: 400, damping: 18 }}
-    className="text-6xl sm:text-9xl font-display tabular-nums"
-  >
-    {value ?? 0}
-  </motion.span>
-);
-
 const AmashuriMatchPage = () => {
   const { t } = useTranslation();
+  const enumLabel = useEnumLabel();
+  const df = useDateFormat();
   const { id } = useParams();
-  const { data, isLoading } = useQuery({
-    queryKey: ['amashuri-match', id],
+
+  const { data, isPending, isError, refetch } = useQuery({
+    queryKey: ['akc-fixture', String(id)],
     queryFn: () => getAkcFixture(id),
-    retry: false,
+    enabled: !!id,
   });
 
-  if (isLoading) {
-    return <div className="py-20"><ResponsiveWrapper><Skeleton type="card" /></ResponsiveWrapper></div>;
-  }
+  const raw = data?.data ?? null;
 
-  const m = data?.data;
-  if (!m) {
+  if (isPending) {
     return (
-      <div className="py-32">
-        <ResponsiveWrapper><EmptyState title={t('match.not_found')} hint={t('match.not_found_hint')} /></ResponsiveWrapper>
+      <div className="mx-auto max-w-3xl space-y-4 px-4 py-4 lg:max-w-6xl lg:px-6 lg:py-6">
+        <Skeleton className="h-44 rounded-card" />
+        <Skeleton className="h-32 rounded-card" />
+        <Skeleton className="h-56 rounded-card" />
       </div>
     );
   }
 
-  const isLive = m.status === 'ONGOING';
-  const isCompleted = m.status === 'COMPLETED';
-  const homeName = m.homeTeam?.school?.name;
-  const awayName = m.awayTeam?.school?.name;
+  if (isError || !raw) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-10 lg:px-6">
+        <ErrorState title={t('match.not_found')} hint={t('match.not_found_hint')} onRetry={refetch} />
+      </div>
+    );
+  }
+
+  const m = asFixture(raw);
+
+  const infoRows: Array<[string, React.ReactNode]> = [
+    [t('match.competition'), m.competition?.name],
+    [t('match.stage'), enumLabel('stage', raw.stage) || raw.stage],
+    [t('match.round'), raw.round],
+    [t('amashuri.athlete.age_group'), enumLabel('age_category', raw.homeTeam?.ageCategory)],
+    [t('match.status'), enumLabel('fixture_status', raw.status) || raw.status],
+    [t('match.venue'), raw.venue],
+  ].filter(([, v]) => v !== undefined && v !== null && v !== '') as Array<[string, React.ReactNode]>;
 
   return (
-    <div className="bg-surface-2 dark:bg-surface-dark min-h-screen pb-24">
+    <div className="min-h-screen bg-page">
       <Seo
-        title={t('seo.amashuri_match_title', { home: homeName, away: awayName })}
-        description={t('seo.amashuri_match_desc', { home: homeName, away: awayName })}
+        title={`${m.homeTeam?.name} ${t('match.versus')} ${m.awayTeam?.name}`}
+        description={`${m.homeTeam?.name} vs ${m.awayTeam?.name} — ${m.competition?.name || ''}`.trim()}
       />
 
-      <div className="bg-red/95 py-4">
-        <ResponsiveWrapper>
-          <Link to="/amashuri/fixtures" className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white/70 hover:text-rwanda-yellow transition-colors">
-            <ChevronLeft size={14} />
-            <span>{t('match.back_to_schedule')}</span>
-          </Link>
-        </ResponsiveWrapper>
-      </div>
+      <div className="mx-auto max-w-3xl px-4 pt-4 lg:max-w-6xl lg:px-6 lg:pt-6">
+        <Link
+          to="/amashuri/fixtures"
+          className="mb-3 inline-flex items-center gap-1.5 text-xs font-semibold text-secondary transition-colors duration-150 ease-standard hover:text-brand-text"
+        >
+          <ChevronLeft size={14} aria-hidden="true" /> {t('match.back_to_schedule')}
+        </Link>
 
-      {/* Scoreboard */}
-      <section className="bg-red py-12 sm:py-20 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-red via-red to-[#007bb0]" />
-        <div className="absolute -top-24 -right-16 w-[28rem] h-[28rem] rounded-full bg-rwanda-yellow/15 blur-[120px]" />
-        <ResponsiveWrapper className="relative z-10">
-          <div className="flex flex-col items-center gap-10">
-            <div className="flex flex-col items-center gap-3">
-              <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/50">
-                {m.competition?.name || 'Schools Championship'}
-              </span>
-              {isLive ? <LiveBadge /> : (
-                <Badge tone="neutral" className="bg-white/10 border-white/20 text-white/80">
-                  {isCompleted ? t('match.full_time') : (m.status || 'Scheduled').replace(/_/g, ' ')}
-                </Badge>
-              )}
-            </div>
+        {/* `live` is the shape MatchScoreboard expects from useLiveMatch. There is
+            no live socket on the schools feed, so it gets the fixture's own score
+            and status and the scoreboard renders exactly as it does elsewhere. */}
+        <MatchScoreboard
+          fixture={m}
+          live={{ status: m.status, homeScore: raw.homeScore, awayScore: raw.awayScore }}
+          connected={false}
+        />
 
-            <div className="w-full flex items-center justify-between max-w-4xl">
-              <SchoolBadge team={m.homeTeam} />
-              <div className="flex items-center gap-5 sm:gap-12 px-4 sm:px-12">
-                {isLive || isCompleted ? (
-                  <>
-                    <ScoreDigit value={m.homeScore} />
-                    <span className="text-3xl sm:text-5xl font-display opacity-30">:</span>
-                    <ScoreDigit value={m.awayScore} />
-                  </>
-                ) : (
-                  <div className="text-center">
-                    <span className="block text-5xl sm:text-7xl font-display text-rwanda-yellow leading-none">
-                      {m.matchDate ? format(new Date(m.matchDate), 'HH:mm') : 'TBD'}
-                    </span>
-                    <span className="text-[10px] uppercase tracking-widest opacity-50 mt-2 block">{t('match.kick_off')}</span>
-                  </div>
-                )}
-              </div>
-              <SchoolBadge team={m.awayTeam} />
-            </div>
-
-            <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-[10px] font-bold uppercase tracking-widest text-white/60 border-t border-white/10 pt-8 w-full">
-              <span className="flex items-center gap-2"><Calendar size={14} className="text-rwanda-yellow" />{m.matchDate ? format(new Date(m.matchDate), 'dd MMM yyyy') : 'TBD'}</span>
-              <span className="flex items-center gap-2"><Clock size={14} className="text-rwanda-yellow" />{m.matchDate ? format(new Date(m.matchDate), 'HH:mm') : 'TBD'} CAT</span>
-              <span className="flex items-center gap-2"><MapPin size={14} className="text-rwanda-yellow" />{m.venue || 'TBD'}</span>
-              {m.round && <span className="flex items-center gap-2"><Flag size={14} className="text-rwanda-yellow" />{m.round}</span>}
-            </div>
-          </div>
-        </ResponsiveWrapper>
-      </section>
-
-      {/* Detail */}
-      <ResponsiveWrapper className="mt-10">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card className="p-6 lg:col-span-2 space-y-4">
-            <h3 className="font-display text-xl uppercase tracking-tight border-b border-surface-3 dark:border-white/5 pb-3">
-              {t('match.summary')} <span className="text-red">{t('match.summary_accent')}</span>
-            </h3>
-            {isCompleted ? (
-              <div className="flex items-center gap-4 p-4 rounded-2xl bg-red/5 border border-red/10">
-                <Trophy size={28} className="text-red shrink-0" />
-                <div>
-                  <p className="font-display text-lg uppercase tracking-tight">
-                    {m.isDraw ? t('match.match_drawn') : `${m.winnerTeamId === m.homeTeamId ? homeName : awayName} ${t('match.won')}`}
-                  </p>
-                  <p className="text-[11px] uppercase tracking-widest opacity-50">{homeName} {m.homeScore} — {m.awayScore} {awayName}</p>
-                </div>
-              </div>
-            ) : (
-              <EmptyState icon={Clock} title={isLive ? t('match.in_progress') : t('match.not_started')} hint={m.notes || t('match.result_hint')} className="py-10" />
-            )}
-            {m.notes && <p className="text-sm opacity-60 leading-relaxed">{m.notes}</p>}
-          </Card>
-
-          <Card className="p-6 space-y-4">
-            <h3 className="font-display text-xl uppercase tracking-tight border-b border-surface-3 dark:border-white/5 pb-3">
-              {t('match.fixture_info')} <span className="text-red">{t('match.fixture_info_accent')}</span>
-            </h3>
-            <dl className="space-y-3 text-sm">
-              {[
-                [t('match.stage'), m.stage?.replace(/_/g, ' ')],
-                [t('match.round'), m.round],
-                [t('match.competition'), m.competition?.name],
-                [t('match.status'), (m.status || '').replace(/_/g, ' ')],
-              ].filter(([, v]) => v).map(([k, v]) => (
-                <div key={k} className="flex items-center justify-between gap-4">
-                  <dt className="text-[10px] uppercase tracking-widest opacity-40">{k}</dt>
-                  <dd className="font-bold uppercase tracking-tight text-right">{v}</dd>
+        <div className="space-y-6 py-6">
+          <section className="rounded-card border border-hairline bg-surface p-4 sm:p-6">
+            <h2 className="font-display text-lg font-bold text-primary">{t('match.match_info')}</h2>
+            <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4 text-sm sm:grid-cols-3">
+              {infoRows.map(([k, v]) => (
+                <div key={k}>
+                  <dt className="text-xs text-tertiary">{k}</dt>
+                  <dd className="mt-0.5 font-medium text-primary">{v}</dd>
                 </div>
               ))}
+              {raw.matchDate && (
+                <div>
+                  <dt className="text-xs text-tertiary">{t('match.kick_off')}</dt>
+                  <dd className="mt-0.5 font-medium text-primary">{df(raw.matchDate, 'd MMM yyyy · HH:mm')}</dd>
+                </div>
+              )}
             </dl>
-            <Link to={`/amashuri/schools/${m.homeTeam?.schoolId}`} className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-red hover:underline pt-2">
-              <School size={14} /> {t('match.view')} {homeName}
-            </Link>
-          </Card>
+          </section>
+
+          {/* THE TEAMS ARE DESTINATIONS. The old page's only outbound link was a
+              "view school" line in the info panel; the squads that actually play
+              this fixture are two taps closer now. */}
+          <section className="space-y-3">
+            <h2 className="font-display text-lg font-bold text-primary">{t('amashuri.team_page.squad')}</h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <TeamLink team={raw.homeTeam} />
+              <TeamLink team={raw.awayTeam} />
+            </div>
+          </section>
+
+          <section>
+            <h2 className="mb-3 font-display text-lg font-bold text-primary">{t('match.timeline')}</h2>
+            {/* Owns its own empty state, so a fixture with no events reads as
+                "nothing has happened yet" rather than as a blank panel. */}
+            <MatchEventTimeline events={raw.events || []} homeTeamId={raw.homeTeamId} />
+          </section>
+
+          <MatchComments matchId={`amashuri-${id}`} />
         </div>
-      </ResponsiveWrapper>
+      </div>
+
+      <div className="mx-auto max-w-3xl px-4 pb-8 lg:max-w-6xl lg:px-6 lg:pb-12">
+        <PageAd position="match" />
+      </div>
     </div>
   );
 };

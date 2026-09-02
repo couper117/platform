@@ -25,6 +25,7 @@ const FixturesPage = lazy(() => import('./pages/public/FixturesPage'));
 const CalendarPage = lazy(() => import('./pages/public/CalendarPage'));
 const TeamsIndexPage = lazy(() => import('./pages/public/TeamsIndexPage'));
 const MatchDetailsPage = lazy(() => import('./pages/public/MatchDetailsPage'));
+const PlayerPage = lazy(() => import('./pages/public/PlayerPage'));
 const NewsListPage = lazy(() => import('./pages/public/NewsListPage'));
 const NewsArticlePage = lazy(() => import('./pages/public/NewsArticlePage'));
 const ContactPage = lazy(() => import('./pages/public/ContactPage'));
@@ -112,7 +113,10 @@ const TeamFixturesPage = lazy(() => import('./pages/team/TeamFixturesPage'));
 const TeamProfilePage = lazy(() => import('./pages/team/TeamProfilePage'));
 
 // Amashuri Games (Rwanda Inter-School Sports) Pages
-const AkcHome = lazy(() => import('./pages/akc3/AkcHome'));
+const AmashuriLayout = lazy(() => import('./pages/akc3/AmashuriLayout'));
+const AmashuriOverview = lazy(() => import('./pages/akc3/AmashuriOverview'));
+const AmashuriTeamPage = lazy(() => import('./pages/akc3/AmashuriTeamPage'));
+const AmashuriAthletePage = lazy(() => import('./pages/akc3/AmashuriAthletePage'));
 const SchoolDirectory = lazy(() => import('./pages/akc3/SchoolDirectory'));
 const SchoolProfilePage = lazy(() => import('./pages/akc3/SchoolProfilePage'));
 const AkcFixturesPage = lazy(() => import('./pages/akc3/AkcFixturesPage'));
@@ -216,15 +220,27 @@ function App() {
               <Route path="/news" element={<NewsListPage />} />
               <Route path="/news/:slug" element={<NewsArticlePage />} />
               <Route path="/matches/:id" element={<MatchDetailsPage />} />
+              <Route path="/players/:id" element={<PlayerPage />} />
               
               {/* Amashuri Games — Rwanda Inter-School Sports (umbrella incl. Kagame Cup) */}
-              <Route path="/amashuri" element={<AkcHome />} />
-              <Route path="/amashuri/championships" element={<ChampionshipsPage />} />
-              <Route path="/amashuri/schools" element={<SchoolDirectory />} />
+              {/* The Games are a SECTION, not a page: one shell carrying the
+                  photograph, the counts and the tab bar, with a real route per
+                  category underneath it. The school profile stays outside the
+                  shell — it is a school's own page, with its own identity. */}
+              <Route path="/amashuri" element={<AmashuriLayout />}>
+                <Route index element={<AmashuriOverview />} />
+                <Route path="championships" element={<ChampionshipsPage />} />
+                <Route path="schools" element={<SchoolDirectory />} />
+                <Route path="fixtures" element={<AkcFixturesPage />} />
+                <Route path="results" element={<AkcFixturesPage />} />
+                <Route path="standings" element={<AkcStandingsPage />} />
+              </Route>
               <Route path="/amashuri/schools/:id" element={<SchoolProfilePage />} />
-              <Route path="/amashuri/fixtures" element={<AkcFixturesPage />} />
-              <Route path="/amashuri/results" element={<AkcFixturesPage />} />
-              <Route path="/amashuri/standings" element={<AkcStandingsPage />} />
+              {/* school -> team -> athlete. Outside the section shell for the
+                  same reason the school profile is: these are a school's own
+                  pages, and the Games tab bar is not their navigation. */}
+              <Route path="/amashuri/teams/:id" element={<AmashuriTeamPage />} />
+              <Route path="/amashuri/athletes/:id" element={<AmashuriAthletePage />} />
               <Route path="/amashuri/matches/:id" element={<AmashuriMatchPage />} />
 
               {/* Legacy /akc3 redirects → /amashuri */}
@@ -325,7 +341,13 @@ function App() {
         </CommandPaletteProvider>
       </BrowserRouter>
       <Toaster />
-      <ReactQueryDevtools initialIsOpen={false} />
+      {/* OPT-IN, NOT ALWAYS-ON.
+          The devtools launcher is a fixed 40px circle in the bottom-right corner,
+          which on a phone lands exactly on top of the last item in the bottom nav —
+          a cartoon island covering "News" on every mobile screen, in the dev server
+          the demo is shown from. Set VITE_DEVTOOLS=true in .env.local to get it
+          back. */}
+      {import.meta.env.VITE_DEVTOOLS === 'true' && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
     </ThemeProvider>
     </HelmetProvider>

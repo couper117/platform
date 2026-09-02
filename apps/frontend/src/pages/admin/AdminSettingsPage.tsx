@@ -140,7 +140,7 @@ const AdminSettingsPage = () => {
                   />
                 </div>
               ))}
-              {!rules.length && <p className="text-xs opacity-40 col-span-2">Loading rulesâ€¦</p>}
+              {!rules.length && <p className="text-xs opacity-40 col-span-2">Loading rules…</p>}
             </div>
           </div>
         </div>

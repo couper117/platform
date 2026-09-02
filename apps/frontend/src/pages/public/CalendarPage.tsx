@@ -5,6 +5,7 @@ import Seo from '../../components/shared/Seo';
 import UmugandaCalendar from '../../components/umuganda/UmugandaCalendar';
 import UmugandaNotices from '../../components/umuganda/UmugandaNotices';
 import UpcomingUmuganda from '../../components/umuganda/UpcomingUmuganda';
+import PageAd from '../../components/shared/PageAd';
 
 /**
  * The sports calendar, Umuganda-aware.
@@ -39,6 +40,14 @@ const CalendarPage = () => {
 
         <UmugandaNotices limit={10} heading={t('umuganda.notices')} />
       </ResponsiveWrapper>
+      {/* Advertising sits at the FOOT of the page, after the content, never
+          spliced into it. An advert dropped between two fixtures or two
+          paragraphs interrupts the thing the reader came for; down here it is
+          the last item on the screen and costs the page nothing. AdSlot
+          collapses to nothing when the position has no inventory. */}
+      <div className="mx-auto max-w-3xl px-4 pb-8 lg:max-w-6xl lg:px-6 lg:pb-12">
+        <PageAd position="calendar" />
+      </div>
     </div>
   );
 };

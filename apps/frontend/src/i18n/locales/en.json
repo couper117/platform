@@ -277,7 +277,9 @@
     "time_minutes_ago": "{{count}}m ago",
     "time_hours_ago": "{{count}}h ago",
     "time_days_ago": "{{count}}d ago",
-    "captain": "Captain"
+    "captain": "Captain",
+    "show_all_events_one": "Show {{count}} earlier event",
+    "show_all_events_other": "Show {{count}} earlier events"
   },
   "standings": {
     "col_pos": "Pos",
@@ -524,7 +526,29 @@
     "discover_schools": "Discover schools",
     "latest_news": "Latest news",
     "no_news": "No school-sports news yet.",
-    "news_default": "News"
+    "news_default": "News",
+    "tab_overview": "Overview",
+    "tab_championships": "Championships",
+    "tab_fixtures": "Fixtures",
+    "tab_standings": "Standings",
+    "tab_schools": "Schools",
+    "banner_title": "Every school, every sport, one national calendar",
+    "banner_body": "From district heats to the national finals — the Amashuri Games are where Rwandan sport starts.",
+    "team_page": {
+      "squad": "Squad",
+      "verified": "Verified",
+      "no_players": "No athletes registered",
+      "no_players_hint": "This team has not registered its squad yet.",
+      "not_found": "Team not found",
+      "not_found_hint": "This team may have been removed, or the link is out of date.",
+      "seo": "Squad, coach and registration status for this {{school}} team."
+    },
+    "athlete": {
+      "age_group": "Age group",
+      "eligibility": "Eligibility",
+      "verified": "Verified",
+      "pending": "Pending review"
+    }
   },
   "admin": {
     "portal": "Admin Portal",
@@ -923,6 +947,66 @@
     "players_empty_title": "No players yet",
     "players_empty_hint": "This club's squad will appear here once players are registered."
   },
+  "player": {
+    "seo": "{{name}} — season statistics and profile at {{team}}.",
+    "this_season": "This season",
+    "recent_form": "Recent form",
+    "profile": "Profile",
+    "age": "Age",
+    "years_one": "{{count}} year",
+    "years_other": "{{count}} years",
+    "nationality": "Nationality",
+    "height": "Height",
+    "weight": "Weight",
+    "licence": "Licence",
+    "vs_home": "vs {{team}}",
+    "vs_away": "at {{team}}",
+    "result": {
+      "W": "W",
+      "D": "D",
+      "L": "L"
+    },
+    "contribution": {
+      "goals_one": "{{count}} goal",
+      "goals_other": "{{count}} goals",
+      "pts_one": "{{count}} pt",
+      "pts_other": "{{count}} pts"
+    },
+    "stat": {
+      "goals": "Goals",
+      "assists": "Assists",
+      "appearances": "Apps",
+      "minutes": "Minutes",
+      "clean_sheets": "Clean sheets",
+      "yellow_cards": "Yellow cards",
+      "red_cards": "Red cards",
+      "ppg": "PPG",
+      "rpg": "RPG",
+      "apg": "APG",
+      "spg": "SPG",
+      "bpg": "BPG",
+      "mpg": "MPG",
+      "games": "Games",
+      "points": "Points",
+      "kills": "Kills",
+      "blocks": "Blocks",
+      "matches": "Matches",
+      "aces": "Aces",
+      "digs": "Digs",
+      "stage_wins": "Stage wins",
+      "podiums": "Podiums",
+      "races": "Races",
+      "kom_points": "KOM points",
+      "season_best": "Season best",
+      "wins": "Wins",
+      "meets": "Meets",
+      "national_rank": "National rank",
+      "saves": "Saves",
+      "suspensions": "2-min suspensions"
+    },
+    "not_found": "Player not found",
+    "not_found_hint": "This player may have been removed, or the link is out of date."
+  },
   "reporter": {
     "title": "Pitch-Side",
     "title_accent": "Reporting",
@@ -1046,7 +1130,15 @@
       "KICKOFF": "Kick-off",
       "HALFTIME": "Half Time",
       "FULLTIME": "Full Time",
-      "EXTRA_TIME": "Extra Time"
+      "EXTRA_TIME": "Extra Time",
+      "THREE_POINTER": "Three-pointer",
+      "FREE_THROW": "Free throw",
+      "FOUL": "Foul",
+      "TIMEOUT": "Timeout",
+      "QUARTER_END": "End of quarter",
+      "SET_END": "End of set",
+      "SUSPENSION": "2-minute suspension",
+      "SEVEN_METRE": "7-metre throw"
     },
     "position": {
       "GOALKEEPER": "Goalkeeper",
@@ -1181,13 +1273,15 @@
     "explore_all": "Explore all",
     "hero_title": "The home of Rwandan sport",
     "photo_credit": "Photo: {{author}}",
-    "shot_football": "Football · Second Division",
+    "shot_football": "Amavubi · Rwanda National Team",
     "shot_cycling": "Cycling · Tour du Rwanda",
     "shot_basketball": "Basketball · Kigali",
     "shot_athletics": "Athletics · Amahoro Stadium",
     "shot_volleyball": "Volleyball · Nyabarongo",
     "shot_amashuri": "School sport · Amashuri Games",
-    "hero_kicker": "Rwanda · MINISPORTS"
+    "hero_kicker": "Rwanda · MINISPORTS",
+    "shot_bal_finals": "Basketball Africa League Finals · BK Arena",
+    "shot_womens_basketball": "Women's Basketball League · APR v REG"
   },
   "matchstat": {
     "possession": "Possession %",

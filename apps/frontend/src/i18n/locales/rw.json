@@ -277,7 +277,9 @@
     "time_minutes_ago": "{{count}} iminota ishize",
     "time_hours_ago": "{{count}} amasaha ishize",
     "time_days_ago": "{{count}} iminsi ishize",
-    "captain": "Kapiteni"
+    "captain": "Kapiteni",
+    "show_all_events_one": "Erekana ikindi {{count}} cyabaye mbere",
+    "show_all_events_other": "Erekana ibindi {{count}} byabaye mbere"
   },
   "standings": {
     "col_pos": "Umw.",
@@ -524,7 +526,29 @@
     "discover_schools": "Menya amashuri",
     "latest_news": "Amakuru aheruka",
     "no_news": "Nta makuru ya siporo z amashuri arahari.",
-    "news_default": "Amakuru"
+    "news_default": "Amakuru",
+    "tab_overview": "Incamake",
+    "tab_championships": "Amarushanwa",
+    "tab_fixtures": "Gahunda",
+    "tab_standings": "Urutonde",
+    "tab_schools": "Amashuri",
+    "banner_title": "Buri shuri, buri siporo, kalendari imwe y’igihugu",
+    "banner_body": "Kuva ku marushanwa y’uturere kugeza ku manyakuri y’igihugu — Imikino y’Amashuri ni ho siporo nyarwanda itangirira.",
+    "team_page": {
+      "squad": "Ikipe",
+      "verified": "Byemejwe",
+      "no_players": "Nta bakinnyi banditswe",
+      "no_players_hint": "Iyi kipe ntiranditsa abakinnyi bayo.",
+      "not_found": "Ikipe ntiyabonetse",
+      "not_found_hint": "Iyi kipe ishobora kuba yarakuwemo, cyangwa iyi link ntikiri nshya.",
+      "seo": "Abakinnyi, umutoza n’uko iyandikwa rihagaze kuri iyi kipe ya {{school}}."
+    },
+    "athlete": {
+      "age_group": "Icyiciro cy’imyaka",
+      "eligibility": "Uburenganzira bwo gukina",
+      "verified": "Byemejwe",
+      "pending": "Birategerejwe"
+    }
   },
   "admin": {
     "portal": "Urubuga rw'Ubuyobozi",
@@ -923,6 +947,66 @@
     "players_empty_title": "Nta bakinnyi barahari",
     "players_empty_hint": "Abakinnyi b'iyi kipe bazagaragara hano nyuma yo kwiyandikisha."
   },
+  "player": {
+    "seo": "{{name}} — imibare y’igihembwe n’umwirondoro muri {{team}}.",
+    "this_season": "Iki gihembwe",
+    "recent_form": "Imikino iheruka",
+    "profile": "Umwirondoro",
+    "age": "Imyaka",
+    "years_one": "Umwaka {{count}}",
+    "years_other": "Imyaka {{count}}",
+    "nationality": "Ubwenegihugu",
+    "height": "Uburebure",
+    "weight": "Ibiro",
+    "licence": "Uruhushya",
+    "vs_home": "na {{team}}",
+    "vs_away": "kwa {{team}}",
+    "result": {
+      "W": "W",
+      "D": "D",
+      "L": "L"
+    },
+    "contribution": {
+      "goals_one": "Igitego {{count}}",
+      "goals_other": "Ibitego {{count}}",
+      "pts_one": "Inota {{count}}",
+      "pts_other": "Amanota {{count}}"
+    },
+    "stat": {
+      "goals": "Ibitego",
+      "assists": "Assists",
+      "appearances": "Imikino",
+      "minutes": "Iminota",
+      "clean_sheets": "Clean sheets",
+      "yellow_cards": "Amakarita y’umuhondo",
+      "red_cards": "Amakarita atukura",
+      "ppg": "Amanota/umukino",
+      "rpg": "Reb/umukino",
+      "apg": "Ast/umukino",
+      "spg": "Stl/umukino",
+      "bpg": "Blk/umukino",
+      "mpg": "Imin/umukino",
+      "games": "Imikino",
+      "points": "Amanota",
+      "kills": "Kills",
+      "blocks": "Blocks",
+      "matches": "Imikino",
+      "aces": "Aces",
+      "digs": "Digs",
+      "stage_wins": "Intsinzi z’ibyiciro",
+      "podiums": "Podiums",
+      "races": "Amasiganwa",
+      "kom_points": "Amanota ya KOM",
+      "season_best": "Igihe cyiza cy’igihembwe",
+      "wins": "Intsinzi",
+      "meets": "Amarushanwa",
+      "national_rank": "Umwanya ku gihugu",
+      "saves": "Saves",
+      "suspensions": "Ibihano bya min 2"
+    },
+    "not_found": "Umukinnyi ntabonetse",
+    "not_found_hint": "Uyu mukinnyi ashobora kuba yarakuwemo, cyangwa iyi link ntikiri nshya."
+  },
   "reporter": {
     "title": "Gutanga Amakuru",
     "title_accent": "ku Kibuga",
@@ -1046,7 +1130,15 @@
       "KICKOFF": "Itangira",
       "HALFTIME": "Ikiruhuko",
       "FULLTIME": "Umukino warangiye",
-      "EXTRA_TIME": "Umwanya w'inyongera"
+      "EXTRA_TIME": "Umwanya w'inyongera",
+      "THREE_POINTER": "Amanota atatu",
+      "FREE_THROW": "Gutera ku buntu",
+      "FOUL": "Ikosa",
+      "TIMEOUT": "Akaruhuko",
+      "QUARTER_END": "Iherezo ry’igice",
+      "SET_END": "Iherezo rya set",
+      "SUSPENSION": "Guhagarikwa iminota 2",
+      "SEVEN_METRE": "Gutera metero 7"
     },
     "position": {
       "GOALKEEPER": "Umunyezamu",
@@ -1181,13 +1273,15 @@
     "explore_all": "Reba byose",
     "hero_title": "Urugo rwa siporo mu Rwanda",
     "photo_credit": "Ifoto: {{author}}",
-    "shot_football": "Umupira w’amaguru · Second Division",
+    "shot_football": "Amavubi · Ikipe y’Igihugu",
     "shot_cycling": "Amagare · Tour du Rwanda",
     "shot_basketball": "Basketball · Kigali",
     "shot_athletics": "Athletics · Sitade Amahoro",
     "shot_volleyball": "Volleyball · Nyabarongo",
     "shot_amashuri": "Imikino y’amashuri · Amashuri Games",
-    "hero_kicker": "U Rwanda · MINISPORTS"
+    "hero_kicker": "U Rwanda · MINISPORTS",
+    "shot_bal_finals": "Imikino ya nyuma ya BAL · BK Arena",
+    "shot_womens_basketball": "Shampiyona y’abagore mu basketball · APR na REG"
   },
   "matchstat": {
     "possession": "Umwanya w’umupira %",

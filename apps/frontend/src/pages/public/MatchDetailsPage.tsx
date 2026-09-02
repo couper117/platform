@@ -20,6 +20,7 @@ import Button from '../../components/ui/Button';
 import { useDateFormat } from '../../i18n/dateLocale';
 import { useEnumLabel } from '../../i18n/enums';
 import cn from '../../components/ui/cn';
+import PageAd from '../../components/shared/PageAd';
 
 /**
  * /matches/:id — the single-match page.
@@ -212,6 +213,14 @@ const MatchDetailsPage = () => {
 
           {tab === 'comments' && <MatchComments matchId={id as string} />}
         </div>
+      </div>
+      {/* Advertising sits at the FOOT of the page, after the content, never
+          spliced into it. An advert dropped between two fixtures or two
+          paragraphs interrupts the thing the reader came for; down here it is
+          the last item on the screen and costs the page nothing. AdSlot
+          collapses to nothing when the position has no inventory. */}
+      <div className="mx-auto max-w-3xl px-4 pb-8 lg:max-w-6xl lg:px-6 lg:pb-12">
+        <PageAd position="match" />
       </div>
     </div>
   );

@@ -17,6 +17,7 @@ import ClubCrest from '../../components/ui/ClubCrest';
 import StatusPill from '../../components/ui/StatusPill';
 import { EmptyState, ErrorState, SectionHeading, Skeleton, SkeletonList } from '../../components/ui';
 import cn from '../../components/ui/cn';
+import PageAd from '../../components/shared/PageAd';
 
 /**
  * Underline tab, copied from FixtureFilters — the reference for every tab strip
@@ -312,6 +313,14 @@ const LeagueDetailsPage = () => {
             )}
           </section>
         )}
+      </div>
+      {/* Advertising sits at the FOOT of the page, after the content, never
+          spliced into it. An advert dropped between two fixtures or two
+          paragraphs interrupts the thing the reader came for; down here it is
+          the last item on the screen and costs the page nothing. AdSlot
+          collapses to nothing when the position has no inventory. */}
+      <div className="mx-auto max-w-3xl px-4 pb-8 lg:max-w-6xl lg:px-6 lg:pb-12">
+        <PageAd position="league" />
       </div>
     </div>
   );

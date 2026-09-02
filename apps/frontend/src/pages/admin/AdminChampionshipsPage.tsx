@@ -134,8 +134,8 @@ const AdminChampionshipsPage = () => {
                 <span className="inline-flex items-center gap-1"><Layers size={12} className="text-rwanda-blue" />{enumLabel('level', c.level)}</span>
               </td>
               <td className="px-6 py-5 text-[11px] opacity-50">
-                {formatDate(c.startDate, 'dd MMM yy') || 'â€”'}
-                {c.endDate ? ` â€“ ${formatDate(c.endDate, 'dd MMM yy')}` : ''}
+                {formatDate(c.startDate, 'dd MMM yy') || '—'}
+                {c.endDate ? ` – ${formatDate(c.endDate, 'dd MMM yy')}` : ''}
               </td>
               <td className="px-6 py-5 text-sm tabular-nums">{c._count?.fixtures ?? 0}</td>
               <td className="px-6 py-5">

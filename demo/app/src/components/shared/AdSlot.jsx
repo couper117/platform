@@ -28,12 +28,19 @@ import cn from '../ui/cn';
  * medium rectangle (300x250).
  */
 const VARIANTS = {
-  inline: 'h-16 border-b',
+  // The in-list mobile slot. It used to be a full-bleed 64px strip with a bottom
+  // rule — no rounding, no border, no label — so it read as a broken row of the
+  // fixture list rather than as an advert. It is a card like everything else
+  // around it now, at the 320x100 large mobile banner ratio.
+  inline: 'h-[112px] rounded-card border',
   leaderboard: 'h-24 rounded-card border',
   sidebar: 'h-[250px] rounded-card border',
+  // The 160x600 wide skyscraper. Width comes from the caller (SideRails pins it
+  // into the gutter), so only the height is fixed here.
+  skyscraper: 'h-[600px] rounded-card border',
 };
 
-const AdSlot = ({ position, variant = 'inline', className }) => {
+const AdSlot = ({ position, variant = 'inline', className = '' }) => {
   const [imgError, setImgError] = useState(false);
 
   // Query copied verbatim from the old AdBanner — same key, same shape.
@@ -52,34 +59,38 @@ const AdSlot = ({ position, variant = 'inline', className }) => {
   if (settled && (!ad?.imageUrl || imgError)) return null;
 
   return (
-    <div
-      className={cn(
-        'w-full overflow-hidden border-hairline bg-surface-2',
-        VARIANTS[variant] ?? VARIANTS.inline,
-        className
-      )}
-    >
-      {ad?.imageUrl ? (
-        <a
-          href={ad.targetUrl || '#'}
-          target="_blank"
-          rel="noopener noreferrer sponsored"
-          className="block h-full"
-        >
-          <img
-            src={ad.imageUrl}
-            alt={ad.title || 'Advertisement'}
-            onError={() => setImgError(true)}
-            className="h-full w-full object-cover"
-          />
-        </a>
-      ) : (
-        // Holding the space while the request is in flight. Labelled so the slot
-        // never reads as a broken image.
-        <div className="flex h-full items-center justify-center">
-          <span className="text-xs uppercase tracking-wider text-disabled">Advertisement</span>
-        </div>
-      )}
+    <div className={cn('w-full', className)}>
+      {/* An advert sitting inside a list of real fixtures has to declare itself.
+          Nothing said so before, which is both a dark pattern and the reason the
+          slot read as a broken row. */}
+      <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-disabled">
+        Sponsored
+      </p>
+      <div
+        className={cn(
+          'w-full overflow-hidden border-hairline bg-surface-2',
+          VARIANTS[variant] ?? VARIANTS.inline
+        )}
+      >
+        {ad?.imageUrl ? (
+          <a
+            href={ad.targetUrl || '#'}
+            target="_blank"
+            rel="noopener noreferrer sponsored"
+            className="block h-full"
+          >
+            <img
+              src={ad.imageUrl}
+              alt={ad.title || 'Advertisement'}
+              onError={() => setImgError(true)}
+              className="h-full w-full object-cover"
+            />
+          </a>
+        ) : (
+          // Holding the space while the request is in flight.
+          <div className="h-full animate-pulse bg-surface-3" />
+        )}
+      </div>
     </div>
   );
 };

@@ -12,6 +12,7 @@ import Button from '../../components/ui/Button';
 import Seo from '../../components/shared/Seo';
 import HeroStage from '../../components/home/HeroStage';
 import { HERO_SLIDES, SPORT_PHOTOS } from '../../config/heroMedia';
+import PageAd from '../../components/shared/PageAd';
 
 /* Landing — the RwaSport home. Theme-aware (light + dark), fully translated
    (EN/FR/RW) via t(), and live on the real backend (/sports, /fixtures). */
@@ -247,6 +248,14 @@ const ExplorePage = () => {
           </div>
         )}
       </section>
+      {/* Advertising sits at the FOOT of the page, after the content, never
+          spliced into it. An advert dropped between two fixtures or two
+          paragraphs interrupts the thing the reader came for; down here it is
+          the last item on the screen and costs the page nothing. AdSlot
+          collapses to nothing when the position has no inventory. */}
+      <div className="mx-auto max-w-3xl px-4 pb-8 lg:max-w-6xl lg:px-6 lg:pb-12">
+        <PageAd position="home" />
+      </div>
     </div>
   );
 };

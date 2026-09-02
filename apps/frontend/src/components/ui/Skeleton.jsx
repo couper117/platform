@@ -8,7 +8,7 @@ import cn from './cn';
  * ('card' | 'table-row' | 'stat') and hardcoded a layout per type, which meant
  * the skeleton and the real component drifted apart the moment either changed.
  * Instead: primitives here, and each domain component ships its OWN skeleton
- * built from them Ã¢â‚¬â€ MatchRow.Skeleton lives next to MatchRow and shares its
+ * built from them — MatchRow.Skeleton lives next to MatchRow and shares its
  * metrics, so it cannot drift.
  *
  *   <Skeleton className="h-4 w-24" />        one block
@@ -21,7 +21,7 @@ import cn from './cn';
  * child, so it never affects layout.
  *
  * This is the one sanctioned gradient in the system. The no-gradients rule exists
- * to stop decorative surface treatment; here the soft edge IS the affordance Ã¢â‚¬â€ a
+ * to stop decorative surface treatment; here the soft edge IS the affordance — a
  * hard-edged band sweeping past looks like a rendering fault.
  */
 /**
@@ -56,7 +56,7 @@ export const SkeletonText = ({ lines = 3, className = '' }) => (
  */
 export const SkeletonList = ({ count = 6, children, className = '' }) => (
   <div role="status" aria-busy="true" aria-live="polite" className={className}>
-    <span className="sr-only">LoadingÃ¢â‚¬Â¦</span>
+    <span className="sr-only">Loading…</span>
     {Array.from({ length: count }).map((_, i) => (
       <React.Fragment key={i}>{children}</React.Fragment>
     ))}

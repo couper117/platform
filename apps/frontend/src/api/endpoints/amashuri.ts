@@ -185,3 +185,13 @@ export const deleteChampionship = async (id) => {
   const { data } = await apiClient.delete(`/akc3/admin/competitions/${id}`);
   return data;
 };
+
+export const getAkcTeam = async (id) => {
+  const { data } = await apiClient.get(`/akc3/teams/${id}`);
+  return data;
+};
+
+export const getAkcAthlete = async (id) => {
+  const { data } = await apiClient.get(`/akc3/athletes/${id}`);
+  return data;
+};

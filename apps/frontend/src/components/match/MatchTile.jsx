@@ -154,7 +154,7 @@ const MatchTile = ({ fixture, className = '' }) => {
       className={cn(
         // h-full so grid siblings equalise — a card without a venue line is
         // otherwise visibly shorter than the one beside it.
-        'flex h-full flex-col gap-2 rounded-card border border-hairline bg-surface p-3',
+        'flex h-full flex-col gap-1.5 rounded-card border border-hairline bg-surface p-3',
         // Same identity rule as MatchRow/MatchCard: 3px club bar on live only,
         // transparent otherwise so the card never shifts width between states.
         'border-l-[3px]',
@@ -176,8 +176,13 @@ const MatchTile = ({ fixture, className = '' }) => {
         <TeamRow team={away} score={as} showScore={showScore} bold={awayLeads} dim={off} live={live} safe={safe} />
       </div>
 
+      {/* VENUE IS DESKTOP-ONLY.
+          At 390px the card was 148px tall, so a fixture list showed three matches
+          a screen — and the third line was the ground, which is the least urgent
+          thing on it and is on the match page anyway. Dropping it below `sm` buys
+          back a match and a half per screen. */}
       {fixture.venue && (
-        <p className="flex items-center gap-1 text-xs text-tertiary">
+        <p className="hidden items-center gap-1 text-xs text-tertiary sm:flex">
           <MapPin size={11} className="shrink-0" aria-hidden="true" />
           <span className="truncate">{fixture.venue}</span>
         </p>

@@ -89,14 +89,14 @@ const ChampionshipsPage = () => {
   const championships = comps?.data || [];
 
   return (
-    <div className="min-h-screen bg-page">
+    <>
       <Seo title={t('seo.amashuri_championships_title')} description={t('seo.amashuri_championships_desc')} />
 
+      {/* NO H1 HERE. The tab bar in AmashuriLayout already names this
+          page, and a title repeating it pushed the content another
+          80px down for nothing. */}
       <div className="mx-auto max-w-3xl px-4 pt-4 lg:max-w-6xl lg:px-6 lg:pt-6">
-        <h1 className="mb-3 font-display text-xl font-extrabold tracking-[-0.02em] text-primary sm:mb-4 sm:text-3xl">
-          {t('amashuri.championships_page.title')} {t('amashuri.championships_page.accent')}
-        </h1>
-        <p className="mb-4 text-sm text-secondary sm:mb-6">{t('amashuri.championships_page.subtitle')}</p>
+        <p className="text-sm text-secondary">{t('amashuri.championships_page.subtitle')}</p>
       </div>
 
       <div className="mx-auto max-w-3xl space-y-10 px-4 pb-10 lg:max-w-6xl lg:px-6 lg:pb-14">
@@ -134,7 +134,7 @@ const ChampionshipsPage = () => {
           <AmashuriStats schools={schools?.data || []} championships={championships} />
         </section>
       </div>
-    </div>
+    </>
   );
 };
 

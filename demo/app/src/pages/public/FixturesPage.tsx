@@ -13,6 +13,7 @@ import FixtureFilters from '../../components/match/FixtureFilters';
 import StandingsTable from '../../components/match/StandingsTable';
 import TopScorers from '../../components/match/TopScorers';
 import MatchCard from '../../components/match/MatchCard';
+import MatchTile from '../../components/match/MatchTile';
 import {
   MatchdayDivider,
   CompetitionHeader,
@@ -128,18 +129,6 @@ const FixturesPage = () => {
     enabled: isDesktop && !!railLeagueId,
   });
 
-  // Put the single in-list ad after the first group that completes six fixtures,
-  // not after the first group. Days often hold one match, so "after group one"
-  // would drop a banner under the very first row and cost the screen its density.
-  const adAfterGroup = (() => {
-    let seen = 0;
-    for (let i = 0; i < groups.length; i += 1) {
-      seen += groups[i].competitions.reduce((n, c) => n + c.fixtures.length, 0);
-      if (seen >= 6) return i;
-    }
-    return groups.length - 1;
-  })();
-
   const emptyCopy = {
     SCHEDULED: [t('fixtures.empty_scheduled'), t('fixtures.empty_scheduled_hint')],
     LIVE: [t('fixtures.empty_live'), t('fixtures.empty_live_hint')],
@@ -187,9 +176,11 @@ const FixturesPage = () => {
               </SkeletonList>
             </div>
           ) : (
-            <SkeletonList count={8}>
-              <MatchRow.Skeleton />
-            </SkeletonList>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <SkeletonList count={6}>
+                <MatchTile.Skeleton />
+              </SkeletonList>
+            </div>
           )
         ) : isError ? (
           <ErrorState
@@ -228,45 +219,42 @@ const FixturesPage = () => {
           ))
         ) : (
           groups.map((group, gi) => {
-          // One competition that day → its name rides in the divider and saves a
-          // 20px row. With real data most days have a single match per league.
-          const solo = group.competitions.length === 1;
           return (
             <section key={group.date ?? `tbd-${gi}`} className="mb-4 last:mb-0">
-              {/* ONE CARD PER MATCHDAY.
-                  The list used to be an edge-to-edge run of rows with a 24px grey
-                  strip between days — dense, but it read as a spreadsheet and gave
-                  the eye nothing to hold on to. A card per day gives each matchday
-                  a boundary, and the divider becomes its header rather than a rule
-                  floating in the middle of the page. */}
-              <div className="overflow-hidden rounded-card border border-hairline bg-surface">
-                <MatchdayDivider
-                  date={group.date}
-                  competition={solo ? group.competitions[0].name : undefined}
-                  className="h-8 border-y-0 border-b border-hairline px-4"
-                />
-                {group.competitions.map((comp) => (
-                  <div key={comp.name}>
-                    {!solo && (
-                      <CompetitionHeader
-                        name={comp.name}
-                        meta={comp.fixtures.length > 1 ? `${comp.fixtures.length}` : undefined}
-                        className="h-7 bg-surface-2 px-4"
-                      />
-                    )}
-                    {comp.fixtures.map((fixture) => (
-                      <MatchRow key={fixture.id} fixture={fixture} />
-                    ))}
-                  </div>
-                ))}
+              {/* A CARD PER MATCH, NOT A ROW PER MATCH.
+                  Wrapping the day's fixtures in one bordered box and stacking 68px
+                  rows inside it made a phone screen read as a spreadsheet: hairline,
+                  row, hairline, row, with the score in a column you had to track
+                  across. The matchday is a plain heading now and each fixture is its
+                  own MatchTile — the same card /sports/:slug/matches already uses,
+                  so the two screens finally agree. */}
+              {/* THE DAY IS THE ONLY GROUPING HERE.
+                  MatchTile prints the competition on its own top row, so a
+                  competition heading above the cards — and the competition name
+                  in the matchday divider — said it a second and third time. One
+                  date, then that day's fixtures. */}
+              <MatchdayDivider
+                date={group.date}
+                className="h-auto border-y-0 bg-transparent px-0 pb-2"
+              />
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {group.competitions.flatMap((comp) =>
+                  comp.fixtures.map((fixture) => <MatchTile key={fixture.id} fixture={fixture} />)
+                )}
               </div>
-              {/* Mobile only: desktop carries its inventory in the leaderboard and
-                  the rail, so the list itself stays uninterrupted. */}
-              {gi === adAfterGroup && <AdSlot position="fixtures" className="lg:hidden" />}
             </section>
             );
           })
         )}
+
+        {/* THE AD SITS AFTER THE LIST, NOT INSIDE IT.
+            It used to be spliced in after whichever day completed six fixtures,
+            which on a phone dropped a banner between two matchday headings — an
+            advert interrupting the schedule mid-scroll, in the middle of the
+            thing the reader came for. It is the last item on the page now.
+            Mobile only: desktop carries its inventory in the leaderboard and the
+            right-hand rail, so that column never needed interrupting. */}
+        {groups.length > 0 && <AdSlot position="fixtures" className="mt-4 lg:hidden" />}
       </motion.div>
     </AnimatePresence>
   );
@@ -301,7 +289,7 @@ const FixturesPage = () => {
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-6">
           {/* ─── list column ─── */}
           <div className="lg:space-y-3">
-            <AdSlot position="fixtures-leaderboard" variant="leaderboard" className="hidden lg:block" />
+            <AdSlot position="fixtures-lg" variant="leaderboard" className="hidden lg:block" />
 
             {/* Deliberately an unstyled wrapper. Rows and cards both carry their own
                 borders, so a bordered container would double the frame — and
@@ -323,7 +311,7 @@ const FixturesPage = () => {
                 {rail?.topScorers?.length > 0 && <TopScorers scorers={rail.topScorers} />}
               </>
             )}
-            <AdSlot position="fixtures-sidebar" variant="sidebar" />
+            <AdSlot position="fixtures-rail" variant="sidebar" />
           </aside>
         </div>
       </div>

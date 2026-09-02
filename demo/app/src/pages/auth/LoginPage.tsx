@@ -11,8 +11,8 @@ import apiClient from '../../api/client';
 import { roleHome } from '../../utils/roleHome';
 import { getSports } from '../../api/endpoints/sports';
 import useFavouriteSport from '../../hooks/useFavouriteSport';
-import { sportTheme } from '../../config/sportThemes';
-import responsiveImage from '../../utils/responsiveImage';
+import useHeroRotation from '../../hooks/useHeroRotation';
+import { HERO_SLIDES, heroSrc } from '../../config/heroMedia';
 import SportBounce from '../../components/shared/SportBounce';
 import Seo from '../../components/shared/Seo';
 import { Button, Field, Input, cn } from '../../components/ui';
@@ -31,9 +31,16 @@ const loginSchema = z.object({
  * THE RIGHT PANEL IS DESKTOP-ONLY. At 360px it would either push the form below
  * the fold or shrink it to nothing, and the form is the reason anyone is here.
  *
- * The photograph follows the visitor's chosen sport, so someone who picked
- * basketball is greeted by a court rather than a football pitch. It is the same
- * preference the landing route uses, so the two never disagree.
+ * THE PANEL IS A ROTATION, NOT ONE STILL. It used to show a single frame chosen
+ * from the visitor's favourite sport — and in the demo dataset a sport's
+ * `coverImage` is the generated abstract gradient, so the front door of the
+ * platform opened on a coloured rectangle. It now cross-fades the same verified
+ * Rwandan photography the homepage hero uses, from config/heroMedia, so there is
+ * one curated set and one credits file rather than two.
+ *
+ * The visitor's chosen sport still decides where the rotation STARTS, so someone
+ * who picked basketball is greeted by a court rather than a football pitch — the
+ * preference is honoured without costing the panel its variety.
  *
  * The bouncing ball sits directly above the inputs. An auth screen is the one place
  * in this product where decoration is the point — there is no data to show, and a
@@ -76,8 +83,12 @@ const LoginPage = () => {
   // MINISPORTS photograph replaces the stock backdrop the moment one is uploaded.
   const { slug: favourite } = useFavouriteSport();
   const favSport = sports.find((s) => s.slug === favourite);
-  const panelImage = favSport?.coverImage || sportTheme(favourite).bg;
-  const panelLabel = favSport?.name ? `${favSport.name} · Rwanda` : 'Rwanda · MINISPORTS';
+  const slides = React.useMemo(() => {
+    const at = HERO_SLIDES.findIndex((slide) => slide.id === favourite);
+    return at > 0 ? [...HERO_SLIDES.slice(at), ...HERO_SLIDES.slice(0, at)] : HERO_SLIDES;
+  }, [favourite]);
+  const { index: shown, still } = useHeroRotation(slides.length);
+  const current = slides[shown];
 
   // Demo app: one-tap sign-in for each portal, rendered on the side panel so a
   // presenter never types. Any password works (see the demo mock adapter).
@@ -200,43 +211,55 @@ const LoginPage = () => {
           the product without competing with the form.
 
           NOT A VIDEO, and the reason is bytes. A background loop is 1–5MB against
-          roughly 70KB for this still, and without real Rwandan match footage it
-          would only ever be generic stock. The reference gets its cinematic feel
-          from `slowZoom 20s` on a photo, which is what happens here — most of the
+          roughly 70KB for a still, and without real Rwandan match footage it would
+          only ever be generic stock. The cinematic feel comes from `slowZoom 20s`
+          over the photograph plus a 900ms cross-fade between them — most of the
           motion for a fraction of the payload. Worth revisiting the moment
           MINISPORTS supplies actual footage. */}
       <div className="relative hidden overflow-hidden bg-[#0F0F0F] lg:block">
-        <img
-          {...responsiveImage(panelImage, { sizes: '50vw' })}
-          alt=""
-          loading="eager"
-          // lowercase: React 18 does not recognise the camelCase form
-          fetchpriority="low"
-          className={cn(
-            'absolute inset-0 h-full w-full object-cover',
-            // Ken Burns. Ambient, so exempt from the 240ms transition budget, and
-            // motion-safe because it is a CSS animation — the global
-            // prefers-reduced-motion rule in index.css neutralises it.
-            'animate-slow-zoom'
-          )}
-        />
+        {slides.map((s, i) => (
+          <img
+            key={s.id}
+            src={heroSrc(s)}
+            alt=""
+            loading={i === 0 ? 'eager' : 'lazy'}
+            // lowercase: React 18 does not recognise the camelCase form
+            fetchpriority={i === 0 ? 'high' : 'low'}
+            decoding="async"
+            className={cn(
+              'absolute inset-0 h-full w-full object-cover',
+              'transition-opacity duration-[900ms] ease-standard motion-reduce:transition-none',
+              i === shown ? 'opacity-100' : 'opacity-0',
+              // Ken Burns on the visible frame only. Ambient, so exempt from the
+              // 240ms transition budget, and neutralised by the global
+              // prefers-reduced-motion rule in index.css.
+              i === shown && 'animate-slow-zoom'
+            )}
+          />
+        ))}
 
         {/* Scrim: heavy only where the caption sits, and clear above it.
-            This was `from-black/85 via-black/25 to-black/40`, which put 40% black
-            over the top of the frame. On a photo whose top half measures luminance
-            61 that crushed it to solid black and read as a failed image — the photo
-            had loaded fine all along. The caption needs contrast at the BOTTOM; the
-            rest of the frame should just be the photograph. */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 via-40% to-transparent" />
+            An earlier version put 40% black over the TOP of the frame, which
+            crushed a bright sky to a slab and read as a failed image. The caption
+            needs contrast at the BOTTOM; the rest should just be the photograph.
+
+            IT IS HEAVIER NOW THAN THE HOMEPAGE HERO'S, because this panel is tall
+            and narrow rather than wide. The same 40% midpoint sat two-thirds of the
+            way up a 900px column, so on a bright frame — the stadium signage behind
+            the football shot — the sub-copy fell to roughly 2:1 against its
+            background. The break moves down and the floor goes darker; the top two
+            thirds of the picture are untouched. */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 via-45% to-transparent" />
         {/* Green wash, so the photo reads as ours rather than as stock. */}
         <div className="absolute inset-0 bg-gradient-to-br from-brand-bright/15 via-transparent to-transparent" />
 
         {/* One lockup, bottom-left. An empty photo panel looks unfinished; a single
-            caption anchors it without turning it back into a menu. */}
+            caption anchors it without turning it back into a menu. The eyebrow names
+            whichever photograph is showing, so it stays true as the stack turns. */}
         <div className="relative flex h-full flex-col justify-end p-10 xl:p-14">
           <p className="mb-3 inline-flex w-fit items-center gap-2 rounded-pill border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-sm">
             <span className="h-1.5 w-1.5 rounded-pill bg-brand-bright" />
-            {panelLabel}
+            {current ? t(current.labelKey) : 'Rwanda · MINISPORTS'}
           </p>
           <h2 className="max-w-md text-3xl font-extrabold leading-tight text-white">
             The home of Rwandan sport
@@ -245,6 +268,31 @@ const LoginPage = () => {
             Every league, every match, every athlete — from the national leagues to the Amashuri
             Games.
           </p>
+
+          {/* CREDIT IS NOT OPTIONAL. These are the homepage's photographs and most
+              are CC BY-SA, which requires attribution wherever they are shown —
+              including here. It disappears on its own once heroMedia sets
+              `credit: null` for MINISPORTS' own photography. */}
+          <div className="mt-6 flex items-center justify-between gap-4">
+            {!still && (
+              <div className="flex gap-1.5" aria-hidden="true">
+                {slides.map((s, i) => (
+                  <span
+                    key={s.id}
+                    className={cn(
+                      'h-0.5 w-5 rounded-pill transition-colors duration-300 ease-standard',
+                      i === shown ? 'bg-white' : 'bg-white/30'
+                    )}
+                  />
+                ))}
+              </div>
+            )}
+            {current?.credit && (
+              <span className="ml-auto text-[11px] font-normal text-white/45">
+                {t('explore.photo_credit', { author: current.credit })}
+              </span>
+            )}
+          </div>
 
           {isDemo && (
             <div className="mt-8 max-w-md border-t border-white/15 pt-6">

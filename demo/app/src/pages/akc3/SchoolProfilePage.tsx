@@ -2,35 +2,47 @@ import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { School, MapPin, Users, Trophy, ChevronLeft } from 'lucide-react';
+import { School, MapPin, Users, Trophy, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getSchool, getAkcFixtures } from '../../api/endpoints/amashuri';
 import { useEnumLabel } from '../../i18n/enums';
 import Seo from '../../components/shared/Seo';
+import SportIcon from '../../components/shared/SportIcon';
 import AmashuriFixtureCard from '../../components/amashuri/AmashuriFixtureCard';
 import ClubCrest from '../../components/ui/ClubCrest';
 import { Badge, EmptyState, ErrorState, SectionHeading, Skeleton, SkeletonList } from '../../components/ui';
+import PageAd from '../../components/shared/PageAd';
 
+/**
+ * A TEAM CARD IS A LINK NOW. It was a `div`: gender, age group, coach and a squad
+ * COUNT, with the squad itself already in the payload and nowhere to show it. The
+ * road ended at "Male Team · 16 players". It goes to /amashuri/teams/:id, and from
+ * there to each athlete.
+ */
 const TeamCard = ({ team, t, enumLabel }: { team: any; t: any; enumLabel: any }) => (
-  <div className="flex flex-col gap-4 rounded-card border border-hairline bg-surface p-4">
+  <Link
+    to={`/amashuri/teams/${team.id}`}
+    className="group flex flex-col gap-4 rounded-card border border-hairline bg-surface p-4 transition-colors duration-150 ease-standard hover:border-brand/40 hover:bg-surface-2"
+  >
     <div className="flex items-start justify-between gap-2">
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control bg-surface-2 text-tertiary">
-        <Trophy size={18} aria-hidden="true" />
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control bg-surface-2 text-tertiary transition-colors duration-150 ease-standard group-hover:bg-brand-tint group-hover:text-brand-text">
+        {team.sport?.slug ? <SportIcon slug={team.sport.slug} size={18} /> : <Trophy size={18} aria-hidden="true" />}
       </span>
       <Badge>{enumLabel('age_category', team.ageCategory)}</Badge>
     </div>
     <div>
-      <h3 className="font-display text-base font-semibold text-primary">
+      <h3 className="font-display text-base font-semibold text-primary transition-colors duration-150 ease-standard group-hover:text-brand-text">
         {enumLabel('gender', team.gender)} {t('amashuri.school_profile.team')}
       </h3>
       <p className="mt-0.5 text-xs text-tertiary">
-        {t('amashuri.school_profile.coach')}: {team.coachName || t('common.tbd')}
+        {team.sport?.name ? `${team.sport.name} · ` : ''}{t('amashuri.school_profile.coach')}: {team.coachName || t('common.tbd')}
       </p>
     </div>
     <div className="flex items-center gap-2 border-t border-hairline pt-3 text-xs text-secondary">
       <Users size={14} className="text-tertiary" aria-hidden="true" />
-      <span>{team.players?.length || 0} {t('amashuri.school_profile.players')}</span>
+      <span className="flex-1">{team.players?.length || 0} {t('amashuri.school_profile.players')}</span>
+      <ChevronRight size={15} className="text-disabled" aria-hidden="true" />
     </div>
-  </div>
+  </Link>
 );
 
 const SchoolProfilePage = () => {
@@ -151,6 +163,14 @@ const SchoolProfilePage = () => {
           </div>
         </div>
       )}
+      {/* Advertising sits at the FOOT of the page, after the content, never
+          spliced into it. An advert dropped between two fixtures or two
+          paragraphs interrupts the thing the reader came for; down here it is
+          the last item on the screen and costs the page nothing. AdSlot
+          collapses to nothing when the position has no inventory. */}
+      <div className="mx-auto max-w-3xl px-4 pb-8 lg:max-w-6xl lg:px-6 lg:pb-12">
+        <PageAd position="school" />
+      </div>
     </div>
   );
 };

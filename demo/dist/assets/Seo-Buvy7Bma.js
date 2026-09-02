@@ -1,1 +1,0 @@
-import{j as t}from"./vendor-motion-DzgXupz9.js";import{u as i,a9 as r}from"./index-CL0BElCq.js";const l=({title:s,description:n})=>{const{t:e,i18n:o}=i();return t.jsxs(r,{children:[t.jsx("html",{lang:o.language}),t.jsx("title",{children:s?`${s} | RwaSport`:e("seo.site_title")}),t.jsx("meta",{name:"description",content:n||e("seo.site_description")})]})};export{l as S};

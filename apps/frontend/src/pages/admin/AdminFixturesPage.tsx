@@ -90,7 +90,7 @@ const AdminFixturesPage = () => {
     createFixtureMutation.mutate(data);
   };
 
-  // â”€â”€ Streaming URL â”€â”€
+  // ── Streaming URL ──
   const [streamFixture, setStreamFixture] = useState(null);
   const [streamUrl, setStreamUrl] = useState('');
   const streamMutation = useMutation({
@@ -99,7 +99,7 @@ const AdminFixturesPage = () => {
     onError: (err: any) => alert(err.response?.data?.message || 'Failed to save streaming URL'),
   });
 
-  // â”€â”€ Match statistics (both teams) â”€â”€
+  // ── Match statistics (both teams) ──
   const STAT_FIELDS = [
     ['possession', 'Possession %'], ['shots', 'Shots'], ['shotsOnTarget', 'On target'],
     ['shotsInsideBox', 'Shots in box'], ['shotsOutsideBox', 'Shots out box'], ['corners', 'Corners'],

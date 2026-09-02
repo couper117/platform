@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useMotionSafe } from '../../lib/motion';
-import { HERO_SLIDES, HERO_INTERVAL, heroSrc } from '../../config/heroMedia';
+import useHeroRotation from '../../hooks/useHeroRotation';
+import { HERO_SLIDES, heroSrc } from '../../config/heroMedia';
 import cn from '../ui/cn';
 
 /**
@@ -23,10 +23,9 @@ import cn from '../ui/cn';
  *
  * 5s, WITH A 900ms CROSS-FADE. lib/motion caps interactions at 240ms; this is not
  * an interaction, it is ambient background — the same exemption tailwind.config.js
- * already grants `slow-zoom`. No text moves and no information is carried by the
- * motion, so nothing is lost by holding still. It stops completely when the visitor
- * prefers reduced motion, when the browser reports Save-Data or a 2g-class
- * connection, when the tab is hidden, or when there is only one usable photograph.
+ * already grants `slow-zoom`. The timer itself lives in useHeroRotation, which the
+ * sign-in panel shares; it holds still for reduced motion, Save-Data, a hidden tab
+ * or a single photograph.
  *
  * CREDIT IS NOT OPTIONAL. Most of these are CC BY-SA, which requires attribution.
  * The caption is the attribution, which is why it is rendered rather than buried in
@@ -34,48 +33,10 @@ import cn from '../ui/cn';
  * config/heroMedia.ts and the credit half of the line disappears on its own.
  */
 
-/** Reads Save-Data / effective connection type once, defensively. */
-const prefersLightMedia = () => {
-  try {
-    const c = navigator.connection;
-    if (!c) return false;
-    return !!c.saveData || /(^|-)2g$/.test(c.effectiveType || '');
-  } catch {
-    return false;
-  }
-};
-
 const HeroStage = () => {
   const { t } = useTranslation();
-  const motionSafe = useMotionSafe();
-  const [index, setIndex] = useState(0);
-
   const slides = HERO_SLIDES;
-  const still = !motionSafe || slides.length < 2 || prefersLightMedia();
-
-  useEffect(() => {
-    if (still) return undefined;
-    let timer = null;
-    const stop = () => {
-      if (timer) window.clearInterval(timer);
-      timer = null;
-    };
-    const start = () => {
-      stop();
-      timer = window.setInterval(() => setIndex((i) => (i + 1) % slides.length), HERO_INTERVAL);
-    };
-    // A hidden tab keeps its timers running; decoding a new photograph every five
-    // seconds behind another tab is battery spent on nothing anyone can see.
-    const onVisibility = () => (document.hidden ? stop() : start());
-
-    start();
-    document.addEventListener('visibilitychange', onVisibility);
-    return () => {
-      stop();
-      document.removeEventListener('visibilitychange', onVisibility);
-    };
-  }, [still, slides.length]);
-
+  const { index, still } = useHeroRotation(slides.length);
   const current = slides[index];
 
   return (
@@ -103,10 +64,31 @@ const HeroStage = () => {
           />
         ))}
 
-        {/* Theme-independent by design: this sits on a photograph, not on the page
-            surface, so it must not follow the light/dark tokens. */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/55 to-black/10" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/25" />
+        {/* Theme-independent by design: these sit on a photograph, not on the page
+            surface, so they must not follow the light/dark tokens. */}
+
+        {/* A flat grey veil across the whole frame. The directional gradients below
+            darken the corners the copy sits in, but they leave the middle of the
+            picture at full saturation, so a bright shot still fought the type. This
+            takes the whole image down a stop evenly — it mutes rather than darkens,
+            which is why it is grey and not more black. */}
+        <div className="absolute inset-0 bg-[#5A5A5A]/15 dark:bg-[#5A5A5A]/25" />
+
+        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/50 to-black/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
+
+        {/* Fades the photograph into the page instead of stopping dead against it.
+            The hero used to end on a hard horizontal line where the image met the
+            surface below, which read as two pages stacked rather than one. Uses the
+            `page` token, so it lands on white in light and near-black in dark. */}
+        {/* THE FADE IS SHORTER IN LIGHT THAN IN DARK, and it has to be.
+            In dark the page is near-black and the scrimmed photograph is already
+            dark, so a long fade is invisible — it just dissolves. In light the
+            same fade has to travel from a dark photograph to WHITE, and over
+            140px that reads as fog laid across the picture rather than an edge
+            softening. Light gets just enough to kill the hard line; dark keeps
+            the long, seamless one. */}
+        <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-page to-transparent sm:h-14 dark:h-28 sm:dark:h-36" />
       </div>
 
       {/* Caption + credit, bottom right, out of the copy's way. */}

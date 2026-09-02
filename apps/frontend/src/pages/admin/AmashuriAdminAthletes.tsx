@@ -10,7 +10,7 @@ import { Skeleton, EmptyState } from '../../components/ui';
 
 const empty = { teamId: '', fullName: '', gender: 'MALE', ageCategory: 'U17', position: '', jersey: '', idNumber: '' };
 
-/** Amashuri Admin â†’ Athletes: register, hide and verify student athletes. */
+/** Amashuri Admin → Athletes: register, hide and verify student athletes. */
 const AmashuriAdminAthletes = () => {
   const { t } = useTranslation();
   const qc = useQueryClient();
@@ -50,7 +50,7 @@ const AmashuriAdminAthletes = () => {
               <tr key={a.id} className="transition-colors hover:bg-surface-2 dark:hover:bg-white/5">
                 <td className="px-6 py-4"><div className="flex items-center gap-3"><Avatar name={a.fullName} size="sm" /><span className="text-sm font-semibold text-primary">{a.fullName}</span></div></td>
                 <td className="px-6 py-4 text-sm text-secondary">{a.team?.school?.name}</td>
-                <td className="px-6 py-4 text-xs uppercase tracking-wider text-tertiary">{a.gender} Â· {a.ageCategory}</td>
+                <td className="px-6 py-4 text-xs uppercase tracking-wider text-tertiary">{a.gender} · {a.ageCategory}</td>
                 <td className="px-6 py-4">
                   {a.docVerified
                     ? <span className="inline-flex items-center gap-1 rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand-text"><CheckCircle2 size={11} /> {t('aadmin.verified')}</span>
@@ -70,8 +70,8 @@ const AmashuriAdminAthletes = () => {
             <input value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} className={inputCls} /></label>
           <label className="block space-y-1"><span className="text-[10px] font-bold uppercase tracking-widest text-tertiary">{t('aadmin.f_school')}</span>
             <select value={form.teamId} onChange={(e) => setForm({ ...form, teamId: e.target.value })} className={inputCls}>
-              <option value="">â€”</option>
-              {teams.map((tm) => <option key={tm.id} value={tm.id}>{tm.school?.name} Â· {tm.gender} {tm.ageCategory}</option>)}
+              <option value="">—</option>
+              {teams.map((tm) => <option key={tm.id} value={tm.id}>{tm.school?.name} · {tm.gender} {tm.ageCategory}</option>)}
             </select></label>
           <div className="grid grid-cols-2 gap-3">
             <label className="block space-y-1"><span className="text-[10px] font-bold uppercase tracking-widest text-tertiary">{t('aadmin.f_position')}</span>

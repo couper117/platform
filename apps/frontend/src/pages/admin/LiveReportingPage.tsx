@@ -122,8 +122,8 @@ const LiveReportingPage = () => {
                       {f.homeTeam.name} <span className="opacity-20 mx-2 text-sm">VS</span> {f.awayTeam.name}
                     </p>
                     <p className="text-[10px] uppercase font-bold tracking-widest opacity-40">
-                      {f.league.name} â€¢ {new Date(f.matchDate).toLocaleString()}
-                      {f.status === 'LIVE' && <span className="ml-2 text-red">â€¢ LIVE</span>}
+                      {f.league.name} • {new Date(f.matchDate).toLocaleString()}
+                      {f.status === 'LIVE' && <span className="ml-2 text-red">• LIVE</span>}
                     </p>
                   </div>
                 </div>
