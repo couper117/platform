@@ -421,7 +421,11 @@ export const scorersByLeague = {
 /* ── fixtures ──────────────────────────────────────────────────────────── */
 const REFS = ['P. Mukasine', 'J. Habineza', 'S. Nkurunziza', 'A. Mutabazi', 'D. Uwimana'];
 const fx = (id, leagueId, leagueName, homeId, awayId, status, whenIso, venue, hs, as, matchday, opts: any = {}) => ({
-  id, leagueId, league: { id: leagueId, name: leagueName },
+  id, leagueId,
+  // The sport travels with the fixture: the lineup view draws the surface the
+  // sport is actually played on, and without this every match — basketball,
+  // volleyball, a cycling stage — fell back to showing nothing at all.
+  league: { id: leagueId, name: leagueName, sport: leagues.find((l) => l.id === leagueId)?.sport ?? null },
   homeTeamId: homeId, awayTeamId: awayId, homeTeam: teamRef(homeId), awayTeam: teamRef(awayId),
   status, matchDate: whenIso, venue, referee: REFS[id % REFS.length], matchday,
   homeScore: hs, awayScore: as,

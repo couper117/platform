@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Users } from 'lucide-react';
 import FormationPitch from './FormationPitch';
+import { surfaceFor, NO_SURFACE_REASON } from '../../config/playingSurfaces';
 import ClubCrest from '../ui/ClubCrest';
 import Badge from '../ui/Badge';
 import EmptyState from '../ui/EmptyState';
@@ -39,6 +40,8 @@ type Fixture = {
   awayTeam?: any;
   lineups?: LineupEntry[];
   teamSheets?: TeamSheet[];
+  /** Carries the sport, which decides which surface is drawn — or whether one is. */
+  league?: { sport?: { id?: number; name?: string; slug?: string; type?: string } };
 };
 
 const PlayerRow = ({ p }: { p: LineupEntry }) => {
@@ -137,15 +140,30 @@ const MatchLineups = ({ fixture, className }: { fixture: Fixture; className?: st
   const homeStarters = homeAll.filter((p) => p.isStarter);
   const awayStarters = awayAll.filter((p) => p.isStarter);
 
+  // The sport decides what, if anything, is drawn. Nineteen of the twenty sports
+  // here are not football, and nine are not played on a surface at all.
+  const sport = fixture?.league?.sport;
+  const surface = surfaceFor(sport);
+  const noSurfaceReason = !surface && sport?.type ? NO_SURFACE_REASON[sport.type] : null;
+
   return (
     <div className={cn('space-y-4', className)}>
-      {(homeStarters.length > 0 || awayStarters.length > 0) && (
+      {surface && (homeStarters.length > 0 || awayStarters.length > 0) && (
         <div className="rounded-card border border-hairline bg-surface p-4 sm:p-6">
           <FormationPitch
             home={{ team: fixture.homeTeam, starters: homeStarters, formation: homeSheet?.formation, coachName: homeSheet?.coachName }}
             away={{ team: fixture.awayTeam, starters: awayStarters, formation: awaySheet?.formation, coachName: awaySheet?.coachName }}
+            sport={sport}
           />
         </div>
+      )}
+
+      {/* Said plainly rather than drawing a field the sport does not use. The
+          rosters below still show who is taking part. */}
+      {noSurfaceReason && (
+        <p className="rounded-card border border-dashed border-hairline bg-surface-2 p-4 text-sm text-tertiary">
+          {noSurfaceReason}
+        </p>
       )}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

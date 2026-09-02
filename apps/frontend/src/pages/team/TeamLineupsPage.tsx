@@ -5,15 +5,15 @@ import { Activity, Loader2, Users, Star, Shield, Lock, ClipboardList } from 'luc
 import apiClient from '../../api/client';
 import AdminModal from '../../components/admin/AdminModal';
 import Skeleton from '../../components/shared/Skeleton';
+import { surfaceFor } from '../../config/playingSurfaces';
 
-const FORMATIONS = ['4-3-3', '4-4-2', '4-2-3-1', '3-5-2', '3-4-3', '5-3-2', '4-1-4-1'];
 const LOCKED = ['LIVE', 'COMPLETED'];
 
 const TeamLineupsPage = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(null); // fixture being edited
-  const [formation, setFormation] = useState('4-3-3');
+  const [formation, setFormation] = useState('');
   const [coachName, setCoachName] = useState('');
   const [roles, setRoles] = useState({}); // playerId -> 'STARTER' | 'BENCH' | 'OUT'
   const [captain, setCaptain] = useState(null);
@@ -24,6 +24,13 @@ const TeamLineupsPage = () => {
     queryFn: async () => (await apiClient.get('/teams/my')).data.data,
   });
   const teamId = team?.id;
+
+  // A shape only means something where the sport expresses one as a number
+  // string. Football and rugby do; basketball and volleyball do not — five on
+  // court is five on court, and offering a basketball coach "4-3-3" is the same
+  // mistake as drawing them a football pitch. Where there are none, the field is
+  // not shown at all.
+  const formations = surfaceFor(team?.sport)?.formations ?? [];
 
   const { data: fixtures, isLoading: fxLoading } = useQuery({
     queryKey: ['team-fixtures', teamId],
@@ -41,7 +48,7 @@ const TeamLineupsPage = () => {
     const detail = (await apiClient.get(`/fixtures/${fixture.id}`)).data.data;
     const sheet = (detail.teamSheets || []).find((s) => s.teamId === teamId);
     const mine = (detail.lineups || []).filter((l) => l.teamId === teamId);
-    setFormation(sheet?.formation || '4-3-3');
+    setFormation(sheet?.formation || formations[0] || '');
     setCoachName(sheet?.coachName || '');
     const r = {};
     let cap = null;
@@ -140,13 +147,17 @@ const TeamLineupsPage = () => {
         <div className="space-y-5">
           {error && <div className="bg-red/10 border border-red/20 p-3 rounded-xl text-red text-xs font-bold uppercase tracking-wider">{error}</div>}
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">{t('match.formation')}</label>
-              <select value={formation} onChange={(e) => setFormation(e.target.value)} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-3 rounded-xl outline-none">
-                {FORMATIONS.map((f) => <option key={f} value={f}>{f}</option>)}
-              </select>
-            </div>
+          <div className={formations.length ? 'grid grid-cols-2 gap-4' : 'grid grid-cols-1 gap-4'}>
+            {/* Hidden rather than shown empty: a sport with no shape to choose
+                should not be asked to choose one. */}
+            {formations.length > 0 && (
+              <div className="space-y-1.5">
+                <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">{t('match.formation')}</label>
+                <select value={formation} onChange={(e) => setFormation(e.target.value)} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-3 rounded-xl outline-none">
+                  {formations.map((f) => <option key={f} value={f}>{f}</option>)}
+                </select>
+              </div>
+            )}
             <div className="space-y-1.5">
               <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">{t('match.coach')}</label>
               <input value={coachName} onChange={(e) => setCoachName(e.target.value)} className="w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-3 rounded-xl outline-none" placeholder="Head coach name" />
