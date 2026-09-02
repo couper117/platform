@@ -276,7 +276,12 @@ const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
 
   return (
     <>
-      <aside className="hidden w-64 flex-shrink-0 flex-col border-r border-hairline bg-surface lg:flex">
+      {/* STICKY, AND ITS OWN SCROLLER. Inside `flex min-h-screen` the rail grew to
+          the height of the CONTENT, so on a long list (the players table runs to
+          20,000px) the navigation scrolled off the top and an operator had to
+          scroll back up to reach another section. Pinned to the viewport with
+          `h-screen`, the nav below scrolls inside itself instead. */}
+      <aside className="sticky top-0 hidden h-screen w-64 flex-shrink-0 flex-col border-r border-hairline bg-surface lg:flex">
         {content}
       </aside>
 

@@ -1,8 +1,17 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Settings, Save, RotateCcw, AlertCircle, Loader2, Globe, Shield, Mail, Gavel } from 'lucide-react';
+import { Save, Shield } from 'lucide-react';
 import apiClient from '../../api/client';
-import Skeleton from '../../components/shared/Skeleton';
+import { Field, Input, Button, Skeleton } from '../../components/ui';
+import { PageHeader, Panel } from '../../components/admin/AdminUI';
+
+/**
+ * Super Admin → System configuration. Platform branding, contact details and the
+ * competition rules that apply across every federation.
+ *
+ * Presentation only: the /settings and /settings/all queries, the { skey, sval }
+ * payload shape and the single save-everything mutation are exactly as they were.
+ */
 
 const AdminSettingsPage = () => {
   const queryClient = useQueryClient();
@@ -55,109 +64,128 @@ const AdminSettingsPage = () => {
     updateMutation.mutate({ ...settingsData, ...ruleMap });
   };
 
-  const categories = [
-    { id: 'branding', label: 'Identity & Branding', icon: <Globe size={18} /> },
-    { id: 'contact', label: 'Contact & Support', icon: <Mail size={18} /> },
-    { id: 'homepage', label: 'Homepage Config', icon: <RotateCcw size={18} /> },
-  ];
-
-  if (isLoading) return <div className="p-8"><Skeleton type="stat" count={3} /></div>;
+  if (isLoading) {
+    return (
+      <div>
+        <PageHeader title="System configuration" subtitle="Manage global platform settings and branding." />
+        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+          <div className="space-y-4">
+            {[0, 1].map((i) => (
+              <Panel key={i}>
+                <Skeleton className="h-4 w-32" />
+                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  <Skeleton className="h-tap w-full rounded-input" />
+                  <Skeleton className="h-tap w-full rounded-input" />
+                </div>
+              </Panel>
+            ))}
+          </div>
+          <Panel>
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="mt-3 h-16 w-full" />
+          </Panel>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-display uppercase tracking-tighter">System <span className="text-red">Configuration</span></h1>
-          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Manage global platform settings and branding</p>
-        </div>
-        <button
-          onClick={saveAll}
-          disabled={updateMutation.isPending}
-          className="bg-red text-white px-10 py-3 rounded-xl font-display text-lg uppercase tracking-widest hover:bg-red-dark transition-all shadow-xl shadow-red/20 flex items-center space-x-3 disabled:opacity-50"
-        >
-          {updateMutation.isPending ? <Loader2 className="animate-spin" /> : <Save size={20} />}
-          <span>Save All Changes</span>
-        </button>
-      </div>
+    <div>
+      <PageHeader
+        title="System configuration"
+        subtitle="Manage global platform settings and branding."
+        actions={
+          <Button
+            size="sm"
+            icon={Save}
+            loading={updateMutation.isPending}
+            disabled={updateMutation.isPending}
+            onClick={saveAll}
+          >
+            Save all changes
+          </Button>
+        }
+      />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        <div className="lg:col-span-2 space-y-12">
-          {/* Branding Section */}
-          <div className="space-y-6">
-            <h2 className="text-xl font-display uppercase tracking-tight border-b border-surface-3 dark:border-white/5 pb-2">Branding</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Platform Name</label>
-                <input 
-                  className="w-full bg-white dark:bg-surface-dark2 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none focus:border-red"
-                  value={settingsData.site_name || ''}
-                  onChange={(e) => handleChange('site_name', e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Tagline</label>
-                <input 
-                  className="w-full bg-white dark:bg-surface-dark2 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none focus:border-red"
-                  value={settingsData.hero_title || ''}
-                  onChange={(e) => handleChange('hero_title', e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Contact Section */}
-          <div className="space-y-6">
-            <h2 className="text-xl font-display uppercase tracking-tight border-b border-surface-3 dark:border-white/5 pb-2">Contact Info</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">Official Email</label>
-                <input
-                  className="w-full bg-white dark:bg-surface-dark2 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none focus:border-red"
-                  value={settingsData.contact_email || ''}
-                  onChange={(e) => handleChange('contact_email', e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Competition Rules Section */}
-          <div className="space-y-6">
-            <h2 className="text-xl font-display uppercase tracking-tight border-b border-surface-3 dark:border-white/5 pb-2 flex items-center gap-2">
-              <Gavel size={18} className="text-red" /> Competition Rules
-            </h2>
-            <p className="text-[10px] uppercase font-bold tracking-widest opacity-40">
-              Eligibility, discipline and points rules applied across all federations. Changes take effect immediately.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {rules.map((r) => (
-                <div key={r.skey} className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold tracking-widest opacity-40">{r.label}</label>
-                  <input
-                    type="number"
-                    className="w-full bg-white dark:bg-surface-dark2 border border-surface-3 dark:border-white/10 p-4 rounded-xl outline-none focus:border-red"
-                    value={r.sval ?? ''}
-                    onChange={(e) => handleRuleChange(r.skey, e.target.value)}
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <div className="space-y-4">
+          <Panel title="Branding">
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field label="Platform name">
+                {({ invalid, ...p }) => (
+                  <Input
+                    {...p}
+                    value={settingsData.site_name || ''}
+                    onChange={(e) => handleChange('site_name', e.target.value)}
                   />
-                </div>
-              ))}
-              {!rules.length && <p className="text-xs opacity-40 col-span-2">Loading rules…</p>}
+                )}
+              </Field>
+              <Field label="Tagline">
+                {({ invalid, ...p }) => (
+                  <Input
+                    {...p}
+                    value={settingsData.hero_title || ''}
+                    onChange={(e) => handleChange('hero_title', e.target.value)}
+                  />
+                )}
+              </Field>
             </div>
-          </div>
+          </Panel>
+
+          <Panel title="Contact info">
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field label="Official email">
+                {({ invalid, ...p }) => (
+                  <Input
+                    {...p}
+                    value={settingsData.contact_email || ''}
+                    onChange={(e) => handleChange('contact_email', e.target.value)}
+                  />
+                )}
+              </Field>
+            </div>
+          </Panel>
+
+          <Panel
+            title="Competition rules"
+            hint="Eligibility, discipline and points rules applied across all federations. Changes take effect immediately."
+          >
+            {rules.length === 0 ? (
+              <p className="text-sm text-tertiary">Loading rules…</p>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2">
+                {rules.map((r) => (
+                  <Field key={r.skey} label={r.label}>
+                    {({ invalid, ...p }) => (
+                      <Input
+                        {...p}
+                        type="number"
+                        className="tabular-nums"
+                        value={r.sval ?? ''}
+                        onChange={(e) => handleRuleChange(r.skey, e.target.value)}
+                      />
+                    )}
+                  </Field>
+                ))}
+              </div>
+            )}
+          </Panel>
         </div>
 
-        {/* Info Sidebar */}
-        <div className="space-y-6">
-          <div className="bg-surface-dark p-8 rounded-3xl text-white space-y-6 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-red opacity-20 -mr-8 -mt-8 rounded-full blur-3xl" />
-            <div className="flex items-center space-x-3 text-red">
-              <Shield size={20} />
-              <h3 className="font-display text-xl uppercase tracking-tight">Admin Note</h3>
-            </div>
-            <p className="text-xs opacity-60 leading-relaxed uppercase font-bold tracking-widest">
-              Changes made here affect the public-facing site instantly. Please verify all information before saving, especially contact emails and platform branding.
+        {/* The one caveat an operator needs before they press save. It is a note,
+            not an alarm, so it sits on the standard surface rather than a black
+            slab — nothing on this screen is more urgent than anything else. */}
+        <Panel title="Admin note">
+          <div className="flex gap-3">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-control bg-brand-tint text-brand-text">
+              <Shield size={15} aria-hidden="true" />
+            </span>
+            <p className="text-sm leading-relaxed text-secondary">
+              Changes made here affect the public-facing site instantly. Please verify all
+              information before saving, especially contact emails and platform branding.
             </p>
           </div>
-        </div>
+        </Panel>
       </div>
     </div>
   );

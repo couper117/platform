@@ -1,10 +1,24 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Users, ShieldCheck, XCircle, Mail, Trash2, Loader2 } from 'lucide-react';
+import { Users, ShieldCheck, XCircle, Trash2 } from 'lucide-react';
 import apiClient from '../../api/client';
-import AdminTable from '../../components/admin/AdminTable';
-import Skeleton from '../../components/shared/Skeleton';
+import { PageHeader, Panel, TableWrap, Th, Td } from '../../components/admin/AdminUI';
+import {
+  IconButton, ClubCrest, StatusPill, EmptyState, Skeleton, SkeletonList, cn,
+} from '../../components/ui';
 import useSportScope from '../../hooks/useSportScope';
+
+/**
+ * Super Admin / Federation Admin → verification queue for competitors.
+ *
+ * The status filter is the page's only control, so it sits in the header beside
+ * the title rather than as a slab above the table.
+ */
+const FILTERS: Array<[string, string]> = [
+  ['PENDING', 'Pending'],
+  ['VERIFIED', 'Verified'],
+  ['SUSPENDED', 'Suspended'],
+];
 
 const AdminTeamsPage = () => {
   const queryClient = useQueryClient();
@@ -52,91 +66,110 @@ const AdminTeamsPage = () => {
   };
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-display uppercase tracking-tighter">{compOne} <span className="text-red">Verification</span></h1>
-          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Approve or audit {compOne.toLowerCase()} applications</p>
-        </div>
-        
-        <div className="flex bg-surface-dark p-1 rounded-2xl border border-white/10">
-          {['PENDING', 'VERIFIED', 'SUSPENDED'].map(s => (
-            <button
-              key={s}
-              onClick={() => setFilter(s)}
-              className={`px-6 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${filter === s ? 'bg-red text-white shadow-lg' : 'text-white/40 hover:text-white'}`}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-      </div>
+    <div>
+      <PageHeader
+        title={`${compOne} verification`}
+        subtitle={`Approve or audit ${compOne.toLowerCase()} applications`}
+        actions={
+          <div className="flex gap-1">
+            {FILTERS.map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setFilter(value)}
+                aria-pressed={filter === value}
+                className={cn(
+                  'rounded-pill px-3 py-1.5 text-xs font-semibold transition-colors duration-150 ease-standard',
+                  filter === value ? 'bg-brand-tint text-brand-text' : 'text-tertiary hover:bg-surface-2 hover:text-primary'
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        }
+      />
 
-      {isLoading ? (
-        <Skeleton type="card" count={3} />
-      ) : (
-        <AdminTable headers={['Team Info', 'Sport', 'Location', 'Manager', 'Status', 'Actions']}>
-          {teams?.map(team => (
-            <tr key={team.id} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors">
-              <td className="px-6 py-5">
-                <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 rounded-full bg-surface-3 dark:bg-white/10 flex items-center justify-center overflow-hidden border border-surface-3">
-                    {team.logo ? <img src={team.logo} className="w-full h-full object-cover" /> : <Users size={16} className="opacity-20" />}
-                  </div>
-                  <div>
-                    <p className="font-bold text-sm uppercase tracking-tight">{team.name}</p>
-                    <p className="text-[8px] opacity-40 uppercase tracking-widest">{team.shortName || 'NO CODE'}</p>
-                  </div>
-                </div>
-              </td>
-              <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{team.sport?.name}</td>
-              <td className="px-6 py-5">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">{team.city}</p>
-                  <p className="text-[8px] opacity-40 uppercase font-bold tracking-widest">{team.province}</p>
-                </div>
-              </td>
-              <td className="px-6 py-5">
-                <div className="flex flex-col space-y-1">
-                  <span className="text-xs font-bold uppercase tracking-tight">{team.managerUser?.fullName || 'Unassigned'}</span>
-                  <span className="text-[8px] opacity-40 lowercase">{team.managerUser?.email || 'No email'}</span>
-                </div>
-              </td>
-              <td className="px-6 py-5">
-                <span className={`text-[8px] font-bold px-2 py-1 rounded border uppercase ${team.status === 'VERIFIED' ? 'bg-green/5 text-green border-green/10' : team.status === 'PENDING' ? 'bg-gold/5 text-gold border-gold/20' : 'bg-red/5 text-red border-red/10'}`}>
-                  {team.status}
-                </span>
-              </td>
-              <td className="px-6 py-5">
-                <div className="flex items-center space-x-2">
-                  {team.status !== 'VERIFIED' && (
-                    <button 
-                      onClick={() => updateStatusMutation.mutate({ id: team.id, status: 'VERIFIED' })}
-                      className="p-2 hover:bg-green/10 text-green rounded-lg transition-colors" title="Verify Team"
-                    >
-                      <ShieldCheck size={18} />
-                    </button>
-                  )}
-                  {team.status !== 'SUSPENDED' && (
-                    <button 
-                      onClick={() => updateStatusMutation.mutate({ id: team.id, status: 'SUSPENDED' })}
-                      className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors" title="Suspend Team"
-                    >
-                      <XCircle size={18} />
-                    </button>
-                  )}
-                  <button 
-                    onClick={() => handleDeleteTeam(team.id)}
-                    className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors" title="Delete Team"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </AdminTable>
-      )}
+      <Panel flush>
+        {isLoading ? (
+          <div className="p-4">
+            <SkeletonList count={5} className="space-y-3">
+              <Skeleton className="h-10 w-full" />
+            </SkeletonList>
+          </div>
+        ) : !teams?.length ? (
+          <EmptyState icon={Users} />
+        ) : (
+          <TableWrap>
+            <table className="w-full min-w-[820px] text-left">
+              <thead>
+                <tr>
+                  <Th>{compOne}</Th>
+                  <Th>Sport</Th>
+                  <Th>Location</Th>
+                  <Th>Manager</Th>
+                  <Th>Status</Th>
+                  <Th align="right">Actions</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {teams.map((team) => (
+                  <tr key={team.id} className="transition-colors duration-150 ease-standard hover:bg-surface-2">
+                    <Td>
+                      <div className="flex items-center gap-3">
+                        <ClubCrest team={team} size="lg" />
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium text-primary">{team.name}</p>
+                          <p className="truncate text-xs text-tertiary">{team.shortName || 'No code'}</p>
+                        </div>
+                      </div>
+                    </Td>
+                    <Td>{team.sport?.name}</Td>
+                    <Td>
+                      <p className="text-sm text-secondary">{team.city}</p>
+                      <p className="text-xs text-tertiary">{team.province}</p>
+                    </Td>
+                    <Td>
+                      <p className="text-sm text-secondary">{team.managerUser?.fullName || 'Unassigned'}</p>
+                      <p className="text-xs text-tertiary">{team.managerUser?.email || 'No email'}</p>
+                    </Td>
+                    <Td>
+                      <StatusPill status={team.status} />
+                    </Td>
+                    <Td align="right">
+                      <div className="flex items-center justify-end gap-1">
+                        {team.status !== 'VERIFIED' && (
+                          <IconButton
+                            icon={ShieldCheck}
+                            size="sm"
+                            label={`Verify ${team.name}`}
+                            onClick={() => updateStatusMutation.mutate({ id: team.id, status: 'VERIFIED' })}
+                          />
+                        )}
+                        {team.status !== 'SUSPENDED' && (
+                          <IconButton
+                            icon={XCircle}
+                            size="sm"
+                            label={`Suspend ${team.name}`}
+                            onClick={() => updateStatusMutation.mutate({ id: team.id, status: 'SUSPENDED' })}
+                          />
+                        )}
+                        <IconButton
+                          icon={Trash2}
+                          size="sm"
+                          variant="danger"
+                          label={`Delete ${team.name}`}
+                          onClick={() => handleDeleteTeam(team.id)}
+                        />
+                      </div>
+                    </Td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </TableWrap>
+        )}
+      </Panel>
     </div>
   );
 };

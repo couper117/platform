@@ -1,8 +1,18 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ShieldCheck, UserPlus, X, GraduationCap, Loader2, AlertCircle } from 'lucide-react';
+import { UserPlus, X } from 'lucide-react';
 import apiClient from '../../api/client';
-import Skeleton from '../../components/shared/Skeleton';
+import { PageHeader, Panel } from '../../components/admin/AdminUI';
+import { Button, IconButton, Input, ErrorState, Skeleton } from '../../components/ui';
+
+/**
+ * Super Admin → sport admins.
+ *
+ * One panel per federation, plus Amashuri Games, which has its own dedicated
+ * admin rather than a federation. Assigning and revoking happen in place: the
+ * roster is short, and a modal per federation would be a lot of ceremony for
+ * typing one email address.
+ */
 
 const AssignForm = ({ onAssign, pending }) => {
   const [email, setEmail] = useState('');
@@ -12,33 +22,35 @@ const AssignForm = ({ onAssign, pending }) => {
     onAssign(email.trim(), () => setEmail(''));
   };
   return (
-    <form onSubmit={submit} className="flex gap-2 mt-4">
-      <input
+    <form onSubmit={submit} className="mt-4 flex gap-2">
+      <Input
         type="email"
+        aria-label="Administrator email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="admin@email.com"
-        className="flex-1 bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:border-red outline-none"
+        className="flex-1 text-sm"
       />
-      <button
-        type="submit"
-        disabled={pending}
-        className="bg-red text-white px-4 py-2 rounded-lg font-display text-xs uppercase tracking-widest hover:bg-red-dark transition-colors flex items-center gap-1.5 disabled:opacity-50"
-      >
-        {pending ? <Loader2 size={14} className="animate-spin" /> : <UserPlus size={14} />} Assign
-      </button>
+      <Button type="submit" loading={pending} icon={UserPlus} className="shrink-0">
+        Assign
+      </Button>
     </form>
   );
 };
 
 const AdminChip = ({ user, onRevoke }) => (
-  <span className="inline-flex items-center gap-2 bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 rounded-full pl-3 pr-1.5 py-1">
-    <span className="text-xs font-bold">{user.fullName || user.username}</span>
-    <span className="text-[10px] opacity-40">{user.email}</span>
+  <span className="inline-flex items-center gap-2 rounded-pill border border-hairline bg-surface-2 py-1 pl-3 pr-1">
+    <span className="text-sm font-medium text-primary">{user.fullName || user.username}</span>
+    <span className="text-xs text-tertiary">{user.email}</span>
     {onRevoke && (
-      <button onClick={() => onRevoke(user)} title="Revoke" className="w-5 h-5 rounded-full hover:bg-red/10 text-red flex items-center justify-center">
-        <X size={12} />
-      </button>
+      <IconButton
+        icon={X}
+        size="sm"
+        variant="danger"
+        className="h-6 w-6"
+        label={`Revoke ${user.fullName || user.username}`}
+        onClick={() => onRevoke(user)}
+      />
     )}
   </span>
 );
@@ -78,64 +90,65 @@ const AdminSportAdminsPage = () => {
   const amashuriAdmins = data?.amashuriAdmins || [];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="space-y-2">
-        <h1 className="text-4xl font-display uppercase tracking-tighter">Sport <span className="text-red">Admins</span></h1>
-        <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Assign an admin to each sport / federation. They manage only that sport.</p>
-      </div>
+    <div>
+      <PageHeader
+        title="Sport admins"
+        subtitle="Assign an admin to each sport / federation. They manage only that sport."
+      />
 
       {error && (
-        <div className="bg-red/10 border border-red/20 p-3 rounded-xl flex items-center gap-2 text-red text-xs font-bold uppercase tracking-wider">
-          <AlertCircle size={16} /> {error}
-        </div>
+        <p role="alert" className="mb-4 rounded-control bg-danger/10 p-3 text-sm font-semibold text-danger-text">
+          {error}
+        </p>
       )}
 
       {isLoading ? (
-        <Skeleton type="card" count={3} />
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {Array.from({ length: 4 }, (_, i) => (
+            <Panel key={i}>
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="mt-2 h-3 w-24" />
+              <Skeleton className="mt-4 h-8 w-56 rounded-pill" />
+              <Skeleton className="mt-4 h-tap w-full" />
+            </Panel>
+          ))}
+        </div>
       ) : isError ? (
-        <div className="py-16 text-center opacity-50 font-display uppercase tracking-widest">Couldn't load roster</div>
+        <Panel>
+          <ErrorState title="Could not load the roster" />
+        </Panel>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {federations.map((fed) => (
-            <div key={fed.id} className="bg-white dark:bg-surface-dark2 border border-surface-3 dark:border-white/5 rounded-3xl p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <span className="w-11 h-11 rounded-xl bg-red/10 text-red flex items-center justify-center"><ShieldCheck size={18} /></span>
-                <div>
-                  <h3 className="font-display text-xl uppercase tracking-tight leading-none">{fed.name}</h3>
-                  <p className="text-[10px] uppercase font-bold tracking-widest opacity-40 mt-1">{fed.abbreviation || '—'} · {fed.sport?.name || 'No sport'}</p>
-                </div>
-              </div>
+            <Panel
+              key={fed.id}
+              title={fed.name}
+              hint={`${fed.abbreviation || '—'} · ${fed.sport?.name || 'No sport'}`}
+            >
               <div className="flex flex-wrap gap-2">
                 {fed.admins.length > 0 ? fed.admins.map((a) => (
                   <AdminChip key={a.id} user={a.user} onRevoke={(u) => revoke.mutate({ userId: u.id, federationId: fed.id })} />
-                )) : <span className="text-xs opacity-40 italic">No admin assigned yet</span>}
+                )) : <span className="text-sm text-tertiary">No admin assigned yet</span>}
               </div>
               <AssignForm
                 pending={assignFed.isPending}
                 onAssign={(email, reset) => assignFed.mutate({ email, federationId: fed.id }, { onSuccess: reset })}
               />
-            </div>
+            </Panel>
           ))}
 
           {/* Amashuri (own section, own admin) */}
-          <div className="bg-white dark:bg-surface-dark2 border-2 border-red/30 rounded-3xl p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="w-11 h-11 rounded-xl bg-red text-white flex items-center justify-center"><GraduationCap size={18} /></span>
-              <div>
-                <h3 className="font-display text-xl uppercase tracking-tight leading-none">Amashuri Games</h3>
-                <p className="text-[10px] uppercase font-bold tracking-widest opacity-40 mt-1">Inter-school section · dedicated admin</p>
-              </div>
-            </div>
+          <Panel title="Amashuri Games" hint="Inter-school section · dedicated admin">
             <div className="flex flex-wrap gap-2">
               {amashuriAdmins.length > 0 ? amashuriAdmins.map((u) => (
                 <AdminChip key={u.id} user={u} onRevoke={(x) => revoke.mutate({ userId: x.id })} />
-              )) : <span className="text-xs opacity-40 italic">No Amashuri admin assigned yet</span>}
+              )) : <span className="text-sm text-tertiary">No Amashuri admin assigned yet</span>}
             </div>
             <AssignForm
               pending={assignAmashuri.isPending}
               onAssign={(email, reset) => assignAmashuri.mutate({ email }, { onSuccess: reset })}
             />
-          </div>
+          </Panel>
         </div>
       )}
     </div>

@@ -5,8 +5,8 @@ import { Users2, Search, ShieldCheck, Check, X, KeyRound, Plus, Minus, RotateCcw
 import { format } from 'date-fns';
 import apiClient from '../../api/client';
 import useAuthStore from '../../store/authStore';
-import AdminTable from '../../components/admin/AdminTable';
-import { Skeleton, EmptyState } from '../../components/ui';
+import { PageHeader, Panel, TableWrap, Th, Td } from '../../components/admin/AdminUI';
+import { Button, Input, Select, EmptyState, ErrorState, Skeleton, SkeletonList, cn } from '../../components/ui';
 
 const ROLES = [
   'SUPERADMIN', 'FEDERATION_ADMIN', 'LEAGUE_ADMIN', 'AMASHURI_ADMIN',
@@ -25,6 +25,11 @@ const ROLES = [
  * grants it, added for this account, or taken away from this account. An editor
  * that showed only a tick could not express "everyone else with this role has
  * this, and they deliberately do not".
+ *
+ * The three states are carried by fill, not by a legend nobody reads twice: a
+ * role default is a brand tint, an account-only grant is the solid brand, and a
+ * revocation is struck through in danger. Each chip still names its state in the
+ * title attribute, because colour alone is not an accessible answer.
  */
 const CapabilityEditor = ({ user, catalogue, onSave, saving }) => {
   const { t } = useTranslation();
@@ -60,57 +65,65 @@ const CapabilityEditor = ({ user, catalogue, onSave, saving }) => {
     .map(([group, entries]: any) => [group, [...entries].sort((a, b) => Number(settled(b.name)) - Number(settled(a.name)))])
     .sort((a: any, b: any) => b[1].filter((c) => settled(c.name)).length - a[1].filter((c) => settled(c.name)).length);
 
+  const LEGEND = [
+    ['bg-brand-tint border-brand/40', t('admin.users.cap_role', 'From the role')],
+    ['bg-brand-strong border-brand-strong', t('admin.users.cap_granted', 'Given to this account only')],
+    ['bg-danger/15 border-danger/40', t('admin.users.cap_revoked', 'Taken away from this account')],
+    ['border-dashed border-hairline', t('admin.users.cap_none', 'Not held')],
+  ];
+
   return (
-    <div className="space-y-4 rounded-xl border border-hairline bg-surface-2 p-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="space-y-4 rounded-card border border-hairline bg-surface-2 p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-2">
-          <p className="flex items-center gap-2 text-xs text-tertiary">
-            <KeyRound size={13} className="text-brand" />
+          <p className="flex flex-wrap items-center gap-1.5 text-xs text-secondary">
+            <KeyRound size={13} className="text-brand-text" aria-hidden="true" />
             {t('admin.users.caps_hint', 'Click to add or remove. Everything else follows the role')}
-            <strong className="text-secondary">{user.role.replace(/_/g, ' ')}</strong>.
+            <strong className="font-semibold text-primary">{user.role.replace(/_/g, ' ')}</strong>.
           </p>
-          <div className="flex flex-wrap gap-3 text-[10px] uppercase tracking-wider text-tertiary">
-            <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm border border-brand/40 bg-brand/10" /> {t('admin.users.cap_role', 'From the role')}</span>
-            <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm border border-brand bg-brand" /> {t('admin.users.cap_granted', 'Given to this account only')}</span>
-            <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm border border-danger bg-danger/15" /> {t('admin.users.cap_revoked', 'Taken away from this account')}</span>
-            <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm border border-dashed border-hairline" /> {t('admin.users.cap_none', 'Not held')}</span>
+          <div className="flex flex-wrap gap-3 text-xs text-tertiary">
+            {LEGEND.map(([swatch, label]) => (
+              <span key={String(label)} className="inline-flex items-center gap-1.5">
+                <span className={cn('h-2.5 w-2.5 rounded-badge border', swatch)} />
+                {label}
+              </span>
+            ))}
           </div>
         </div>
         <div className="flex items-center gap-2">
           {(granted.length > 0 || revoked.length > 0) && (
-            <button type="button" onClick={reset}
-              className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold text-tertiary hover:text-primary">
-              <RotateCcw size={12} /> {t('admin.users.caps_reset', 'Clear exceptions')}
-            </button>
+            <Button type="button" variant="ghost" size="sm" icon={RotateCcw} onClick={reset}>
+              {t('admin.users.caps_reset', 'Clear exceptions')}
+            </Button>
           )}
-          <button
+          <Button
             type="button"
+            size="sm"
             disabled={!dirty || saving}
+            loading={saving}
             onClick={() => onSave({ grantedCapabilities: granted, revokedCapabilities: revoked })}
-            className="rounded-lg bg-brand px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-white disabled:opacity-40"
           >
             {saving ? t('common.saving', 'Saving') : t('common.save', 'Save')}
-          </button>
+          </Button>
         </div>
       </div>
 
       {orderedGroups.map(([group, entries]: any) => (
         <div key={group} className="space-y-1.5">
-          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-tertiary">{group}</p>
+          <p className="text-xs font-semibold text-tertiary">{group}</p>
           <div className="flex flex-wrap gap-1.5">
             {entries.map((cap) => {
-              const fromRole = roleDefaults.includes(cap.name);
               const isRevoked = revoked.includes(cap.name);
               const isGranted = granted.includes(cap.name);
               const held = holds(cap.name);
 
               const tone = isRevoked
-                ? 'border-danger bg-danger/15 text-danger-text line-through'
+                ? 'border-danger/40 bg-danger/15 text-danger-text line-through'
                 : isGranted
-                  ? 'border-brand bg-brand text-white'
+                  ? 'border-brand-strong bg-brand-strong text-brand-on'
                   : held
-                    ? 'border-brand/40 bg-brand/10 text-brand-text'
-                    : 'border-dashed border-hairline bg-transparent text-tertiary/70';
+                    ? 'border-brand/40 bg-brand-tint text-brand-text'
+                    : 'border-dashed border-hairline text-tertiary';
 
               const why = isRevoked
                 ? t('admin.users.cap_revoked', 'Taken away from this account')
@@ -126,9 +139,15 @@ const CapabilityEditor = ({ user, catalogue, onSave, saving }) => {
                   type="button"
                   onClick={() => toggle(cap.name)}
                   title={`${cap.description} — ${why}`}
-                  className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] font-medium transition-colors ${tone}`}
+                  className={cn(
+                    'inline-flex items-center gap-1 rounded-control border px-2 py-1 text-xs font-medium',
+                    'transition-colors duration-150 ease-standard',
+                    tone
+                  )}
                 >
-                  {isGranted ? <Plus size={10} /> : isRevoked ? <Minus size={10} /> : held ? <Check size={10} /> : null}
+                  {isGranted ? <Plus size={10} aria-hidden="true" />
+                    : isRevoked ? <Minus size={10} aria-hidden="true" />
+                      : held ? <Check size={10} aria-hidden="true" /> : null}
                   {cap.name}
                 </button>
               );
@@ -176,94 +195,139 @@ const AdminUsersPage = () => {
     return !s || u.fullName?.toLowerCase().includes(s) || u.email?.toLowerCase().includes(s) || u.username?.toLowerCase().includes(s);
   });
 
-  return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="space-y-2">
-        <h1 className="text-4xl font-display uppercase tracking-tighter">{t('admin.users.title')} <span className="text-red">{t('admin.users.title_accent')}</span></h1>
-        <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">{t('admin.users.subtitle')}</p>
-      </div>
+  const roleOptions = ROLES.map((r) => ({ value: r, label: t(`roles.${r}`, r.replace(/_/g, ' ')) }));
 
-      <div className="relative max-w-sm">
-        <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 opacity-40" />
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder={t('admin.users.search')}
-          className="w-full rounded-lg border border-hairline bg-surface py-2.5 pl-9 pr-3 text-sm text-primary outline-none focus-visible:border-brand"
-        />
-      </div>
+  return (
+    <div>
+      <PageHeader
+        title={`${t('admin.users.title')} ${t('admin.users.title_accent')}`}
+        subtitle={t('admin.users.subtitle')}
+        actions={
+          <div className="relative w-64 max-w-full">
+            <Search size={16} aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-tertiary" />
+            <Input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder={t('admin.users.search')}
+              aria-label={t('admin.users.search')}
+              className="pl-9 text-sm"
+            />
+          </div>
+        }
+      />
 
       {isLoading ? (
-        <Skeleton type="card" count={3} />
+        <Panel flush>
+          <SkeletonList count={6}>
+            <div className="flex items-center gap-4 border-b border-hairline px-4 py-3 last:border-0">
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-4 flex-1" />
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-16" />
+            </div>
+          </SkeletonList>
+        </Panel>
       ) : isError ? (
-        <div className="py-16 text-center opacity-50 font-display uppercase tracking-widest">{t('admin.users.load_error')}</div>
+        <Panel>
+          <ErrorState title={t('admin.users.load_error')} />
+        </Panel>
       ) : users.length === 0 ? (
-        <EmptyState icon={Users2} title={t('admin.users.none_title')} hint={t('admin.users.none_hint')} />
+        <Panel>
+          <EmptyState icon={Users2} title={t('admin.users.none_title')} hint={t('admin.users.none_hint')} />
+        </Panel>
       ) : (
-        <AdminTable headers={[t('admin.users.col_user'), t('admin.users.col_email'), t('admin.users.col_role'), t('admin.col_status'), t('admin.users.col_joined'), t('admin.users.col_permissions', 'Permissions')]}>
-          {users.map((u) => {
-            const isSelf = me?.id === u.id;
-            return (
-              <React.Fragment key={u.id}>
-              <tr className="transition-colors hover:bg-surface-2 dark:hover:bg-white/5">
-                <td className="px-6 py-4">
-                  <p className="text-sm font-semibold text-primary">{u.fullName || u.username}</p>
-                  <p className="text-[11px] text-tertiary">@{u.username}</p>
-                </td>
-                <td className="px-6 py-4 text-sm text-secondary">{u.email}</td>
-                <td className="px-6 py-4">
-                  <span className="inline-flex items-center gap-1.5">
-                    <ShieldCheck size={13} className="text-brand" />
-                    <select
-                      value={u.role}
-                      disabled={isSelf || mutate.isPending}
-                      onChange={(e) => mutate.mutate({ id: u.id, patch: { role: e.target.value } })}
-                      className="rounded-md border border-hairline bg-surface px-2 py-1 text-xs font-semibold text-primary outline-none disabled:opacity-50"
-                    >
-                      {ROLES.map((r) => <option key={r} value={r}>{t(`roles.${r}`, r.replace(/_/g, ' '))}</option>)}
-                    </select>
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <button
-                    type="button"
-                    disabled={isSelf || mutate.isPending}
-                    onClick={() => mutate.mutate({ id: u.id, patch: { active: !u.active } })}
-                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider disabled:opacity-50 ${u.active ? 'bg-brand/10 text-brand-text' : 'bg-red/10 text-red'}`}
-                  >
-                    {u.active ? <><Check size={11} /> {t('admin.users.active')}</> : <><X size={11} /> {t('admin.users.inactive')}</>}
-                  </button>
-                </td>
-                <td className="px-6 py-4 text-sm tabular-nums text-tertiary">{u.createdAt ? format(new Date(u.createdAt), 'd MMM yyyy') : '\u2014'}</td>
-                <td className="px-6 py-4">
-                  <button
-                    type="button"
-                    onClick={() => setOpenId(openId === u.id ? null : u.id)}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-hairline px-2.5 py-1 text-[11px] font-semibold text-secondary hover:border-brand hover:text-brand-text"
-                  >
-                    <KeyRound size={12} />
-                    {exceptionCount(u) > 0
-                      ? t('admin.users.caps_n', '{{count}} exception', { count: exceptionCount(u) })
-                      : t('admin.users.caps_edit', 'Permissions')}
-                  </button>
-                </td>
-              </tr>
-              {openId === u.id && (
+        <Panel flush>
+          <TableWrap>
+            <table className="w-full min-w-[880px] text-left">
+              <thead>
                 <tr>
-                  <td colSpan={6} className="px-6 pb-5">
-                    <CapabilityEditor
-                      user={u}
-                      catalogue={catalogue}
-                      saving={mutate.isPending}
-                      onSave={(patch) => mutate.mutate({ id: u.id, patch })}
-                    />
-                  </td>
+                  <Th>{t('admin.users.col_user')}</Th>
+                  <Th>{t('admin.users.col_email')}</Th>
+                  <Th>{t('admin.users.col_role')}</Th>
+                  <Th>{t('admin.col_status')}</Th>
+                  <Th>{t('admin.users.col_joined')}</Th>
+                  <Th align="right">{t('admin.users.col_permissions', 'Permissions')}</Th>
                 </tr>
-              )}
-              </React.Fragment>
-            );
-          })}
-        </AdminTable>
+              </thead>
+              <tbody>
+                {users.map((u) => {
+                  const isSelf = me?.id === u.id;
+                  return (
+                    <React.Fragment key={u.id}>
+                      <tr className="transition-colors duration-150 ease-standard hover:bg-surface-2">
+                        <Td className="text-primary">
+                          <p className="font-medium text-primary">{u.fullName || u.username}</p>
+                          <p className="text-xs text-tertiary">@{u.username}</p>
+                        </Td>
+                        <Td>{u.email}</Td>
+                        <Td>
+                          <span className="inline-flex items-center gap-1.5">
+                            <ShieldCheck size={13} className="shrink-0 text-tertiary" aria-hidden="true" />
+                            <Select
+                              id={`role-${u.id}`}
+                              value={u.role}
+                              label={t('admin.users.col_role')}
+                              disabled={isSelf || mutate.isPending}
+                              onChange={(e) => mutate.mutate({ id: u.id, patch: { role: e.target.value } })}
+                              options={roleOptions}
+                            />
+                          </span>
+                        </Td>
+                        <Td>
+                          {/* The status IS the control: clicking the pill flips the
+                              account, so the state and the way to change it are the
+                              same target. Disabled on your own row — the backend
+                              refuses it anyway. */}
+                          <button
+                            type="button"
+                            disabled={isSelf || mutate.isPending}
+                            onClick={() => mutate.mutate({ id: u.id, patch: { active: !u.active } })}
+                            className={cn(
+                              'inline-flex items-center gap-1 rounded-pill px-2 py-0.5 text-xs font-semibold',
+                              'transition-colors duration-150 ease-standard disabled:opacity-50',
+                              u.active ? 'bg-brand-tint text-brand-text' : 'bg-danger/10 text-danger-text'
+                            )}
+                          >
+                            {u.active
+                              ? <><Check size={11} aria-hidden="true" /> {t('admin.users.active')}</>
+                              : <><X size={11} aria-hidden="true" /> {t('admin.users.inactive')}</>}
+                          </button>
+                        </Td>
+                        <Td className="tabular-nums">{u.createdAt ? format(new Date(u.createdAt), 'd MMM yyyy') : '—'}</Td>
+                        <Td align="right">
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            icon={KeyRound}
+                            aria-expanded={openId === u.id}
+                            onClick={() => setOpenId(openId === u.id ? null : u.id)}
+                          >
+                            {exceptionCount(u) > 0
+                              ? t('admin.users.caps_n', '{{count}} exception', { count: exceptionCount(u) })
+                              : t('admin.users.caps_edit', 'Permissions')}
+                          </Button>
+                        </Td>
+                      </tr>
+                      {openId === u.id && (
+                        <tr>
+                          <td colSpan={6} className="border-b border-hairline px-4 pb-4">
+                            <CapabilityEditor
+                              user={u}
+                              catalogue={catalogue}
+                              saving={mutate.isPending}
+                              onSave={(patch) => mutate.mutate({ id: u.id, patch })}
+                            />
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </TableWrap>
+        </Panel>
       )}
     </div>
   );

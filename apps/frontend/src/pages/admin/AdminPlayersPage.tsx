@@ -1,19 +1,23 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, Trash2, Edit2, User, Plus, Loader2, AlertCircle } from 'lucide-react';
+import { Search, Trash2, Edit2, User, Plus } from 'lucide-react';
 import apiClient from '../../api/client';
-import AdminTable from '../../components/admin/AdminTable';
-import AdminModal from '../../components/admin/AdminModal';
-import Skeleton from '../../components/shared/Skeleton';
+import { PageHeader, Panel, TableWrap, Th, Td } from '../../components/admin/AdminUI';
+import {
+  Button, IconButton, Modal, Input, Select, Field, Avatar, StatusPill, EmptyState, Skeleton, SkeletonList,
+} from '../../components/ui';
 import useSportScope from '../../hooks/useSportScope';
 
+/**
+ * Super Admin / Federation Admin → the athlete registry.
+ *
+ * Terminology follows the scoped sport's profile: a judo club registers athletes
+ * in a weight category, not players in a position.
+ */
 const EMPTY = {
   teamId: '', fullName: '', dateOfBirth: '', nationality: 'Rwandan', gender: 'MALE',
   position: '', jerseyNumber: '', skillLevel: 'AMATEUR', idNumber: '', licenseNo: '', height: '', weight: '',
 };
-
-const inputCls = 'w-full bg-surface-2 dark:bg-white/5 border border-surface-3 dark:border-white/10 p-3 rounded-xl outline-none focus:border-red';
-const lblCls = 'text-[10px] uppercase font-bold tracking-widest opacity-40';
 
 const AdminPlayersPage = () => {
   const queryClient = useQueryClient();
@@ -84,157 +88,203 @@ const AdminPlayersPage = () => {
   };
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-display uppercase tracking-tighter">{registry.split(' ')[0]} <span className="text-red">{registry.split(' ').slice(1).join(' ') || 'Registry'}</span></h1>
-          <p className="text-[10px] uppercase font-bold tracking-[0.4em] opacity-40">Register and manage licensed {rosterMany.toLowerCase()}</p>
-        </div>
+    <div>
+      <PageHeader
+        title={registry}
+        subtitle={`Register and manage licensed ${rosterMany.toLowerCase()}`}
+        actions={
+          <>
+            <div className="relative w-full sm:w-64">
+              <Search
+                size={16}
+                aria-hidden="true"
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-tertiary"
+              />
+              <Input
+                type="text"
+                aria-label={`Search ${rosterMany.toLowerCase()} by name`}
+                placeholder="Search name…"
+                className="pl-9 text-sm"
+                value={searchTerm}
+                onChange={(e) => setSearcherTerm(e.target.value)}
+              />
+            </div>
+            <Button
+              size="sm"
+              icon={Plus}
+              onClick={() => { setForm(EMPTY); setPhotoFile(null); setFormError(''); setIsModalOpen(true); }}
+            >
+              Register {rosterOne.toLowerCase()}
+            </Button>
+          </>
+        }
+      />
 
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          <div className="flex bg-white dark:bg-white/5 rounded-2xl border border-surface-3 dark:border-white/10 p-2 flex-1 md:w-72">
-            <Search className="text-white/20 ml-2 mt-1.5" size={18} />
-            <input
-              type="text"
-              placeholder="Search name..."
-              className="bg-transparent border-none focus:ring-0 text-sm font-bold uppercase tracking-widest p-2 w-full"
-              value={searchTerm}
-              onChange={(e) => setSearcherTerm(e.target.value)}
-            />
+      <Panel flush>
+        {isLoading ? (
+          <div className="p-4">
+            <SkeletonList count={5} className="space-y-3">
+              <Skeleton className="h-10 w-full" />
+            </SkeletonList>
           </div>
-          <button
-            onClick={() => { setForm(EMPTY); setPhotoFile(null); setFormError(''); setIsModalOpen(true); }}
-            className="bg-red text-white px-6 py-3 rounded-xl font-display text-sm uppercase tracking-widest hover:bg-red-dark transition-all shadow-xl shadow-red/20 flex items-center space-x-2 whitespace-nowrap"
-          >
-            <Plus size={18} />
-            <span>Register {rosterOne}</span>
-          </button>
-        </div>
-      </div>
+        ) : !players?.length ? (
+          <EmptyState icon={User} />
+        ) : (
+          <TableWrap>
+            <table className="w-full min-w-[760px] text-left">
+              <thead>
+                <tr>
+                  <Th>{rosterOne}</Th>
+                  <Th>{teamLabel}</Th>
+                  <Th>{posLabel}</Th>
+                  <Th>Jersey</Th>
+                  <Th>Status</Th>
+                  <Th align="right">Actions</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {players.map((player) => (
+                  <tr key={player.id} className="transition-colors duration-150 ease-standard hover:bg-surface-2">
+                    <Td>
+                      <div className="flex items-center gap-3">
+                        <Avatar src={player.photo} name={player.fullName} size="lg" />
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium text-primary">{player.fullName}</p>
+                          <p className="truncate text-xs text-tertiary">
+                            {player.nationality}{player.licenseNo ? ` · Lic ${player.licenseNo}` : ''}
+                          </p>
+                        </div>
+                      </div>
+                    </Td>
+                    <Td>{player.team?.name}</Td>
+                    <Td>{player.position || '—'}</Td>
+                    <Td className="tabular-nums">{player.jerseyNumber ?? '—'}</Td>
+                    <Td>
+                      <StatusPill status={player.status} />
+                    </Td>
+                    <Td align="right">
+                      <div className="flex items-center justify-end gap-1">
+                        <IconButton icon={Edit2} size="sm" label={`Edit ${player.fullName}`} />
+                        <IconButton
+                          icon={Trash2}
+                          size="sm"
+                          variant="danger"
+                          label={`Remove ${player.fullName}`}
+                          onClick={() => { if (window.confirm(`Remove ${player.fullName}?`)) deletePlayerMutation.mutate(player.id); }}
+                        />
+                      </div>
+                    </Td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </TableWrap>
+        )}
+      </Panel>
 
-      {isLoading ? (
-        <Skeleton type="table-row" count={5} />
-      ) : (
-        <AdminTable headers={[rosterOne, teamLabel, posLabel, 'Jersey', 'Status', 'Actions']}>
-          {players?.map(player => (
-            <tr key={player.id} className="hover:bg-surface-2 dark:hover:bg-white/5 transition-colors">
-              <td className="px-6 py-5">
-                <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 rounded-full bg-surface-3 dark:bg-white/10 flex items-center justify-center overflow-hidden border border-surface-3">
-                    {player.photo ? <img src={player.photo} className="w-full h-full object-cover" /> : <User size={16} className="opacity-20" />}
-                  </div>
-                  <div>
-                    <p className="font-bold text-sm uppercase tracking-tight">{player.fullName}</p>
-                    <p className="text-[8px] opacity-40 uppercase tracking-widest">{player.nationality}{player.licenseNo ? ` · Lic ${player.licenseNo}` : ''}</p>
-                  </div>
-                </div>
-              </td>
-              <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{player.team?.name}</td>
-              <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{player.position || 'N/A'}</td>
-              <td className="px-6 py-5 text-[10px] font-bold opacity-60 uppercase">{player.jerseyNumber ?? '—'}</td>
-              <td className="px-6 py-5">
-                <span className={`text-[8px] font-bold px-2 py-1 rounded border uppercase ${player.status === 'VERIFIED' ? 'bg-green/5 text-green border-green/10' : 'bg-gold/5 text-gold border-gold/20'}`}>
-                  {player.status}
-                </span>
-              </td>
-              <td className="px-6 py-5">
-                <div className="flex items-center space-x-2">
-                  <button className="p-2 hover:bg-surface-3 dark:hover:bg-white/10 rounded-lg transition-colors">
-                    <Edit2 size={16} />
-                  </button>
-                  <button
-                    onClick={() => { if (window.confirm(`Remove ${player.fullName}?`)) deletePlayerMutation.mutate(player.id); }}
-                    className="p-2 hover:bg-red/10 text-red rounded-lg transition-colors"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </AdminTable>
-      )}
-
-      <AdminModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={`Register ${rosterOne}`}>
+      <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)} title={`Register ${rosterOne.toLowerCase()}`}>
         <form onSubmit={submit} className="space-y-5">
           {formError && (
-            <div className="bg-red/10 border border-red/20 p-3 rounded-xl flex items-center space-x-2 text-red">
-              <AlertCircle size={16} />
-              <span className="text-xs font-bold uppercase tracking-wider">{formError}</span>
-            </div>
+            <p role="alert" className="rounded-control bg-danger/10 p-3 text-sm font-semibold text-danger-text">
+              {formError}
+            </p>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className={lblCls}>{teamLabel}</label>
-              <select value={form.teamId} onChange={set('teamId')} className={inputCls}>
-                <option value="">Select {teamLabel.toLowerCase()}...</option>
-                {teams?.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-              </select>
-            </div>
-            <div className="space-y-1.5">
-              <label className={lblCls}>Full Name</label>
-              <input value={form.fullName} onChange={set('fullName')} className={inputCls} placeholder="Player name" />
-            </div>
-            <div className="space-y-1.5">
-              <label className={lblCls}>Date of Birth</label>
-              <input type="date" value={form.dateOfBirth} onChange={set('dateOfBirth')} className={inputCls} />
-            </div>
-            <div className="space-y-1.5">
-              <label className={lblCls}>Gender</label>
-              <select value={form.gender} onChange={set('gender')} className={inputCls}>
-                <option value="MALE">Male</option>
-                <option value="FEMALE">Female</option>
-              </select>
-            </div>
-            <div className="space-y-1.5">
-              <label className={lblCls}>Nationality</label>
-              <input value={form.nationality} onChange={set('nationality')} className={inputCls} placeholder="Rwandan" />
-            </div>
-            <div className="space-y-1.5">
-              <label className={lblCls}>National ID / Passport</label>
-              <input value={form.idNumber} onChange={set('idNumber')} className={inputCls} placeholder="ID number" />
-            </div>
-            <div className="space-y-1.5">
-              <label className={lblCls}>{posLabel}</label>
-              <input value={form.position} onChange={set('position')} className={inputCls} placeholder={`e.g. ${posLabel === 'Weight Category' ? '-73kg' : posLabel === 'Specialty' ? 'Sprinter' : posLabel === 'Discipline' ? 'Singles' : 'Goalkeeper'}`} />
-            </div>
-            <div className="space-y-1.5">
-              <label className={lblCls}>Jersey Number</label>
-              <input type="number" value={form.jerseyNumber} onChange={set('jerseyNumber')} className={inputCls} placeholder="10" />
-            </div>
-            <div className="space-y-1.5">
-              <label className={lblCls}>Licence Number</label>
-              <input value={form.licenseNo} onChange={set('licenseNo')} className={inputCls} placeholder="Federation licence" />
-            </div>
-            <div className="space-y-1.5">
-              <label className={lblCls}>Skill Level</label>
-              <select value={form.skillLevel} onChange={set('skillLevel')} className={inputCls}>
-                <option value="AMATEUR">Amateur</option>
-                <option value="SEMI_PROFESSIONAL">Semi-professional</option>
-                <option value="PROFESSIONAL">Professional</option>
-                <option value="ELITE">Elite</option>
-              </select>
-            </div>
-            <div className="space-y-1.5">
-              <label className={lblCls}>Height (cm)</label>
-              <input type="number" value={form.height} onChange={set('height')} className={inputCls} placeholder="180" />
-            </div>
-            <div className="space-y-1.5">
-              <label className={lblCls}>Weight (kg)</label>
-              <input type="number" value={form.weight} onChange={set('weight')} className={inputCls} placeholder="75" />
-            </div>
-            <div className="space-y-1.5 md:col-span-2">
-              <label className={lblCls}>Photo</label>
-              <input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files?.[0] || null)} className={inputCls} />
-            </div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <Field label={teamLabel}>
+              {(f) => (
+                <Select
+                  {...f}
+                  size="md"
+                  value={form.teamId}
+                  onChange={set('teamId')}
+                  placeholder={`Select ${teamLabel.toLowerCase()}…`}
+                  options={(teams || []).map((tm) => ({ value: tm.id, label: tm.name }))}
+                />
+              )}
+            </Field>
+            <Field label="Full name">
+              {(f) => <Input {...f} value={form.fullName} onChange={set('fullName')} placeholder={`${rosterOne} name`} />}
+            </Field>
+            <Field label="Date of birth">
+              {(f) => <Input {...f} type="date" value={form.dateOfBirth} onChange={set('dateOfBirth')} />}
+            </Field>
+            <Field label="Gender">
+              {(f) => (
+                <Select
+                  {...f}
+                  size="md"
+                  value={form.gender}
+                  onChange={set('gender')}
+                  options={[
+                    { value: 'MALE', label: 'Male' },
+                    { value: 'FEMALE', label: 'Female' },
+                  ]}
+                />
+              )}
+            </Field>
+            <Field label="Nationality">
+              {(f) => <Input {...f} value={form.nationality} onChange={set('nationality')} placeholder="Rwandan" />}
+            </Field>
+            <Field label="National ID / passport">
+              {(f) => <Input {...f} value={form.idNumber} onChange={set('idNumber')} placeholder="ID number" />}
+            </Field>
+            <Field label={posLabel}>
+              {(f) => (
+                <Input
+                  {...f}
+                  value={form.position}
+                  onChange={set('position')}
+                  placeholder={`e.g. ${posLabel === 'Weight Category' ? '-73kg' : posLabel === 'Specialty' ? 'Sprinter' : posLabel === 'Discipline' ? 'Singles' : 'Goalkeeper'}`}
+                />
+              )}
+            </Field>
+            <Field label="Jersey number">
+              {(f) => <Input {...f} type="number" value={form.jerseyNumber} onChange={set('jerseyNumber')} placeholder="10" />}
+            </Field>
+            <Field label="Licence number">
+              {(f) => <Input {...f} value={form.licenseNo} onChange={set('licenseNo')} placeholder="Federation licence" />}
+            </Field>
+            <Field label="Skill level">
+              {(f) => (
+                <Select
+                  {...f}
+                  size="md"
+                  value={form.skillLevel}
+                  onChange={set('skillLevel')}
+                  options={[
+                    { value: 'AMATEUR', label: 'Amateur' },
+                    { value: 'SEMI_PROFESSIONAL', label: 'Semi-professional' },
+                    { value: 'PROFESSIONAL', label: 'Professional' },
+                    { value: 'ELITE', label: 'Elite' },
+                  ]}
+                />
+              )}
+            </Field>
+            <Field label="Height (cm)">
+              {(f) => <Input {...f} type="number" value={form.height} onChange={set('height')} placeholder="180" />}
+            </Field>
+            <Field label="Weight (kg)">
+              {(f) => <Input {...f} type="number" value={form.weight} onChange={set('weight')} placeholder="75" />}
+            </Field>
+            <Field label="Photo" className="md:col-span-2">
+              {(f) => (
+                <Input
+                  {...f}
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setPhotoFile(e.target.files?.[0] || null)}
+                  className="py-2 text-sm file:mr-3 file:rounded-pill file:border-0 file:bg-surface-2 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-secondary"
+                />
+              )}
+            </Field>
           </div>
 
-          <button type="submit" disabled={createPlayerMutation.isPending} className="w-full bg-red text-white font-display text-lg uppercase tracking-widest py-4 rounded-xl hover:bg-red-dark transition-all flex items-center justify-center disabled:opacity-50">
-            {createPlayerMutation.isPending ? <Loader2 className="animate-spin" /> : <span>Register Player</span>}
-          </button>
+          <Button type="submit" block loading={createPlayerMutation.isPending}>
+            Register {rosterOne.toLowerCase()}
+          </Button>
         </form>
-      </AdminModal>
+      </Modal>
     </div>
   );
 };
