@@ -17,6 +17,7 @@
  */
 export const ADMIN_PAGES = [
   { path: '/admin/dashboard', label: 'Dashboard', capability: 'admin.stats' },
+  { path: '/admin/sports', label: 'Sports', capability: 'sports.describe' },
   { path: '/admin/sport-admins', label: 'Sport Admins', capability: 'federations.admins' },
   { path: '/admin/leagues', label: 'Leagues', capability: 'leagues.write' },
   { path: '/admin/fixtures', label: 'Fixtures', capability: 'fixtures.write' },

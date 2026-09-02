@@ -57,6 +57,7 @@ const CAPABILITIES = {
 
   // Sports and governing bodies
   'sports.write':         'Add sports and change how they are scored and organised',
+  'sports.describe':      'Maintain how your own sport is described and presented',
   'federations.write':    'Create and edit federations',
   'federations.admins':   'Appoint and remove administrators',
 
@@ -132,6 +133,7 @@ const ROLE_CAPABILITIES = {
    */
   FEDERATION_ADMIN: [
     'admin.stats',
+    'sports.describe',
     'leagues.write', 'leagues.delete', 'leagues.admins',
     'teams.create', 'teams.write', 'teams.approve',
     'players.read', 'players.write', 'players.documents',

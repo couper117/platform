@@ -27,6 +27,7 @@ const PATH_META = {
   '/admin/dashboard': { key: 'portal.nav_dashboard', section: 'main', icon: <LayoutDashboard size={18} /> },
   '/admin/akc3': { key: 'portal.nav_akc3', section: 'main', icon: <School size={18} /> },
   '/admin/sport-admins': { key: 'portal.nav_sport_admins', section: 'management', icon: <ShieldCheck size={18} /> },
+  '/admin/sports': { key: 'portal.nav_sports', section: 'management', icon: <Medal size={18} /> },
   '/admin/leagues': { key: 'portal.nav_leagues', section: 'management', icon: <Trophy size={18} /> },
   '/admin/teams': { key: 'portal.nav_teams', section: 'management', icon: <Users size={18} /> },
   '/admin/players': { key: 'portal.nav_players', section: 'management', icon: <UserSquare2 size={18} /> },

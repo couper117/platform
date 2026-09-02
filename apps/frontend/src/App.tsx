@@ -65,6 +65,7 @@ const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage'));
 const AdminRolesPage = lazy(() => import('./pages/admin/AdminRolesPage'));
 const AdminRequestsPage = lazy(() => import('./pages/admin/AdminRequestsPage'));
 const AdminCompliancePage = lazy(() => import('./pages/admin/AdminCompliancePage'));
+const AdminSportsPage = lazy(() => import('./pages/admin/AdminSportsPage'));
 const AdminSystemHealthPage = lazy(() => import('./pages/admin/AdminSystemHealthPage'));
 const AdminContentPage = lazy(() => import('./pages/admin/AdminContentPage'));
 const AdminMediaPage = lazy(() => import('./pages/admin/AdminMediaPage'));
@@ -243,6 +244,7 @@ function App() {
               <Route path="roles" element={<AdminRolesPage />} />
               <Route path="requests" element={<AdminRequestsPage />} />
               <Route path="compliance" element={<AdminCompliancePage />} />
+              <Route path="sports" element={<AdminSportsPage />} />
               <Route path="system-health" element={<AdminSystemHealthPage />} />
               <Route path="visitors" element={<AdminVisitorsPage />} />
               <Route path="akc3" element={<AkcAdminDashboard />} />

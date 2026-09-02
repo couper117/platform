@@ -84,6 +84,10 @@ const ROUTE_POLICY = {
   'ads.write':            [],
   'venues.write':         [],
   'sports.write':         [],
+  // sports.routes.ts PUT /:id — a sport is governed by its federation, so the
+  // federation keeps its description current. Creating a sport, deleting one and
+  // changing its type stay central: those reshape every other admin page.
+  'sports.describe':      ['FEDERATION_ADMIN'],
   'federations.write':    [],
 
   // leagues.routes.ts
