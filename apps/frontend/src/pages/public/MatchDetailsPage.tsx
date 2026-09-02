@@ -294,6 +294,10 @@ const MatchDetailsPage = () => {
                   [t('match.kick_off'), m.matchDate ? `${format(new Date(m.matchDate), 'HH:mm')} CAT` : t('common.tbd')],
                   [t('match.venue'), m.venue || t('common.tbd')],
                   [t('match.referee'), m.referee || '—'],
+                  // A live feed is somebody's work. Crediting them is the point
+                  // of having reporters rather than an anonymous ticker.
+                  [t('match.reported_by', 'Reported by'),
+                    (m.assignedReporters || []).map((a: any) => a.user?.fullName).filter(Boolean).join(', ') || '—'],
                   [t('match.matchday'), m.matchday ? `${t('match.round')} ${m.matchday}` : '—'],
                   [t('match.attendance'), m.attendance ? m.attendance.toLocaleString() : '—'],
                 ].map(([k, v]) => (

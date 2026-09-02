@@ -32,6 +32,19 @@ model Ad {
   position  String
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
+
+  /// A sponsorship runs for a period. Without dates an ad has to be switched on
+  /// and off by hand, which means somebody doing it at midnight — or, more often,
+  /// a campaign that keeps running after it was paid for. Null means no bound.
+  startsAt DateTime?
+  endsAt   DateTime?
+
+  /// What the sponsor is owed an answer about. Counted rather than inferred: an
+  /// ad platform that cannot say the advert was seen is half a product.
+  impressions Int @default(0)
+  clicks      Int @default(0)
+
+  @@index([position, active])
 }
 
 model User {

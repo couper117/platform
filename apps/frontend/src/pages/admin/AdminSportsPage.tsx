@@ -247,6 +247,7 @@ const AdminSportsPage = () => {
                       disabled={inUse > 0 || remove.isPending}
                       title={inUse > 0 ? t('admin.sports.in_use', 'Has federations, competitions or clubs — deactivate it instead') : undefined}
                       onClick={() => remove.mutate(s.id)}
+                      aria-label={t('admin.sports.delete_sport', 'Delete {{name}}', { name: s.name })}
                       className="rounded-lg border border-danger/40 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-danger-text disabled:opacity-30"
                     >
                       <Trash2 size={12} />

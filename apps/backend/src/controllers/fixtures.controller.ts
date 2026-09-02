@@ -102,6 +102,12 @@ const getFixture = async (req, res, next) => {
     const fixture = await prisma.fixture.findUnique({
       where: { id },
       include: {
+        // Who reported the match. A live feed is somebody's work, and a match
+        // page that credits nobody reads as though it wrote itself. Only the
+        // name — not the email or anything else on the account.
+        assignedReporters: {
+          select: { user: { select: { id: true, fullName: true, avatar: true } } },
+        },
         homeTeam: true,
         awayTeam: true,
         league: true,
