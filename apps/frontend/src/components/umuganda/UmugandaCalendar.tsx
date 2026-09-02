@@ -119,7 +119,7 @@ const UmugandaCalendar = ({ className }: { className?: string }) => {
   // Weekday initials, Monday-first, from the active locale rather than hardcoded.
   const weekdays = useMemo(
     () => Array.from({ length: 7 }, (_, i) => fmtDay(new Date(Date.UTC(2024, 0, 1 + i)), 'EEEEE')),
-    [fmt]
+    [fmtDay]
   );
 
   const selectedUmuganda = selected ? umugandaByDay.get(selected) : null;
