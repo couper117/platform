@@ -1,0 +1,63 @@
+[
+  {
+    "code": "RRA",
+    "name": "Rwanda Revenue Authority Volleyball Club",
+    "city": "Kigali",
+    "gender": "women",
+    "matchExisting": "Rwanda Revenue Authority VC",
+    "logo": null,
+    "source": "The New Times, rra.gov.rw and the club's own X account. Commonly styled RRA WVC."
+  },
+  {
+    "code": "RPH",
+    "name": "Rwanda Polytechnic Huye College",
+    "city": "Huye",
+    "gender": "women",
+    "logo": null,
+    "source": "The New Times season preview spells the code out in full; the federation posts it as 'RP Huye'. Formerly IPRC Huye. NOT the same club as RPN (RP Ngoma) in the men's league."
+  },
+  {
+    "code": "RVC",
+    "name": "Ruhango Volleyball Club",
+    "city": "Ruhango",
+    "gender": "women",
+    "logo": null,
+    "source": "The New Times spells 'Ruhango Volleyball Club (RVC)'; rra.gov.rw and Kigali Today corroborate. City inferred from the club name rather than an explicit statement."
+  },
+  {
+    "code": "APR",
+    "name": "APR Volleyball Club",
+    "city": "Kigali",
+    "gender": "men",
+    "logo": "https://pbs.twimg.com/profile_images/1864921266538336257/Lgx7EUCn_400x400.jpg",
+    "source": "@AprVolleyball, whose profile identifies it as the men's volleyball section. A genuine volleyball crest, not the football club's.",
+    "note": "224px original despite the _400x400 path, and a Twitter avatar URL changes when the club changes its picture. Replace with a club-supplied file when one is available."
+  },
+  {
+    "code": "PVC",
+    "name": "Police Volleyball Club",
+    "city": "Kigali",
+    "gender": "men",
+    "logo": "https://pbs.twimg.com/profile_images/2027766094396612608/lJeM4CJc_400x400.jpg",
+    "source": "@rnpvcofficial. FIVB names the club 'Police Volleyball Club'. The crest is volleyball-specific - a dove on a volleyball above a net - not the RNP institutional emblem and not Police FC's football crest.",
+    "note": "A Twitter avatar URL changes when the club changes its picture."
+  },
+  {
+    "code": "REG",
+    "name": "Rwanda Energy Group Volleyball Club",
+    "city": "Kigali",
+    "gender": "men",
+    "logo": null,
+    "source": "reg.rw's own newsroom, The New Times and KT Press all pair the code with this name.",
+    "note": "No crest exists. Every source shows the Rwanda Energy Group corporate wordmark, which is a wide horizontal mark that would look broken in a crest slot, and the club's X avatar is a squad photo. Generated shield instead."
+  },
+  {
+    "code": "EAU",
+    "name": "East African University Rwanda",
+    "city": "Nyagatare",
+    "gender": "men",
+    "logo": "https://pbs.twimg.com/profile_images/1919772997704957952/_ZGFI2Cf_400x400.jpg",
+    "source": "The New Times season report pairs the federation's EAU code with this name; eaur.ac.rw confirms the institution.",
+    "note": "This is the UNIVERSITY's crest, not a volleyball-specific one - normal for a university side, but say so if asked. The university's own 100px transparent PNG is cleaner but too small."
+  }
+]

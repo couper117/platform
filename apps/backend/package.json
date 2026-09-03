@@ -16,7 +16,7 @@
     "seed:colors": "tsx prisma/seed-colors.ts",
     "seed:lineups": "tsx prisma/seed-lineups.ts",
     "seed:showcases": "tsx prisma/seed-showcases.ts",
-    "seed:all": "tsx prisma/seed.ts && tsx prisma/seed-extra.ts && tsx prisma/seed-federations.ts && tsx prisma/seed-colors.ts && tsx prisma/seed-lineups.ts && tsx prisma/seed-showcases.ts && tsx prisma/seed-ads.ts && tsx prisma/seed-news-images.ts && tsx prisma/seed-appearances.ts && tsx prisma/seed-rbl-basketball.ts && tsx prisma/seed-apr-basketball.ts && tsx prisma/seed-team-logos.ts",
+    "seed:all": "tsx prisma/seed.ts && tsx prisma/seed-extra.ts && tsx prisma/seed-federations.ts && tsx prisma/seed-colors.ts && tsx prisma/seed-lineups.ts && tsx prisma/seed-showcases.ts && tsx prisma/seed-ads.ts && tsx prisma/seed-news-images.ts && tsx prisma/seed-appearances.ts && tsx prisma/seed-rbl-basketball.ts && tsx prisma/seed-apr-basketball.ts && tsx prisma/seed-volleyball.ts && tsx prisma/seed-team-logos.ts",
     "vercel-build": "sh ./scripts-build.sh",
     "test": "node --import tsx --test \"test/unit/**/*.test.ts\"",
     "test:unit": "node --import tsx --test \"test/unit/**/*.test.ts\"",
