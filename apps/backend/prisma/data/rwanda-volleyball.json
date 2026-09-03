@@ -59,5 +59,42 @@
     "logo": "https://pbs.twimg.com/profile_images/1919772997704957952/_ZGFI2Cf_400x400.jpg",
     "source": "The New Times season report pairs the federation's EAU code with this name; eaur.ac.rw confirms the institution.",
     "note": "This is the UNIVERSITY's crest, not a volleyball-specific one - normal for a university side, but say so if asked. The university's own 100px transparent PNG is cleaner but too small."
+  },
+  {
+    "code": "KVC",
+    "name": "Kigali Volleyball Club",
+    "city": "Kigali",
+    "gender": "both",
+    "matchExisting": "Kigali Volleyball Club",
+    "logo": "https://pbs.twimg.com/profile_images/1745048551070003200/1ilB9jqK_400x400.jpg",
+    "source": "The New Times writes it out in full; @KVC_Capa is the club's own account ('1st Div | Men and Women | Kigali-Rwanda'). A genuine club crest.",
+    "note": "KVC is NOT Kirehe. Kirehe VC is a separate club that had withdrawn before 2024-25 and is listed separately in 2025-26."
+  },
+  {
+    "code": "GVC",
+    "name": "Gisagara Volleyball Club",
+    "city": "Gisagara",
+    "gender": "men",
+    "logo": "https://pbs.twimg.com/profile_images/1976282201911119872/jQzQBi7f_400x400.jpg",
+    "source": "@GisagaraVBC describes itself as the official account of GVC; IGIHE and Ground Sports both use the full name.",
+    "note": "A genuine club crest, but the avatar is cropped and a photo background bleeds in at the right edge. Worth trimming if a clean asset appears."
+  },
+  {
+    "code": "KEP",
+    "name": "Kepler Volleyball Club",
+    "city": "Kigali",
+    "gender": "men",
+    "logo": "https://pbs.twimg.com/profile_images/1747369543792545792/GPgotDTe_400x400.jpg",
+    "source": "FRVB's own news post calls them 'Kinyinya based ... Kepler VC'; The New Times corroborates.",
+    "note": "This is the shared 'Kepler Sports' mark - the same account covers Kepler's basketball club - not a volleyball-only crest. None exists."
+  },
+  {
+    "code": "RPN",
+    "name": "Rwanda Polytechnic Ngoma College",
+    "city": "Ngoma",
+    "gender": "men",
+    "logo": "https://pbs.twimg.com/profile_images/2044707002694483968/GivlgcXs_400x400.jpg",
+    "source": "The New Times season preview gives 'RP Ngoma College (RPN)' against the same fixture the federation lists as EAU VS RPN; Kigali Today's report of that match names 'Rwanda Polytechnic Ngoma'.",
+    "note": "Also written 'IPRC Ngoma' and 'RP Ngoma College' in the wild - keep those as aliases or a fixture importer will duplicate it. DIFFERENT college from RPH (RP Huye) in the women's league. The image is the college's institutional badge; no volleyball-specific crest exists."
   }
 ]

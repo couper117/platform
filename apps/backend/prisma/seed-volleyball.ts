@@ -53,8 +53,14 @@ const main = async () => {
   let updated = 0;
 
   for (const c of clubs) {
+    // Match on EITHER name. `matchExisting` is what the club was called before
+    // this seeder corrected it, and the corrected name is what it is called after —
+    // so looking only at the former made the seeder non-idempotent: the first run
+    // renamed the club, the second could no longer find it, and a duplicate
+    // appeared. Both spellings resolve to the same row now.
+    const names = [c.matchExisting, c.name].filter(Boolean) as string[];
     let team = await prisma.team.findFirst({
-      where: { sportId: VOLLEYBALL_SPORT_ID, name: c.matchExisting ?? c.name },
+      where: { sportId: VOLLEYBALL_SPORT_ID, name: { in: names } },
     });
 
     if (!team) {
