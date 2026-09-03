@@ -14,3 +14,11 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+/**
+ * Injected by vite.config.js at build time — the commit the running bundle was
+ * built from, and when. Declared so TypeScript knows they exist; they are
+ * replaced literally, so there is nothing to import.
+ */
+declare const __BUILD_SHA__: string;
+declare const __BUILD_AT__: string;
