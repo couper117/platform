@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, Trash2, Edit2, User, Plus } from 'lucide-react';
+import { Search, Trash2, Edit2, User, Plus, BarChart3 } from 'lucide-react';
 import apiClient from '../../api/client';
 import { PageHeader, Panel, TableWrap, Th, Td } from '../../components/admin/AdminUI';
 import {
   Button, IconButton, Modal, Input, Select, Field, Avatar, StatusPill, EmptyState, Skeleton, SkeletonList,
 } from '../../components/ui';
 import useSportScope from '../../hooks/useSportScope';
+import PlayerStatsModal from '../../components/admin/PlayerStatsModal';
 
 /**
  * Super Admin / Federation Admin → the athlete registry.
@@ -25,6 +26,8 @@ const AdminPlayersPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form, setForm] = useState(EMPTY);
   const [photoFile, setPhotoFile] = useState(null);
+  // The player whose season is being recorded; null when the editor is closed.
+  const [statsFor, setStatsFor] = useState<any>(null);
   const [formError, setFormError] = useState('');
   const scope = useSportScope();
   const p = scope.profile;
@@ -164,6 +167,12 @@ const AdminPlayersPage = () => {
                     </Td>
                     <Td align="right">
                       <div className="flex items-center justify-end gap-1">
+                        <IconButton
+                          icon={BarChart3}
+                          size="sm"
+                          label={`Season statistics for ${player.fullName}`}
+                          onClick={() => setStatsFor(player)}
+                        />
                         <IconButton icon={Edit2} size="sm" label={`Edit ${player.fullName}`} />
                         <IconButton
                           icon={Trash2}
@@ -181,6 +190,12 @@ const AdminPlayersPage = () => {
           </TableWrap>
         )}
       </Panel>
+
+      <PlayerStatsModal
+        player={statsFor}
+        open={!!statsFor}
+        onClose={() => setStatsFor(null)}
+      />
 
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)} title={`Register ${rosterOne.toLowerCase()}`}>
         <form onSubmit={submit} className="space-y-5">

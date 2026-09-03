@@ -33,6 +33,12 @@ import cn from '../ui/cn';
 
 type Stat = { key: string; label: string; decimal?: boolean };
 
+/**
+ * MIRRORS apps/backend/src/config/playerStatSpec.ts, which is the source of truth:
+ * it is the allowlist the write endpoint validates against and the spec the admin
+ * editor builds its fields from. This copy exists because rendering needs the list
+ * synchronously. Add a stat there first, then here.
+ */
 const STATS: Record<number, Stat[]> = {
   // Football — the three that lead are the three a fan quotes.
   1: [
@@ -241,7 +247,12 @@ const PlayerProfile = ({ player, backTo, backLabel, affiliation, extraRows, matc
       {/* Season */}
       {hero.length > 0 && (
         <section className="space-y-3">
-          <h2 className="font-display text-lg font-semibold text-primary">{t('player.this_season')}</h2>
+          {/* Name the season when one was recorded. "This season" over figures
+              entered for 2024/2025 would be a small lie, and the kind nobody
+              notices until a journalist quotes it. */}
+          <h2 className="font-display text-lg font-semibold text-primary">
+            {player.recordedSeason || t('player.this_season')}
+          </h2>
           <div className={cn('grid gap-3', heroCols)}>
             {hero.map((s) => (
               <StatTile

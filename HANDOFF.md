@@ -1,10 +1,8 @@
 # HANDOFF
 
 ## Current Task
-Admin portal UI revamp. The client's brief: "this admin pages look like SHIT — start
-with the dashboard for ministry of sport, we need it looking like a admin portal,
-fix its header, we don't need those nav links, nice icons with a nice search bar —
-we will copy every other admin page based on this one."
+Player profiles for professionals: a club-coloured page, real season statistics
+stored in the database, and an admin editor to record and correct them.
 
 ## Status
 **Solved and shipped.** The whole admin portal is on one design vocabulary.

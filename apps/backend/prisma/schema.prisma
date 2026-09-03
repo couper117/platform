@@ -421,6 +421,7 @@ model Player {
   events        MatchEvent[]     @relation("PlayerEvent")
   subEvents     MatchEvent[]     @relation("SubEvent")
   career        PlayerCareer[]
+  seasonStats   PlayerSeasonStat[]
   transfersFrom Transfer[]
   suspensions   Suspension[]
 
@@ -754,6 +755,38 @@ model TopScorer {
 
   @@index([leagueId])
   @@index([teamId])
+}
+
+/// A player's recorded numbers for one season.
+///
+/// WHY A TABLE AND NOT A DERIVATION. Football's season sheet is derived — goals
+/// come from MatchEvent, appearances from Lineup — because the platform records
+/// those events itself. It records nothing of the kind for basketball: there is no
+/// box score, so points, rebounds and assists cannot be computed from anything.
+/// They are entered by whoever administers the sport and stored here, which is the
+/// difference between a statistic and a number somebody typed into a component.
+///
+/// `stats` is JSON keyed by the same names the profile renders — points, rebounds,
+/// assists, games, steals, blocks, minutes, goals, cleanSheets — so a sport can
+/// gain a stat without a migration. A key that is absent is absent everywhere: the
+/// profile drops the row rather than printing a zero.
+///
+/// Entered figures WIN over derived ones. An administrator correcting a total is
+/// the authority; the derivation is the fallback when nobody has.
+model PlayerSeasonStat {
+  id        Int      @id @default(autoincrement())
+  playerId  Int
+  player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  /// "2025/2026" — free text, because a season is labelled differently per sport.
+  season    String   @db.VarChar(20)
+  leagueId  Int?
+  stats     Json
+  updatedBy Int?
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@unique([playerId, season])
+  @@index([playerId])
 }
 
 /// A player's club history BEFORE this platform.

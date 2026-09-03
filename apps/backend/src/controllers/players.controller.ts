@@ -2,6 +2,7 @@ const prisma = require('../config/db');
 const { assignedLeagueIds } = require('../utils/scope');
 const { canSeePersonalData, redactPlayer } = require('../services/privacy.service');
 const { getPlayerSeason } = require('../services/playerStats.service');
+const { specFor, sanitiseStats } = require('../config/playerStatSpec');
 const { getPagination } = require('../utils/paginate');
 const { uploadImage, deleteImage } = require('../services/storage.service');
 const logActivity = require('../utils/activityLogger');
@@ -132,7 +133,7 @@ const getPlayer = async (req, res, next) => {
     // show, and which no endpoint used to return. Derived from lineups and match
     // events, so a player who has not played yet gets an empty object and the page
     // hides the block rather than leading with a row of zeroes.
-    const { season, form } = await getPlayerSeason(player);
+    const { season, form, recordedSeason } = await getPlayerSeason(player);
 
     const body = privileged ? player : redactPlayer(player);
 
@@ -146,6 +147,9 @@ const getPlayer = async (req, res, next) => {
         sportId: player.team?.sportId ?? null,
         season,
         form,
+        // Which season the recorded numbers belong to, so the profile can label
+        // the block honestly instead of always saying "this season".
+        recordedSeason,
       },
     });
   } catch (error) {
@@ -322,10 +326,99 @@ const deletePlayer = async (req, res, next) => {
   }
 };
 
+// @desc    Every recorded season for a player
+// @route   GET /api/v1/players/:id/stats
+// @access  Private (players.write)
+const getPlayerStats = async (req, res, next) => {
+  try {
+    const playerId = parseInt(req.params.id, 10);
+    const player = await prisma.player.findUnique({
+      where: { id: playerId },
+      select: { id: true, fullName: true, team: { select: { sportId: true } } },
+    });
+    if (!player) return res.status(404).json({ success: false, message: 'Player not found' });
+
+    const seasons = await prisma.playerSeasonStat.findMany({
+      where: { playerId },
+      orderBy: { season: 'desc' },
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        // The editor builds its fields from the sport, so it is told which one.
+        sportId: player.team?.sportId ?? null,
+        spec: specFor(player.team?.sportId),
+        seasons,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Record (or correct) a player's numbers for one season
+// @route   PUT /api/v1/players/:id/stats
+// @access  Private (players.write)
+const upsertPlayerStats = async (req, res, next) => {
+  try {
+    const playerId = parseInt(req.params.id, 10);
+    const season = String(req.body.season || '').trim();
+    if (!season) {
+      return res.status(422).json({ success: false, message: 'A season is required, e.g. 2025/2026' });
+    }
+
+    const player = await prisma.player.findUnique({
+      where: { id: playerId },
+      include: { team: { select: { name: true, sportId: true } } },
+    });
+    if (!player) return res.status(404).json({ success: false, message: 'Player not found' });
+
+    // Only keys the spec knows, coerced to numbers, blanks dropped. A cleared
+    // field REMOVES the stat rather than storing a zero — see sanitiseStats.
+    const stats = sanitiseStats(req.body.stats);
+
+    // Nothing left means the season has been emptied, which is a delete. Leaving a
+    // row of {} behind would make the profile think a season had been recorded.
+    if (Object.keys(stats).length === 0) {
+      await prisma.playerSeasonStat.deleteMany({ where: { playerId, season } });
+      await logActivity({
+        userId: req.user.id,
+        action: 'Clear Player Season',
+        detail: `Cleared ${season} statistics for ${player.fullName}`,
+        module: 'players',
+        ip: req.ip,
+      });
+      return res.status(200).json({ success: true, data: null });
+    }
+
+    const saved = await prisma.playerSeasonStat.upsert({
+      where: { playerId_season: { playerId, season } },
+      update: { stats, updatedBy: req.user.id },
+      create: { playerId, season, stats, updatedBy: req.user.id },
+    });
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Update Player Season',
+      detail: `Recorded ${season} statistics for ${player.fullName}`,
+      module: 'players',
+      ip: req.ip,
+    });
+
+    res.status(200).json({ success: true, data: saved });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
+
   getPlayers,
   getPlayer,
   createPlayer,
   updatePlayer,
   deletePlayer,
+  getPlayerStats,
+  upsertPlayerStats,
 };

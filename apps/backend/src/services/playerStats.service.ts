@@ -1,4 +1,5 @@
 const prisma = require('../config/db');
+const { sanitiseStats } = require('../config/playerStatSpec');
 
 /**
  * A player's season and recent form, derived from what actually happened.
@@ -39,7 +40,7 @@ const isKeeper = (position?: string | null) => /keeper|goalie|\bgk\b/i.test(posi
 const getPlayerSeason = async (player) => {
   if (!player?.id) return { season: {}, form: [] };
 
-  const [lineups, events] = await Promise.all([
+  const [lineups, events, recorded] = await Promise.all([
     prisma.lineup.findMany({
       where: { playerId: player.id, fixture: { status: 'COMPLETED' } },
       select: {
@@ -58,16 +59,28 @@ const getPlayerSeason = async (player) => {
       where: { playerId: player.id, fixture: { status: 'COMPLETED' } },
       select: { fixtureId: true, eventType: true },
     }),
+    // The most recent season somebody has actually recorded for this player.
+    prisma.playerSeasonStat.findFirst({
+      where: { playerId: player.id },
+      orderBy: { season: 'desc' },
+    }),
   ]);
+
+  const entered = sanitiseStats(recorded?.stats);
 
   const count = (types: string[]) => events.filter((e) => types.includes(e.eventType)).length;
   const goalsIn = (fixtureId: number) =>
     events.filter((e) => e.fixtureId === fixtureId && GOAL_CREDIT.includes(e.eventType)).length;
 
-  // A player with no appearances and no events has no season. Returning an empty
-  // object rather than a set of zeros is what lets the profile hide the whole
+  // A player with nothing derived AND nothing recorded has no season. Returning an
+  // empty object rather than a set of zeros is what lets the profile hide the whole
   // block instead of leading with "0 goals, 0 assists".
-  if (lineups.length === 0 && events.length === 0) return { season: {}, form: [] };
+  //
+  // `entered` is checked too: a basketball player has no lineups and no goal events
+  // by definition, so guarding on those alone threw away the only numbers they have.
+  if (lineups.length === 0 && events.length === 0 && Object.keys(entered).length === 0) {
+    return { season: {}, form: [], recordedSeason: null };
+  }
 
   const season: Record<string, number> = {};
   if (lineups.length) season.appearances = lineups.length;
@@ -114,7 +127,15 @@ const getPlayerSeason = async (player) => {
     };
   });
 
-  return { season, form };
+  // ENTERED FIGURES WIN. An administrator correcting a total is the authority on
+  // it; the derivation is what stands in when nobody has. Spreading `entered` last
+  // also means a sport the platform records no events for — basketball — is carried
+  // entirely by what was recorded.
+  return {
+    season: { ...season, ...entered },
+    form,
+    recordedSeason: recorded?.season ?? null,
+  };
 };
 
 module.exports = { getPlayerSeason };
