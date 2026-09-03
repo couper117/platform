@@ -6,6 +6,7 @@ import Avatar from '../ui/Avatar';
 import PlayerHero from './PlayerHero';
 import Badge from '../ui/Badge';
 import cn from '../ui/cn';
+import flagParts from '../../utils/flag';
 
 /**
  * A player's profile: who they are, what they have done this season, recent form.
@@ -99,6 +100,37 @@ const FALLBACK: Stat[] = [
 ];
 
 const show = (v: any) => v !== null && v !== undefined && v !== '';
+
+/**
+ * A nationality as flags, with the country names still readable to assistive
+ * technology — a bare flag emoji announces as nothing useful, and on a device with
+ * no flag font it draws as two letters in a box.
+ */
+const Nationality = ({ value }: { value?: string | null }) => {
+  const parts = flagParts(value);
+  if (parts.length === 0) return null;
+  const full = parts.map((p) => p.label).join(' / ');
+  return (
+    <span className="inline-flex items-center gap-1.5" title={full}>
+      {parts.map((p) =>
+        p.src ? (
+          <img
+            key={p.label}
+            src={p.src}
+            alt={p.label}
+            width={20}
+            height={15}
+            loading="lazy"
+            className="h-[15px] w-5 shrink-0 rounded-[2px] object-cover ring-1 ring-hairline"
+          />
+        ) : (
+          // Nothing recognised the country: show what the record said.
+          <span key={p.label}>{p.label}</span>
+        )
+      )}
+    </span>
+  );
+};
 
 const fmt = (v: any, decimal?: boolean) => {
   if (typeof v !== 'number') return String(v);
@@ -196,7 +228,7 @@ const PlayerProfile = ({ player, backTo, backLabel, affiliation, extraRows, matc
   const facts = [
     player.height && { label: t('player.height'), value: `${player.height} cm` },
     player.position && { label: t('player.position'), value: player.position },
-    player.nationality && { label: t('player.nationality'), value: player.nationality },
+    player.nationality && { label: t('player.nationality'), value: <Nationality value={player.nationality} /> },
     typeof player.jerseyNumber === 'number' && { label: t('player.squad_no'), value: player.jerseyNumber },
     current?.fromYear && { label: t('player.joined'), value: current.fromYear },
     previous[0] && { label: t('player.previous_club'), value: previous[0].club },
@@ -356,7 +388,7 @@ const PlayerProfile = ({ player, backTo, backLabel, affiliation, extraRows, matc
         <h2 className="font-display text-lg font-semibold text-primary">{t('player.profile')}</h2>
         <div className="overflow-hidden rounded-card border border-hairline bg-surface">
           {age !== null && <Row label={t('player.age')} value={t('player.years', { count: age })} />}
-          {player.nationality && <Row label={t('player.nationality')} value={player.nationality} />}
+          {player.nationality && <Row label={t('player.nationality')} value={<Nationality value={player.nationality} />} />}
           {player.height && <Row label={t('player.height')} value={`${player.height} cm`} />}
           {player.weight && <Row label={t('player.weight')} value={`${player.weight} kg`} />}
           {player.licenseNo && <Row label={t('player.licence')} value={player.licenseNo} />}
