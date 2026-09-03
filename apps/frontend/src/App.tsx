@@ -72,6 +72,7 @@ const AdminFixturesPage = lazy(() => import('./pages/admin/AdminFixturesPage'));
 const AdminPlayersPage = lazy(() => import('./pages/admin/AdminPlayersPage'));
 const AdminDocumentsPage = lazy(() => import('./pages/admin/AdminDocumentsPage'));
 const AdminNewsPage = lazy(() => import('./pages/admin/AdminNewsPage'));
+const AdminArticleEditor = lazy(() => import('./pages/admin/AdminArticleEditor'));
 const AdminSettingsPage = lazy(() => import('./pages/admin/AdminSettingsPage'));
 const AdminUmugandaPage = lazy(() => import('./pages/admin/AdminUmugandaPage'));
 const AdminSportAdminsPage = lazy(() => import('./pages/admin/AdminSportAdminsPage'));
@@ -283,6 +284,10 @@ function App() {
               <Route path="players" element={<AdminPlayersPage />} />
               <Route path="documents" element={<AdminDocumentsPage />} />
               <Route path="news" element={<AdminNewsPage />} />
+              {/* Writing an article gets a page of its own — linkable, refreshable,
+                  and Back does what Back should. See AdminArticleEditor. */}
+              <Route path="news/new" element={<AdminArticleEditor />} />
+              <Route path="news/:id/edit" element={<AdminArticleEditor />} />
               <Route path="ads" element={<AdminAdsPage />} />
               <Route path="content" element={<AdminContentPage />} />
               <Route path="media" element={<AdminMediaPage />} />
