@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Trophy, Users, UserSquare2, FileText, Newspaper, Settings, Activity, HeartHandshake,
   School, X, Megaphone, ClipboardList, ShieldCheck, Radio, Lock, Landmark, GraduationCap,
   Medal, Shield, ExternalLink, HelpCircle, Users2, KeyRound, LayoutTemplate, Image as ImageIcon,
-  ClipboardCheck, BarChart3, Target, TrendingUp, CalendarDays, Layers, Inbox,
+  ClipboardCheck, BarChart3, Target, TrendingUp, CalendarDays, Layers, Inbox, Sparkles,
 } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
 import useSportScope from '../../hooks/useSportScope';
@@ -63,6 +63,7 @@ export const PATH_META = {
   '/admin/system-health': { key: 'portal.nav_system_health', section: 'system', icon: <Activity size={18} /> },
   '/admin/visitors': { key: 'portal.nav_visitors', section: 'system', icon: <ClipboardList size={18} /> },
   '/admin/settings': { key: 'portal.nav_settings', section: 'system', icon: <Settings size={18} /> },
+  '/admin/ai': { key: 'portal.nav_ai', section: 'system', icon: <Sparkles size={18} /> },
 
   // League Admin sub-sections
   '/admin/league/match-reports': { key: 'portal.nav_match_reports', section: 'operations', icon: <ClipboardCheck size={18} /> },

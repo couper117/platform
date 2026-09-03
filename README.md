@@ -3,7 +3,8 @@
 A mobile-first platform to digitize Rwandan sport end-to-end: professional
 leagues, 20+ federations, a live Match Center, a school-competitions module
 (Amashuri / AKC3), and racing (cycling, athletics) — with team verification,
-news, ads and subscriptions.
+news, ads and subscriptions, plus a built-in AI assistant that answers questions
+about the platform from its own records.
 
 - **Frontend:** React 18 + Vite + Tailwind + TanStack Query + Zustand (PWA, Capacitor for mobile), i18n in English / Kinyarwanda / French.
 - **Backend:** Express + Prisma + PostgreSQL, JWT auth, Zod validation, Cloudinary media, Pusher + SSE realtime, Flutterwave payments (env-gated).
@@ -72,6 +73,23 @@ npm run check:drift    # fail if shared demo↔real files diverge
 CI (`.github/workflows/ci.yml`) runs typecheck, lint, drift and unit tests on
 every push/PR, plus a Postgres-backed job that runs the smoke suite. A husky
 pre-commit hook runs typecheck + lint locally.
+
+## AI assistant
+
+The floating assistant answers questions about the platform — sports, clubs,
+athletes, fixtures, results, standings, venues, school competitions and how to
+use the app — grounded in live database records, and declines anything else.
+
+It is **provider-agnostic and env-gated**. Gemini is the default; OpenAI,
+Anthropic, OpenRouter, Groq, Mistral, DeepSeek and a self-hosted Ollama server
+are supported without a code change. Set `GEMINI_API_KEY` in
+`apps/backend/.env`, or paste a key into **Admin > AI Assistant**, where it is
+stored encrypted and never sent back to a browser. With no key at all the widget
+simply does not render. Models are fetched from the provider rather than typed
+in, and a model the provider withdraws is replaced automatically.
+
+See [`SECURITY.md`](SECURITY.md) for how the key is protected and exactly what
+platform data is — and is not — sent to the provider.
 
 ## Payments
 

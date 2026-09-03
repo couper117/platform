@@ -138,6 +138,11 @@ const ROUTE_POLICY = {
   // payments.routes.ts
   'payments.subscribe':   ['TEAM_MANAGER'],
   'payments.verify':      [],
+
+  // ai.routes.ts — the assistant's provider, API key and behaviour. Nobody but
+  // the Super Admin: it holds a credential that costs money and decides what
+  // platform data is sent to a third party.
+  'ai.configure':         [],
 };
 
 test('the capability map grants exactly what the routes already enforce', () => {

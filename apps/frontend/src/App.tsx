@@ -73,6 +73,7 @@ const AdminPlayersPage = lazy(() => import('./pages/admin/AdminPlayersPage'));
 const AdminDocumentsPage = lazy(() => import('./pages/admin/AdminDocumentsPage'));
 const AdminNewsPage = lazy(() => import('./pages/admin/AdminNewsPage'));
 const AdminSettingsPage = lazy(() => import('./pages/admin/AdminSettingsPage'));
+const AdminAiPage = lazy(() => import('./pages/admin/AdminAiPage'));
 const AdminUmugandaPage = lazy(() => import('./pages/admin/AdminUmugandaPage'));
 const AdminSportAdminsPage = lazy(() => import('./pages/admin/AdminSportAdminsPage'));
 const AdminAdsPage = lazy(() => import('./pages/admin/AdminAdsPage'));
@@ -131,6 +132,10 @@ const AmashuriMatchPage = lazy(() => import('./pages/akc3/AmashuriMatchPage'));
 
 // Living styleguide (/design-system). Lazy, so it costs nothing unless visited.
 const DesignSystemPage = lazy(() => import('./pages/dev/DesignSystemPage'));
+
+// The floating AI assistant. Lazy and wrapped in its own Suspense with a null
+// fallback: it is not first paint, and nothing on a page should wait for it.
+const AssistantWidget = lazy(() => import('./components/ai/AssistantWidget'));
 
 // Shared (eager — needed for first paint / transitions)
 import SplashScreen from './components/shared/SplashScreen';
@@ -298,6 +303,7 @@ function App() {
               <Route path="sport-admins" element={<AdminSportAdminsPage />} />
               <Route path="umuganda" element={<AdminUmugandaPage />} />
               <Route path="settings" element={<AdminSettingsPage />} />
+              <Route path="ai" element={<AdminAiPage />} />
 
               {/* League Admin sub-sections */}
               <Route path="league/match-reports" element={<LeagueMatchReportsPage />} />
@@ -355,6 +361,11 @@ function App() {
           </Routes>
           </Suspense>
         </RouteWatcher>
+        {/* Outside <Routes> on purpose: the conversation has to survive
+            navigation, and a widget remounted per route would lose it. */}
+        <Suspense fallback={null}>
+          <AssistantWidget />
+        </Suspense>
         </CommandPaletteProvider>
       </BrowserRouter>
       <Toaster />

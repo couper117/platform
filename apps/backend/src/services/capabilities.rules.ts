@@ -54,6 +54,11 @@ const CAPABILITIES = {
   'media.read':           'Browse the media library',
   'privacy.dsr':          'Handle data-subject requests (Law 058/2021, arts. 18-24)',
   'requests.review':      'Approve or reject organisations asking to join',
+  // Deliberately its own capability, not folded into settings.write: this one
+  // controls a credential that costs money and a service that sends platform
+  // data to a third party. Whoever may edit the site's contact e-mail should not
+  // acquire that by implication.
+  'ai.configure':         'Configure the AI assistant: provider, API key, model and behaviour',
 
   // Sports and governing bodies
   'sports.write':         'Add sports and change how they are scored and organised',
