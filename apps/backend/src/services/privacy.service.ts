@@ -39,7 +39,25 @@ const RESTRICTED_ATHLETE_FIELDS = [
   'dob', 'idNumber', 'idType', 'guardianPhone', 'guardianName', 'studentCode', 'schoolClass',
 ];
 
-const RESTRICTED_PLAYER_FIELDS = ['dateOfBirth', 'idNumber', 'height', 'weight'];
+/** Never public, whoever the player is. */
+const RESTRICTED_PLAYER_FIELDS = ['dateOfBirth', 'idNumber'];
+
+/**
+ * Squad-sheet measurements: public for PROFESSIONALS, withheld for everyone else.
+ *
+ * These sat with the birth date and the ID number, which made a professional
+ * basketball player's height as private as their national ID. It is not: every
+ * league in the world prints it on the team sheet, the club publishes it itself,
+ * and a page that cannot say a centre is 2.13 m is not describing the sport.
+ *
+ * The line is drawn at `skillLevel`, not at role. An amateur registered through a
+ * club has not signed up to be a public figure, and an Amashuri athlete is a CHILD
+ * — their measurements stay restricted whatever the sport says.
+ *
+ * Approved by the client on 3 September 2026 for professionals only; anything
+ * wider is a decision for MINISPORTS and their data-protection officer.
+ */
+const SQUAD_SHEET_FIELDS = ['height', 'weight'];
 
 // ── Public projections (Prisma `select`) ────────────────────────────────────
 
@@ -69,6 +87,10 @@ const PUBLIC_PLAYER_SELECT = {
   jerseyNumber: true,
   skillLevel: true,
   gender: true,
+  // Fetched so a professional's team sheet can show them; redactPlayer strips
+  // them again for anyone who is not one.
+  height: true,
+  weight: true,
   bio: true,
   status: true,
   active: true,
@@ -110,6 +132,9 @@ const redactPlayer = (player: any) => {
   if (!player) return player;
   const out = { ...player };
   for (const f of RESTRICTED_PLAYER_FIELDS) delete out[f];
+  if (player.skillLevel !== 'PROFESSIONAL') {
+    for (const f of SQUAD_SHEET_FIELDS) delete out[f];
+  }
   // Verification documents evidence a person's identity — reviewers only.
   delete out.documents;
   return out;

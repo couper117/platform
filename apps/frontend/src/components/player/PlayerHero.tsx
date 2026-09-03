@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft } from 'lucide-react';
@@ -55,6 +55,8 @@ const PlayerHero = ({
   // White ink means the band is dark, which changes how the crest has to blend.
   const darkBand = ink === '#ffffff';
 
+  const [photoFailed, setPhotoFailed] = useState(false);
+
   const initials = String(player.fullName || '?')
     .split(/\s+/)
     .map((w: string) => w[0])
@@ -109,16 +111,30 @@ const PlayerHero = ({
         )}
 
         <div className="flex flex-col gap-4 pb-6 sm:flex-row sm:items-end sm:gap-7">
-          {/* The player. A real photograph is cut out against the band; without
-              one, a generated monogram at the same size holds the composition
-              rather than collapsing the hero to a line of text. */}
-          {player.photo ? (
-            <img
-              src={player.photo}
-              alt={player.fullName}
-              className="h-32 w-32 shrink-0 self-start rounded-card object-cover object-top sm:h-44 sm:w-44 sm:self-end"
-              style={{ background: shade(brand, -0.2) }}
-            />
+          {/* The player, on a light card.
+              ONE FRAME FOR TWO KINDS OF SOURCE. These headshots arrive both ways:
+              most are cut out with a real alpha channel, one is a small JPEG on
+              solid white. Dropped straight onto the band, the first group floats
+              and the second wears a white box — side by side, the box reads as a
+              bug. A light card behind every photo makes the two identical: the
+              cut-outs gain a studio backdrop and the white photo melts into it.
+              `contain` rather than `cover` because a roster headshot is already
+              tightly cropped and covering it would cut the top of the head off. */}
+          {player.photo && !photoFailed ? (
+            <div
+              className="flex h-32 w-32 shrink-0 items-end justify-center self-start overflow-hidden rounded-card sm:h-44 sm:w-44 sm:self-end"
+              style={{ background: shade(brand, 0.9) }}
+            >
+              <img
+                src={player.photo}
+                alt={player.fullName}
+                // A hotlinked photo can vanish without warning. Falling back to the
+                // monogram keeps the hero composed instead of leaving a broken-image
+                // glyph where the player should be.
+                onError={() => setPhotoFailed(true)}
+                className="h-full w-full object-contain object-bottom"
+              />
+            </div>
           ) : (
             /* No headshot on file. A monogram in the club's own colours, at the
                size the photograph would have been, so the composition holds —

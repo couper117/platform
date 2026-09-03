@@ -48,6 +48,22 @@ const POSITION: Record<string, string> = {
   C: 'Center',
 };
 
+/**
+ * Headshots, hotlinked from EuroBasket at the client's direction.
+ *
+ * The file name is Surname_Firstname_N, and N is not always 1 — Teafale Lenard's
+ * is _2 — so the whole file name is written out per player rather than derived.
+ * Most are 110x150 PNGs with an alpha channel; Craig Randall's is a 55x75 JPEG on
+ * white. The hero frames them all on a light card so a cut-out and a
+ * white-background photo sit side by side without one looking like a mistake.
+ *
+ * These are EuroBasket's images on EuroBasket's servers. They are not licensed to
+ * this platform and they break silently if the site reorganises — flagged to the
+ * client, who asked for them anyway. The hero falls back to the monogram if one
+ * fails to load, and swapping to hosted files later is a change to this map alone.
+ */
+const PHOTO = (file: string) => `https://www.eurobasket.com/photos/${file}`;
+
 type Row = {
   no: number;
   name: string;
@@ -59,20 +75,22 @@ type Row = {
   since: number;
   /** Where they came from: [club, country]. */
   from: [string, string] | null;
+  /** EuroBasket's file name, where a photo exists. The index varies. */
+  photo?: string;
 };
 
 const ROSTER: Row[] = [
-  { no: 7, name: 'Adonis Filer-Jovon', height: 195, pos: 'PG', nationality: 'USA / Rwanda', since: 2024, from: ['REG', 'Rwanda'] },
-  { no: 12, name: 'Craig Randall II', height: 193, pos: 'SG', nationality: 'USA', since: 2026, from: ['Tigers', 'Rwanda'] },
-  { no: 24, name: 'Teafale Lenard Jr.', height: 203, pos: 'F', nationality: 'USA', since: 2026, from: ['Tigers', 'Rwanda'] },
-  { no: 15, name: 'Ntore Habimana', height: 196, pos: 'F', nationality: 'Rwandan', since: 2026, from: ['Tigers', 'Rwanda'] },
-  { no: 34, name: 'Dieudonne Ndizeye', height: 201, pos: 'SG', nationality: 'Rwandan', since: 2026, from: ['Tigers', 'Rwanda'] },
+  { no: 7, name: 'Adonis Filer-Jovon', height: 195, pos: 'PG', nationality: 'USA / Rwanda', since: 2024, from: ['REG', 'Rwanda'], photo: 'Filer_Adonis_1.png' },
+  { no: 12, name: 'Craig Randall II', height: 193, pos: 'SG', nationality: 'USA', since: 2026, from: ['Tigers', 'Rwanda'], photo: 'Randall_Craig_1.jpg' },
+  { no: 24, name: 'Teafale Lenard Jr.', height: 203, pos: 'F', nationality: 'USA', since: 2026, from: ['Tigers', 'Rwanda'], photo: 'Lenard_Teafale_2.png' },
+  { no: 15, name: 'Ntore Habimana', height: 196, pos: 'F', nationality: 'Rwandan', since: 2026, from: ['Tigers', 'Rwanda'], photo: 'Habimana_Ntore_1.png' },
+  { no: 34, name: 'Dieudonne Ndizeye', height: 201, pos: 'SG', nationality: 'Rwandan', since: 2026, from: ['Tigers', 'Rwanda'], photo: 'Ndizeye_Dieudonne_1.png' },
   { no: 31, name: 'Mouhamadou Diagne', height: 203, pos: 'F', nationality: 'Senegal / France', since: 2026, from: ['Chipola JC', 'USA'] },
-  { no: 8, name: 'Jean-Victor Mukama', height: 203, pos: 'G', nationality: 'Rwandan', since: 2025, from: ['REG', 'Rwanda'] },
-  { no: 6, name: 'William Robeyns', height: 192, pos: 'SG', nationality: 'Rwandan', since: 2025, from: ['APR', 'Rwanda'] },
+  { no: 8, name: 'Jean-Victor Mukama', height: 203, pos: 'G', nationality: 'Rwandan', since: 2025, from: ['REG', 'Rwanda'], photo: 'Mukama_Jean-Victor_1.png' },
+  { no: 6, name: 'William Robeyns', height: 192, pos: 'SG', nationality: 'Rwandan', since: 2025, from: ['APR', 'Rwanda'], photo: 'Robeyns_William_1.png' },
   { no: 11, name: 'Jean Nshobouzoua', height: 193, pos: 'G', nationality: 'Rwandan', since: 2024, from: ['REG', 'Rwanda'] },
   { no: 30, name: 'Justin Uwitonze', height: 191, pos: 'SG', nationality: 'Rwandan', since: 2025, from: ['REG', 'Rwanda'] },
-  { no: 55, name: 'Osborn Shema', height: 213, pos: 'C', nationality: 'Rwandan', since: 2024, from: ['Iona', 'USA'] },
+  { no: 55, name: 'Osborn Shema', height: 213, pos: 'C', nationality: 'Rwandan', since: 2024, from: ['Iona', 'USA'], photo: 'Shema_Osborn_1.png' },
   { no: 2, name: 'Prince Twa', height: 193, pos: 'G', nationality: 'Rwandan', since: 2026, from: ['UT Tyler', 'USA'] },
   { no: 21, name: 'Axel Mpoyo', height: null, pos: null, nationality: 'Rwandan', since: 2026, from: null },
   { no: 3, name: 'Alvin Icyogere', height: 203, pos: 'G', nationality: 'Canada', since: 2026, from: ['Ottawa', 'Canada'] },
@@ -101,6 +119,7 @@ const main = async () => {
       position: r.pos ? POSITION[r.pos] : null,
       jerseyNumber: r.no,
       nationality: r.nationality,
+      photo: r.photo ? PHOTO(r.photo) : null,
       skillLevel: 'PROFESSIONAL' as const,
       status: 'VERIFIED' as const,
       verifiedAt: new Date(),
