@@ -1,24 +1,27 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, ExternalLink, Ticket, ShoppingBag, Facebook, Instagram, Youtube } from 'lucide-react';
+import { ChevronLeft, MapPin, Calendar, Landmark, ExternalLink, Ticket, ShoppingBag, Facebook, Instagram, Youtube } from 'lucide-react';
 import cn from '../ui/cn';
-import { readableOn, shade, rgbTriplet } from '../../utils/color';
-import { crest } from '../../utils/crest';
+import Badge from '../ui/Badge';
+import ClubCrest from '../ui/ClubCrest';
+import clubColor from '../../config/clubColors';
 
 /**
- * The top of a club's page: the club's colours, its crest, its record, its season.
+ * The top of a club's page: who they are, how the season is going, where to find them.
  *
- * The same band the player page wears, for the same reason — a club page that opens
- * on a hairline card and a 40px crest looks like a database row about a club rather
- * than the club's own page. Both read their colour from `primaryColor`, pick ink by
- * luminance, and blend the crest instead of fading it.
+ * IN THE APP'S OWN LANGUAGE. This was briefly a full-bleed band of saturated club
+ * colour with the club's name across it in 48px uppercase display type — an NBA
+ * club page, and the exact treatment this codebase spent a redesign removing. It is
+ * a surface card like every other block in the app now: hairline borders, the
+ * display face at the size the rest of the page uses, ink from the text tokens. The
+ * club's colour appears where the app already puts it, as the 3px identity bar down
+ * the left edge that MatchTile, MatchRow and MatchCard all drive off `--club`.
  *
- * EVERY NUMBER IS DERIVED FROM PLAYED MATCHES. Won/drawn/lost come from the stored
- * scorelines, and the two per-game figures are that club's points (or goals) scored
- * and conceded divided by matches played. Nothing here is entered, and nothing is a
- * placeholder: a club that has not played yet gets the identity and no strip at all,
- * rather than a row of zeroes implying a terrible season.
+ * EVERY FIGURE IS DERIVED FROM MATCHES ACTUALLY PLAYED. Won/drawn/lost from the
+ * stored scorelines, scored and conceded per game from the same. A club that has
+ * not played gets its identity and no figures at all, rather than a row of zeroes
+ * implying a terrible season.
  */
 
 type Social = { key: string; href: string; label: string; icon: any };
@@ -28,14 +31,12 @@ type Social = { key: string; href: string; label: string; icon: any };
  *
  * English is the only one of the three languages that suffixes an ordinal, and
  * Intl.PluralRules knows the rule — including that 11th, 12th and 13th break the
- * pattern that 1st, 2nd and 3rd set. Kinyarwanda and French take the bare number
- * here, so they get it.
+ * pattern 1st, 2nd and 3rd set.
  */
 const EN_SUFFIX: Record<string, string> = { one: 'st', two: 'nd', few: 'rd', other: 'th' };
 const ordinal = (n: number, lang: string) => {
   if (!String(lang || '').startsWith('en')) return String(n);
-  const rule = new Intl.PluralRules('en', { type: 'ordinal' }).select(n);
-  return `${n}${EN_SUFFIX[rule] ?? 'th'}`;
+  return `${n}${EN_SUFFIX[new Intl.PluralRules('en', { type: 'ordinal' }).select(n)] ?? 'th'}`;
 };
 
 /** X has no lucide glyph; drawn here rather than shipped as an image. */
@@ -65,16 +66,7 @@ const TeamHero = ({
   standing?: { position: number; league: string } | null;
 }) => {
   const { t, i18n } = useTranslation();
-
-  const brand = team.primaryColor || '#14161A';
-  const ink = readableOn(brand);
-  const strip = shade(brand, -0.28);
-  const darkBand = ink === '#ffffff';
-  const rule = `rgba(${rgbTriplet(ink)}, 0.15)`;
-
-  // The club's own crest if it has uploaded one, otherwise the generated shield —
-  // the same artwork ClubCrest shows everywhere else, so the page is consistent.
-  const mark = team.logo || crest(team.name, team.primaryColor, team.secondaryColor || '#F4B400', team.foundedYear);
+  const club = clubColor(team);
 
   const s = (team.socials ?? {}) as Record<string, string>;
   const socials: Social[] = [
@@ -93,6 +85,7 @@ const TeamHero = ({
   // A draw is meaningless in basketball and routine in football, so it earns a slot
   // only when one has happened.
   const record = drawn > 0 ? `${won}-${drawn}-${lost}` : `${won}-${lost}`;
+  const locationLine = [team.city, team.district].filter(Boolean).join(', ');
 
   const figures = [
     played > 0 && { label: t('team.stat_played'), value: played },
@@ -102,108 +95,116 @@ const TeamHero = ({
   ].filter(Boolean) as Array<{ label: string; value: React.ReactNode }>;
 
   return (
-    <header className="relative isolate overflow-hidden" style={{ background: brand, color: ink }}>
-      {team.logo && (
-        <img
-          src={team.logo}
-          alt=""
-          aria-hidden="true"
-          style={darkBand ? { mixBlendMode: 'screen', filter: 'invert(1)' } : { mixBlendMode: 'multiply' }}
-          className={cn(
-            'pointer-events-none absolute -right-12 top-1/2 h-[170%] max-w-none -translate-y-1/2 object-contain',
-            darkBand ? 'opacity-[0.13]' : 'opacity-50'
-          )}
-        />
-      )}
+    <div className="space-y-4">
+      <Link
+        to="/teams"
+        className="inline-flex items-center gap-1.5 text-xs font-semibold text-secondary transition-colors duration-150 ease-standard hover:text-brand-text"
+      >
+        <ChevronLeft size={14} aria-hidden="true" /> {t('team.back_to_teams')}
+      </Link>
 
-      <div className="relative mx-auto w-full max-w-6xl px-4 lg:px-6">
-        <Link
-          to="/teams"
-          className="inline-flex min-h-tap items-center gap-1 text-sm opacity-80 transition-opacity duration-150 ease-standard hover:opacity-100"
-        >
-          <ChevronLeft size={16} aria-hidden="true" />
-          {t('team.back_to_teams')}
-        </Link>
-
-        <div className="flex flex-col gap-4 pb-6 sm:flex-row sm:items-center sm:gap-6">
-          {/* On its own light card, for the reason the player photos are: a supplied
-              crest usually carries a white background, and dropped straight onto a
-              dark band that reads as a sticker rather than a badge. */}
-          <div
-            className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-card p-2 sm:h-28 sm:w-28 sm:p-3"
-            style={{ background: shade(brand, 0.9) }}
-          >
-            <img src={mark} alt="" aria-hidden="true" className="h-full w-full object-contain" />
-          </div>
+      <header
+        style={club ? ({ '--club': club } as React.CSSProperties) : undefined}
+        className={cn(
+          'overflow-hidden rounded-card border border-hairline bg-surface',
+          'border-l-[3px]',
+          club ? 'border-l-[var(--club)]' : 'border-l-hairline'
+        )}
+      >
+        <div className="flex flex-wrap items-start gap-4 p-4">
+          <ClubCrest team={team} size="lg" className="h-14 w-14 shrink-0 text-base" />
 
           <div className="min-w-0 flex-1">
-            <h1 className="font-display text-3xl font-extrabold uppercase leading-[0.95] tracking-[-0.02em] sm:text-5xl">
-              {team.name}
-            </h1>
-            <p className="mt-2 text-sm opacity-80">
+            <div className="mb-1 flex flex-wrap items-center gap-2">
+              <h1 className="font-display text-xl font-extrabold tracking-[-0.02em] text-primary sm:text-2xl">
+                {team.name}
+              </h1>
+              {team.sport?.name && <Badge>{team.sport.name}</Badge>}
+            </div>
+
+            {/* The season in one line, then the club's particulars — the meta row
+                this page already had, with the record folded into it rather than
+                given a colour band of its own. */}
+            <p className="text-sm text-secondary">
               {[
                 played > 0 ? record : null,
                 standing ? t('team.position_in', { position: ordinal(standing.position, i18n.language), league: standing.league }) : null,
-                [team.city, team.district].filter(Boolean).join(', ') || null,
               ].filter(Boolean).join('  ·  ')}
             </p>
-          </div>
-        </div>
-      </div>
 
-      {figures.length > 0 && (
-        <div className="relative" style={{ background: strip }}>
-          <dl className="mx-auto grid max-w-6xl grid-cols-2 sm:grid-cols-4">
+            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-secondary">
+              {locationLine && (
+                <span className="flex items-center gap-1.5">
+                  <MapPin size={14} className="text-tertiary" aria-hidden="true" />
+                  {locationLine}
+                </span>
+              )}
+              {team.foundedYear && (
+                <span className="flex items-center gap-1.5">
+                  <Calendar size={14} className="text-tertiary" aria-hidden="true" />
+                  {t('team.founded_year', { year: team.foundedYear })}
+                </span>
+              )}
+              {team.homeVenue && (
+                <span className="flex items-center gap-1.5">
+                  <Landmark size={14} className="text-tertiary" aria-hidden="true" />
+                  {team.homeVenue}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Where the club lives on the rest of the internet. Quiet, on the right,
+              because it is a way OUT of the page — never louder than the club. */}
+          {socials.length > 0 && (
+            <div className="flex shrink-0 items-center gap-1">
+              {socials.map((sn) => (
+                <a
+                  key={sn.key}
+                  href={sn.href}
+                  target="_blank"
+                  // noreferrer with noopener: club-supplied URLs, and the referrer
+                  // would leak which page sent the visitor.
+                  rel="noopener noreferrer"
+                  aria-label={sn.label}
+                  className="flex h-9 w-9 items-center justify-center rounded-control border border-hairline text-secondary transition-colors duration-150 ease-standard hover:border-brand/40 hover:text-brand-text"
+                >
+                  <sn.icon size={15} />
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {figures.length > 0 && (
+          <dl className="grid grid-cols-2 border-t border-hairline sm:grid-cols-4">
             {figures.map((f) => (
-              <div key={f.label} className="border-b border-r px-4 py-3 last:border-r-0" style={{ borderColor: rule }}>
-                <dt className="text-[11px] uppercase tracking-wide opacity-65">{f.label}</dt>
-                <dd className="mt-0.5 font-display text-xl font-bold tabular-nums">{f.value}</dd>
+              <div key={f.label} className="border-b border-r border-hairline px-4 py-2.5 last:border-r-0">
+                <dt className="text-xs text-tertiary">{f.label}</dt>
+                <dd className="mt-0.5 font-display text-lg font-bold tabular-nums text-primary">{f.value}</dd>
               </div>
             ))}
           </dl>
-        </div>
-      )}
+        )}
 
-      {(links.length > 0 || socials.length > 0) && (
-        <div className="relative border-t" style={{ background: strip, borderColor: rule }}>
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-5 gap-y-2 px-4 py-2.5 lg:px-6">
+        {links.length > 0 && (
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-hairline px-4 py-2.5">
             {links.map((l) => (
               <a
                 key={l.href}
                 href={l.href}
                 target="_blank"
-                // noreferrer alongside noopener: these are club-supplied URLs and
-                // the referrer would leak which page sent the visitor.
                 rel="noopener noreferrer"
-                className="inline-flex min-h-tap items-center gap-1.5 text-sm opacity-85 transition-opacity duration-150 ease-standard hover:opacity-100"
+                className="inline-flex items-center gap-1.5 text-sm text-secondary transition-colors duration-150 ease-standard hover:text-brand-text"
               >
                 <l.icon size={14} aria-hidden="true" />
                 {l.label}
               </a>
             ))}
-            {socials.length > 0 && (
-              <div className="ml-auto flex items-center gap-1">
-                {socials.map((sn) => (
-                  <a
-                    key={sn.key}
-                    href={sn.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={sn.label}
-                    className="flex h-9 w-9 items-center justify-center rounded-control opacity-85 transition-opacity duration-150 ease-standard hover:opacity-100"
-                    style={{ background: `rgba(${rgbTriplet(ink)}, 0.1)` }}
-                  >
-                    <sn.icon size={16} />
-                  </a>
-                ))}
-              </div>
-            )}
           </div>
-        </div>
-      )}
-
-      <div className="relative h-1 w-full" style={{ background: team.secondaryColor || rule }} />
-    </header>
+        )}
+      </header>
+    </div>
   );
 };
 

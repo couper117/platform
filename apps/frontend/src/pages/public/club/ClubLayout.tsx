@@ -200,18 +200,20 @@ const ClubLayout = () => {
     <div className="min-h-screen bg-page">
       <Seo title={team.name} description={t('team.seo_desc', { team: team.name })} />
 
-      <TeamHero
-        team={team}
-        played={played}
-        won={won}
-        drawn={drawn}
-        lost={lost}
-        scoredPerGame={scoredPerGame}
-        concededPerGame={concededPerGame}
-        standing={standing}
-      />
+      <div className="mx-auto max-w-3xl px-4 pt-4 lg:max-w-6xl lg:px-6 lg:pt-6">
+        <TeamHero
+          team={team}
+          played={played}
+          won={won}
+          drawn={drawn}
+          lost={lost}
+          scoredPerGame={scoredPerGame}
+          concededPerGame={concededPerGame}
+          standing={standing}
+        />
+      </div>
 
-      <div className="mx-auto max-w-3xl px-4 lg:max-w-6xl lg:px-6">
+      <div className="mx-auto mt-4 max-w-3xl px-4 lg:max-w-6xl lg:px-6">
         {/* Real routes, not anchors: each is linkable, and Back undoes it. */}
         <nav
           aria-label={t('team.nav_label', 'Team sections')}

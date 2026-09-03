@@ -205,11 +205,16 @@ const PlayerProfile = ({ player, backTo, backLabel, affiliation, extraRows, matc
 
   return (
     <>
-      {heroBand && (
-        <PlayerHero player={player} backTo={backTo} backLabel={backLabel} facts={facts} />
-      )}
-
       <div className="mx-auto max-w-3xl space-y-4 px-4 py-4 lg:max-w-5xl lg:px-6 lg:py-6">
+      {heroBand && (
+        <PlayerHero
+          player={player}
+          backTo={backTo}
+          backLabel={backLabel}
+          affiliation={affiliation}
+          facts={facts}
+        />
+      )}
       {!heroBand && backTo && (
         <Link
           to={backTo}
