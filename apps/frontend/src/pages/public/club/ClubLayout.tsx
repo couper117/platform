@@ -171,6 +171,14 @@ const ClubLayout = () => {
   const lost = results.filter((r) => r.result === 'L').length;
   // Per game, to one decimal — the figure a fan quotes. Null when nothing has been
   // played, so the hero omits the cell rather than dividing by zero.
+  // Last five, newest first — the order a form guide is read in.
+  const form = [...completed]
+    .sort((a: any, b: any) => new Date(b.matchDate).getTime() - new Date(a.matchDate).getTime())
+    .map(outcome)
+    .filter(Boolean)
+    .slice(0, 5)
+    .map((r: any) => r.result);
+
   const scoredPerGame = results.length ? results.reduce((n, r) => n + r.own, 0) / results.length : null;
   const concededPerGame = results.length ? results.reduce((n, r) => n + r.other, 0) / results.length : null;
 
@@ -210,6 +218,7 @@ const ClubLayout = () => {
           scoredPerGame={scoredPerGame}
           concededPerGame={concededPerGame}
           standing={standing}
+          form={form}
         />
       </div>
 

@@ -6,6 +6,7 @@ import cn from '../ui/cn';
 import Badge from '../ui/Badge';
 import ClubCrest from '../ui/ClubCrest';
 import clubColor from '../../config/clubColors';
+import { rgbTriplet } from '../../utils/color';
 
 /**
  * The top of a club's page: who they are, how the season is going, where to find them.
@@ -39,6 +40,34 @@ const ordinal = (n: number, lang: string) => {
   return `${n}${EN_SUFFIX[new Intl.PluralRules('en', { type: 'ordinal' }).select(n)] ?? 'th'}`;
 };
 
+/**
+ * Last five, newest first. Same token treatment as the player page's form list, so
+ * a W means the same thing to the eye in both places — and the reason the standings
+ * table's `bg-green`/`bg-gold` pills are not reused is that those are raw palette
+ * colours from before the redesign.
+ */
+const RESULT: Record<string, string> = {
+  W: 'bg-brand-tint text-brand-text',
+  D: 'bg-surface-2 text-secondary',
+  L: 'bg-danger/10 text-danger-text',
+};
+
+const FormGuide = ({ form }: { form: string[] }) => (
+  <div className="flex items-center gap-1">
+    {form.map((r, i) => (
+      <span
+        key={i}
+        className={cn(
+          'flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold',
+          RESULT[r] || 'bg-surface-2 text-tertiary'
+        )}
+      >
+        {r}
+      </span>
+    ))}
+  </div>
+);
+
 /** X has no lucide glyph; drawn here rather than shipped as an image. */
 const XIcon = ({ size = 16 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -55,6 +84,7 @@ const TeamHero = ({
   scoredPerGame,
   concededPerGame,
   standing,
+  form = [],
 }: {
   team: any;
   played: number;
@@ -64,9 +94,12 @@ const TeamHero = ({
   scoredPerGame: number | null;
   concededPerGame: number | null;
   standing?: { position: number; league: string } | null;
+  /** Last five results, newest first. */
+  form?: string[];
 }) => {
   const { t, i18n } = useTranslation();
   const club = clubColor(team);
+  const rgb = club ? rgbTriplet(club) : null;
 
   const s = (team.socials ?? {}) as Record<string, string>;
   const socials: Social[] = [
@@ -106,13 +139,34 @@ const TeamHero = ({
       <header
         style={club ? ({ '--club': club } as React.CSSProperties) : undefined}
         className={cn(
-          'overflow-hidden rounded-card border border-hairline bg-surface',
+          'relative overflow-hidden rounded-card border border-hairline bg-surface',
           'border-l-[3px]',
           club ? 'border-l-[var(--club)]' : 'border-l-hairline'
         )}
       >
-        <div className="flex flex-wrap items-start gap-4 p-4">
-          <ClubCrest team={team} size="lg" className="h-14 w-14 shrink-0 text-base" />
+        {/* TEXTURE, NOT A COLOUR BAND. A flat white card said everything correctly
+            and looked like a form. This is the club's colour at a tenth of its
+            strength, falling away across the card, with the crest behind the name
+            at a twentieth — enough that the page feels like it belongs to this
+            club, and far short of the wash that made it look like somebody else's. */}
+        {rgb && (
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0"
+            style={{ background: `linear-gradient(100deg, rgba(${rgb}, 0.10), rgba(${rgb}, 0.03) 45%, transparent 72%)` }}
+          />
+        )}
+        {team.logo && (
+          <img
+            src={team.logo}
+            alt=""
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-6 -top-8 h-44 w-44 object-contain opacity-[0.05]"
+          />
+        )}
+
+        <div className="relative flex items-start gap-3 p-4 sm:gap-4">
+          <ClubCrest team={team} size="lg" className="h-12 w-12 shrink-0 text-base sm:h-14 sm:w-14" />
 
           <div className="min-w-0 flex-1">
             <div className="mb-1 flex flex-wrap items-center gap-2">
@@ -125,12 +179,15 @@ const TeamHero = ({
             {/* The season in one line, then the club's particulars — the meta row
                 this page already had, with the record folded into it rather than
                 given a colour band of its own. */}
-            <p className="text-sm text-secondary">
-              {[
-                played > 0 ? record : null,
-                standing ? t('team.position_in', { position: ordinal(standing.position, i18n.language), league: standing.league }) : null,
-              ].filter(Boolean).join('  ·  ')}
-            </p>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+              <p className="text-sm text-secondary">
+                {[
+                  played > 0 ? record : null,
+                  standing ? t('team.position_in', { position: ordinal(standing.position, i18n.language), league: standing.league }) : null,
+                ].filter(Boolean).join('  ·  ')}
+              </p>
+              {form.length > 0 && <FormGuide form={form} />}
+            </div>
 
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-secondary">
               {locationLine && (
@@ -154,30 +211,10 @@ const TeamHero = ({
             </div>
           </div>
 
-          {/* Where the club lives on the rest of the internet. Quiet, on the right,
-              because it is a way OUT of the page — never louder than the club. */}
-          {socials.length > 0 && (
-            <div className="flex shrink-0 items-center gap-1">
-              {socials.map((sn) => (
-                <a
-                  key={sn.key}
-                  href={sn.href}
-                  target="_blank"
-                  // noreferrer with noopener: club-supplied URLs, and the referrer
-                  // would leak which page sent the visitor.
-                  rel="noopener noreferrer"
-                  aria-label={sn.label}
-                  className="flex h-9 w-9 items-center justify-center rounded-control border border-hairline text-secondary transition-colors duration-150 ease-standard hover:border-brand/40 hover:text-brand-text"
-                >
-                  <sn.icon size={15} />
-                </a>
-              ))}
-            </div>
-          )}
         </div>
 
         {figures.length > 0 && (
-          <dl className="grid grid-cols-2 border-t border-hairline sm:grid-cols-4">
+          <dl className="relative grid grid-cols-2 border-t border-hairline sm:grid-cols-4">
             {figures.map((f) => (
               <div key={f.label} className="border-b border-r border-hairline px-4 py-2.5 last:border-r-0">
                 <dt className="text-xs text-tertiary">{f.label}</dt>
@@ -187,8 +224,8 @@ const TeamHero = ({
           </dl>
         )}
 
-        {links.length > 0 && (
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-hairline px-4 py-2.5">
+        {(links.length > 0 || socials.length > 0) && (
+          <div className="relative flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-hairline px-4 py-2">
             {links.map((l) => (
               <a
                 key={l.href}
@@ -201,6 +238,27 @@ const TeamHero = ({
                 {l.label}
               </a>
             ))}
+            {/* At the foot rather than beside the title: on a phone these three
+                buttons were squeezing the club's own name onto two lines. They are
+                a way OUT of the page and belong at the bottom of it. */}
+            {socials.length > 0 && (
+              <div className="ml-auto flex items-center gap-1">
+                {socials.map((sn) => (
+                  <a
+                    key={sn.key}
+                    href={sn.href}
+                    target="_blank"
+                    // noreferrer with noopener: club-supplied URLs, and the
+                    // referrer would leak which page sent the visitor.
+                    rel="noopener noreferrer"
+                    aria-label={sn.label}
+                    className="flex h-9 w-9 items-center justify-center rounded-control text-tertiary transition-colors duration-150 ease-standard hover:bg-surface-2 hover:text-brand-text"
+                  >
+                    <sn.icon size={16} />
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </header>

@@ -46,7 +46,10 @@ const SquadSection = ({ team, currentPlayerId }: { team: any; currentPlayerId: n
         </Link>
       </div>
 
-      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      {/* One column on a phone. Two put a 36px number chip and a name into 170px,
+          and "Jean-Victor Mukama" became "Jean-Victor …" — a squad list whose
+          names do not fit is not a squad list. */}
+      <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {squad.map((p: any) => (
           <li key={p.id}>
             <Link

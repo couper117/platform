@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ChevronLeft } from 'lucide-react';
 import cn from '../ui/cn';
 import clubColor from '../../config/clubColors';
+import { rgbTriplet } from '../../utils/color';
 
 /**
  * The top of a player's page.
@@ -48,6 +49,7 @@ const PlayerHero = ({
   // Resolved the way every other club-coloured surface in the app resolves it, so
   // a club with no colour on file gets a hairline rather than an invented hue.
   const club = clubColor(team);
+  const rgb = club ? rgbTriplet(club) : null;
 
   const initials = String(player.fullName || '?')
     .split(/\s+/)
@@ -71,13 +73,34 @@ const PlayerHero = ({
       <header
         style={club ? ({ '--club': club } as React.CSSProperties) : undefined}
         className={cn(
-          'overflow-hidden rounded-card border border-hairline bg-surface',
+          'relative overflow-hidden rounded-card border border-hairline bg-surface',
           // The identity bar, same idiom as a live match row.
           'border-l-[3px]',
           club ? 'border-l-[var(--club)]' : 'border-l-hairline'
         )}
       >
-        <div className="flex items-center gap-4 p-4">
+        {/* TEXTURE, NOT A COLOUR BAND. A flat white card said everything correctly
+            and looked like a form. The club's colour at a tenth of its strength,
+            falling away across the card, with its crest behind the name at a
+            twentieth — the same treatment the club page's own header wears, so a
+            player and their club read as one product. */}
+        {rgb && (
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0"
+            style={{ background: `linear-gradient(100deg, rgba(${rgb}, 0.10), rgba(${rgb}, 0.03) 45%, transparent 72%)` }}
+          />
+        )}
+        {team.logo && (
+          <img
+            src={team.logo}
+            alt=""
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-6 -top-8 h-44 w-44 object-contain opacity-[0.05]"
+          />
+        )}
+
+        <div className="relative flex items-center gap-4 p-4">
           {player.photo && !photoFailed ? (
             <div className="flex h-20 w-20 shrink-0 items-end justify-center overflow-hidden rounded-card bg-surface-2 sm:h-24 sm:w-24">
               <img
@@ -113,7 +136,7 @@ const PlayerHero = ({
         </div>
 
         {facts.length > 0 && (
-          <dl className="grid grid-cols-2 border-t border-hairline sm:grid-cols-3 lg:grid-cols-6">
+          <dl className="relative grid grid-cols-2 border-t border-hairline sm:grid-cols-3 lg:grid-cols-6">
             {facts.map((f) => (
               <div key={f.label} className="border-b border-r border-hairline px-4 py-2.5 last:border-r-0">
                 <dt className="text-xs text-tertiary">{f.label}</dt>
