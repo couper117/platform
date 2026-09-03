@@ -1,11 +1,18 @@
 import React from 'react';
 import {
   Goal, Square, RefreshCw, AlertTriangle, Video, Flag, Timer, Activity,
-  Hand, PauseCircle, CircleDot, Target,
+  Hand, PauseCircle, CircleDot, Target, Trophy, Zap,
 } from 'lucide-react';
 
 /**
  * Maps a MatchEvent.eventType to display metadata: icon, ink colour and ring.
+ *
+ * IT NOW HAS EVENTS BEHIND IT. Everything below was written before the
+ * `EventType` enum knew any of it: this file could paint a three-pointer, and
+ * nothing in the product could create one. The enum carries the sports events
+ * now, `config/sportEvents` decides which sport is offered which, and this stays
+ * the public half of that same vocabulary — a reporter and a fan are looking at
+ * one feed from opposite sides, so the two must never name an event differently.
  *
  * EVERY SPORT HAS ITS OWN INCIDENTS. This map used to be football's vocabulary
  * applied to everything — a basketball game showed yellow cards and a volleyball
@@ -41,9 +48,24 @@ export const eventMeta = (type) => {
     case 'SEVEN_METRE': // handball's penalty throw
       return { Icon: Target, ...SCORE };
     case 'THREE_POINTER':
+    case 'TWO_POINTER':
       return { Icon: Target, ...SCORE };
     case 'FREE_THROW':
       return { Icon: CircleDot, ...SCORE };
+    // Two points like any other; it earns its own row because it is the
+    // highlight a fan scrolls back to find.
+    case 'DUNK':
+      return { Icon: Zap, ...SCORE };
+    // Volleyball is scored in sets on this platform, so the set is the score.
+    case 'SET_WON':
+      return { Icon: Trophy, ...SCORE };
+    /* ── rugby, where the four values are the point of a weighted score ── */
+    case 'TRY':
+      return { Icon: Flag, ...SCORE };
+    case 'CONVERSION':
+    case 'PENALTY_KICK':
+    case 'DROP_GOAL':
+      return { Icon: Target, ...SCORE };
     case 'OWN_GOAL':
       return { Icon: Goal, ...DANGER };
 

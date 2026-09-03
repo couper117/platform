@@ -1154,7 +1154,12 @@ export const buildLeagueDetail = (league) => {
   const teamsInLeague = st.length
     ? st.map((s) => ({ team: s.team }))
     : teams.filter((t) => String(t.sportId) === String(league.sport?.id)).map((t) => ({ team: teamRef(t.id) }));
-  return { ...league, teams: teamsInLeague, standings: st, topScorers: sc, fixtures: fixtures.filter((f) => f.leagueId === league.id) };
+  // `rank` the way the real controller attaches it after sorting (see
+  // leagues.controller.ts). Without it the club portal's season strip has no
+  // position to show and the "around us" table renders blank numbers — the
+  // dedicated /standings route already did this; the detail route did not.
+  const ranked = st.map((row, i) => ({ ...row, rank: i + 1 }));
+  return { ...league, teams: teamsInLeague, standings: ranked, topScorers: sc, fixtures: fixtures.filter((f) => f.leagueId === league.id) };
 };
 
 /**
@@ -1257,21 +1262,90 @@ export const buildFixtureDetail = (fixture) => {
     { teamId: fixture.homeTeamId, possession: 54, shots: 12, shotsOnTarget: 6, shotsInsideBox: 8, shotsOutsideBox: 4, corners: 7, offsides: 2, fouls: 11, yellowCards: 1, redCards: 0, gkSaves: 3, passAccuracy: 84, xg: 1.8 },
     { teamId: fixture.awayTeamId, possession: 46, shots: 9, shotsOnTarget: 4, shotsInsideBox: 5, shotsOutsideBox: 4, corners: 3, offsides: 3, fouls: 14, yellowCards: 2, redCards: 0, gkSaves: 5, passAccuracy: 79, xg: 1.1 },
   ] : [];
+  /**
+   * THE CLOCK, DERIVED FROM KICK-OFF LIKE THE SERVER'S.
+   *
+   * The reporter console reads `clock` and extrapolates the minute from
+   * `elapsedSeconds` + `readAtMs` (see utils/matchClock). Without one, a demo
+   * live match sat frozen on 0' while its scoreboard claimed 67' — the fixture
+   * carries a `statusLabel` for the public side, but that is a printed string,
+   * not something a ticking display can count from. This shape is what
+   * readClock() sends: enough for tickClock to run, and nothing invented beyond
+   * the kick-off time the fixture already has.
+   */
+  const elapsedSeconds = fixture.status === 'LIVE' && fixture.matchDate
+    ? Math.max(0, Math.floor((Date.now() - new Date(fixture.matchDate).getTime()) / 1000))
+    : 0;
+  const clock = fixture.status === 'LIVE'
+    ? {
+      period: elapsedSeconds >= 45 * 60 ? 'SECOND_HALF' : 'FIRST_HALF',
+      running: true,
+      minute: Math.min(90, Math.floor(elapsedSeconds / 60)),
+      stoppage: 0,
+      addedMinutes: 0,
+      elapsedSeconds,
+    }
+    : { period: fixture.status === 'COMPLETED' ? 'FULL_TIME' : 'PRE', running: false, minute: fixture.status === 'COMPLETED' ? 90 : 0, stoppage: 0, addedMinutes: 0, elapsedSeconds: 0 };
+
   return {
-    ...fixture, referee: fixture.referee || 'TBD', events, stats,
+    ...fixture, referee: fixture.referee || 'TBD', events, stats, clock,
+    liveState: { addedMinutes: 0 },
     lineups: [
       ...lineupFor(fixture.homeTeamId, fixture.league?.sport?.slug),
       ...lineupFor(fixture.awayTeamId, fixture.league?.sport?.slug),
     ],
+    /**
+     * One sheet filed by the coach, one recorded by the reporter — because that
+     * difference is now visible in both portals and a demo where every sheet
+     * came from the same place would never show it.
+     */
     teamSheets: [
-      { teamId: fixture.homeTeamId, formation: FORMATION[fixture.league?.sport?.slug] ?? null, coachName: coachOf(fixture.homeTeamId), published: true },
-      { teamId: fixture.awayTeamId, formation: AWAY_FORMATION[fixture.league?.sport?.slug] ?? null, coachName: coachOf(fixture.awayTeamId), published: true },
+      {
+        teamId: fixture.homeTeamId, formation: FORMATION[fixture.league?.sport?.slug] ?? null,
+        coachName: coachOf(fixture.homeTeamId), published: true, updatedAt: fixture.matchDate,
+        submittedBy: { id: 2, fullName: coachOf(fixture.homeTeamId), role: 'TEAM_MANAGER', avatar: null },
+      },
+      {
+        teamId: fixture.awayTeamId, formation: AWAY_FORMATION[fixture.league?.sport?.slug] ?? null,
+        coachName: coachOf(fixture.awayTeamId), published: true, updatedAt: fixture.matchDate,
+        submittedBy: { id: 3, fullName: 'Demo Match Reporter', role: 'MATCH_REPORTER', avatar: null },
+      },
     ],
     homeCoach: coachOf(fixture.homeTeamId), awayCoach: coachOf(fixture.awayTeamId),
     homeTeamDetail: home, awayTeamDetail: away,
     h2h, form,
   };
 };
+
+/**
+ * The demo reporter, as `GET /reporters/me` answers.
+ *
+ * Without this the adapter's unknown-GET fallback returned `{ data: [] }` and the
+ * profile screen read `[].availability` — undefined — so a demo audience saw a
+ * reporter with no speciality, no location and no assignments, which is the one
+ * screen in that portal whose entire point is that a league admin can see those
+ * things. The assignments mirror the fixtures the reporter is shown everywhere
+ * else in demo mode, so the two never contradict each other.
+ */
+export const buildReporterProfile = () => ({
+  id: 3,
+  fullName: 'Demo Match Reporter',
+  email: 'reporter@rwasport.rw',
+  phone: '+250 788 000 003',
+  avatar: null,
+  active: true,
+  sportIds: [1, 2],
+  location: 'Kigali',
+  bio: 'Covers the Premier League and the Basketball League across Kigali and the Southern Province.',
+  yearsActive: 4,
+  availability: 'AVAILABLE',
+  busyUntil: null,
+  hasProfile: true,
+  assignments: fixtures
+    .filter((f) => ['LIVE', 'SCHEDULED'].includes(f.status))
+    .slice(0, 6)
+    .map((f, i) => ({ id: i + 1, fixtureId: f.id, fixture: f, league: f.league })),
+});
 
 export const buildMyTeam = () => {
   const roster = playersOf(1).map((p) => ({ ...p, documents: Array.from({ length: p.status === 'VERIFIED' ? 3 : 1 }, () => ({ status: 'APPROVED' })) }));

@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const prisma = require('../config/db');
+const { uploadImage, deleteImage } = require('../services/storage.service');
 const { generateAccessToken, generateRefreshToken, verifyToken, hashToken } = require('../utils/jwt');
 const { sendMail } = require('../utils/sendMail');
 const logActivity = require('../utils/activityLogger');
@@ -333,6 +334,106 @@ const getMe = async (req, res, next) => {
   }
 };
 
+
+/**
+ * Your own photograph — whoever you are.
+ *
+ * WHY IT LIVES HERE. It writes `User.avatar`, and it first shipped on
+ * /reporters/me/avatar behind `reporters.profile`, which said in effect that only
+ * a match reporter may have a face. The club portal wants the same control for a
+ * coach, and nothing about the code was ever reporter-specific — so it moved to
+ * the account rather than being copied. `protect` alone is the correct gate:
+ * every signed-in account may change its own picture and no other.
+ *
+ * WHY IT MATTERS. `User.avatar` was read in four places — the reporter directory
+ * a league admin picks from, the "reported by" credit on the public match page,
+ * the team sheet author a coach now sees, and every portal's account menu — and
+ * for a long time written in none of them.
+ *
+ * 256x256: an avatar is never rendered larger than 40px in this product, and
+ * storing more than that costs a person on a mobile connection twice, once to
+ * upload it and once every time it is served back.
+ */
+const updateMyAvatar = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No photo was uploaded' });
+    }
+    // multer's fileFilter also admits PDFs, because documents share it. A PDF is
+    // not a photograph, and sharp would fail on one several lines later with a
+    // message about an unsupported image format rather than about the file.
+    if (!String(req.file.mimetype || '').startsWith('image/')) {
+      return res.status(400).json({ success: false, message: 'That file is not an image' });
+    }
+
+    const current = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: { avatar: true },
+    });
+
+    const url = await uploadImage(req.file, 'avatars', 256, 256, {
+      uploadedById: req.user.id,
+      ownerType: 'user',
+      ownerId: req.user.id,
+      purpose: 'avatar',
+    });
+
+    const user = await prisma.user.update({
+      where: { id: req.user.id },
+      data: { avatar: url },
+      select: { id: true, avatar: true },
+    });
+
+    // Only after the replacement is safely stored. Deleting first would leave the
+    // account with no photograph at all if the upload then failed.
+    if (current?.avatar && current.avatar !== url) await deleteImage(current.avatar);
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Update Photo',
+      detail: 'Uploaded a profile photo',
+      module: 'account',
+      ip: req.ip,
+    });
+
+    res.status(200).json({ success: true, data: user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/** Take the photograph down again, and remove the stored file with it. */
+const deleteMyAvatar = async (req, res, next) => {
+  try {
+    const current = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: { avatar: true },
+    });
+    if (!current?.avatar) {
+      return res.status(200).json({ success: true, data: { id: req.user.id, avatar: null } });
+    }
+
+    const user = await prisma.user.update({
+      where: { id: req.user.id },
+      data: { avatar: null },
+      select: { id: true, avatar: true },
+    });
+    await deleteImage(current.avatar);
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Remove Photo',
+      detail: 'Removed their profile photo',
+      module: 'account',
+      ip: req.ip,
+    });
+
+    res.status(200).json({ success: true, data: user });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Request a password reset link
 // @route   POST /api/v1/auth/forgot-password
 // @access  Public
@@ -400,6 +501,8 @@ module.exports = {
   refresh,
   logout,
   getMe,
+  updateMyAvatar,
+  deleteMyAvatar,
   forgotPassword,
   resetPassword,
 };

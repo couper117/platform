@@ -13,7 +13,53 @@
 
 const prisma = require('../config/db');
 
-const GOAL_TYPES = ['GOAL', 'PENALTY', 'OWN_GOAL'];
+/**
+ * What each scoring event is worth.
+ *
+ * THE SCORE WAS A COUNT OF EVENTS, which is only correct in a sport where every
+ * score is worth one. Basketball has three values and rugby four, so a game
+ * reported honestly still finished with the wrong number on it — a 58-61
+ * basketball match came out 24-27, because the arithmetic counted baskets.
+ *
+ * The principle is unchanged: recount from the events that remain, never adjust
+ * a running total. It is now a weighted sum rather than a length.
+ *
+ * Volleyball is scored in SETS on this platform (`homeScore` is sets won, which
+ * is what the fixtures actually store), so SET_WON is the scoring event and a
+ * rally point is deliberately not one — logging points would produce a number
+ * that is neither the set score nor the point score.
+ */
+const EVENT_POINTS = {
+  // Football, handball: one apiece.
+  GOAL: 1,
+  PENALTY: 1,
+  OWN_GOAL: 1,
+  SEVEN_METRE: 1,
+  // Basketball.
+  FREE_THROW: 1,
+  TWO_POINTER: 2,
+  DUNK: 2,
+  THREE_POINTER: 3,
+  // Volleyball, by the set.
+  SET_WON: 1,
+  // Rugby.
+  CONVERSION: 2,
+  PENALTY_KICK: 3,
+  DROP_GOAL: 3,
+  TRY: 5,
+};
+
+/**
+ * The event types that move the score.
+ *
+ * Derived from the weights rather than listed again, so a value can never be
+ * added to one and forgotten in the other — which is exactly how a scoring event
+ * ends up silently worth nothing.
+ */
+const GOAL_TYPES = Object.keys(EVENT_POINTS);
+
+/** An own goal is the only event credited to the side that did not commit it. */
+const isCreditedToOpponent = (eventType: string) => eventType === 'OWN_GOAL';
 
 /** Period markers belong to the clock, not to the reporter's event list. */
 const CLOCK_EVENTS = ['KICKOFF', 'HALFTIME', 'FULLTIME', 'EXTRA_TIME'];
@@ -34,10 +80,11 @@ const recomputeScore = async (fixtureId: number, fixture?: any) => {
   let home = 0;
   let away = 0;
   for (const g of goals) {
-    const forHome = g.eventType === 'OWN_GOAL'
+    const forHome = isCreditedToOpponent(g.eventType)
       ? g.teamId != f.homeTeamId
       : g.teamId == f.homeTeamId;
-    if (forHome) home += 1; else away += 1;
+    const points = EVENT_POINTS[g.eventType] ?? 1;
+    if (forHome) home += points; else away += points;
   }
 
   await prisma.fixture.update({ where: { id: fixtureId }, data: { homeScore: home, awayScore: away } });
@@ -51,18 +98,31 @@ const recomputeScore = async (fixtureId: number, fixture?: any) => {
 };
 
 /**
- * Recount a player's league goals from the events that remain.
+ * Recount what a player has scored across the league, from the events that remain.
  *
  * An own goal is deliberately excluded: it changes the score but is not credited
- * to the scorer. If the player has no goals left, their row is removed rather
- * than left at zero cluttering the top-scorer table.
+ * to the scorer. If nothing is left, their row is removed rather than left at
+ * zero cluttering the table.
+ *
+ * IT COUNTS POINTS, NOT EVENTS. `TopScorer.goals` is a football name for "what
+ * this player has put on the board", and counting rows made a basketball player
+ * with eight three-pointers rank below one with nine free throws. The same
+ * weights the score uses apply here, so the two can never disagree about what a
+ * player contributed.
  */
 const recomputeTopScorer = async (playerId: number, leagueId: number) => {
   if (!playerId || !leagueId) return null;
 
-  const goals = await prisma.matchEvent.count({
-    where: { playerId, eventType: { in: ['GOAL', 'PENALTY'] }, fixture: { leagueId } },
+  const scored = await prisma.matchEvent.findMany({
+    where: {
+      playerId,
+      // Every scoring type except the own goal, which belongs to nobody.
+      eventType: { in: GOAL_TYPES.filter((t) => !isCreditedToOpponent(t)) },
+      fixture: { leagueId },
+    },
+    select: { eventType: true },
   });
+  const goals = scored.reduce((sum, e) => sum + (EVENT_POINTS[e.eventType] ?? 1), 0);
 
   const existing = await prisma.topScorer.findUnique({ where: { playerId } });
 
@@ -162,6 +222,7 @@ const deleteEventAndRecompute = async (fixtureId: number, eventId: number) => {
 };
 
 module.exports = {
+  EVENT_POINTS,
   GOAL_TYPES,
   CLOCK_EVENTS,
   recomputeScore,

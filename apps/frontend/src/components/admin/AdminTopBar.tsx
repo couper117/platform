@@ -33,6 +33,15 @@ import cn from '../ui/cn';
  * players or fixtures: there is no endpoint behind that, and a search box that
  * silently only matches menu items while looking like it searches your data is
  * worse than one that says what it does.
+ *
+ * IT IS THE REPORTER PORTAL'S BAR TOO. The reporter shell used to stack the
+ * PUBLIC navbar, then a grey strip carrying a "Reporter Menu" button, then the
+ * sidebar — the same three bands of chrome this component was written to
+ * replace, left behind because only the admin layout was moved. Rather than
+ * clone it, the two things that differ are props: `pages` (what ⌘K can jump to)
+ * and `badge` (the word beside the wordmark). A reporter holds three
+ * capabilities and none of them is an admin page, so passing their own four
+ * routes is the only way the search can be honest for them.
  */
 
 /** ⌘K / Ctrl-K, the shortcut every operator already has in their fingers. */
@@ -49,7 +58,9 @@ const useCommandKey = (onOpen: () => void) => {
   }, [onOpen]);
 };
 
-const AdminSearch = () => {
+export type PortalPage = { path: string; label: string };
+
+const AdminSearch = ({ pages: given }: { pages?: PortalPage[] }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const capabilities = useCapabilities();
@@ -62,8 +73,10 @@ const AdminSearch = () => {
   useCommandKey(() => inputRef.current?.focus());
 
   // Only pages this operator may open — the same list the sidebar is built from.
+  // A portal that is not the admin one (the reporter's) hands its own list in,
+  // because ADMIN_PAGES describes admin capabilities and a reporter holds none.
   const pages = useMemo(
-    () => ADMIN_PAGES
+    () => given ?? ADMIN_PAGES
       .filter((p: any) => isAdminPathAllowed(capabilities, p.path))
       // ADMIN_PAGES carries an English `label` for the access list; the sidebar's
       // PATH_META carries the translated one. Prefer the translation, fall back to
@@ -72,7 +85,7 @@ const AdminSearch = () => {
         path: p.path,
         label: PATH_META[p.path]?.key ? t(PATH_META[p.path].key) : p.label,
       })),
-    [capabilities, t]
+    [given, capabilities, t]
   );
 
   const results = useMemo(() => {
@@ -204,7 +217,19 @@ const AccountMenu = () => {
   );
 };
 
-const AdminTopBar = ({ onOpenSidebar }: { onOpenSidebar: () => void }) => {
+const AdminTopBar = ({
+  onOpenSidebar,
+  pages,
+  badge,
+  menuLabel,
+}: {
+  onOpenSidebar: () => void;
+  /** Override what ⌘K can jump to. Omitted = this operator's admin pages. */
+  pages?: PortalPage[];
+  /** The word beside the wordmark. Omitted = "Admin". */
+  badge?: string;
+  menuLabel?: string;
+}) => {
   const { t } = useTranslation();
 
   return (
@@ -212,7 +237,7 @@ const AdminTopBar = ({ onOpenSidebar }: { onOpenSidebar: () => void }) => {
       <div className="flex h-14 items-center gap-3 px-4 lg:px-6">
         <IconButton
           icon={Menu}
-          label={t('admin.menu')}
+          label={menuLabel || t('admin.menu')}
           size="sm"
           onClick={onOpenSidebar}
           className="lg:hidden"
@@ -225,12 +250,12 @@ const AdminTopBar = ({ onOpenSidebar }: { onOpenSidebar: () => void }) => {
             Rwa<span className="text-brand-text">Sport</span>
           </span>
           <span className="hidden rounded-pill border border-hairline px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-tertiary sm:block">
-            {t('adminui.admin')}
+            {badge || t('adminui.admin')}
           </span>
         </Link>
 
         <div className="min-w-0 flex-1">
-          <AdminSearch />
+          <AdminSearch pages={pages} />
         </div>
 
         <div className="flex shrink-0 items-center gap-1">

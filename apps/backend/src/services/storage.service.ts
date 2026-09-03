@@ -12,11 +12,31 @@ const UPLOADS_ROOT = path.join(__dirname, '../../uploads');
 const toWebp = (buffer, width, height) =>
   sharp(buffer).resize(width, height, { fit: 'cover' }).webp({ quality: 80 }).toBuffer();
 
+/**
+ * A DOCUMENT IS NOT AN AVATAR, and resizing one like an avatar destroys it.
+ *
+ * `fit: 'cover'` fills the box and crops whatever does not fit — correct for a
+ * crest or a face, catastrophic for a birth certificate: a photograph of an A4
+ * page became an 800x800 square with the top and bottom cut off, taking the
+ * header, the stamp and the signature with them. The reviewer then rejected it as
+ * unreadable and the club uploaded the same page again.
+ *
+ * `fit: 'inside'` scales the whole page down to fit the bound and crops nothing,
+ * `withoutEnlargement` leaves a small scan alone rather than blowing it up into
+ * mush, and the bound is 1600 because a document has to be READ, not recognised.
+ */
+const documentToWebp = (buffer) =>
+  sharp(buffer)
+    .rotate() // honour the EXIF orientation a phone camera writes
+    .resize(1600, 1600, { fit: 'inside', withoutEnlargement: true })
+    .webp({ quality: 82 })
+    .toBuffer();
+
 // ── Local disk driver (no third-party account; good for self-hosting) ──
-const uploadLocal = async (buffer, folder) => {
+const uploadLocal = async (buffer, folder, ext = 'webp') => {
   const dir = path.join(UPLOADS_ROOT, folder);
   fs.mkdirSync(dir, { recursive: true });
-  const name = `${crypto.randomUUID()}.webp`;
+  const name = `${crypto.randomUUID()}.${ext}`;
   fs.writeFileSync(path.join(dir, name), buffer);
   return `/uploads/${folder}/${name}`; // served statically by app.ts
 };
@@ -33,11 +53,11 @@ const deleteLocal = (url) => {
 };
 
 // ── Cloudinary driver (default; CDN delivery in production) ──
-const uploadCloudinary = async (buffer, folder) => {
+const uploadCloudinary = async (buffer, folder, resourceType = 'image') => {
   const cloudinary = require('../config/cloudinary');
   return new Promise((resolve, reject) => {
     cloudinary.uploader
-      .upload_stream({ folder: `rnsp/${folder}`, resource_type: 'image' }, (error, result) => {
+      .upload_stream({ folder: `rnsp/${folder}`, resource_type: resourceType }, (error, result) => {
         if (error) reject(error);
         else resolve(result.secure_url);
       })
@@ -103,6 +123,37 @@ const uploadImage = async (file, folder, width = 400, height = 400, meta: any = 
   }
 };
 
+/**
+ * A player's identity document: a photograph of a page, or a PDF of one.
+ *
+ * PDFs WERE ACCEPTED AND THEN CRASHED. `middleware/upload.ts` has always let
+ * `application/pdf` through — a scanned certificate is a PDF more often than not
+ * — and every upload then went through sharp, which answers a PDF with "Input
+ * buffer contains unsupported image format". That surfaced as a 500, so the one
+ * file format an official document usually arrives in was invited in and then
+ * refused by a server error.
+ *
+ * So a PDF is stored as it came: no resize, no re-encode, nothing sharp can fail
+ * on. An image still gets normalised, but with `documentToWebp` above, which
+ * fits the page instead of cropping it.
+ */
+const uploadDocumentFile = async (file, folder = 'documents', meta: any = {}) => {
+  try {
+    const isPdf = String(file?.mimetype || '') === 'application/pdf';
+    const buffer = isPdf ? file.buffer : await documentToWebp(file.buffer);
+    const url = env.STORAGE_DRIVER === 'local'
+      ? await uploadLocal(buffer, folder, isPdf ? 'pdf' : 'webp')
+      // `raw` keeps the PDF a PDF. Cloudinary's `image` pipeline would try to
+      // rasterise it, which is a different file from the one the club sent.
+      : await uploadCloudinary(buffer, folder, isPdf ? 'raw' : 'image');
+
+    await recordMedia(url, file, folder, meta);
+    return url;
+  } catch (error) {
+    throw new Error(`Failed to store document: ${error.message}`);
+  }
+};
+
 const deleteImage = async (url) => {
   if (!url) return;
   // Route by URL shape so a driver switch doesn't orphan previously-stored files.
@@ -110,4 +161,4 @@ const deleteImage = async (url) => {
   return deleteCloudinary(url);
 };
 
-module.exports = { uploadImage, recordMedia, deleteImage };
+module.exports = { uploadImage, uploadDocumentFile, recordMedia, deleteImage };

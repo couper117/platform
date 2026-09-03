@@ -9,6 +9,26 @@
 import * as db from './mockData';
 
 const ok = (data: any, status = 200) => ({ data, status, statusText: 'OK', headers: {} });
+
+/**
+ * The demo reporter's photograph, for as long as the tab is open.
+ *
+ * Demo mode has no server and no storage, so an avatar upload would otherwise
+ * hit the generic write stub, return `{ success: true }` and change nothing —
+ * a control that reports success and visibly does nothing, in the build used for
+ * pitching. A blob URL off the chosen File is synchronous, costs nothing, and
+ * makes the flow real for the length of the demo. It dies with the tab, which is
+ * the honest lifetime for something no server ever received.
+ */
+let demoAvatar: string | null = null;
+/** Who signed in this tab, so /auth/me can answer as them rather than as anyone. */
+let demoSession: any = null;
+const setDemoAvatar = (body: any) => {
+  const file = body instanceof FormData ? body.get('avatar') : null;
+  if (demoAvatar) URL.revokeObjectURL(demoAvatar);
+  demoAvatar = file instanceof File ? URL.createObjectURL(file) : null;
+  return demoAvatar;
+};
 const byId = (list: any[], id: any) => list.find((x) => String(x.id) === String(id));
 
 // Filter helpers -----------------------------------------------------------
@@ -24,7 +44,26 @@ const filterFixtures = (params: any = {}) => {
   if (params.from) list = list.filter((f) => !f.matchDate || new Date(f.matchDate) >= new Date(params.from));
   if (params.to) list = list.filter((f) => !f.matchDate || new Date(f.matchDate) <= new Date(params.to));
   if (params.limit) list = list.slice(0, Number(params.limit));
-  return list;
+
+  /**
+   * The compact `teamSheets` the real list endpoint returns.
+   *
+   * Two integers per fixture, and the club portal's fixture rows read them to
+   * tell a filed sheet from a missing one. Without them every row would fall
+   * back to "cannot say" and the chip would vanish from the demo entirely.
+   *
+   * A match already played has both sides named — which is what
+   * buildFixtureDetail synthesises, so the list and the detail agree. One still
+   * to come has neither, which is both realistic (sheets arrive near kick-off)
+   * and the state worth showing: it is the one the portal nags about.
+   */
+  return list.map((f) => ({
+    ...f,
+    teamSheets: f.status === 'SCHEDULED' ? [] : [
+      { teamId: f.homeTeamId, submittedById: 2, published: true },
+      { teamId: f.awayTeamId, submittedById: 3, published: true },
+    ],
+  }));
 };
 
 const filterLeagues = (params: any = {}) => {
@@ -66,6 +105,7 @@ const filterPlayers = (params: any = {}) => {
     list = list.filter((p) => p.fullName.toLowerCase().includes(q) || String(p.id) === q);
   }
   if (params.limit) list = list.slice(0, Number(params.limit));
+
   return list;
 };
 
@@ -106,6 +146,33 @@ const routes = [
   ['GET', /^\/fixtures\/([^/]+)\/?$/, (m) => ok({ data: db.buildFixtureDetail(byId(db.fixtures, m[1]) || db.fixtures[0]) })],
   ['GET', /^\/fixtures\/?$/, (_m, p) => ok({ data: filterFixtures(p) })],
 
+  // The reporter portal. `reporterId` is handled inside filterFixtures — in demo
+  // mode the reporter covers the whole schedule, which is what a pitch audience
+  // needs to see, and pretending otherwise would leave every list empty.
+  ['GET', /^\/reporters\/me\/?$/, () => ok({ data: { ...db.buildReporterProfile(), avatar: demoAvatar } })],
+  ['GET', /^\/reporters\/?$/, () => ok({ data: [{ ...db.buildReporterProfile(), avatar: demoAvatar }] })],
+
+
+  /**
+   * syncUser() calls this on every app mount, and again after a photo upload so
+   * the account menu and the sidebar pick the new one up.
+   *
+   * It answers with WHOEVER SIGNED IN THIS TAB, never a fixed account: demo mode
+   * has six of them, and a hard-coded reply here would have quietly replaced a
+   * signed-in admin with the reporter on the next page load. Before a login, or
+   * after a reload has cleared the variable, it deliberately returns no `user` —
+   * syncUser treats that as "nothing to say" and keeps the stored copy, which is
+   * exactly right.
+   */
+  // The photograph belongs to the account, so both the reporter and the coach
+  // portals reach it here.
+  ['PUT', /^\/auth\/me\/avatar\/?$/, (_m, _p, body) => ok({ data: { id: demoSession?.id ?? 0, avatar: setDemoAvatar(body) } })],
+  ['DELETE', /^\/auth\/me\/avatar\/?$/, () => { setDemoAvatar(null); return ok({ data: { id: demoSession?.id ?? 0, avatar: null } }); }],
+
+  ['GET', /^\/auth\/me\/?$/, () => (demoSession
+    ? ok({ success: true, user: { ...demoSession, avatar: demoAvatar ?? demoSession.avatar ?? null } })
+    : ok({ success: true }))],
+
   ['GET', /^\/news\/([^/]+)\/?$/, (m) => ok({ data: db.news.find((n) => n.slug === m[1] || String(n.id) === m[1]) || db.news[0] })],
   ['GET', /^\/news\/?$/, (_m, p) => ok({ data: p.limit ? db.news.slice(0, Number(p.limit)) : db.news })],
 
@@ -123,7 +190,14 @@ const routes = [
   }],
   ['GET', /^\/players\/?$/, (_m, p) => ok({ data: filterPlayers(p) })],
 
-  ['GET', /^\/documents\/requirements\/?$/, () => ok({ data: ['NATIONAL_ID', 'BIRTH_CERTIFICATE', 'MEDICAL', 'PASSPORT'] })],
+  // SHAPE MATTERS HERE. The real endpoint answers `{ requiredDocTypes: [...] }`
+  // and every caller reads `data.requiredDocTypes`; the demo returned a bare
+  // array, so `requiredDocTypes` was undefined and the club portal reported that
+  // no player was missing any paperwork — a clean bill of health, in the build
+  // used for pitching, computed from a shape mismatch.
+  ['GET', /^\/documents\/requirements\/?$/, () => ok({
+    data: { requiredDocTypes: ['NATIONAL_ID', 'BIRTH_CERTIFICATE', 'MEDICAL', 'PASSPORT'] },
+  })],
   ['GET', /^\/documents\/?$/, (_m, p) => ok({ data: p.status ? db.documents.filter((d) => d.status === p.status) : db.documents })],
 
   // Racing sports: a race calendar + classification, keyed by sport (not fixtures).
@@ -132,7 +206,11 @@ const routes = [
 
   ['GET', /^\/venues\/?$/, () => ok({ data: db.venues })],
   ['GET', /^\/transfers\/?$/, () => ok({ data: db.transfers })],
-  ['GET', /^\/officials\/?$/, () => ok({ data: db.officials })],
+  // `teamId` is honoured: the club portal's staff page asks for its own, and an
+  // unfiltered list would show a coach every official on the platform.
+  ['GET', /^\/officials\/?$/, (_m, p) => ok({
+    data: p.teamId ? db.officials.filter((o) => String(o.teamId) === String(p.teamId)) : db.officials,
+  })],
   ['GET', /^\/contacts\/?$/, (_m, p) => ok({ data: p.status ? db.contacts.filter((c) => c.status === p.status) : db.contacts })],
   ['GET', /^\/(payments|transactions)\/?$/, () => ok({ data: db.transactions })],
 
@@ -189,9 +267,17 @@ const routes = [
   ['GET', /^\/akc3\/announcements\/?$/, () => ok({ data: db.akcAnnouncements })],
 
   // Auth — demo login accepts any credentials; username hints the role/portal.
-  ['POST', /^\/auth\/login\/?$/, (_m, _p, body) => ok({ user: db.loginUser(body?.username), accessToken: 'demo-token', refreshToken: 'demo-refresh' })],
+  ['POST', /^\/auth\/login\/?$/, (_m, _p, body) => {
+    demoSession = db.loginUser(body?.username);
+    return ok({ user: demoSession, accessToken: 'demo-token', refreshToken: 'demo-refresh' });
+  }],
   ['POST', /^\/auth\/refresh\/?$/, () => ok({ accessToken: 'demo-token' })],
   ['POST', /^\/auth\/logout\/?$/, () => ok({ message: 'Logged out' })],
+  // The photograph belongs to the account, so both the reporter and the coach
+  // portals reach it here.
+  ['PUT', /^\/auth\/me\/avatar\/?$/, (_m, _p, body) => ok({ data: { id: demoSession?.id ?? 0, avatar: setDemoAvatar(body) } })],
+  ['DELETE', /^\/auth\/me\/avatar\/?$/, () => { setDemoAvatar(null); return ok({ data: { id: demoSession?.id ?? 0, avatar: null } }); }],
+
   ['GET', /^\/auth\/me\/?$/, () => ok(db.demoUser)],
 ];
 

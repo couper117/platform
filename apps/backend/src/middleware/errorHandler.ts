@@ -17,6 +17,28 @@ const mapPrisma = (err) => {
   }
 };
 
+// Multer rejects a bad upload by throwing, and its errors carry a `code` but no
+// `statusCode` — so an oversized file surfaced as a 500, which in production the
+// branch below then rewrote to "Internal Server Error". A phone photograph is
+// routinely larger than the 8MB limit, so this is the single most likely upload
+// failure in the product, and it was being reported as a server fault.
+const mapMulter = (err) => {
+  switch (err.code) {
+    case 'LIMIT_FILE_SIZE':
+      return { status: 413, message: 'That file is too large. The limit is 8MB.' };
+    case 'LIMIT_FILE_COUNT':
+    case 'LIMIT_UNEXPECTED_FILE':
+      return { status: 400, message: 'Unexpected file upload.' };
+    case 'LIMIT_PART_COUNT':
+    case 'LIMIT_FIELD_COUNT':
+    case 'LIMIT_FIELD_KEY':
+    case 'LIMIT_FIELD_VALUE':
+      return { status: 400, message: 'That upload could not be read.' };
+    default:
+      return null;
+  }
+};
+
 const errorHandler = (err, req, res, next) => { // eslint-disable-line no-unused-vars
   console.error(err.stack || err.message);
 
@@ -24,7 +46,11 @@ const errorHandler = (err, req, res, next) => { // eslint-disable-line no-unused
   let message = err.message || 'Internal Server Error';
 
   const prismaMapped = err.code && err.code.startsWith('P') ? mapPrisma(err) : null;
-  if (prismaMapped) {
+  const multerMapped = prismaMapped ? null : mapMulter(err);
+  if (multerMapped) {
+    status = multerMapped.status;
+    message = multerMapped.message;
+  } else if (prismaMapped) {
     status = prismaMapped.status;
     message = prismaMapped.message;
   } else if (status === 500 && env.NODE_ENV === 'production') {

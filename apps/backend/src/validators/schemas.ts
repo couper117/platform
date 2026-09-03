@@ -43,7 +43,16 @@ module.exports = {
   createFixture: wrap({ leagueId: idish, homeTeamId: idish, awayTeamId: idish }),
   saveResult: wrap({ homeScore: idish, awayScore: idish }),
   addMatchEvent: wrap({
-    eventType: z.enum(['COMMENTARY', 'GOAL', 'OWN_GOAL', 'PENALTY', 'RED_CARD', 'YELLOW_CARD', 'SUBSTITUTION', 'INJURY', 'VAR', 'KICKOFF', 'HALFTIME', 'FULLTIME', 'EXTRA_TIME']),
+    // Mirrors the EventType enum in schema.prisma. The football-only half came
+    // first; everything from TWO_POINTER on exists because this platform also
+    // runs basketball, volleyball, handball and rugby, and a reporter at one of
+    // those could previously log nothing that described what they were watching.
+    eventType: z.enum([
+      'COMMENTARY', 'GOAL', 'OWN_GOAL', 'PENALTY', 'RED_CARD', 'YELLOW_CARD',
+      'SUBSTITUTION', 'INJURY', 'VAR', 'KICKOFF', 'HALFTIME', 'FULLTIME', 'EXTRA_TIME',
+      'TWO_POINTER', 'THREE_POINTER', 'FREE_THROW', 'DUNK', 'FOUL', 'TIMEOUT',
+      'SUSPENSION', 'SEVEN_METRE', 'SET_WON', 'TRY', 'CONVERSION', 'PENALTY_KICK', 'DROP_GOAL',
+    ]),
     // Optional: omitted means "now", and the controller reads the running clock.
     minute: idish.optional(),
   }),

@@ -95,6 +95,7 @@ model User {
   grantedCapabilities String[] @default([])
   revokedCapabilities String[] @default([])
 
+  teamSheetsFiled  MatchTeamSheet[]  @relation("TeamSheetAuthor")
   reporterProfile  ReporterProfile?
   notifications    Notification[]
   favorites        Favorite[]
@@ -610,6 +611,22 @@ model MatchTeamSheet {
   published Boolean  @default(false)
   updatedAt DateTime @updatedAt
 
+  /// WHO NAMED THIS SIDE.
+  ///
+  /// The eleven is the COACH's decision, filed from the club portal. A reporter
+  /// may also enter it — at a district ground the coach frequently has not used
+  /// the app and hands over paper instead — and until now the two were
+  /// indistinguishable. So a coach could not tell whether the sheet against their
+  /// club was their own or a transcription of it, and the reporter's screen could
+  /// only say "sheet on file" where it wanted to say "your coach filed this".
+  ///
+  /// Nullable because every sheet written before this column existed has no
+  /// answer, and guessing one would be worse than admitting it. SetNull rather
+  /// than Cascade: deleting an account must not delete the team sheets of matches
+  /// that were played.
+  submittedById Int?
+  submittedBy   User? @relation("TeamSheetAuthor", fields: [submittedById], references: [id], onDelete: SetNull)
+
   @@unique([fixtureId, teamId])
 }
 
@@ -674,6 +691,39 @@ enum EventType {
   HALFTIME
   FULLTIME
   EXTRA_TIME
+
+  /// ── Sports that are not football ──────────────────────────────────────
+  ///
+  /// This enum was football's vocabulary applied to a platform that runs
+  /// basketball, volleyball, handball and rugby. A basketball reporter could
+  /// only log a "GOAL" worth one point, so a game finishing 58-61 was
+  /// unreportable; the public timeline (components/shared/matchEventMeta) had
+  /// already been written to DISPLAY three-pointers, fouls and timeouts, and
+  /// nothing could ever create one.
+  ///
+  /// Each carries a point weight in services/matchEvents.service.ts — the score
+  /// is still recounted from the events, it is simply no longer a count of them.
+  TWO_POINTER
+  THREE_POINTER
+  FREE_THROW
+  /// Two points like any other, kept apart because it is the highlight a
+  /// reporter wants in the feed and a fan wants to find again.
+  DUNK
+  /// Basketball's foul: a caution with no card and no suspension behind it.
+  FOUL
+  TIMEOUT
+  /// Handball's two minutes. Not a card, and deliberately not wired to the
+  /// suspension table, which counts match bans rather than minutes off court.
+  SUSPENSION
+  /// Handball's penalty throw.
+  SEVEN_METRE
+  /// Volleyball is scored in sets on this platform — homeScore is sets won —
+  /// so a set is the scoring event, not a rally point.
+  SET_WON
+  TRY
+  CONVERSION
+  PENALTY_KICK
+  DROP_GOAL
 }
 
 model Lineup {

@@ -1,5 +1,5 @@
 const prisma = require('../config/db');
-const { uploadImage } = require('../services/storage.service');
+const { uploadDocumentFile } = require('../services/storage.service');
 const logActivity = require('../utils/activityLogger');
 const { REQUIRED_DOC_TYPES, isPlayerVerifiable } = require('../constants/documentRequirements');
 const { enforceSportScope } = require('../utils/scope');
@@ -115,7 +115,14 @@ const uploadDocument = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
 
-    const fileUrl = await uploadImage(req.file, 'documents', 800, 800, { uploadedById: req.user?.id, purpose: 'document' });
+    // Not `uploadImage`: that crops to a square and cannot read a PDF. See
+    // uploadDocumentFile — a document has to survive the trip legible.
+    const fileUrl = await uploadDocumentFile(req.file, 'documents', {
+      uploadedById: req.user?.id,
+      ownerType: 'player',
+      ownerId: parseInt(playerId),
+      purpose: 'document',
+    });
 
     const document = await prisma.playerDocument.create({
       data: {

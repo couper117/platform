@@ -11,6 +11,9 @@ import useAuthStore from '../../store/authStore';
 import useSportScope from '../../hooks/useSportScope';
 import { ADMIN_PAGES } from '../../lib/adminAccess';
 import { useCapabilities } from '../../hooks/useCan';
+import ReporterSidebarFooter from '../reporter/ReporterSidebarFooter';
+import TeamSidebarFooter from '../team/TeamSidebarFooter';
+import TeamSidebarIdentity from '../team/TeamSidebarIdentity';
 
 /**
  * Role-aware admin/team/reporter sidebar — the demo's grouped, role-branded design
@@ -88,10 +91,16 @@ export const PATH_META = {
   '/admin/amashuri/standings': { key: 'portal.nav_standings', section: 'operations', icon: <BarChart3 size={18} /> },
 };
 
-const SECTION_ORDER = ['main', 'management', 'operations', 'competitions', 'content', 'system', 'amashuri'];
+const SECTION_ORDER = ['main', 'management', 'operations', 'matchday', 'competitions', 'content', 'squad', 'club', 'system', 'amashuri', 'you'];
 const SECTION_KEY = {
   main: null, management: 'portal.sec_management', operations: 'portal.sec_operations',
   competitions: 'portal.sec_competitions', content: 'portal.sec_content', system: 'portal.sec_system', amashuri: 'portal.sec_amashuri',
+  // Reporter-only groupings. "Match day" is the work itself; "You" is the two
+  // pages about the person rather than the fixture. An admin never sees either,
+  // which is why they sit at the ends of the order and not in the middle of it.
+  matchday: 'portal.sec_matchday', you: 'portal.sec_you',
+  // Club-portal groupings, seen only by a coach.
+  squad: 'portal.sec_squad', club: 'portal.sec_club',
 };
 
 // Super admin oversees leagues/teams/championships read-only; a federation admin's
@@ -153,14 +162,38 @@ const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
     .map((section) => ({ section, items: adminItems.filter((i) => i.section === section) }))
     .filter((g) => g.items.length);
 
+  /**
+   * THE CLUB'S NAV, GROUPED THE WAY A SEASON IS.
+   *
+   * It was six flat items with the club profile sitting second, above the squad
+   * and the fixtures — the thing a coach edits once a year in front of the two
+   * they touch every week. The order is now what they are doing: the week ahead,
+   * then the squad, then the club, then themselves.
+   *
+   * Team sheets are promoted out of the flat list and into their own group with
+   * the matches, because filing one is the club's single obligation to the rest
+   * of the platform: until a coach does, the reporter at the ground has to copy
+   * it off paper and a goal cannot name the player who scored it.
+   *
+   * The match page itself is deliberately absent — it belongs to a fixture, is
+   * reached from a list, and a nav item pointing at "a match" with no match
+   * chosen is a dead link waiting to happen. Same rule as the reporter's console.
+   */
   const teamGroups = [
     { section: 'main', items: [
       { to: '/team/dashboard', key: 'portal.nav_dashboard', icon: <LayoutDashboard size={18} /> },
-      { to: '/team/profile', key: 'portal.nav_profile', icon: <Shield size={18} /> },
+      { to: '/team/fixtures', key: 'portal.nav_matches', icon: <CalendarDays size={18} /> },
+      { to: '/team/formation', key: 'portal.nav_team_sheets', icon: <LayoutTemplate size={18} /> },
+    ] },
+    { section: 'squad', items: [
       { to: '/team/players', key: 'portal.nav_my_players', icon: <UserSquare2 size={18} /> },
-      { to: '/team/fixtures', key: 'portal.nav_fixtures', icon: <Activity size={18} /> },
-      { to: '/team/lineups', key: 'portal.nav_lineups', icon: <ClipboardList size={18} /> },
-      { to: '/team/documents', key: 'portal.nav_documents', icon: <FileText size={18} /> },
+      { to: '/team/staff', key: 'portal.nav_staff', icon: <Users2 size={18} /> },
+    ] },
+    { section: 'club', items: [
+      { to: '/team/profile', key: 'portal.nav_profile', icon: <Shield size={18} /> },
+    ] },
+    { section: 'you', items: [
+      { to: '/team/account', key: 'portal.nav_account', icon: <UserSquare2 size={18} /> },
     ] },
   ];
   const schoolGroups = [
@@ -169,10 +202,35 @@ const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
       { to: '/school/athletes', key: 'portal.nav_my_athletes', icon: <UserSquare2 size={18} /> },
     ] },
   ];
+  /**
+   * THE REPORTER'S NAV, WHICH USED TO BE TWO LINKS.
+   *
+   * "Live Reporting" and "My Profile" were the whole portal, and the first of
+   * them was really three screens wearing one label: a match picker, a live
+   * console and nothing at all for a match already finished. A reporter holds
+   * three server capabilities — `fixtures.report`, `fixtures.lineups` and
+   * `reporters.profile` — and two of them had no screen behind them, so a
+   * reporter could not name a line-up or record a statistic they were entitled
+   * to enter.
+   *
+   * The order below is the shape of their day: what is happening now, everything
+   * they are down for, the two things done at the ground, then themselves. The
+   * match console itself is deliberately absent — it belongs to a fixture, is
+   * reached from a list, and a nav item pointing at "a match" with no match
+   * chosen is a dead link waiting to happen.
+   */
   const reporterGroups = [
     { section: 'main', items: [
-      { to: '/reporter/dashboard', key: 'portal.nav_live_reporting', icon: <Radio size={18} /> },
+      { to: '/reporter/dashboard', key: 'portal.nav_today', icon: <LayoutDashboard size={18} /> },
+      { to: '/reporter/matches', key: 'portal.nav_my_matches', icon: <CalendarDays size={18} /> },
+    ] },
+    { section: 'matchday', items: [
+      { to: '/reporter/lineups', key: 'portal.nav_team_sheets', icon: <ClipboardList size={18} /> },
+      { to: '/reporter/results', key: 'portal.nav_results', icon: <ClipboardCheck size={18} /> },
+    ] },
+    { section: 'you', items: [
       { to: '/reporter/profile', key: 'portal.nav_my_profile', icon: <UserSquare2 size={18} /> },
+      { to: '/reporter/guide', key: 'portal.nav_guide', icon: <HelpCircle size={18} /> },
     ] },
   ];
 
@@ -183,7 +241,8 @@ const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
 
   // ── role-branded header ──
   const headerFor = () => {
-    if (type === 'team') return { icon: <Shield size={18} />, title: t('portal.role_team'), sub: null, accent: 'text-brand bg-brand/15' };
+    // No `team` case: the club's rail is headed by its own crest and name — see
+    // TeamSidebarIdentity, rendered instead of this block below.
     if (type === 'reporter') return { icon: <Radio size={18} />, title: t('portal.role_reporter'), sub: null, accent: 'text-brand bg-brand/15' };
     if (type === 'school') return { icon: <GraduationCap size={18} />, title: t('portal.role_school'), sub: t('portal.role_school_sub'), accent: 'text-[#F5B301] bg-[#F5B301]/15' };
     if (role === 'SUPERADMIN') return { icon: <Landmark size={18} />, title: t('portal.role_ministry'), sub: t('portal.role_ministry_sub'), accent: 'text-brand bg-brand/15' };
@@ -196,23 +255,10 @@ const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
 
   // ── role footer panel ──
   const footer = (() => {
-    if (type === 'team') {
-      return (
-        <div className="space-y-3 border-t border-hairline p-4">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-tertiary">{t('portal.current_season')}</p>
-            <p className="font-display text-lg font-bold text-primary">2025/2026</p>
-          </div>
-          <Link to="/teams" onClick={closeOnMobile} className="flex min-h-tap items-center justify-center gap-2 rounded-control border border-hairline bg-surface-2 px-3 py-2 text-sm font-semibold text-primary transition-colors duration-150 ease-standard hover:bg-surface-3">
-            {t('portal.view_team_page')} <ExternalLink size={13} />
-          </Link>
-          <div className="flex items-center gap-2 rounded-card border border-hairline bg-surface-2 p-3 text-tertiary">
-            <HelpCircle size={16} className="shrink-0" />
-            <div className="leading-tight"><p className="text-sm font-semibold text-primary">{t('portal.need_help')}</p><p className="text-xs">{t('portal.contact_support')}</p></div>
-          </div>
-        </div>
-      );
-    }
+    // A reporter's own two questions — am I marked free, and where am I next.
+    if (type === 'reporter') return <ReporterSidebarFooter onNavigate={closeOnMobile} />;
+    // The club's own two questions — when do we play, and have we filed.
+    if (type === 'team') return <TeamSidebarFooter onNavigate={closeOnMobile} />;
     if (role === 'FEDERATION_ADMIN' && type === 'admin') {
       return (
         <div className="space-y-3 border-t border-hairline p-4">
@@ -246,13 +292,22 @@ const Sidebar = ({ type = 'admin', isOpen, onClose }) => {
   const content = (
     <>
       <div className="flex items-center justify-between gap-2 border-b border-hairline px-4 py-4">
-        <div className="flex items-center gap-2.5">
-          <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${header.accent}`}>{header.icon}</span>
-          <div className="leading-tight">
-            <p className="font-display text-sm font-bold text-primary">{header.title}</p>
-            {header.sub && <p className="truncate text-xs text-tertiary">{header.sub}</p>}
+        {/* THE CLUB'S RAIL NAMES THE CLUB. Every other portal here is headed by
+            the organisation it belongs to — the Ministry, a federation, a league
+            — and the club's was headed "Club portal", which tells a coach the one
+            thing they already know. The crest and the name also answer a question
+            the label could not: which club am I signed into. */}
+        {type === 'team' ? (
+          <TeamSidebarIdentity onNavigate={closeOnMobile} />
+        ) : (
+          <div className="flex min-w-0 items-center gap-2.5">
+            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${header.accent}`}>{header.icon}</span>
+            <div className="min-w-0 leading-tight">
+              <p className="truncate font-display text-sm font-bold text-primary">{header.title}</p>
+              {header.sub && <p className="truncate text-xs text-tertiary">{header.sub}</p>}
+            </div>
           </div>
-        </div>
+        )}
         <button onClick={onClose} className="p-1 text-tertiary hover:text-primary lg:hidden" aria-label="Close"><X size={20} /></button>
       </div>
 

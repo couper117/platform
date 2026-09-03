@@ -1,6 +1,9 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { surfaceFor, type Marking, type Surface } from '../../config/playingSurfaces';
+// Geometry lives in lib/formation so the club portal's formation board places a
+// slot in exactly the spot this draws it in.
+import { buildSlots, clampRows, parseFormation, roleRank } from '../../lib/formation';
 
 /**
  * Both line-ups on the surface the sport is actually played on.
@@ -16,7 +19,7 @@ import { surfaceFor, type Marking, type Surface } from '../../config/playingSurf
  */
 
 /** Colours per surface, so a court is not obliged to be green. */
-const TONE: Record<Surface['tone'], { fill: string; line: string }> = {
+export const TONE: Record<Surface['tone'], { fill: string; line: string }> = {
   grass: { fill: 'repeating-linear-gradient(0deg,#17663a 0 10%,#1a7040 10% 20%)', line: 'rgba(255,255,255,.38)' },
   wood:  { fill: 'repeating-linear-gradient(90deg,#b9793c 0 6%,#c08243 6% 12%)',  line: 'rgba(255,255,255,.55)' },
   clay:  { fill: 'linear-gradient(160deg,#c2563a,#a8452d)',                        line: 'rgba(255,255,255,.6)'  },
@@ -38,7 +41,7 @@ const pt = (cx: number, cy: number, r: number, deg: number) => {
   return `${(cx + r * Math.cos(a)).toFixed(2)},${(cy + r * Math.sin(a)).toFixed(2)}`;
 };
 
-const Markings = ({ surface }: { surface: Surface }) => (
+export const Markings = ({ surface }: { surface: Surface }) => (
   <svg viewBox="0 0 100 150" preserveAspectRatio="none" className="absolute inset-0 h-full w-full" aria-hidden="true">
     <g fill="none" stroke={TONE[surface.tone].line} strokeWidth="0.4">
       {surface.markings.map((m: Marking, i) => {
@@ -59,55 +62,6 @@ const Markings = ({ surface }: { surface: Surface }) => (
     </g>
   </svg>
 );
-
-/**
- * Rank a free-form position so players land in sensible places.
- *
- * Deliberately generic: the same ordering serves a goalkeeper, a point guard and
- * a setter, because every one of these sports lists its roster from the back
- * outwards. Anything unrecognised sits in the middle rather than being dropped.
- */
-const roleRank = (pos?: string) => {
-  const s = String(pos || '').toLowerCase();
-  if (/goal|keeper|\bgk\b|\bgs\b|libero/.test(s)) return 0;
-  if (/def|back|\bcb\b|\brb\b|\blb\b|\bwb\b|full|guard|\bpg\b|\bsg\b|\bgd\b/.test(s)) return 1;
-  if (/for|strik|attack|wing|\bst\b|\bcf\b|\bfw\b|centre|center|\bc\b|spik/.test(s)) return 3;
-  return 2;
-};
-
-/** Trim a row layout so it never seats more players than the sport fields. */
-const clampRows = (rows: number[], starters: number) => {
-  const out: number[] = [];
-  let left = starters;
-  for (const n of rows) {
-    if (left <= 0) break;
-    out.push(Math.min(n, left));
-    left -= out[out.length - 1];
-  }
-  return out.length ? out : rows;
-};
-
-/** Formation strings only mean something where the sport uses them. */
-const parseFormation = (formation: string | undefined, fallback: number[]) => {
-  const lines = String(formation || '').split(/[^0-9]+/).map((n) => parseInt(n, 10)).filter((n) => n > 0);
-  const sum = lines.reduce((a, b) => a + b, 0);
-  if (!lines.length || sum < 3 || sum > 20) return fallback;
-  return lines;
-};
-
-/** (x%, y%) for each starter, from the goal line inward. */
-const buildSlots = (rows: number[], orientation: 'top' | 'bottom', opposed: boolean, band: [number, number]) => {
-  // Mirrored for the bottom side, so both teams read as facing each other.
-  const near = opposed ? (orientation === 'top' ? band[0] : 150 - band[0]) : band[0];
-  const far = opposed ? (orientation === 'top' ? band[1] : 150 - band[1]) : band[1];
-  const slots: Array<{ x: number; y: number }> = [];
-  rows.forEach((count, r) => {
-    const v = rows.length === 1 ? (near + far) / 2 : near + ((far - near) * r) / (rows.length - 1);
-    const y = (v / 150) * 100;
-    for (let i = 0; i < count; i += 1) slots.push({ x: ((i + 1) * 100) / (count + 1), y });
-  });
-  return slots;
-};
 
 const Token = ({ slot, player, color, label }: any) => (
   <div className="absolute -translate-x-1/2 -translate-y-1/2 text-center" style={{ left: `${slot.x}%`, top: `${slot.y}%` }}>

@@ -77,7 +77,12 @@ const MatchDetailsPage = () => {
     isError,
     refetch,
   } = useQuery({
-    queryKey: ['match-details', id],
+    // `Number(id)`, not the raw route param. Every other screen that reads this
+    // fixture — the reporter console, the coach's match page, the team-sheet
+    // editor — keys on a number, and react-query matches keys by VALUE: with a
+    // string here, a coach filing a team sheet invalidated a key this page does
+    // not hold, so a match page open in another tab kept showing the old side.
+    queryKey: ['match-details', Number(id)],
     queryFn: () => getFixture(id),
     // Live matches only: a finished or upcoming fixture has nothing new to
     // pull every 20s, so polling stays off until the REST payload itself says

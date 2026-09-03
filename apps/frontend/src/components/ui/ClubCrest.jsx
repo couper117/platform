@@ -30,9 +30,14 @@ const SIZES = {
 
 const PX = { sm: 24, md: 32, lg: 40 };
 
-const shortName = (team = {}) => {
-  const raw = team.shortName || team.name || '';
-  if (team.shortName) return team.shortName.slice(0, 3).toUpperCase();
+// `= {}` only defaults an UNDEFINED argument, and callers routinely hold a null:
+// `fixture.homeTeam` is nullable, and a club portal can have no club yet. Both
+// crashed here on `team.shortName`. Normalising inside is the fix that covers
+// every caller rather than each one remembering to pass `|| {}`.
+const shortName = (team) => {
+  const t = team || {};
+  const raw = t.shortName || t.name || '';
+  if (t.shortName) return t.shortName.slice(0, 3).toUpperCase();
   return (
     raw
       .trim()

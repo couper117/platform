@@ -8,7 +8,7 @@ const { completeFixture } = require('../services/matchCompletion.service');
 const { getPagination } = require('../utils/paginate');
 const { enforceSportScope, leagueSportId } = require('../utils/scope');
 const { transition, canTransition, readClock, eventMinuteAt } = require('../services/matchClock.logic');
-const { recomputeScore, recomputeTopScorer, deleteEventAndRecompute } = require('../services/matchEvents.service');
+const { recomputeScore, recomputeTopScorer, deleteEventAndRecompute, GOAL_TYPES } = require('../services/matchEvents.service');
 const logActivity = require('../utils/activityLogger');
 const { syncFixtureConflict, detectConflict, raiseNotice } = require('../services/umuganda.service');
 
@@ -80,7 +80,22 @@ const getFixtures = async (req, res, next) => {
     const [fixtures, total] = await Promise.all([
       prisma.fixture.findMany({
         where,
-        include: { homeTeam: true, awayTeam: true, league: true, competition: true },
+        include: {
+          homeTeam: true,
+          awayTeam: true,
+          league: true,
+          competition: true,
+          // WHICH SIDES ARE NAMED. Two integers per fixture, no player rows — the
+          // full `lineups` relation on a 200-fixture list would be thousands of
+          // rows to answer a yes/no question.
+          //
+          // Without it a club's fixture list could not tell a filed sheet from a
+          // missing one, so it warned about every match including the ones the
+          // coach had already done — and a warning that is always on is one
+          // nobody reads. `submittedById` rides along because it costs nothing
+          // and answers the next question, which is whose sheet it is.
+          teamSheets: { select: { teamId: true, submittedById: true, published: true } },
+        },
         orderBy: { matchDate: 'asc' },
         skip,
         take,
@@ -121,7 +136,16 @@ const getFixture = async (req, res, next) => {
         lineups: {
           include: { player: true },
         },
-        teamSheets: true,
+        // Who named each side. A coach opening their match needs to know whether
+        // the sheet against their club is the one they filed or one a reporter
+        // transcribed from paper, and the reporter's screen wants to say "the
+        // coach filed this" rather than the weaker "sheet on file". The role
+        // comes along because that is the distinction both screens draw.
+        teamSheets: {
+          include: {
+            submittedBy: { select: { id: true, fullName: true, role: true, avatar: true } },
+          },
+        },
         stats: true,
         liveState: true,
       },
@@ -344,9 +368,13 @@ const addMatchEvent = async (req, res, next) => {
 
     const minuteNum = parseInt(minute) || 0;
 
-    // Score is DERIVED from goal events (single source of truth) so it can't
+    // Score is DERIVED from scoring events (single source of truth) so it can't
     // double-count and stays correct if an event is ever removed.
-    if (['GOAL', 'PENALTY', 'OWN_GOAL'].includes(eventType)) {
+    //
+    // GOAL_TYPES comes from the weights table rather than being listed again
+    // here: this branch was a hard-coded football triple, so a three-pointer or a
+    // try was stored, shown in the feed, and left the score untouched.
+    if (GOAL_TYPES.includes(eventType)) {
       const { home, away } = await recomputeScore(fixtureId, fixture);
       await prisma.liveMatchState.updateMany({
         where: { fixtureId },
@@ -355,9 +383,10 @@ const addMatchEvent = async (req, res, next) => {
       const liveNow = await prisma.liveMatchState.findUnique({ where: { fixtureId } });
       emitMatchUpdate(fixtureId, { homeScore: home, awayScore: away, minute: minuteNum, clock: readClock(liveNow) });
 
-      // Credit the scorer (GOAL/PENALTY only — an OWN_GOAL doesn't count for the
-      // player). Recounted from events, not incremented, so an undo can put it back.
-      if ((eventType === 'GOAL' || eventType === 'PENALTY') && playerId && fixture.leagueId) {
+      // Credit the scorer — every scoring type except an OWN_GOAL, which changes
+      // the score but belongs to nobody. Recounted from events, not incremented,
+      // so an undo can put it back.
+      if (eventType !== 'OWN_GOAL' && playerId && fixture.leagueId) {
         await recomputeTopScorer(parseInt(playerId), fixture.leagueId);
       }
     } else {
@@ -556,8 +585,18 @@ const saveLineup = async (req, res, next) => {
     await prisma.$transaction([
       prisma.matchTeamSheet.upsert({
         where: { fixtureId_teamId: { fixtureId, teamId: tid } },
-        update: { formation: formation || null, coachName: coachName || null, published: !!published },
-        create: { fixtureId, teamId: tid, formation: formation || null, coachName: coachName || null, published: !!published },
+        // submittedById on both branches: a reporter correcting a coach's sheet
+        // becomes its author, which is the truth the next reader needs — the
+        // eleven now on file is the one the reporter transcribed, not the one
+        // the coach filed.
+        update: {
+          formation: formation || null, coachName: coachName || null,
+          published: !!published, submittedById: req.user.id,
+        },
+        create: {
+          fixtureId, teamId: tid, formation: formation || null, coachName: coachName || null,
+          published: !!published, submittedById: req.user.id,
+        },
       }),
       prisma.lineup.deleteMany({ where: { fixtureId, teamId: tid } }),
       ...(rows.length ? [prisma.lineup.createMany({ data: rows })] : []),

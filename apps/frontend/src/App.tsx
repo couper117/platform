@@ -109,16 +109,29 @@ const AmashuriAdminSeasons = lazy(() => import('./pages/admin/AmashuriAdminSeaso
 const AmashuriAdminStages = lazy(() => import('./pages/admin/AmashuriAdminStages'));
 const AmashuriAdminSports = lazy(() => import('./pages/admin/AmashuriAdminSports'));
 const AmashuriAdminOfficials = lazy(() => import('./pages/admin/AmashuriAdminOfficials'));
-const LiveReportingPage = lazy(() => import('./pages/admin/LiveReportingPage'));
-const ReporterProfilePage = lazy(() => import('./pages/admin/ReporterProfilePage'));
+// ── Match reporter portal ──
+// Six screens where there were two. The console is `/reporter/match/:id` rather
+// than internal state on the dashboard, because a reporter who refreshes at the
+// 70th minute used to be dumped back to a picker with no way to tell which match
+// they had been reporting.
+const ReporterTodayPage = lazy(() => import('./pages/reporter/ReporterTodayPage'));
+const ReporterMatchesPage = lazy(() => import('./pages/reporter/ReporterMatchesPage'));
+const ReporterMatchConsolePage = lazy(() => import('./pages/reporter/ReporterMatchConsolePage'));
+const ReporterLineupsPage = lazy(() => import('./pages/reporter/ReporterLineupsPage'));
+const ReporterResultsPage = lazy(() => import('./pages/reporter/ReporterResultsPage'));
+const ReporterGuidePage = lazy(() => import('./pages/reporter/ReporterGuidePage'));
+const ReporterProfilePage = lazy(() => import('./pages/reporter/ReporterProfilePage'));
 
 // Team Pages
 const TeamDashboard = lazy(() => import('./pages/team/TeamDashboard'));
-const TeamLineupsPage = lazy(() => import('./pages/team/TeamLineupsPage'));
 const TeamPlayersPage = lazy(() => import('./pages/team/TeamPlayersPage'));
-const TeamDocumentsPage = lazy(() => import('./pages/team/TeamDocumentsPage'));
 const TeamFixturesPage = lazy(() => import('./pages/team/TeamFixturesPage'));
 const TeamProfilePage = lazy(() => import('./pages/team/TeamProfilePage'));
+const TeamMatchPage = lazy(() => import('./pages/team/TeamMatchPage'));
+const TeamFormationPage = lazy(() => import('./pages/team/TeamFormationPage'));
+const TeamPlayerPage = lazy(() => import('./pages/team/TeamPlayerPage'));
+const TeamStaffPage = lazy(() => import('./pages/team/TeamStaffPage'));
+const TeamAccountPage = lazy(() => import('./pages/team/TeamAccountPage'));
 
 // Amashuri Games (Rwanda Inter-School Sports) Pages
 const AmashuriLayout = lazy(() => import('./pages/akc3/AmashuriLayout'));
@@ -350,17 +363,34 @@ function App() {
             <Route path="/team" element={<TeamLayout />}>
               <Route index element={<Navigate to="/team/dashboard" replace />} />
               <Route path="dashboard" element={<TeamDashboard />} />
-              <Route path="players" element={<TeamPlayersPage />} />
-              <Route path="documents" element={<TeamDocumentsPage />} />
               <Route path="fixtures" element={<TeamFixturesPage />} />
-              <Route path="lineups" element={<TeamLineupsPage />} />
+              {/* The coach's counterpart to /reporter/match/:id — the same
+                  fixture, read from the club's side. */}
+              <Route path="match/:id" element={<TeamMatchPage />} />
+              <Route path="formation" element={<TeamFormationPage />} />
+              <Route path="players" element={<TeamPlayersPage />} />
+              {/* One player in full — the only screen a club can see a
+                  suspension on, so it is a page and not a modal. */}
+              <Route path="players/:id" element={<TeamPlayerPage />} />
+              <Route path="staff" element={<TeamStaffPage />} />
               <Route path="profile" element={<TeamProfilePage />} />
+              <Route path="account" element={<TeamAccountPage />} />
+              <Route index element={<Navigate to="/team/dashboard" replace />} />
             </Route>
 
             {/* Match Reporter Portal */}
             <Route element={<ReporterLayout />}>
-              <Route path="/reporter/dashboard" element={<LiveReportingPage />} />
+              {/* `dashboard` stays the home path: roleHome() sends every reporter
+                  here after login, and renaming it would break the one link the
+                  rest of the app holds to this portal. */}
+              <Route path="/reporter/dashboard" element={<ReporterTodayPage />} />
+              <Route path="/reporter/matches" element={<ReporterMatchesPage />} />
+              <Route path="/reporter/match/:id" element={<ReporterMatchConsolePage />} />
+              <Route path="/reporter/lineups" element={<ReporterLineupsPage />} />
+              <Route path="/reporter/results" element={<ReporterResultsPage />} />
+              <Route path="/reporter/guide" element={<ReporterGuidePage />} />
               <Route path="/reporter/profile" element={<ReporterProfilePage />} />
+              <Route path="/reporter" element={<Navigate to="/reporter/dashboard" replace />} />
             </Route>
             
             {/* Living styleguide — deliberately outside PublicLayout so the
