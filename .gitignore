@@ -60,3 +60,4 @@ nga-tourism-project-main/
 backups/
 
 .env*
+.neon

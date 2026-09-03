@@ -70,6 +70,7 @@ const AdminLeaguesPage = lazy(() => import('./pages/admin/AdminLeaguesPage'));
 const AdminTeamsPage = lazy(() => import('./pages/admin/AdminTeamsPage'));
 const AdminFixturesPage = lazy(() => import('./pages/admin/AdminFixturesPage'));
 const AdminPlayersPage = lazy(() => import('./pages/admin/AdminPlayersPage'));
+const AdminPlayerCreate = lazy(() => import('./pages/admin/AdminPlayerCreate'));
 const AdminDocumentsPage = lazy(() => import('./pages/admin/AdminDocumentsPage'));
 const AdminNewsPage = lazy(() => import('./pages/admin/AdminNewsPage'));
 const AdminArticleEditor = lazy(() => import('./pages/admin/AdminArticleEditor'));
@@ -282,6 +283,10 @@ function App() {
               <Route path="teams" element={<AdminTeamsPage />} />
               <Route path="fixtures" element={<AdminFixturesPage />} />
               <Route path="players" element={<AdminPlayersPage />} />
+              {/* Registering a player is fourteen fields, a photograph and three
+                  rules that can refuse it — too much for a dialog. See
+                  AdminPlayerCreate. */}
+              <Route path="players/create" element={<AdminPlayerCreate />} />
               <Route path="documents" element={<AdminDocumentsPage />} />
               <Route path="news" element={<AdminNewsPage />} />
               {/* Writing an article gets a page of its own — linkable, refreshable,

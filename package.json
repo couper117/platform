@@ -1,7 +1,7 @@
 {
   "name": "rnsp-platform",
   "version": "1.0.0",
-  "description": "Rwanda National Sports Platform (RNSP / RwaSport) \u2014 monorepo",
+  "description": "Rwanda National Sports Platform (RNSP / RwaSport) — monorepo",
   "private": true,
   "workspaces": [
     "apps/frontend",
@@ -52,5 +52,9 @@
     "fsevents@2.3.2": true,
     "prisma@5.22.0": true,
     "@scarf/scarf@1.4.0": true
+  },
+  "dependencies": {
+    "@neon/config": "^1.2.0",
+    "@neon/env": "^1.2.0"
   }
 }
