@@ -73,6 +73,13 @@ const ClubCrest = ({ team, color, size = 'md', className, ...props }) => {
           height={px}
           loading="lazy"
           decoding="async"
+          // Crests are hosted by clubs and third-party archives, and some of those
+          // hosts serve an HTML page instead of the image when the Referer is not
+          // one of theirs — HTTP 200 with a text/html body, so a status check
+          // passes while the crest silently fails to draw. Sending no referrer
+          // gets the image, and not telling someone else's server which page a
+          // visitor is on is the better default regardless.
+          referrerPolicy="no-referrer"
           className="h-full w-full object-contain"
         />
       ) : (

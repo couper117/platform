@@ -96,6 +96,7 @@ const PlayerHero = ({
             src={team.logo}
             alt=""
             aria-hidden="true"
+            referrerPolicy="no-referrer"
             className="pointer-events-none absolute -right-6 -top-8 h-44 w-44 object-contain opacity-[0.05]"
           />
         )}

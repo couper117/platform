@@ -209,7 +209,7 @@
     "sourceId": "72266",
     "slug": "Azomco",
     "name": "Azomco",
-    "logo": "https://www.eurobasket.com/logos/blank.gif",
+    "logo": null,
     "players": [
       {
         "sourceId": "480196",
@@ -344,7 +344,7 @@
     "sourceId": "74109",
     "slug": "East-Africa-University",
     "name": "East Africa University",
-    "logo": "https://www.eurobasket.com/logos/blank.gif",
+    "logo": null,
     "players": [
       {
         "sourceId": "604271",
@@ -535,7 +535,7 @@
     "sourceId": "70192",
     "slug": "Inspired-Generation",
     "name": "Inspired Generation",
-    "logo": "https://www.eurobasket.com/logos/blank.gif",
+    "logo": null,
     "players": [
       {
         "sourceId": "567561",
@@ -670,7 +670,7 @@
     "sourceId": "70191",
     "slug": "Kepler-BBC-Kigali",
     "name": "Kepler BBC Kigali",
-    "logo": "https://www.eurobasket.com/logos/blank.gif",
+    "logo": null,
     "players": [
       {
         "sourceId": "208072",
@@ -1490,7 +1490,7 @@
     "sourceId": "22626",
     "slug": "United-Generation-Basketball-Kigali",
     "name": "United Generation Basketball Kigali",
-    "logo": "https://www.eurobasket.com/logos/blank.gif",
+    "logo": null,
     "players": [
       {
         "sourceId": "358326",

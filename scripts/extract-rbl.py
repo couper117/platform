@@ -56,7 +56,13 @@ def parse_team(html, slug, tid):
     name = unescape(re.sub(r'\s+', ' ', title[0])) if title else slug.replace('-', ' ')
     name = re.sub(r'\s*Basketball Roster.*$', '', name).strip()
 
-    logo = re.findall(r'src="(https://www\.eurobasket\.com/logos/[^"]+)"', html)
+    # A club with no crest is served a transparent 16px `blank.gif`, which stored
+    # as a logo renders as an empty box on the club page — worse than the shield
+    # the app draws from the club's initials and colours when `logo` is null.
+    logo = [
+        u for u in re.findall(r'src="(https://www\.eurobasket\.com/logos/[^"]+)"', html)
+        if 'blank' not in u.lower()
+    ]
 
     # "Espoir BBC Kigali 2025" — the page says which season it is showing.
     head = re.findall(r'class="tabletop"[^>]*>(.*?)</td>', html, re.S)

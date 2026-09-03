@@ -1,0 +1,71 @@
+[
+  {
+    "team": "Mukura Victory Sports",
+    "sportId": 1,
+    "logo": "https://worldsoccerpins.com/web/image/39874-eae5725e/Mukura%20Victory%20Sports%20FC.png",
+    "source": "worldsoccerpins.com"
+  },
+  {
+    "team": "Kiyovu Sports",
+    "sportId": 1,
+    "logo": "https://worldsoccerpins.com/web/image/39872-04cad42e/Kiyovu%20Sports%20Association.png",
+    "source": "worldsoccerpins.com"
+  },
+  {
+    "team": "Musanze FC",
+    "sportId": 1,
+    "logo": "https://worldsoccerpins.com/web/image/39875-591190fd/Musanze%20FC.png",
+    "source": "worldsoccerpins.com"
+  },
+  {
+    "team": "Etincelles FC",
+    "sportId": 1,
+    "logo": "https://worldsoccerpins.com/web/image/39869-8dbf67d6/Etincelles%20FC.png",
+    "source": "worldsoccerpins.com"
+  },
+  {
+    "team": "APR FC",
+    "sportId": 1,
+    "logo": "https://aprfc.rw/wp-content/uploads/2025/07/Client3.png",
+    "source": "aprfc.rw (official club site)"
+  },
+  {
+    "team": "Police FC",
+    "sportId": 1,
+    "logo": "https://policefc.rw/wp-content/uploads/2024/02/png-logo-police.png",
+    "source": "policefc.rw (official club site)"
+  },
+  {
+    "team": "Rayon Sports",
+    "sportId": 1,
+    "logo": "https://worldsoccerpins.com/web/image/39877",
+    "source": "worldsoccerpins.com (id 39877, \"Rayon Sports FC.png\")",
+    "note": "seeklogo served this crest to curl but refused it to the browser, so it never drew."
+  },
+  {
+    "team": "AS Kigali",
+    "sportId": 1,
+    "logo": "https://worldsoccerpins.com/web/image/39883",
+    "source": "worldsoccerpins.com (id 39883, \"AS Kigali.webp\")",
+    "licence": "Moved off upload.wikimedia.org/wikipedia/en/, which is non-free fair-use material. Still a third-party redistribution of the club trademark; ask the club for the asset for clean provenance."
+  },
+  {
+    "team": "Gorilla FC",
+    "sportId": 1,
+    "logo": "https://worldsoccerpins.com/web/image/39887-2c02a43e/Gorilla%20FC.webp",
+    "source": "worldsoccerpins.com, matched against the Global Sports Archive copy"
+  },
+  {
+    "team": "Rutsiro FC Tsinda",
+    "sportId": 1,
+    "logo": "https://worldsoccerpins.com/web/image/39894-da3b93b8/Rutsiro%20FC.webp",
+    "source": "worldsoccerpins.com, matched against the Global Sports Archive copy"
+  },
+  {
+    "team": "Amagaju FC",
+    "sportId": 1,
+    "logo": "https://www.dsg-images.com/clubs/200x200/14416.png",
+    "source": "Global Sports Archive CDN — the only source that exists for this club",
+    "note": "This host serves an HTML page instead of the image when a Referer is sent, so it only works because crest images are rendered with referrerPolicy=no-referrer. Do not move it behind anything that adds one."
+  }
+]
