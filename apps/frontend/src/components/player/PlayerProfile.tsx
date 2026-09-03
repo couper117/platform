@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft } from 'lucide-react';
 import Avatar from '../ui/Avatar';
+import PlayerHero from './PlayerHero';
 import Badge from '../ui/Badge';
 import cn from '../ui/cn';
 
@@ -141,9 +142,16 @@ type PlayerProfileProps = {
    * athlete's form into the national match centre, which does not hold that game.
    */
   matchBase?: string;
+  /**
+   * Hand the top of the page to the club: its colour, its crest, the player in
+   * front of it. Off by default, and deliberately so — the Amashuri athlete page
+   * renders this same component for CHILDREN, where a stadium-sized name over a
+   * school's colours is the wrong register entirely.
+   */
+  hero?: boolean;
 };
 
-const PlayerProfile = ({ player, backTo, backLabel, affiliation, extraRows, matchBase = '/matches' }: PlayerProfileProps) => {
+const PlayerProfile = ({ player, backTo, backLabel, affiliation, extraRows, matchBase = '/matches', hero: heroBand = false }: PlayerProfileProps) => {
   const { t, i18n } = useTranslation();
 
   const season = player.season ?? {};
@@ -173,11 +181,30 @@ const PlayerProfile = ({ player, backTo, backLabel, affiliation, extraRows, matc
   const table = ordered.slice(3);
   const age = ageOf(player.dateOfBirth);
   const form = player.form ?? [];
+  const career = player.career ?? [];
+  const current = career.find((c: any) => c.current);
+  const previous = career.filter((c: any) => !c.current);
+
+  // The strip under the name. Everything here is a fact from the record, and a
+  // fact that is absent is simply not a cell — see PlayerHero's header comment.
+  const facts = [
+    player.height && { label: t('player.height'), value: `${player.height} cm` },
+    player.position && { label: t('player.position'), value: player.position },
+    player.nationality && { label: t('player.nationality'), value: player.nationality },
+    typeof player.jerseyNumber === 'number' && { label: t('player.squad_no'), value: player.jerseyNumber },
+    current?.fromYear && { label: t('player.joined'), value: current.fromYear },
+    previous[0] && { label: t('player.previous_club'), value: previous[0].club },
+  ].filter(Boolean) as Array<{ label: string; value: React.ReactNode }>;
   const dateFmt = new Intl.DateTimeFormat(i18n.language, { day: 'numeric', month: 'short' });
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4 px-4 py-4 lg:max-w-5xl lg:px-6 lg:py-6">
-      {backTo && (
+    <>
+      {heroBand && (
+        <PlayerHero player={player} backTo={backTo} backLabel={backLabel} facts={facts} />
+      )}
+
+      <div className="mx-auto max-w-3xl space-y-4 px-4 py-4 lg:max-w-5xl lg:px-6 lg:py-6">
+      {!heroBand && backTo && (
         <Link
           to={backTo}
           className="inline-flex min-h-tap items-center gap-1 text-sm text-secondary transition-colors duration-150 ease-standard hover:text-primary"
@@ -188,6 +215,7 @@ const PlayerProfile = ({ player, backTo, backLabel, affiliation, extraRows, matc
       )}
 
       {/* Identity */}
+      {!heroBand && (
       <header className="flex items-center gap-4 rounded-card border border-hairline bg-surface p-4">
         <Avatar
           src={player.photo}
@@ -208,6 +236,7 @@ const PlayerProfile = ({ player, backTo, backLabel, affiliation, extraRows, matc
           {affiliation}
         </div>
       </header>
+      )}
 
       {/* Season */}
       {hero.length > 0 && (
@@ -273,6 +302,39 @@ const PlayerProfile = ({ player, backTo, backLabel, affiliation, extraRows, matc
         </section>
       )}
 
+      {/* Career — the clubs before this one */}
+      {career.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="font-display text-lg font-semibold text-primary">{t('player.career')}</h2>
+          <ol className="overflow-hidden rounded-card border border-hairline bg-surface">
+            {career.map((c: any) => (
+              <li
+                key={c.id}
+                className="flex items-center gap-3 border-b border-hairline px-3 py-2.5 last:border-0"
+              >
+                {/* The current club gets the marker; the rest are history. */}
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    'h-2 w-2 shrink-0 rounded-full',
+                    c.current ? 'bg-brand' : 'bg-surface-3'
+                  )}
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-primary">{c.club}</p>
+                  {c.country && <p className="text-xs text-tertiary">{c.country}</p>}
+                </div>
+                <span className="shrink-0 text-sm tabular-nums text-secondary">
+                  {c.current
+                    ? t('player.since_year', { year: c.fromYear })
+                    : [c.fromYear, c.toYear].filter(Boolean).join('–') || '—'}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
       {/* Profile */}
       <section className="space-y-3">
         <h2 className="font-display text-lg font-semibold text-primary">{t('player.profile')}</h2>
@@ -285,7 +347,8 @@ const PlayerProfile = ({ player, backTo, backLabel, affiliation, extraRows, matc
           {extraRows}
         </div>
       </section>
-    </div>
+      </div>
+    </>
   );
 };
 

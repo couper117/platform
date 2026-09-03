@@ -420,6 +420,7 @@ model Player {
   topScorer     TopScorer?
   events        MatchEvent[]     @relation("PlayerEvent")
   subEvents     MatchEvent[]     @relation("SubEvent")
+  career        PlayerCareer[]
   transfersFrom Transfer[]
   suspensions   Suspension[]
 
@@ -753,6 +754,28 @@ model TopScorer {
 
   @@index([leagueId])
   @@index([teamId])
+}
+
+/// A player's club history BEFORE this platform.
+///
+/// `Transfer` cannot hold it: that model moves a player between two rows in our own
+/// `Team` table, so it can express "Rayon Sports to APR" and nothing else. A signing
+/// from Chipola JC in the United States, or from a club that simply is not on the
+/// platform, has no `toTeamId` to point at. Career history is free text by nature —
+/// it is a record of somewhere else — so it is stored as such.
+model PlayerCareer {
+  id        Int      @id @default(autoincrement())
+  playerId  Int
+  player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  club      String   @db.VarChar(200)
+  country   String?  @db.VarChar(100)
+  fromYear  Int?     @db.SmallInt
+  toYear    Int?     @db.SmallInt
+  /// The club they are at now, so a page can say "since 2024" rather than an end year.
+  current   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([playerId])
 }
 
 model Transfer {

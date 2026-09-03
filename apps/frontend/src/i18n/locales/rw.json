@@ -1023,7 +1023,15 @@
       "conceded": "Yatsinzwe"
     },
     "not_found": "Umukinnyi ntabonetse",
-    "not_found_hint": "Uyu mukinnyi ashobora kuba yarakuwemo, cyangwa iyi link ntikiri nshya."
+    "not_found_hint": "Uyu mukinnyi ashobora kuba yarakuwemo, cyangwa iyi link ntikiri nshya.",
+    "position": "Umwanya",
+    "squad_no": "Nimero",
+    "joined": "Yinjiye",
+    "previous_club": "Ikipe yabanje",
+    "career": "Amateka",
+    "since_year": "Kuva {{year}}",
+    "teammates": "Bagenzi be",
+    "full_squad": "Ikipe yose"
   },
   "reporter": {
     "title": "Gutanga Amakuru",

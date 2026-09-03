@@ -118,6 +118,9 @@ const getPlayer = async (req, res, next) => {
         team: true,
         ...(privileged ? { documents: true } : {}),
         suspensions: { where: { active: true } },
+        // Clubs before this one. Ordered so the current spell leads and the rest
+        // read backwards in time, which is how a career is written down.
+        career: { orderBy: [{ current: 'desc' }, { fromYear: 'desc' }, { toYear: 'desc' }] },
       },
     });
 

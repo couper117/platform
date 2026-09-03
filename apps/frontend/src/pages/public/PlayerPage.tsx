@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { getPlayer } from '../../api/endpoints/players';
 import PlayerProfile from '../../components/player/PlayerProfile';
+import SquadSection from '../../components/player/SquadSection';
 import Seo from '../../components/shared/Seo';
 import ClubCrest from '../../components/ui/ClubCrest';
 import ErrorState from '../../components/ui/ErrorState';
@@ -59,6 +60,10 @@ const PlayerPage = () => {
       />
       <PlayerProfile
         player={player}
+        // A club player gets the club's colours across the top. The Amashuri
+        // athlete page renders the same component without this, because that one
+        // is about children.
+        hero
         backTo={player.team?.id ? `/teams/${player.team.id}/players` : undefined}
         backLabel={player.team?.name}
         affiliation={player.team?.id && (
@@ -71,6 +76,12 @@ const PlayerPage = () => {
           </Link>
         )}
       />
+      {player.team?.id && (
+        <div className="mx-auto max-w-3xl px-4 lg:max-w-5xl lg:px-6">
+          <SquadSection team={player.team} currentPlayerId={player.id} />
+        </div>
+      )}
+
       {/* Advertising sits at the FOOT of the page, after the content, never
           spliced into it. An advert dropped between two fixtures or two
           paragraphs interrupts the thing the reader came for; down here it is

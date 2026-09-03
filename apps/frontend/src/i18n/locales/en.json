@@ -1023,7 +1023,15 @@
       "conceded": "Conceded"
     },
     "not_found": "Player not found",
-    "not_found_hint": "This player may have been removed, or the link is out of date."
+    "not_found_hint": "This player may have been removed, or the link is out of date.",
+    "position": "Position",
+    "squad_no": "Squad number",
+    "joined": "Joined",
+    "previous_club": "Previous club",
+    "career": "Career",
+    "since_year": "Since {{year}}",
+    "teammates": "Teammates",
+    "full_squad": "Full squad"
   },
   "reporter": {
     "title": "Pitch-Side",

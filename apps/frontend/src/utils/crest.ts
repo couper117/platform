@@ -1,3 +1,5 @@
+import { readableOn, shade } from './color';
+
 /**
  * Generated fallback artwork — original SVG data-URIs, computed on the fly.
  *
@@ -26,26 +28,6 @@ const mono = (name: string, n = 3) =>
     .join('')
     .toUpperCase() || '?';
 
-const readableOn = (hex: string) => {
-  const h = hex.replace('#', '');
-  if (h.length !== 6) return '#ffffff';
-  const [r, g, b] = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16));
-  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.6 ? '#0b0b0f' : '#ffffff';
-};
-
-function shade(hex: string, t: number) {
-  const h = hex.replace('#', '');
-  if (h.length !== 6) return hex;
-  const out = [0, 2, 4]
-    .map((i) => {
-      const v = parseInt(h.slice(i, i + 2), 16);
-      const target = t < 0 ? 0 : 255;
-      return Math.round(v + (target - v) * Math.abs(t));
-    })
-    .map((v) => v.toString(16).padStart(2, '0'))
-    .join('');
-  return `#${out}`;
-}
 
 // A stable colour from a name, when no club colour is known.
 const autoColor = (name: string) => `hsl(${hue(name)} 55% 42%)`;

@@ -1023,7 +1023,15 @@
       "conceded": "Encaissés"
     },
     "not_found": "Joueur introuvable",
-    "not_found_hint": "Ce joueur a peut-être été retiré, ou le lien n’est plus à jour."
+    "not_found_hint": "Ce joueur a peut-être été retiré, ou le lien n’est plus à jour.",
+    "position": "Poste",
+    "squad_no": "Numéro",
+    "joined": "Arrivé en",
+    "previous_club": "Club précédent",
+    "career": "Carrière",
+    "since_year": "Depuis {{year}}",
+    "teammates": "Coéquipiers",
+    "full_squad": "Effectif complet"
   },
   "reporter": {
     "title": "Reportage",
