@@ -187,6 +187,88 @@ const readCapabilityList = (value, field) => {
   return { list };
 };
 
+/**
+ * Create a staff account.
+ *
+ * There was no way to make one. The only registration path is
+ * /auth/team/register, which creates a club and its manager — so a Super Admin
+ * could change the role of somebody who had already registered a team, and could
+ * not bring a reporter, a league administrator or an Amashuri administrator into
+ * existence at all. Every such account on this platform came from the seed.
+ *
+ * The password is generated rather than chosen by the administrator, and
+ * returned exactly once. An administrator who picks a colleague's password knows
+ * it, and one who knows it can act as them — which quietly undoes the point of
+ * the activity log recording who did what.
+ */
+// @desc    Create a staff account
+// @route   POST /api/v1/admin/users
+// @access  Private (users.write)
+const createUser = async (req, res, next) => {
+  try {
+    const { fullName, email, username, role, phone } = req.body;
+
+    if (!fullName || String(fullName).trim().length < 2) {
+      return res.status(400).json({ success: false, message: 'fullName is required' });
+    }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ success: false, message: 'A valid email is required' });
+    }
+    if (!role || !ASSIGNABLE_ROLES.includes(role)) {
+      return res.status(400).json({ success: false, message: `role must be one of ${ASSIGNABLE_ROLES.join(', ')}` });
+    }
+
+    // Derived from the email when not given, because an administrator inventing
+    // usernames is an administrator inventing collisions.
+    const handle = String(username || email.split('@')[0]).toLowerCase().replace(/[^a-z0-9._-]/g, '');
+    const clash = await prisma.user.findFirst({ where: { OR: [{ username: handle }, { email }] } });
+    if (clash) {
+      return res.status(409).json({
+        success: false,
+        message: clash.email === email ? 'That email already has an account.' : 'That username is taken.',
+      });
+    }
+
+    // Long enough that it does not need a rotation policy to be safe, and shown
+    // once so it has to be handed over deliberately.
+    const bcrypt = require('bcryptjs');
+    const crypto = require('crypto');
+    const temporaryPassword = crypto.randomBytes(9).toString('base64url');
+
+    const user = await prisma.user.create({
+      data: {
+        fullName: String(fullName).trim(),
+        email,
+        username: handle,
+        phone: phone || null,
+        role,
+        password: await bcrypt.hash(temporaryPassword, 12),
+        active: true,
+        verified: true,
+      },
+      select: { id: true, fullName: true, email: true, username: true, role: true, active: true },
+    });
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Create User',
+      detail: `Created ${user.email} as ${user.role}`,
+      module: 'admin',
+      ip: req.ip,
+    });
+
+    res.status(201).json({
+      success: true,
+      data: { ...user, capabilities: capabilitiesFor(user) },
+      // Returned once and never stored in readable form. Hand it over directly;
+      // it will not be shown again.
+      temporaryPassword,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Update a user's role, active flag and per-account capabilities
 // @route   PATCH /api/v1/admin/users/:id
 // @access  Private (users.write)
@@ -464,6 +546,6 @@ const getMediaLibrary = async (req, res, next) => {
 
 module.exports = {
   getAdminStats, getRoster, assignAmashuriAdmin, revokeAdmin,
-  getUsers, updateUser, getCapabilityCatalogue,
+  getUsers, createUser, updateUser, getCapabilityCatalogue,
   getSystemHealth, getMediaLibrary, getActivityTrend,
 };

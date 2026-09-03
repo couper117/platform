@@ -46,3 +46,36 @@ yet fully closed because remediation is operational).
 
 For a real deployment, add a contact here (email / security.txt) for responsible
 disclosure.
+
+## AI provider credentials
+
+The AI assistant calls a third-party provider, which means an API key and an
+outbound flow of data. Both are handled deliberately.
+
+**The key.** It may be set as a server environment variable (`GEMINI_API_KEY` and
+the other `*_API_KEY` variables in `.env.example`) or typed into
+**Admin > AI Assistant**. A key entered in the console is encrypted with
+AES-256-GCM before it reaches the `Setting` table, under a key derived from
+`AI_SECRET_KEY` — or from `JWT_SECRET` when that is unset — so a database dump
+alone does not yield a usable credential. It is never returned to a browser: the
+console is served only the last four characters. The generic settings endpoints
+refuse to read or write anything under `ai.`, so the credential cannot be
+extracted or replaced with a plaintext value through them. Only `ai.configure`
+(Super Admin) reaches any of it.
+
+Note that rotating `JWT_SECRET` without a separate `AI_SECRET_KEY` set makes
+stored AI keys unreadable. That fails visibly — the console reports the key as
+needing re-entry and the server falls back to the environment variable.
+
+**The data.** Each question is answered against a context assembled from what
+the public site already publishes: clubs, fixtures, scores, standings, venues,
+competitions, news, and senior players' sporting details. Identity and licence
+numbers, dates of birth, telephone numbers, e-mail addresses, user accounts,
+documents, payments and contact-form messages are never included. The Amashuri
+school athletes are excluded in full — they are children (Law N° 058/2021 art. 9),
+and publishing a page on our own site is not the same permission as transmitting
+the record to a processor abroad. Questions and answers are not stored.
+
+Where no data may leave Rwanda at all, select the **Ollama (self-hosted)**
+provider and point it at a machine you control; no key is needed and no request
+leaves your network.

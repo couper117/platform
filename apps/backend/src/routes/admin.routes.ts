@@ -2,7 +2,7 @@ const express = require('express');
 const { assignLeagueAdmin, assignFederationAdmin } = require('../controllers/adminAssignments.controller');
 const {
   getRoster, assignAmashuriAdmin, revokeAdmin,
-  getUsers, updateUser, getCapabilityCatalogue,
+  getUsers, createUser, updateUser, getCapabilityCatalogue,
   getSystemHealth,
   getActivityTrend, getMediaLibrary,
 } = require('../controllers/admin.controller');
@@ -16,6 +16,7 @@ const router = express.Router();
 router.get('/stats', protect, requireCapability('admin.stats'), getStats);
 router.get('/roster', protect, requireCapability('users.read'), getRoster);
 router.get('/users', protect, requireCapability('users.read'), getUsers);
+router.post('/users', protect, requireCapability('users.write'), createUser);
 router.patch('/users/:id', protect, requireCapability('users.write'), validate(schemas.updateUser), updateUser);
 router.get('/capabilities', protect, requireCapability('users.write'), getCapabilityCatalogue);
 router.get('/system-health', protect, requireCapability('system.health'), getSystemHealth);

@@ -40,6 +40,8 @@ export const ADMIN_PAGES = [
   // needs it; per-fixture ownership is still enforced server-side.
   { path: '/admin/umuganda', label: 'Umuganda', capability: 'umuganda.write' },
   { path: '/admin/settings', label: 'Settings', capability: 'settings.write' },
+  // Its own capability, not settings.write: this page holds a paid API key.
+  { path: '/admin/ai', label: 'AI Assistant', capability: 'ai.configure' },
 
   // League Admin operational sub-sections
   { path: '/admin/league/match-reports', label: 'Match Reports', capability: 'fixtures.report' },

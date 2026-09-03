@@ -38,6 +38,7 @@ const internalRoutes = require('./routes/internal.routes');
 const reporterRoutes = require('./routes/reporters.routes');
 const favoriteRoutes = require('./routes/favorites.routes');
 const notificationRoutes = require('./routes/notifications.routes');
+const aiRoutes = require('./routes/ai.routes');
 
 const app = express();
 
@@ -140,6 +141,8 @@ app.use('/api/v1/internal', internalRoutes);
 app.use('/api/v1/reporters', reporterRoutes);
 app.use('/api/v1/favorites', favoriteRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
+// The in-app assistant: a public status/chat pair plus the admin configuration.
+app.use('/api/v1/ai', aiRoutes);
 
 // Health check
 app.get('/api/v1/health', (req, res) => {

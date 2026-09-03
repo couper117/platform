@@ -35,6 +35,24 @@ const envSchema = z.object({
   FLW_WEBHOOK_HASH: z.string().optional(),   // the dashboard "secret hash" sent back in the verif-hash header
   FLW_BASE_URL: z.string().url().default('https://api.flutterwave.com/v3'),
   PAYMENT_CURRENCY: z.string().default('RWF'),
+  // ── AI assistant ────────────────────────────────────────────────────────
+  // All optional. A provider key may be set here OR typed into the admin console
+  // (where it is stored encrypted); the console wins when both exist, because an
+  // administrator changing a key must not be silently overridden by a deploy
+  // variable. Nothing here is ever sent to the browser.
+  GEMINI_API_KEY: z.string().optional(),
+  OPENAI_API_KEY: z.string().optional(),
+  ANTHROPIC_API_KEY: z.string().optional(),
+  OPENROUTER_API_KEY: z.string().optional(),
+  GROQ_API_KEY: z.string().optional(),
+  MISTRAL_API_KEY: z.string().optional(),
+  DEEPSEEK_API_KEY: z.string().optional(),
+  // Encrypts API keys typed into the console before they are stored. Falls back
+  // to JWT_SECRET when unset — set it separately if the two should be rotated on
+  // different schedules (rotating JWT_SECRET otherwise makes stored keys
+  // unreadable, which the console reports rather than hides).
+  AI_SECRET_KEY: z.string().optional(),
+
   FRONTEND_URL: z.string().url().default('http://localhost:5173'),
   // Where personal data is stored, and the certificate that permits it if that is
   // outside Rwanda (Law N° 058/2021 arts. 48–50). Checked at boot by

@@ -92,7 +92,10 @@ counts above, plus the full unit suite and typecheck.
 binds `[::1]`, so use `localhost`, never `127.0.0.1`; log in as `admin` /
 `Manager@123`).
 
+---
+
 ## Standing constraints
+
 - **Never start a dev server.** The user is the only one who runs it.
 - "Improve the UI, don't completely change it" — except the admin portal, where a
   revamp was explicitly asked for. Even there: same sections, same order, same
@@ -104,6 +107,9 @@ binds `[::1]`, so use `localhost`, never `127.0.0.1`; log in as `admin` /
 
 
 ## Recently Completed
+- In-app AI assistant grounded in the platform's own rows, with an admin
+  section to pick the provider (`/api/v1/ai`, `AdminAiPage`, `AssistantWidget`).
+- Admin staff-account creation, with a basketball reporter to prove it.
 - Registering a player moved out of a dialog onto its own page at
   `/admin/players/create`; typechecks and builds, still owed a browser pass and
   one end-to-end registration.
@@ -117,3 +123,12 @@ binds `[::1]`, so use `localhost`, never `127.0.0.1`; log in as `admin` /
   next-up fixtures when nothing is live.
 - `/fixtures` all-sports desktop: ungrouped 3-col MatchTile grid, 3,113px (from
   7,255px at the worst attempt).
+- `/calendar`, `/news` images, `/sports` match cards, standings table width.
+- The Amashuri match page rebuilt on the shared MatchScoreboard/EventTimeline,
+  and the gutter rails made opt-in per route (`RAIL_ROUTES`).
+- School -> team -> athlete: `/amashuri/teams/:id` and `/amashuri/athletes/:id`,
+  with `PlayerProfile` shared between club players and school athletes.
+- Amashuri restructured into a section with a photo hero and category tabs.
+- One navigation list across desktop bar, mobile drawer and bottom tab bar.
+- Login side panel cross-fades the hero photography (`useHeroRotation`).
+- Player pages with per-sport season stats and recent form.
