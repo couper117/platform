@@ -74,7 +74,10 @@ const getTeam = async (req, res, next) => {
             include: { documents: true },
           },
           leagues: {
-            include: { league: true },
+            // The league's table comes with it so a club page can say where it
+            // sits. Standing has no `position` column — a table's order is its
+            // points — so the row is ranked at the point of display.
+            include: { league: { include: { standings: true } } },
           },
         },
       });
@@ -95,7 +98,10 @@ const getTeam = async (req, res, next) => {
             include: { documents: true },
           },
           leagues: {
-            include: { league: true },
+            // The league's table comes with it so a club page can say where it
+            // sits. Standing has no `position` column — a table's order is its
+            // points — so the row is ranked at the point of display.
+            include: { league: { include: { standings: true } } },
           },
         },
       });
@@ -199,7 +205,24 @@ const updateTeam = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'Not authorized to update this team' });
     }
 
-    const { name, shortName, sportId, foundedYear, homeVenue, city, province, description, email, phone, website, active } = req.body;
+    const { name, shortName, sportId, foundedYear, homeVenue, city, province, description, email, phone, website, active, socials } = req.body;
+
+    // Only the networks the club page knows how to render. An unrecognised key
+    // would sit in the column forever with nothing to display it, and the values
+    // are URLs going onto a public page, so anything that is not http(s) is
+    // dropped rather than trusted — a javascript: href is an XSS waiting to be
+    // clicked. Sending an empty object clears every link.
+    const SOCIAL_KEYS = ['facebook', 'instagram', 'x', 'youtube', 'tiktok', 'tickets', 'store'];
+    const cleanSocials = (input: any) => {
+      if (input === undefined) return undefined;
+      const raw = typeof input === 'string' ? JSON.parse(input || '{}') : input;
+      const out: Record<string, string> = {};
+      for (const k of SOCIAL_KEYS) {
+        const v = String(raw?.[k] ?? '').trim();
+        if (v && /^https?:\/\//i.test(v)) out[k] = v;
+      }
+      return out;
+    };
 
     let logo = team.logo;
     if (req.file) {
@@ -222,6 +245,7 @@ const updateTeam = async (req, res, next) => {
         email,
         phone,
         website,
+        socials: cleanSocials(socials),
         active: active !== undefined ? (active === 'true' || active === true) : undefined,
         logo,
       },

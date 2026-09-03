@@ -962,7 +962,19 @@
     "stats_empty_title": "No stats yet",
     "stats_empty_hint": "Stats appear once this club has completed fixtures.",
     "players_empty_title": "No players yet",
-    "players_empty_hint": "This club's squad will appear here once players are registered."
+    "players_empty_hint": "This club's squad will appear here once players are registered.",
+    "upcoming_games": "Upcoming games",
+    "see_full_schedule": "See full schedule",
+    "at_home": "Home",
+    "away": "Away",
+    "official_site": "Official site",
+    "tickets": "Tickets",
+    "store": "Store",
+    "stat_played": "Played",
+    "stat_record": "Record",
+    "stat_for": "Scored / game",
+    "stat_against": "Conceded / game",
+    "position_in": "{{position}} in {{league}}"
   },
   "player": {
     "seo": "{{name}} — season statistics and profile at {{team}}.",

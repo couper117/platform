@@ -7,6 +7,7 @@ import { CompetitionHeader } from '../../../components/match/MatchGroup';
 import Avatar from '../../../components/ui/Avatar';
 import EmptyState from '../../../components/ui/EmptyState';
 import SectionHeading from '../../../components/ui/SectionHeading';
+import UpcomingGames from '../../../components/club/UpcomingGames';
 
 /**
  * Team — the index tab. A snapshot, not a repeat of the other four tabs: the
@@ -47,8 +48,18 @@ const ClubOverview = () => {
     return <EmptyState icon={Info} title={t('team.overview_empty_title')} hint={t('team.overview_empty_hint')} />;
   }
 
+  // Soonest first, and only what is actually still to come.
+  const upcoming = [...scheduled]
+    .filter((f: any) => f.matchDate)
+    .sort((a: any, b: any) => new Date(a.matchDate).getTime() - new Date(b.matchDate).getTime())
+    .slice(0, 10);
+
   return (
     <div className="flex flex-col gap-8">
+      {/* The next matches lead, the way they do on a club's own site — it is what
+          most visitors came to check. */}
+      <UpcomingGames fixtures={upcoming} teamId={teamId} seeAllTo={`${base}/matches`} />
+
       {hasRecord && (
         <section>
           <SectionHeading

@@ -962,7 +962,19 @@
     "stats_empty_title": "Nta mibare irahari",
     "stats_empty_hint": "Imibare izagaragara nyuma y'uko iyi kipe imaze gukina imikino.",
     "players_empty_title": "Nta bakinnyi barahari",
-    "players_empty_hint": "Abakinnyi b'iyi kipe bazagaragara hano nyuma yo kwiyandikisha."
+    "players_empty_hint": "Abakinnyi b'iyi kipe bazagaragara hano nyuma yo kwiyandikisha.",
+    "upcoming_games": "Imikino iri imbere",
+    "see_full_schedule": "Reba gahunda yose",
+    "at_home": "Mu rugo",
+    "away": "Hanze",
+    "official_site": "Urubuga rwemewe",
+    "tickets": "Amatike",
+    "store": "Iduka",
+    "stat_played": "Yakinnye",
+    "stat_record": "Ibyavuye",
+    "stat_for": "Yatsinze / umukino",
+    "stat_against": "Yatsinzwe / umukino",
+    "position_in": "{{position}} muri {{league}}"
   },
   "player": {
     "seo": "{{name}} — imibare y’igihembwe n’umwirondoro muri {{team}}.",

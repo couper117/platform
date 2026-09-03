@@ -63,6 +63,7 @@ const BASE = 'absolute z-30';
  * under the 72px desktop header.
  */
 const HERO_BOTTOM = [
+  ['/teams/', 'top-[430px]'], // club band + figures + links bar ends at 392px
   ['/sports/', 'top-[400px]'], // sport identity photo ends at 372px
   ['/amashuri', 'top-[380px]'], // Games hero ends at 352px
   ['/', 'top-[740px]'], // the landing hero ends at 712px — checked last, it matches everything

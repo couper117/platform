@@ -34,6 +34,18 @@ const LOGO = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSVVe2e0dHLov
  * monochrome crest looked like two different clubs on one page. A soft charcoal
  * carries the crest without competing with it, with silver for the accent line.
  */
+/**
+ * The club's own channels. APR BBC is on X and Instagram as @APR_BBC and the
+ * parent club runs aprfc.rw; anything the club later corrects is edited in the
+ * admin (Teams -> the link icon), which writes the same `socials` column.
+ */
+const SOCIALS = {
+  x: 'https://x.com/APR_BBC',
+  instagram: 'https://www.instagram.com/apr_bbc/',
+  facebook: 'https://www.facebook.com/APRBBC/',
+};
+const WEBSITE = 'https://aprfc.rw';
+
 const PRIMARY = '#23262B';
 const SECONDARY = '#D9DCE1';
 
@@ -104,7 +116,7 @@ const main = async () => {
 
   await prisma.team.update({
     where: { id: team.id },
-    data: { logo: LOGO, primaryColor: PRIMARY, secondaryColor: SECONDARY },
+    data: { logo: LOGO, primaryColor: PRIMARY, secondaryColor: SECONDARY, socials: SOCIALS, website: WEBSITE },
   });
   console.log(`club: ${team.name} (#${team.id}) — logo and colours set`);
 

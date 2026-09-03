@@ -962,7 +962,19 @@
     "stats_empty_title": "Aucune statistique pour le moment",
     "stats_empty_hint": "Les statistiques apparaissent une fois que ce club a joué des matchs.",
     "players_empty_title": "Aucun joueur pour le moment",
-    "players_empty_hint": "L'effectif de ce club apparaîtra ici une fois les joueurs inscrits."
+    "players_empty_hint": "L'effectif de ce club apparaîtra ici une fois les joueurs inscrits.",
+    "upcoming_games": "Prochains matchs",
+    "see_full_schedule": "Voir le calendrier",
+    "at_home": "À domicile",
+    "away": "À l’extérieur",
+    "official_site": "Site officiel",
+    "tickets": "Billets",
+    "store": "Boutique",
+    "stat_played": "Joués",
+    "stat_record": "Bilan",
+    "stat_for": "Marqués / match",
+    "stat_against": "Encaissés / match",
+    "position_in": "{{position}} en {{league}}"
   },
   "player": {
     "seo": "{{name}} — statistiques de la saison et profil, {{team}}.",

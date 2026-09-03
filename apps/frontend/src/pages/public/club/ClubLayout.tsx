@@ -14,6 +14,7 @@ import ErrorState from '../../../components/ui/ErrorState';
 import Skeleton from '../../../components/ui/Skeleton';
 import cn from '../../../components/ui/cn';
 import PageAd from '../../../components/shared/PageAd';
+import TeamHero from '../../../components/club/TeamHero';
 
 /**
  * The shell every club page shares: identity, meta and the tab bar.
@@ -147,54 +148,70 @@ const ClubLayout = () => {
     );
   }
 
-  // No photo/banner field exists on the team record (mockData's team shape carries
-  // only `logo`, `primaryColor` and `secondaryColor` — see src/api/demo/mockData.ts).
-  // The crest IS the club's picture here; nothing is invented behind it.
-  const locationLine = [team.city, team.district].filter(Boolean).join(', ');
   const base = `/teams/${id}`;
+
+  /**
+   * The club's season, read off the matches it has actually played.
+   *
+   * Computed here rather than in the hero so the hero stays a presentation
+   * component, and because `completed` is already in this shell's hands — the tabs
+   * all reduce over the same list.
+   */
+  const played = completed.length;
+  const outcome = (f: any) => {
+    const home = isTeamHome(f);
+    const own = home ? f.homeScore : f.awayScore;
+    const other = home ? f.awayScore : f.homeScore;
+    if (own == null || other == null) return null;
+    return { own, other, result: own === other ? 'D' : own > other ? 'W' : 'L' };
+  };
+  const results = completed.map(outcome).filter(Boolean) as Array<{ own: number; other: number; result: string }>;
+  const won = results.filter((r) => r.result === 'W').length;
+  const drawn = results.filter((r) => r.result === 'D').length;
+  const lost = results.filter((r) => r.result === 'L').length;
+  // Per game, to one decimal — the figure a fan quotes. Null when nothing has been
+  // played, so the hero omits the cell rather than dividing by zero.
+  const scoredPerGame = results.length ? results.reduce((n, r) => n + r.own, 0) / results.length : null;
+  const concededPerGame = results.length ? results.reduce((n, r) => n + r.other, 0) / results.length : null;
+
+  /**
+   * Where they sit, if a league they are in publishes a table.
+   *
+   * A Standing row carries no position — a table's order IS its points — so the
+   * table is sorted the way the standings page sorts it and the club's index in
+   * that order is the answer.
+   */
+  const standing = (() => {
+    for (const entry of team.leagues || []) {
+      const league = entry.league ?? entry;
+      const rows = [...(league?.standings || [])].sort(
+        (a: any, b: any) =>
+          b.points - a.points ||
+          (b.goalsFor - b.goalsAgainst) - (a.goalsFor - a.goalsAgainst) ||
+          b.goalsFor - a.goalsFor
+      );
+      const at = rows.findIndex((r: any) => Number(r.teamId) === Number(id));
+      if (at >= 0) return { position: at + 1, league: league.name };
+    }
+    return null;
+  })();
 
   return (
     <div className="min-h-screen bg-page">
       <Seo title={team.name} description={t('team.seo_desc', { team: team.name })} />
 
-      <div className="mx-auto max-w-3xl px-4 pt-4 lg:max-w-6xl lg:px-6 lg:pt-6">
-        <Link
-          to="/teams"
-          className="mb-3 inline-flex items-center gap-1.5 text-xs font-semibold text-secondary transition-colors duration-150 ease-standard hover:text-brand-text"
-        >
-          <ChevronLeft size={14} aria-hidden="true" /> {t('team.back_to_teams')}
-        </Link>
+      <TeamHero
+        team={team}
+        played={played}
+        won={won}
+        drawn={drawn}
+        lost={lost}
+        scoredPerGame={scoredPerGame}
+        concededPerGame={concededPerGame}
+        standing={standing}
+      />
 
-        <div className="mb-2 flex items-center gap-3">
-          <ClubCrest team={team} size="lg" />
-          {team.sport?.name && <Badge>{team.sport.name}</Badge>}
-        </div>
-
-        <h1 className="mb-3 font-display text-xl font-extrabold tracking-[-0.02em] text-primary sm:mb-4 sm:text-3xl">
-          {team.name}
-        </h1>
-
-        <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-secondary">
-          {locationLine && (
-            <span className="flex items-center gap-1.5">
-              <MapPin size={14} className="text-tertiary" aria-hidden="true" />
-              {locationLine}
-            </span>
-          )}
-          {team.foundedYear && (
-            <span className="flex items-center gap-1.5">
-              <Calendar size={14} className="text-tertiary" aria-hidden="true" />
-              {t('team.founded_year', { year: team.foundedYear })}
-            </span>
-          )}
-          {team.homeVenue && (
-            <span className="flex items-center gap-1.5">
-              <Landmark size={14} className="text-tertiary" aria-hidden="true" />
-              {team.homeVenue}
-            </span>
-          )}
-        </div>
-
+      <div className="mx-auto max-w-3xl px-4 lg:max-w-6xl lg:px-6">
         {/* Real routes, not anchors: each is linkable, and Back undoes it. */}
         <nav
           aria-label={t('team.nav_label', 'Team sections')}

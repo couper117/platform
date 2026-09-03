@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Users, ShieldCheck, XCircle, Trash2 } from 'lucide-react';
+import { Users, ShieldCheck, XCircle, Trash2, Link2 } from 'lucide-react';
 import apiClient from '../../api/client';
 import { PageHeader, Panel, TableWrap, Th, Td } from '../../components/admin/AdminUI';
 import {
   IconButton, ClubCrest, StatusPill, EmptyState, Skeleton, SkeletonList, cn,
 } from '../../components/ui';
 import useSportScope from '../../hooks/useSportScope';
+import TeamSocialsModal from '../../components/admin/TeamSocialsModal';
 
 /**
  * Super Admin / Federation Admin → verification queue for competitors.
@@ -21,6 +22,8 @@ const FILTERS: Array<[string, string]> = [
 ];
 
 const AdminTeamsPage = () => {
+  // The club whose links are being edited; null when the editor is closed.
+  const [linksFor, setLinksFor] = useState<any>(null);
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState('PENDING');
   const scope = useSportScope();
@@ -138,6 +141,12 @@ const AdminTeamsPage = () => {
                     </Td>
                     <Td align="right">
                       <div className="flex items-center justify-end gap-1">
+                        <IconButton
+                          icon={Link2}
+                          size="sm"
+                          label={`Links for ${team.name}`}
+                          onClick={() => setLinksFor(team)}
+                        />
                         {team.status !== 'VERIFIED' && (
                           <IconButton
                             icon={ShieldCheck}
@@ -170,6 +179,8 @@ const AdminTeamsPage = () => {
           </TableWrap>
         )}
       </Panel>
+
+      <TeamSocialsModal team={linksFor} open={!!linksFor} onClose={() => setLinksFor(null)} />
     </div>
   );
 };

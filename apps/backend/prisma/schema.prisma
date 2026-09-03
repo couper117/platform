@@ -322,6 +322,11 @@ model Team {
   email              String?    @db.VarChar(200)
   phone              String?    @db.VarChar(50)
   website            String?    @db.VarChar(300)
+  /// Where a club lives on the rest of the internet: facebook, instagram, x,
+  /// youtube, tickets, store. JSON rather than six columns because a club will ask
+  /// for a seventh (TikTok, a WhatsApp channel) and that should not be a migration.
+  /// The UI renders only the keys it recognises, so an unknown one is inert.
+  socials            Json?
   managerUserId      Int?       @unique
   managerUser        User?      @relation("TeamManager", fields: [managerUserId], references: [id], onDelete: SetNull)
   status             TeamStatus @default(PENDING)
