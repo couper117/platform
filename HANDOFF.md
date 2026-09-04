@@ -1,5 +1,53 @@
 # HANDOFF
 
+## READ THIS FIRST — the deployment at rwasport.vercel.app
+
+Everything below was pushed. `main`, `origin/main` and `origin/Levi` all point at
+`40ca1ed`. If the site still shows old content, the cause is a **Vercel project
+setting**, not the repository — and there is now a way to prove which in seconds.
+
+**Open `view-source:https://rwasport.vercel.app` and find:**
+
+    <meta name="app-build" content="40ca1ed ...">
+
+  · Says `40ca1ed` → Vercel IS serving the latest push. Anything still looking
+    old is a stale service worker in that browser: hard-reload
+    (Ctrl+Shift+R), or DevTools → Application → Service Workers → Unregister.
+    The console also prints `RwaSport build <sha>` on load; if the meta tag and
+    the console disagree, it is definitely the service worker.
+  · Says an OLDER sha → Vercel is deploying something else. Check, in order:
+      1. **Settings → Git → Production Branch.** If it is not `main`, pushes to
+         main only ever make Preview deployments and the production URL never
+         moves. `Levi` has been fast-forwarded to the same commit, so if the
+         project tracks that branch it is now current too.
+      2. **Settings → General → Root Directory.** Must be `apps/frontend`, OR
+         left at the repo root — a root `vercel.json` was added in `369a30c` so
+         both now work. Before that commit, a repo-root setting meant the SPA
+         rewrite was never read, which 404s every deep link (/teams/:id,
+         /players/:id) while the home page works. That matches the reported
+         "the team individual page ain't there".
+      3. **Deployments tab** — is the latest build FAILING? A failed build keeps
+         serving the previous one, which looks exactly like "nothing changed".
+  · No meta tag at all → the deployment predates `40ca1ed` entirely.
+
+**Not the cause, each checked and ruled out:** the SPA rewrite exists in
+`apps/frontend/vercel.json`; the generated service worker already calls
+`skipWaiting()` and `clientsClaim()`; no `.env` and no `dist/` is committed; the
+root `npm run build` really does produce `apps/frontend/dist`; and every commit
+from the `Levi` line (`8becad2`, `485f8be`, `16f0b5f`, `b6d3918`, `5cb9b35`,
+`3e58878`) was verified to be an ancestor of `main` — no work was ever missing
+from main. `origin/Levi` on GitHub was merely stale, which is what made it look
+that way.
+
+**If the app loads but pages are empty**, that is a different fault: `VITE_API_URL`
+is unset on Vercel, so `api/client.ts` and `authStore.ts` both fall back to
+`http://localhost:5000/api/v1` and every request fails. Set it to the deployed
+API, or set `VITE_DEMO=true` to run off the mock data.
+
+**I could not verify any of this from here** — this sandbox reaches `vercel.com`
+but not the deployment's IPs, so the live site was never fetched. The above is
+diagnosis from the repository plus the build output, not a confirmed fix.
+
 ## Current Task
 Put the admin portal's UI on the **match reporter portal**, and think each of a
 reporter's features through properly rather than porting the two screens that
